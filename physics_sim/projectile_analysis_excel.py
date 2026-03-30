@@ -7,41 +7,34 @@ from plotly.subplots import make_subplots
 # 페이지 설정
 st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout="wide")
 
-# CSS를 활용한 엑셀 스타일링
+# CSS를 활용한 엑셀 스타일 및 인쇄 최적화
 st.markdown("""
     <style>
-    .excel-header {
-        background-color: #3b82f6;
-        color: white;
-        padding: 5px;
-        text-align: center;
-        font-weight: bold;
-        border: 1px solid #ddd;
+    .excel-header { background-color: #3b82f6; color: white; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; }
+    .result-header { background-color: #fecaca; color: black; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; }
+    
+    /* 인쇄 시 설정 */
+    @media print {
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
+        .main .block-container { padding: 1rem 1rem !important; }
+        .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
     }
-    .excel-value {
-        background-color: #f3f4f6;
-        padding: 5px;
-        text-align: center;
-        border: 1px solid #ddd;
-    }
-    .result-header {
-        background-color: #fecaca;
-        color: black;
-        padding: 5px;
-        text-align: center;
-        font-weight: bold;
-        border: 1px solid #ddd;
-    }
-    .result-value {
-        background-color: #fee2e2;
-        padding: 5px;
-        text-align: center;
-        border: 1px solid #ddd;
-    }
+    
+    .print-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; }
+    .answer-space { border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px; width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 포물선 운동 정밀 데이터 분석 (Excel 스타일)")
+st.title("📊 포물선 운동 정밀 데이터 분석")
+
+# --- 출력 모전 선택 ---
+is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
+
+if is_print_mode:
+    # 학번/성함 헤더 (출력용)
+    st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
 
 # 탐구 질문 추가
 st.markdown("""
@@ -51,6 +44,13 @@ st.markdown("""
 3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?
 4. 수평 도달 거리 $R$과 최고점 높이 $H$ 사이에는 어떤 정량적 관계가 성립하는가?
 """)
+
+if is_print_mode:
+    # 답변 공간 추가 (출력용)
+    for i in range(1, 5):
+        st.write(f"**[{i}번 답변]**")
+        for _ in range(3): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    st.divider()
 
 # --- 상단 입력부 및 주요 결과값 ---
 col_in1, col_in2, col_res = st.columns([1, 1, 2])
