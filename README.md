@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🏠 물리학습 지원 포털 (Physics Learning Portal)
 
 이 프로젝트는 학생들이 물리학의 핵심 개념을 직관적으로 이해할 수 있도록 돕기 위해 제작된 대화형 시뮬레이션 포털입니다.
@@ -35,3 +36,6 @@ cd physics-course
 
 ---
 제작: 사곡고등학교 물리실
+=======
+# physics-course
+>>>>>>> ebc15deb809d0ceaaba2f04f6eaf58962195c48a
