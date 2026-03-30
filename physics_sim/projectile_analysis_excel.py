@@ -17,22 +17,28 @@ st.markdown("""
     
     /* 인쇄 시 설정 */
     @media print {
+        @page { margin: 10mm; }
         header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
-        .main .block-container { padding: 1rem 1rem !important; }
+        .main .block-container { padding: 0 !important; }
         .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
+        h1 { font-size: 1.5rem !important; } /* 인쇄 시 제목 크기 축소 */
     }
     
-    .print-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; }
+    .print-header { font-size: 1.0rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 8px; }
     .answer-space { border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px; width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
 st.title("📊 포물선 운동 정밀 데이터 분석")
 
-# --- 출력 모전 선택 ---
+# --- 출력 모드 선택 ---
 is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
+    # 실시간 인쇄 버튼 (JS 활용)
+    if st.button("🖨️ 바로 인쇄 / PDF 저장"):
+        st.components.v1.html("<script>window.print()</script>", height=0)
+    
     # 학번/성함 헤더 (출력용)
     st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
 
