@@ -10,6 +10,7 @@ st.markdown("""
     <style>
     @media print {
         @page { margin: 10mm; }
+        .stApp { height: auto !important; overflow: visible !important; }
         header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
         .main .block-container { padding: 0 !important; }
         .stMarkdown, .stPlotlyChart { page-break-inside: avoid; margin-bottom: 0px !important; }
@@ -29,9 +30,9 @@ st.title("🧩 포물선 운동 실전 연습 문제")
 is_print_mode = st.toggle("🖨️ 학습지 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
-    # 실시간 인쇄 버튼 (JS 활용)
+    # 실시간 인쇄 버튼 (JS 활용 - 부모창 제어)
     if st.button("🖨️ 바로 인쇄 / PDF 저장"):
-        st.components.v1.html("<script>window.print()</script>", height=0)
+        st.components.v1.html("<script>parent.window.print()</script>", height=0)
         
     st.markdown('<div class="print-header">📝 포물선 운동 실전 연습 학습지 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
 

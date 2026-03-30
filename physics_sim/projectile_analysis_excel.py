@@ -18,6 +18,7 @@ st.markdown("""
     /* 인쇄 시 설정 */
     @media print {
         @page { margin: 10mm; }
+        .stApp { height: auto !important; overflow: visible !important; }
         header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
         .main .block-container { padding: 0 !important; }
         .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
@@ -35,9 +36,9 @@ st.title("📊 포물선 운동 정밀 데이터 분석")
 is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
-    # 실시간 인쇄 버튼 (JS 활용)
+    # 실시간 인쇄 버튼 (JS 활용 - 부모창 제어)
     if st.button("🖨️ 바로 인쇄 / PDF 저장"):
-        st.components.v1.html("<script>window.print()</script>", height=0)
+        st.components.v1.html("<script>parent.window.print()</script>", height=0)
     
     # 학번/성함 헤더 (출력용)
     st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
