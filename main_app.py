@@ -19,13 +19,14 @@ accel_page = st.Page("physics_sim/projectile_sim.py", title="가속도의 정의
 horizontal_page = st.Page("physics_sim/horizontal_projectile.py", title="수평으로 던진 물체 분석", icon="🏹")
 compare_page = st.Page("physics_sim/projectile_comparison.py", title="수평 속도에 따른 비교", icon="🧪")
 oblique_page = st.Page("physics_sim/oblique_projectile.py", title="비스듬히 던진 물체 분석", icon="🏹")
+excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="포물선 운동 정밀 데이터 분석", icon="📊")
 practice_page = st.Page("physics_sim/projectile_practice.py", title="연습 문제", icon="📝")
 
 # 2. 네비게이션 구성 (섹션별로 그룹화)
 pg = st.navigation({
     "🏠 메인": [home_page],
     "📍 위치와 속도": [vector_page, velocity_page],
-    "🏀 가속도와 포물선 운동": [accel_page, horizontal_page, compare_page, oblique_page, practice_page]
+    "🏀 가속도와 포물선 운동": [accel_page, horizontal_page, compare_page, oblique_page, excel_page, practice_page]
 })
 
 # 공통 사이드바 설정 (예: 학교 로고 등)
