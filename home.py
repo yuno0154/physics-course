@@ -1,4 +1,4 @@
-
+import streamlit as st
 
 st.title("🏠 물리학습 지원 포털")
 st.markdown("""
