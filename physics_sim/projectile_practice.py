@@ -7,111 +7,91 @@ st.set_page_config(layout="centered")
 
 st.title("🧩 포물선 운동 실전 연습 문제")
 st.markdown("""
-본 연습 문제는 개념 원리를 묻는 **서술형 문제**와 수치 계산을 위한 **단계별 문제**로 구성되어 있습니다. 
+본 연습 문제는 개념 원리를 묻는 **서술형 문제**와 학습지 기반 **응용 문제**로 구성되어 있습니다. 
 """)
 
-# --- 벡터 도식 생성 함수 ---
+# --- 벡터 도식 생성 함수군 ---
 def get_diagram_independence(h=30):
     fig = go.Figure()
-    # 지면
     fig.add_shape(type="line", x0=-5, y0=0, x1=50, y1=0, line=dict(color="black", width=2))
-    # 절벽
     fig.add_shape(type="rect", x0=-2, y0=0, x1=0, y1=h, fillcolor="lightgray", line=dict(color="black"))
-    
-    # 공 1 (자유 낙하 - 빨간색)
     fig.add_trace(go.Scatter(x=[0], y=[h], mode='markers', marker=dict(size=14, color='red', line=dict(width=2, color='black')), name="공 A (자유낙하)"))
-    # 공 2 (수평 투사 - 파란색)
     fig.add_trace(go.Scatter(x=[0], y=[h], mode='markers', marker=dict(size=14, color='blue', line=dict(width=2, color='black')), name="공 B (수평투사)"))
-    
-    # 공 B의 수평 속도 벡터
-    fig.add_annotation(x=10, y=h, ax=0, ay=h, xref="x", yref="y", axref="x", ayref="y",
-                       showarrow=True, arrowhead=2, arrowcolor="blue", arrowwidth=3)
-    
-    # 궤적 표시 (점선)
+    fig.add_annotation(x=10, y=h, ax=0, ay=h, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="blue", arrowwidth=3)
     t = np.linspace(0, np.sqrt(2*h/10), 20)
     fig.add_trace(go.Scatter(x=np.zeros_like(t), y=h-0.5*10*t**2, mode='lines', line=dict(color='red', dash='dot'), showlegend=False))
     fig.add_trace(go.Scatter(x=15*t, y=h-0.5*10*t**2, mode='lines', line=dict(color='blue', dash='dot'), showlegend=False))
-
-    fig.update_layout(xaxis=dict(visible=False, range=[-10, 55]), yaxis=dict(visible=False, range=[-5, h+10]),
-                      height=320, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white",
-                      legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    fig.update_layout(xaxis=dict(visible=False, range=[-10, 55]), yaxis=dict(visible=False, range=[-5, h+10]), height=300, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     return fig
 
-def get_diagram_cliff(h=20, v0=10):
+def get_diagram_q3(v0=10, theta_deg=30):
+    theta = np.radians(theta_deg); vx = v0 * np.cos(theta); vy = v0 * np.sin(theta)
     fig = go.Figure()
-    fig.add_shape(type="rect", x0=-2, y0=0, x1=0, y1=h, fillcolor="lightgray", line=dict(color="black"))
-    fig.add_shape(type="line", x0=-5, y0=0, x1=40, y1=0, line=dict(color="black", width=2))
-    fig.add_trace(go.Scatter(x=[0], y=[h], mode='markers', marker=dict(size=14, color='red', line=dict(width=2, color='black')), showlegend=False))
-    fig.add_annotation(x=10, y=h, ax=0, ay=h, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="blue", arrowwidth=4)
-    fig.add_annotation(x=5, y=h+2.5, text=f"<b>v₀ = {v0}m/s</b>", showarrow=False, font=dict(size=16, color="blue"))
-    fig.add_annotation(x=-6, y=h/2, text=f"<b>h = {h}m</b>", showarrow=False, textangle=-90, font=dict(size=16))
-    t = np.linspace(0, 2, 20)
-    fig.add_trace(go.Scatter(x=v0*t, y=h-0.5*10*t**2, mode='lines', line=dict(color='gray', dash='dot'), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-10, 45]), yaxis=dict(visible=False, range=[-5, h+10]), height=320, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white")
+    fig.add_shape(type="line", x0=-5, y0=0, x1=20, y1=0, line=dict(color="black", width=2))
+    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=14, color='skyblue', line=dict(width=2, color='black')), showlegend=False))
+    fig.add_annotation(x=vx*0.8, y=vy*0.8, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="blue", arrowwidth=4)
+    fig.add_annotation(x=vx+2, y=vy+2, text=f"<b>v₀=10m/s, θ=30°</b>", showarrow=False, font=dict(size=14))
+    t_land = 2*vy/10; t = np.linspace(0, t_land, 30); fig.add_trace(go.Scatter(x=vx*t, y=vy*t-0.5*10*t**2, mode='lines', line=dict(color='gray', dash='dot'), showlegend=False))
+    fig.update_layout(xaxis=dict(visible=False, range=[-5, 15]), yaxis=dict(visible=False, range=[-2, 5]), height=280, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
     return fig
 
-def get_diagram_oblique(v0=30, theta_deg=30):
-    theta = np.radians(theta_deg)
+def get_diagram_q5():
     fig = go.Figure()
-    fig.add_shape(type="line", x0=-5, y0=0, x1=100, y1=0, line=dict(color="black", width=2))
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=14, color='orange', line=dict(width=2, color='black')), showlegend=False))
-    vx = v0 * np.cos(theta); vy = v0 * np.sin(theta)
-    fig.add_annotation(x=vx*0.6, y=vy*0.6, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="darkorange", arrowwidth=4)
-    fig.add_annotation(x=vx*0.6 + 8, y=vy*0.6 + 5, text=f"<b>v₀ = {v0}m/s</b>", showarrow=False, font=dict(size=16, color="darkorange"))
-    fig.add_annotation(x=12, y=3, text=f"<b>θ = {theta_deg}°</b>", showarrow=False, font=dict(size=15))
-    t_land = 2 * vy / 10; t = np.linspace(0, t_land, 30)
-    fig.add_trace(go.Scatter(x=vx*t, y=vy*t-0.5*10*t**2, mode='lines', line=dict(color='gray', dash='dot'), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-10, 100]), yaxis=dict(visible=False, range=[-5, 30]), height=320, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white")
+    fig.add_shape(type="line", x0=-5, y0=0, x1=30, y1=0, line=dict(color="black", width=2))
+    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=12, color='orange'), showlegend=False))
+    # 0s to 1s path
+    t = np.linspace(0, 1, 10); vx=5; v_y0=30; g=9.8; x=vx*t; y=v_y0*t-0.5*g*t**2
+    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='orange', width=2), showlegend=False))
+    fig.add_annotation(x=vx*1+3, y=y[-1], text="<b>1초 (25m)</b>", showarrow=False, font=dict(size=14))
+    fig.add_shape(type="line", x0=vx*1, y0=0, x1=vx*1, y1=y[-1], line=dict(color="blue", dash="dash"))
+    fig.update_layout(xaxis=dict(visible=False, range=[-5, 30]), yaxis=dict(visible=False, range=[-5, 50]), height=280, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
     return fig
 
-# --- [서술형 문제] ---
+# --- [서술형 문제 1] ---
 st.divider()
-st.subheader("🖋️ [서술형 핵심 문제] 운동의 독립성")
+st.subheader("🖋️ [서술형] 운동의 독립성 이해")
 st.plotly_chart(get_diagram_independence(), use_container_width=True, config={'staticPlot': True})
+st.markdown("동일한 높이에서 공 A(자유낙하)와 공 B(수평투사)를 동시에 발사했습니다. 왜 동시에 지면에 도달하는지 설명하시오.")
+with st.expander("🔍 모범 답안 보기"):
+    st.info("수평과 연직 방향의 운동은 서로 **독립적**이며, 연직 방향으로는 공의 종류와 상관없이 동일한 **중력**만 작용하여 연직 가속도가 같기 때문입니다.")
 
+# --- [연습 문제 3] ---
+st.divider()
+st.subheader("📝 [문제 3] 비스듬히 던진 물체의 정밀 분석")
+st.plotly_chart(get_diagram_q3(), use_container_width=True, config={'staticPlot': True})
+st.markdown("처음 속도 **10m/s**, 각도 **30도**로 던졌습니다. ($g=10m/s^2$) 아래 질문에 답하세요.")
+ans3_t = st.text_input("1) 최고점 도달 시간(s)은?", key="q3_1")
+ans3_h = st.text_input("2) 최고점의 높이(m)는?", key="q3_2")
+if st.button("결과 확인", key="b3"):
+    st.success(f"**[정답 및 풀이]**\n- 시간: $v_{{y0}}/g = (10 \sin 30^\circ)/10 = 0.5$초\n- 높이: $v_{{y0}}^2/2g = 5^2/20 = 1.25$m")
+
+# --- [연습 문제 4] ---
+st.divider()
+st.subheader("📝 [문제 4] 수평 속도의 역추적")
 st.markdown("""
-높이가 동일한 곳에서 **공 A는 자유 낙하**시키고, **공 B는 수평 방향**으로 던졌습니다.
-두 공의 수평 속도가 다름에도 불구하고 왜 **동시에** 지면에 도달하는지, 각 방향(수평, 연직)의 힘과 가속도 관점에서 서술하시오.
+물체를 비스듬히 던져 올렸더니 **4초 후** 수평으로 **39.2m** 떨어진 곳에 도달했습니다. 
+처음 발사 속도의 **수평 방향 성분**은 몇 m/s인가요? ($g=9.8m/s^2$)
 """)
+ans4 = st.text_input("수평 속도(m/s) 입력", key="q4")
+if st.button("결과 확인", key="b4"):
+    st.success("**[정답] 9.8 m/s** (수평 방향은 등속 운동이므로 $v_x = x/t = 39.2/4 = 9.8$ m/s)")
 
-user_answer = st.text_area("여기에 답안을 작성하세요 (250자 내외)", placeholder="예: 수평 방향은 힘이 작용하지 않아.. 연직 방향은 중력에 의해..")
-
-if st.button("🔍 모범 답안 보기"):
+# --- [연습 문제 5] ---
+st.divider()
+st.subheader("🔥 [심화 문제 5] 최고점 도달 시간 추론")
+st.plotly_chart(get_diagram_q5(), use_container_width=True, config={'staticPlot': True})
+st.markdown("""
+비스듬히 던진 야구공이 **0초부터 1초까지** 연직 방향으로 이동한 거리(변위)가 **25m**입니다. 
+이 공이 **최고점에 도달할 때까지** 걸리는 시간은 약 몇 초인가요? ($g=9.8m/s^2$)
+""")
+ans5 = st.text_input("최고점 시간(초) 입력", key="q5")
+if st.button("결과 확인", key="b5"):
     st.success("""
-    **[모범 답안]**
-    수평 방향으로는 힘이 작용하지 않아 **등속 직선 운동**을 하고, 연직 방향으로는 오직 **중력**만 작용하여 **등가속도 운동(자유 낙하)**을 합니다. 
-    두 방향의 운동은 서로 **독립적**이므로, 수평 속도와 상관없이 연직 방향으로 작용하는 중력 가속도가 동일하기 때문에 두 공은 같은 시간 동안 같은 높이를 이동하여 지면에 동시에 도달합니다.
+    **[정답 및 풀이] 약 3.05초**
+    1. $y = v_{y0}t - 1/2gt^2$ 공식에 대입: $25 = v_{y0}(1) - 4.9(1)^2$
+    2. 연직 초기 속도 $v_{y0} = 29.9$ m/s 도출
+    3. 최고점 시간 $t_H = v_{y0}/g = 29.9 / 9.8 \approx 3.05$초
     """)
 
-# --- 문제 1: 수평 투사 ---
 st.divider()
-st.subheader("📝 [문제 1] 수평 던지기 분석")
-st.plotly_chart(get_diagram_cliff(), use_container_width=True, config={'staticPlot': True})
-st.markdown("높이 **20m**인 절벽에서 공을 수평 방향으로 **10m/s**로 던졌습니다. ($g=10m/s^2$)")
-
-q1_1 = st.radio("**(1) 지면에 도달할 때까지 걸리는 시간은?**", ["1초", "2초", "3초"], index=None, key="p1_1")
-if q1_1 == "2초": st.success("✅ 정답 (h=1/2gt² → 20=5t², t=2s)")
-
-q1_2 = st.radio("**(2) 던진 지 1초 후 속도의 크기(m/s)는?**", ["10", "10√2", "20"], index=None, key="p1_2")
-if q1_2 == "10√2": st.success("✅ 정답 (vx=10, vy=gt=10이므로 v = √(10²+10²) = 10√2 m/s)")
-
-q1_3 = st.radio("**(3) 수평 도달 거리(m)는?**", ["10m", "20m", "40m"], index=None, key="p1_3")
-if q1_3 == "20m": st.success("✅ 정답 (x = vx * t_land = 10 * 2 = 20m)")
-
-# --- 문제 2: 비스듬한 투사 ---
-st.divider()
-st.subheader("📝 [문제 2] 비스듬히 던지기 분석")
-st.plotly_chart(get_diagram_oblique(), use_container_width=True, config={'staticPlot': True})
-st.markdown("지면에서 **30m/s**의 속도로 **30도** 각도로 던졌습니다. ($\sin 30^\circ=0.5, \cos 30^\circ=0.87, g=10m/s^2$)")
-
-q2_1 = st.radio("**(1) 최고점 도달 시간(초)은?**", ["1초", "1.5초", "3초"], index=None, key="p2_1")
-if q2_1 == "1.5초": st.success("✅ 정답 (vy0 = 15, t = vy0/g = 1.5s)")
-
-q2_2 = st.radio("**(2) 던진 지 1초 후 속도의 크기(m/s)는?**", ["약 26.5m/s", "10m/s", "30m/s"], index=None, key="p2_2")
-if q2_2 == "약 26.5m/s": st.success("✅ 정답 (vx=26, vy=15-10=5 이므로 v = √(26²+5²) ≈ 26.5m/s)")
-
-q2_3 = st.radio("**(3) 최고점의 높이(m)는?**", ["11.25m", "15.0m", "22.5m"], index=None, key="p2_3")
-if q2_3 == "11.25m": st.success("✅ 정답 (H = vy²/2g = 15²/(2*10) = 11.25m)")
-
-q2_4 = st.radio("**(4) 수평 도달 거리(m)는?**", ["40m", "78m", "90m"], index=None, key="p2_4")
-if q2_4 == "78m": st.success("✅ 정답 (x = vx * t_total = 26 * 3 = 78m)")
+st.info("💡 모든 도표는 벡터로 직접 그려졌습니다. 문제를 풀며 상황을 머릿속으로 그려보세요!")
