@@ -9,21 +9,30 @@ st.set_page_config(layout="centered")
 st.markdown("""
     <style>
     @media print {
+        @page { margin: 10mm; }
         header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
-        .main .block-container { padding: 1rem 1rem !important; }
-        .stMarkdown, .stPlotlyChart { page-break-inside: avoid; }
+        .main .block-container { padding: 0 !important; }
+        .stMarkdown, .stPlotlyChart { page-break-inside: avoid; margin-bottom: 0px !important; }
+        h1 { font-size: 1.3rem !important; margin-bottom: 10px !important; }
+        h3 { font-size: 1.0rem !important; margin-top: 5px !important; margin-bottom: 5px !important; }
+        p, li { font-size: 0.9rem !important; line-height: 1.2 !important; }
+        .stDivider { margin-top: 5px !important; margin-bottom: 5px !important; }
     }
-    .print-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px; }
-    .answer-space { border-bottom: 1px solid #ccc; height: 35px; margin-bottom: 10px; width: 100%; }
+    .print-header { font-size: 0.9rem; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid black; padding-bottom: 5px; }
+    .answer-space { border-bottom: 1px solid #ccc; height: 25px; margin-bottom: 5px; width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
 st.title("🧩 포물선 운동 실전 연습 문제")
 
-# --- 출력 모전 선택 ---
+# --- 출력 모드 선택 ---
 is_print_mode = st.toggle("🖨️ 학습지 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
+    # 실시간 인쇄 버튼 (JS 활용)
+    if st.button("🖨️ 바로 인쇄 / PDF 저장"):
+        st.components.v1.html("<script>window.print()</script>", height=0)
+        
     st.markdown('<div class="print-header">📝 포물선 운동 실전 연습 학습지 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
 
 st.markdown("""
@@ -41,7 +50,7 @@ def get_diagram_independence(h=30):
     t = np.linspace(0, np.sqrt(2*h/10), 20)
     fig.add_trace(go.Scatter(x=np.zeros_like(t), y=h-0.5*10*t**2, mode='lines', line=dict(color='red', dash='dot'), showlegend=False))
     fig.add_trace(go.Scatter(x=15*t, y=h-0.5*10*t**2, mode='lines', line=dict(color='blue', dash='dot'), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-10, 55]), yaxis=dict(visible=False, range=[-5, h+10]), height=300, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+    fig.update_layout(xaxis=dict(visible=False, range=[-10, 55]), yaxis=dict(visible=False, range=[-5, h+10]), height=180, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
     return fig
 
 def get_diagram_q3(v0=10, theta_deg=30):
@@ -52,7 +61,7 @@ def get_diagram_q3(v0=10, theta_deg=30):
     fig.add_annotation(x=vx*0.8, y=vy*0.8, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="blue", arrowwidth=4)
     fig.add_annotation(x=vx+2, y=vy+2, text=f"<b>v₀=10m/s, θ=30°</b>", showarrow=False, font=dict(size=14))
     t_land = 2*vy/10; t = np.linspace(0, t_land, 30); fig.add_trace(go.Scatter(x=vx*t, y=vy*t-0.5*10*t**2, mode='lines', line=dict(color='gray', dash='dot'), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-5, 15]), yaxis=dict(visible=False, range=[-2, 5]), height=280, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
+    fig.update_layout(xaxis=dict(visible=False, range=[-5, 15]), yaxis=dict(visible=False, range=[-2, 5]), height=180, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
     return fig
 
 def get_diagram_q5():
@@ -64,7 +73,7 @@ def get_diagram_q5():
     fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='orange', width=2), showlegend=False))
     fig.add_annotation(x=vx*1+3, y=y[-1], text="<b>1초 (25m)</b>", showarrow=False, font=dict(size=14))
     fig.add_shape(type="line", x0=vx*1, y0=0, x1=vx*1, y1=y[-1], line=dict(color="blue", dash="dash"))
-    fig.update_layout(xaxis=dict(visible=False, range=[-5, 30]), yaxis=dict(visible=False, range=[-5, 50]), height=280, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
+    fig.update_layout(xaxis=dict(visible=False, range=[-5, 30]), yaxis=dict(visible=False, range=[-5, 50]), height=180, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
     return fig
 
 # --- [서술형 문제 1] ---
@@ -74,7 +83,7 @@ st.plotly_chart(get_diagram_independence(), use_container_width=True, config={'s
 st.markdown("동일한 높이에서 공 A(자유낙하)와 공 B(수평투사)를 동시에 발사했습니다. 왜 동시에 지면에 도달하는지 설명하시오.")
 
 if is_print_mode:
-    for _ in range(4): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    for _ in range(2): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
 else:
     with st.expander("🔍 모범 답안 보기"):
         st.info("수평과 연직 방향의 운동은 서로 **독립적**이며, 연직 방향으로는 공의 종류와 상관없이 동일한 **중력**만 작용하여 연직 가속도가 같기 때문입니다.")
@@ -88,7 +97,7 @@ st.markdown("처음 속도 **10m/s**, 각도 **30도**로 던졌습니다. ($g=1
 if is_print_mode:
     st.markdown("1) 최고점 도달 시간(s)은? ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )")
     st.markdown("2) 최고점의 높이(m)는? ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )")
-    for _ in range(3): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
 else:
     ans3_t = st.text_input("1) 최고점 도달 시간(s)은?", key="q3_1")
     ans3_h = st.text_input("2) 최고점의 높이(m)는?", key="q3_2")
@@ -105,7 +114,7 @@ st.markdown("""
 
 if is_print_mode:
     st.markdown("정답 및 풀이 과정:")
-    for _ in range(4): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    for _ in range(2): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
 else:
     ans4 = st.text_input("수평 속도(m/s) 입력", key="q4")
     if st.button("결과 확인", key="b4"):
@@ -122,7 +131,7 @@ st.markdown("""
 
 if is_print_mode:
     st.markdown("정답 및 풀이 과정:")
-    for _ in range(5): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    for _ in range(2): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
 else:
     ans5 = st.text_input("최고점 시간(초) 입력", key="q5")
     if st.button("결과 확인", key="b5"):
