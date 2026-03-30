@@ -1,0 +1,15 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+out.log
+test_py.py
+test_write.txt
+.vscode/
+.idea/
+.streamlit/config.toml
+admin_tools/
