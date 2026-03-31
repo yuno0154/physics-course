@@ -16,7 +16,7 @@ with st.sidebar:
     st.header("⚙️ 실험 조건 설정")
     h0 = st.slider("초기 높이 h (m)", 10.0, 100.0, 50.0, 5.0)
     v0 = st.slider("수평 초기 속도 v₀ (m/s)", 5.0, 40.0, 20.0, 1.0)
-    g = 9.8
+    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     st.divider()
     dt_strobe = st.select_slider("📸 섬광 간격 Δt (s)", options=[0.1, 0.2, 0.5, 1.0], value=0.5)
     st.info("💡 팁: 그래프 위 Play/Pause 버튼으로 제어하세요.")
