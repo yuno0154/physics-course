@@ -67,7 +67,7 @@ with col_in1:
     v0 = st.number_input("초기 속도 (v₀, m/s)", min_value=1.0, max_value=100.0, value=40.0, step=1.0)
 
 theta = np.radians(theta_deg)
-g = 9.8
+g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
 
 # 물리량 계산
 vx0 = v0 * np.cos(theta)

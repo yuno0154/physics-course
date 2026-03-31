@@ -17,7 +17,7 @@ with st.sidebar:
     v0 = st.slider("초기 속도 v₀ (m/s)", 5.0, 20.0, 12.0, 0.5)
     theta_deg = st.slider("발사 각도 θ (도)", 15, 75, 45, 5)
     theta = np.radians(theta_deg)
-    g = 9.8  # 중력 가속도
+    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     
     st.markdown("---")
     st.subheader("⏱️ 분석 시각 설정")
@@ -142,10 +142,10 @@ if dt > 0:
            - $\\Delta v_x = v_{{Bx}} - v_{{Ax}} = 0$
            - $\\Delta v_y = v_{{By}} - v_{{Ay}} = -g \\cdot \\Delta t$
         
-        따라서 평균 가속도는 다음과 같이 항상 연직 아래 방향의 중력 가속도 $-9.8 m/s^2$이 됩니다.
-        """)
+        따라서 평균 가속도는 다음과 같이 항상 연직 아래 방향의 중력 가속도 $-%.1f m/s^2$이 됩니다.
+        """ % g)
         # 가속도 계산 수식 (f-string 에러 방지를 위해 % 포맷팅 사용)
-        accel_formula = r"\vec{a}_{avg} = \frac{\Delta\vec{v}}{\Delta t} = \frac{(0, %.2f)}{%.1f} = (0, -9.8) \text{ m/s}^2" % (-g*dt, dt)
+        accel_formula = r"\vec{a}_{avg} = \frac{\Delta\vec{v}}{\Delta t} = \frac{(0, %.2f)}{%.1f} = (0, -%.1f) \text{ m/s}^2" % (-g*dt, dt, g)
         st.latex(accel_formula)
         st.success("✨ 탐구 결론: 포물선 운동을 하는 물체의 가속도 방향은 항상 **연직 아래 방향(중력 방향)**입니다!")
 else:

@@ -17,7 +17,7 @@ with st.sidebar:
     v0 = st.slider("초기 속도 v₀ (m/s)", 5.0, 50.0, 20.0, 1.0)
     theta_deg = st.slider("발사 각도 θ (도)", 10, 85, 45, 1)
     theta = np.radians(theta_deg)
-    g = 9.8
+    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
 
 # --- 물리 정보 계산 ---
