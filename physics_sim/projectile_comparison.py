@@ -15,6 +15,10 @@ st.markdown("""
 # --- 사이드바: 속도 및 높이 설정 ---
 with st.sidebar:
     st.header("⚙️ 시뮬레이션 설정")
+    v1 = st.slider("물체 1 (Red) 속도 (m/s)", 0, 30, 0)
+    v2 = st.slider("물체 2 (Green) 속도 (m/s)", 0, 30, 10)
+    v3 = st.slider("물체 3 (Blue) 속도 (m/s)", 0, 30, 20)
+    h = st.slider("초기 높이 (m)", 10, 100, 50)
     g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
     st.info("💡 팁: 그래프 하단의 Play 버튼을 누르세요!")
 
