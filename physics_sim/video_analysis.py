@@ -56,24 +56,39 @@ st.divider()
 
 # --- 탐구 결과 1: 데이터 및 그래프 ---
 st.subheader("📊 탐구 결과 1: 데이터 및 그래프 기록")
-st.write("운동 분석 프로그램에서 생성된 데이터 표와 그래프를 다운로드하거나 캡처하여 아래에 업로드하세요.")
+st.write("동영상 분석 프로그램에서 추출한 데이터 표와 5가지 종류의 그래프를 각각 캡처하여 업로드하세요.")
 
-col_img1, col_img2 = st.columns(2)
-with col_img1:
-    st.markdown("##### 📋 분석 데이터 표")
-    data_img = st.file_uploader("이미지 파일 선택 (데이터 표)", type=['png', 'jpg', 'jpeg'], key="data_img")
-    if data_img:
-        st.image(data_img, use_container_width=True)
-    else:
-        st.info("실습 프로그램에서 캡처한 데이터 표를 업로드하세요.")
+# 1. 데이터 표 업로드
+st.markdown("#### 📋 1. 분석 데이터 표 기록")
+data_img = st.file_uploader("데이터 표 이미지 업로드 (CSV/Table)", type=['png', 'jpg', 'jpeg'], key="data_img")
+if data_img:
+    st.image(data_img, use_container_width=True, caption="[기록] 분석 데이터 표")
+else:
+    st.info("실습 프로그램에서 캡처한 데이터 표 이미지를 올려주세요.")
 
-with col_img2:
-    st.markdown("##### 📈 분석 그래프")
-    graph_img = st.file_uploader("이미지 파일 선택 (그래프)", type=['png', 'jpg', 'jpeg'], key="graph_img")
-    if graph_img:
-        st.image(graph_img, use_container_width=True)
-    else:
-        st.info("실습 프로그램에서 캡처한 그래프를 업로드하세요.")
+st.divider()
+
+# 2. 5가지 그래프 순차 업로드
+st.markdown("#### 📈 2. 분석 그래프 기록 (5종)")
+st.caption("인쇄 보고서에 모든 그래프가 포함되도록 순서대로 업로드해 주세요.")
+
+graph_types = [
+    ("track", "① 운동 궤적 (Position Track)"),
+    ("xt", "② 시간-수평 위치 (x-t) 그래프"),
+    ("yt", "③ 시간-연직 위치 (y-t) 그래프"),
+    ("vxt", "④ 시간-수평 속도 (vx-t) 그래프"),
+    ("vyt", "⑤ 시간-연직 속도 (vy-t) 및 가속도 그래프")
+]
+
+for key, label in graph_types:
+    with st.container():
+        st.write(f"**{label}**")
+        g_img = st.file_uploader(f"{label} 이미지 선택", type=['png', 'jpg', 'jpeg'], key=f"g_img_{key}", label_visibility="collapsed")
+        if g_img:
+            st.image(g_img, use_container_width=True, caption=label)
+        else:
+            st.info(f"{label} 이미지를 업로드해 주세요.")
+        st.write("") # 간격 조절
 
 st.divider()
 
