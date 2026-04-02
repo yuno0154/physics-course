@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 # 페이지 설정
-# st.set_page_config(page_title="포물선 운동 영상 분석 실습", layout="wide") # main_app에서 설정됨
+# st.set_page_config(page_title="수행평가 1-1: 포물선 운동 영상 분석 및 데이터 해석", layout="wide") # main_app에서 설정됨
 
 # CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
@@ -44,7 +44,7 @@ st.markdown("""
 # 상단 인쇄 버튼 및 제목
 col_title, col_print = st.columns([4, 1])
 with col_title:
-    st.title("📹 [포물선 운동 영상 분석 실습] 보고서")
+    st.title("📹 [수행평가 1-1] 포물선 운동 영상 분석 및 데이터 해석")
 with col_print:
     if st.button("🖨️ 보고서 인쇄 / PDF 저장", key="print_btn"):
         st.components.v1.html("<script>parent.window.print()</script>", height=0)
@@ -152,6 +152,28 @@ a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의
 
 st.markdown("#### 라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?")
 a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed")
+
+# --- 추가 질문 마, 바 ---
+st.markdown("#### 마. 다음 표에 최고점 도달 시간, 최고점의 높이, 수평 도달 거리를 기록하시오.")
+m_cols = st.columns(3)
+m_labels = ["최고점의 도달 시간(s)", "최고점의 높이(h)", "수평도달 거리(m)"]
+for i, label in enumerate(m_labels):
+    with m_cols[i]:
+        st.markdown(f"<div style='background-color:#fce4d6; padding:5px; text-align:center; font-weight:bold; border:1px solid #000; font-size:12pt; color:black;'>{label}</div>", unsafe_allow_html=True)
+        st.text_input(label, label_visibility="collapsed", key=f"m_input_{i}")
+
+st.write("") # 간격
+
+st.markdown("#### 바. 엑셀 파일에서 최고점 도달 시간관을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
+st.write("**[이론값]**")
+b_cols = st.columns(3)
+for i, label in enumerate(m_labels):
+    with b_cols[i]:
+        st.markdown(f"<div style='background-color:#fce4d6; padding:5px; text-align:center; font-weight:bold; border:1px solid #000; font-size:12pt; color:black;'>{label}</div>", unsafe_allow_html=True)
+        st.text_input(label + " (이론)", label_visibility="collapsed", key=f"b_theory_{i}")
+
+st.write("**[추론 및 결과 비교 기록]**")
+a5 = st.text_area("결과 비교 및 추론", placeholder="이론값과 실제값의 차이가 발생하는 원인(공기 저항 등)을 물리적 원리와 함께 추론하여 적어주세요.", height=150, label_visibility="collapsed")
 
 st.divider()
 st.caption("사곡고등학교 물리학 II 시뮬레이션 및 실습 지원 포털 | 본 보고서는 작성 후 상단 인쇄 버튼을 통해 PDF로 저장할 수 있습니다.")
