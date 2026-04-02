@@ -49,8 +49,26 @@ pg = st.navigation({
     "📑 [수행평가] 기록 및 제출": [video_analysis_eval_page]
 })
 
-# 공통 사이드바 설정 (예: 학교 로고 등)
-st.sidebar.text("사곡고등학교 물리실")
+# 공통 사이드바 설정 (디자인 카드 푸터)
+st.sidebar.markdown("---")
+st.sidebar.markdown("""
+    <div style="
+        background-color: #f8fafc; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 12px; 
+        padding: 16px; 
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    ">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">⚛️</div>
+        <div style="font-weight: 700; color: #1e293b; font-size: 0.95rem; margin-bottom: 2px;">
+            사곡고등학교 물리실
+        </div>
+        <div style="color: #64748b; font-size: 0.75rem; font-weight: 500;">
+            by 수석교사 최연호
+        </div>
+    </div>
+""", unsafe_allow_html=True)
 
 # 3. 실행
 pg.run()
