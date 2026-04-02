@@ -11,11 +11,26 @@ st.markdown("""
 하단의 **Play/Pause** 버튼을 사용하여 운동 과정을 멈추어가며 관찰해 보세요!
 """)
 
+# --- 사이드바 전용 스타일 설정 ---
+st.sidebar.markdown("""
+    <style>
+    /* 사이드바 폰트 크기 조정 (메뉴와 일관성 유지) */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stButton,
+    [data-testid="stSidebar"] .stNumberInput {
+        font-size: 11pt !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- 사이드바: 발사 조건 설정 ---
 with st.sidebar:
     st.header("🚀 발사 조건 설정")
-    v0 = st.slider("초기 속도 v₀ (m/s)", 5.0, 50.0, 20.0, 1.0)
-    theta_deg = st.slider("발사 각도 θ (도)", 10, 85, 45, 1)
+    # 슬라이드 대신 입력 방식 사용 및 범위 명시
+    v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
+    theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
+
     theta = np.radians(theta_deg)
     g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
