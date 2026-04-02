@@ -70,5 +70,15 @@ st.sidebar.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# 상단 공통 브랜딩 헤더
+st.markdown("""
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+        <span style="font-size: 1.2rem;">⚛️</span>
+        <span style="font-size: 0.9rem; font-weight: 600; color: #64748b; letter-spacing: -0.025em;">
+            사곡고등학교 물리실
+        </span>
+    </div>
+""", unsafe_allow_html=True)
+
 # 3. 실행
 pg.run()
