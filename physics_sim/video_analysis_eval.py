@@ -33,7 +33,7 @@ st.markdown("""
     }
 
     @media print {
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stExpander"] { display: none !important; }
         .main .block-container { padding: 0 !important; }
         .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
     }
@@ -164,7 +164,7 @@ for i, label in enumerate(m_labels):
 
 st.write("") # 간격
 
-st.markdown("#### 바. 엑셀 파일에서 최고점 도달 시간관을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
+st.markdown("#### 바. [포물선 운동 정밀 데이터 분석]에서 최고점 도달 시간을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
 st.write("**[이론값]**")
 b_cols = st.columns(3)
 for i, label in enumerate(m_labels):
@@ -174,6 +174,14 @@ for i, label in enumerate(m_labels):
 
 st.write("**[추론 및 결과 비교 기록]**")
 a5 = st.text_area("결과 비교 및 추론", placeholder="이론값과 실제값의 차이가 발생하는 원인(공기 저항 등)을 물리적 원리와 함께 추론하여 적어주세요.", height=150, label_visibility="collapsed")
+
+# --- 과제 제출 안내 (인쇄 제외) ---
+with st.expander("📤 과제 제출 방법 안내 (인쇄 시 출력되지 않음)", expanded=True):
+    st.markdown("""
+    1. 작성한 결과물을 상단 **'🖨️ 보고서 인쇄 / PDF 저장'** 버튼을 눌러 PDF로 저장하세요.
+    2. 파일명을 **'이름.pdf'** 또는 **'이름_이름.pdf'**로 저장하세요. (예: 홍길동_김영철.pdf)
+    3. 저장한 파일을 **TEAMS 과제** 탭에 업로드하여 제출하세요.
+    """)
 
 st.divider()
 st.caption("사곡고등학교 물리학 II 시뮬레이션 및 실습 지원 포털 | 본 보고서는 작성 후 상단 인쇄 버튼을 통해 PDF로 저장할 수 있습니다.")
