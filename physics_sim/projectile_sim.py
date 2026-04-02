@@ -11,18 +11,33 @@ st.markdown("""
 **중력 가속도의 방향**을 시각적으로 학습하기 위해 제작되었습니다.
 """)
 
+# --- 사이드바 전용 스타일 설정 ---
+st.sidebar.markdown("""
+    <style>
+    /* 사이드바 폰트 크기 조정 (메뉴와 일관성 유지) */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stButton,
+    [data-testid="stSidebar"] .stNumberInput {
+        font-size: 11pt !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # --- 사이드바: 초기 조건 및 시각 설정 ---
 with st.sidebar:
     st.header("⚙️ 발사 조건 설정")
-    v0 = st.slider("초기 속도 v₀ (m/s)", 5.0, 20.0, 12.0, 0.5)
-    theta_deg = st.slider("발사 각도 θ (도)", 15, 75, 45, 5)
+    # 슬라이드 대신 입력 방식 사용 및 범위 명시
+    v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~20.0]", min_value=5.0, max_value=20.0, value=12.0, step=0.5)
+    theta_deg = st.number_input("발사 각도 θ (도) [15~75]", min_value=15, max_value=75, value=45, step=1)
     theta = np.radians(theta_deg)
     g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     
     st.markdown("---")
     st.subheader("⏱️ 분석 시각 설정")
-    t1 = st.slider("처음 시각 t₁ (s)", 0.0, 2.0, 0.4, 0.1)
-    t2 = st.slider("나중 시각 t₂ (s)", 0.1, 3.0, 1.2, 0.1)
+    t1 = st.number_input("처음 시각 t₁ (s) [0.0~2.0]", min_value=0.0, max_value=2.0, value=0.4, step=0.1)
+    t2 = st.number_input("나중 시각 t₂ (s) [0.1~3.0]", min_value=0.1, max_value=3.0, value=1.2, step=0.1)
     
     if t1 >= t2:
         st.error("나중 시각 t₂는 t₁보다 커야 합니다!")

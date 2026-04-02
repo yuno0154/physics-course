@@ -11,13 +11,30 @@ st.markdown("""
 하단의 **Play/Pause** 버튼을 사용하여 자유 낙하 성분과 수평 성분의 차이를 관찰해 보세요!
 """)
 
+# --- 사이드바 전용 스타일 설정 ---
+st.sidebar.markdown("""
+    <style>
+    /* 사이드바 폰트 크기 조정 (메뉴와 일관성 유지) */
+    [data-testid="stSidebar"] .stMarkdown, 
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stButton,
+    [data-testid="stSidebar"] .stNumberInput {
+        font-size: 11pt !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # --- 사이드바: 입력 파라미터 ---
 with st.sidebar:
     st.header("⚙️ 실험 조건 설정")
-    h0 = st.slider("초기 높이 h (m)", 10.0, 100.0, 50.0, 5.0)
-    v0 = st.slider("수평 초기 속도 v₀ (m/s)", 5.0, 40.0, 20.0, 1.0)
+    # 슬라이드 대신 입력 방식 사용 및 범위 명시
+    h0 = st.number_input("초기 높이 h (m) [10.0~100.0]", min_value=10.0, max_value=100.0, value=50.0, step=5.0)
+    v0 = st.number_input("수평 초기 속도 v₀ (m/s) [5.0~40.0]", min_value=5.0, max_value=40.0, value=20.0, step=1.0)
     g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     st.divider()
+    # 섬광 간격은 기존의 select_slider를 유지하거나 선택형으로 유지 가능하나, 일관성을 위해 number_input 고려 가능
+    # 여기서는 섬광 간격의 특성상 리스트 선택이 나을 수 있으므로 기존 유지
     dt_strobe = st.select_slider("📸 섬광 간격 Δt (s)", options=[0.1, 0.2, 0.5, 1.0], value=0.5)
     st.info("💡 팁: 그래프 위 Play/Pause 버튼으로 제어하세요.")
 
