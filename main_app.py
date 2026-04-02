@@ -8,28 +8,45 @@ st.set_page_config(
 )
 
 # 1. 페이지 정의
-home_page = st.Page("home.py", title="홈", icon="🏠", default=True)
+home_page = st.Page("home.py", title="🏠 홈 (Home)", default=True)
 
-# 1. 위치와 속도 섹션
-vector_page = st.Page("physics_sim/vector_sim.py", title="위치 벡터와 변위", icon="📍")
-velocity_page = st.Page("physics_sim/velocity_sim.py", title="평균 속도 탐구", icon="🚀")
+# 1. 위치와 속도 섹션 (트리 구조)
+vector_page = st.Page("physics_sim/vector_sim.py", title="\u00A0\u00A0\u00A0\u00A0└ 📍 위치 벡터와 변위", icon=" ")
+velocity_page = st.Page("physics_sim/velocity_sim.py", title="\u00A0\u00A0\u00A0\u00A0└ 🚀 평균 속도 탐구", icon=" ")
 
-# 2. 가속도와 포물선 운동 섹션
-accel_page = st.Page("physics_sim/projectile_sim.py", title="가속도의 정의와 방향", icon="🏀")
-horizontal_page = st.Page("physics_sim/horizontal_projectile.py", title="수평으로 던진 물체 분석", icon="🏹")
-compare_page = st.Page("physics_sim/projectile_comparison.py", title="수평 속도에 따른 비교", icon="🧪")
-oblique_page = st.Page("physics_sim/oblique_projectile.py", title="비스듬히 던진 물체 분석", icon="🏹")
-excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="포물선 운동 정밀 데이터 분석", icon="📊")
-practice_page = st.Page("physics_sim/projectile_practice.py", title="연습 문제", icon="📝")
-video_analysis_page = st.Page("physics_sim/video_analysis.py", title="포물선 운동 영상 분석 실습", icon="📹")
-video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="[수행평가 1-1] 영상 분석 및 데이터 해석", icon="📑")
+# 2. 가속도와 포물선 운동 섹션 (3단계 트리 구조)
+# --- 기초 이론 ---
+accel_page = st.Page("physics_sim/projectile_sim.py", title="├─ 📘 기초: 가속도의 정의", icon=" ")
 
-# 2. 네비게이션 구성 (섹션별로 그룹화)
+# --- 시뮬레이션 실습 ---
+horizontal_page = st.Page("physics_sim/horizontal_projectile.py", title="├─ 🏹 [분석1] 수평 투사", icon=" ")
+compare_page = st.Page("physics_sim/projectile_comparison.py", title="\u00A0\u00A0\u00A0\u00A0└ 🧪 수평 속도 비교", icon=" ")
+oblique_page = st.Page("physics_sim/oblique_projectile.py", title="├─ 🏹 [분석2] 사방 투사", icon=" ")
+
+# --- 데이터 통합 분석 ---
+excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="├─ 📊 정밀 데이터 분석", icon=" ")
+video_analysis_page = st.Page("physics_sim/video_analysis.py", title="\u00A0\u00A0\u00A0\u00A0└ 📹 영상 분석 보고서", icon=" ")
+
+# --- 마무리 ---
+practice_page = st.Page("physics_sim/projectile_practice.py", title="└─ 📝 확인: 연습 문제", icon=" ")
+
+# 3. 수행평가 섹션
+video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="\u00A0\u00A0\u00A0\u00A0└ 📑 [수행평가 1-1] 제출", icon=" ")
+
+# 2. 네비게이션 구성 (3단계 트리 구조 시각화)
 pg = st.navigation({
     "🏠 메인": [home_page],
-    "📍 위치와 속도": [vector_page, velocity_page],
-    "🏀 가속도와 포물선 운동": [accel_page, horizontal_page, compare_page, oblique_page, excel_page, video_analysis_page, practice_page],
-    "📑 수행평가": [video_analysis_eval_page]
+    "📍 [학습주제 1] 위치와 속도": [vector_page, velocity_page],
+    "🏀 [학습주제 2] 가속도와 포물선 운동": [
+        accel_page, 
+        horizontal_page, 
+        compare_page, 
+        oblique_page, 
+        excel_page, 
+        video_analysis_page, 
+        practice_page
+    ],
+    "📑 [수행평가] 기록 및 제출": [video_analysis_eval_page]
 })
 
 # 공통 사이드바 설정 (예: 학교 로고 등)
