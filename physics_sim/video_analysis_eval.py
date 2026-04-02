@@ -42,27 +42,30 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 상단 인쇄 버튼 및 제목
-col_title, col_print = st.columns([4, 1])
-with col_title:
-    st.title("📹 [수행평가 1-1] 포물선 운동 영상 분석 및 데이터 해석")
-with col_print:
-    if st.button("🖨️ 보고서 인쇄", key="print_btn", use_container_width=True):
-        st.components.v1.html("<script>parent.window.print()</script>", height=0)
-    
-    # --- 데이터 불러오기 (JSON) ---
-    uploaded_json = st.file_uploader("📥 데이터 불러오기 (JSON)", type=["json"], key="load_json", label_visibility="collapsed")
-    if uploaded_json:
-        try:
-            loaded_data = json.load(uploaded_json)
-            for k, v in loaded_data.items():
-                st.session_state[k] = v
-            st.success("데이터 복구 완료!")
-            st.rerun()
-        except Exception as e:
-            st.error(f"불러오기 실패: {e}")
+# --- 상단 헤더 섹션 (제목 및 작업 버튼 한 줄 배치) ---
+header_col1, header_col2, header_col3, header_col4 = st.columns([3.5, 0.8, 0.8, 0.8])
 
-    # --- 데이터 저장 (JSON) ---
+with header_col1:
+    st.markdown("<h2 style='margin:0; padding:0; line-height:1.5;'>📹 [수행평가 1-1] 영상 분석 및 데이터 해석</h2>", unsafe_allow_html=True)
+
+with header_col2:
+    if st.button("🖨️ 인쇄", key="print_btn", use_container_width=True):
+        st.components.v1.html("<script>parent.window.print()</script>", height=0)
+
+with header_col3:
+    with st.popover("📥 로드", use_container_width=True):
+        uploaded_json = st.file_uploader("JSON 파일 선택", type=["json"], key="load_json", label_visibility="collapsed")
+        if uploaded_json:
+            try:
+                loaded_data = json.load(uploaded_json)
+                for k, v in loaded_data.items():
+                    st.session_state[k] = v
+                st.success("복구 완료!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"오류: {e}")
+
+with header_col4:
     save_keys = [
         'class_num', 'student_num', 'student_name', 
         'a1', 'a2', 'a3', 'a4', 'a5',
@@ -73,12 +76,11 @@ with col_print:
     json_save = json.dumps(save_dict, ensure_ascii=False, indent=4)
     
     st.download_button(
-        "💾 데이터 저장 (JSON)", 
+        "💾 저장", 
         data=json_save, 
-        file_name=f"수행평가_데이터_{st.session_state.get('student_name', '무명')}.json", 
+        file_name=f"수행평가_{st.session_state.get('student_name', '무명')}.json", 
         key="save_btn", 
-        use_container_width=True,
-        help="입력한 텍스트 답변들을 저장합니다. (이미지는 제외)"
+        use_container_width=True
     )
 
 st.divider()
