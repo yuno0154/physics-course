@@ -9,26 +9,29 @@ import json
 # CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
     <style>
-    /* 기본 폰트 및 본문 크기 (12pt) */
-    html, body, [class*="css"], [class*="st-"] {
+    /* 메인 콘텐츠 영역에만 폰트 설정 적용 (사이드바 제외) */
+    [data-testid="stAppViewMainContent"] {
         font-size: 12pt !important;
     }
     
     /* 제목 크기 (18pt) */
-    h1 {
+    [data-testid="stAppViewMainContent"] h1 {
         font-size: 18pt !important;
         margin-bottom: 0.5rem !important;
     }
     
     /* 주요 섹션 제목 (13pt) */
-    h2, h3 {
+    [data-testid="stAppViewMainContent"] h2, 
+    [data-testid="stAppViewMainContent"] h3 {
         font-size: 13pt !important;
         margin-top: 1rem !important;
         margin-bottom: 0.5rem !important;
     }
     
     /* 질문 및 소제목 (12pt Bold) */
-    h4, h5, h6 {
+    [data-testid="stAppViewMainContent"] h4, 
+    [class*="[data-testid='stAppViewMainContent']"] h5, 
+    [class*="[data-testid='stAppViewMainContent']"] h6 {
         font-size: 12pt !important;
         font-weight: bold !important;
     }
