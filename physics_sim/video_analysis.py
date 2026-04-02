@@ -5,9 +5,33 @@ import numpy as np
 # 페이지 설정
 # st.set_page_config(page_title="포물선 운동 영상 분석 실습", layout="wide") # main_app에서 설정됨
 
-# CSS를 활용한 인쇄 최적화
+# CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
     <style>
+    /* 기본 폰트 및 본문 크기 (12pt) */
+    html, body, [class*="css"], [class*="st-"] {
+        font-size: 12pt !important;
+    }
+    
+    /* 제목 크기 (18pt) */
+    h1 {
+        font-size: 18pt !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* 주요 섹션 제목 (13pt) */
+    h2, h3 {
+        font-size: 13pt !important;
+        margin-top: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* 질문 및 소제목 (12pt Bold) */
+    h4, h5, h6 {
+        font-size: 12pt !important;
+        font-weight: bold !important;
+    }
+
     @media print {
         header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
         .main .block-container { padding: 0 !important; }
@@ -60,30 +84,38 @@ st.write("동영상 분석 프로그램에서 추출한 데이터 표와 5가지
 
 # 1. 데이터 표 업로드
 st.markdown("#### 📋 1. 분석 데이터 표 기록")
-data_img = st.file_uploader("데이터 표 이미지 업로드 (CSV/Table)", type=['png', 'jpg', 'jpeg'], key="data_img")
-if data_img:
-    st.image(data_img, use_container_width=True, caption="[기록] 분석 데이터 표")
+data_file = st.file_uploader("데이터 표 이미지 또는 CSV 파일 업로드", type=['png', 'jpg', 'jpeg', 'csv'], key="data_file")
+
+if data_file:
+    if data_file.name.lower().endswith('.csv'):
+        try:
+            df = pd.read_csv(data_file)
+            st.dataframe(df, use_container_width=True)
+            st.caption("[기록] 분석 데이터 (CSV)")
+        except Exception as e:
+            st.error(f"CSV 파일을 읽는데 실패했습니다: {e}")
+    else:
+        st.image(data_file, use_container_width=True, caption="[기록] 분석 데이터 표 이미지")
 else:
-    st.info("실습 프로그램에서 캡처한 데이터 표 이미지를 올려주세요.")
+    st.info("실습 프로그램에서 다운로드한 CSV 파일 또는 캡처한 데이터 표 이미지를 업로드해 주세요.")
 
 st.divider()
 
-# 2. 5가지 그래프 순차 업로드
-st.markdown("#### 📈 2. 분석 그래프 기록 (5종)")
-st.caption("인쇄 보고서에 모든 그래프가 포함되도록 순서대로 업로드해 주세요.")
+# 2. 분석 그래프 기록
+st.markdown("#### 📈 2. 분석 그래프 기록")
+st.caption("실습 프로그램의 그래프 화면을 캡처하여 업로드해 주세요.")
 
-graph_types = [
+graph_sections = [
     ("track", "① 운동 궤적 (Position Track)"),
-    ("xt", "② 시간-수평 위치 (x-t) 그래프"),
-    ("yt", "③ 시간-연직 위치 (y-t) 그래프"),
-    ("vxt", "④ 시간-수평 속도 (vx-t) 그래프"),
-    ("vyt", "⑤ 시간-연직 속도 (vy-t) 및 가속도 그래프")
+    ("pos", "② 시간-위치 (x-t, y-t) 그래프"),
+    ("vel", "③ 시간-속도 (vx-t, vy-t) 그래프"),
+    ("accel", "④ 시간-가속도 (ay-t) 그래프")
 ]
 
-for key, label in graph_types:
+for key, label in graph_sections:
     with st.container():
         st.write(f"**{label}**")
-        g_img = st.file_uploader(f"{label} 이미지 선택", type=['png', 'jpg', 'jpeg'], key=f"g_img_{key}", label_visibility="collapsed")
+        g_img = st.file_uploader(f"{label} 이미지 업로드", type=['png', 'jpg', 'jpeg'], key=f"g_img_{key}", label_visibility="collapsed")
         if g_img:
             st.image(g_img, use_container_width=True, caption=label)
         else:
