@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import json
 
 # 페이지 설정
 # st.set_page_config(page_title="수행평가 1-1: 포물선 운동 영상 분석 및 데이터 해석", layout="wide") # main_app에서 설정됨
@@ -33,7 +34,7 @@ st.markdown("""
     }
 
     @media print {
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stExpander"] { display: none !important; }
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stExpander"], [data-testid="stFileUploader"] { display: none !important; }
         .main .block-container { padding: 0 !important; }
         .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
     }
@@ -46,8 +47,39 @@ col_title, col_print = st.columns([4, 1])
 with col_title:
     st.title("📹 [수행평가 1-1] 포물선 운동 영상 분석 및 데이터 해석")
 with col_print:
-    if st.button("🖨️ 보고서 인쇄 / PDF 저장", key="print_btn"):
+    if st.button("🖨️ 보고서 인쇄", key="print_btn", use_container_width=True):
         st.components.v1.html("<script>parent.window.print()</script>", height=0)
+    
+    # --- 데이터 불러오기 (JSON) ---
+    uploaded_json = st.file_uploader("📥 데이터 불러오기 (JSON)", type=["json"], key="load_json", label_visibility="collapsed")
+    if uploaded_json:
+        try:
+            loaded_data = json.load(uploaded_json)
+            for k, v in loaded_data.items():
+                st.session_state[k] = v
+            st.success("데이터 복구 완료!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"불러오기 실패: {e}")
+
+    # --- 데이터 저장 (JSON) ---
+    save_keys = [
+        'class_num', 'student_num', 'student_name', 
+        'a1', 'a2', 'a3', 'a4', 'a5',
+        'm_input_0', 'm_input_1', 'm_input_2',
+        'b_theory_0', 'b_theory_1', 'b_theory_2'
+    ]
+    save_dict = {k: st.session_state.get(k, '') for k in save_keys}
+    json_save = json.dumps(save_dict, ensure_ascii=False, indent=4)
+    
+    st.download_button(
+        "💾 데이터 저장 (JSON)", 
+        data=json_save, 
+        file_name=f"수행평가_데이터_{st.session_state.get('student_name', '무명')}.json", 
+        key="save_btn", 
+        use_container_width=True,
+        help="입력한 텍스트 답변들을 저장합니다. (이미지는 제외)"
+    )
 
 st.divider()
 
@@ -118,10 +150,8 @@ st.markdown("#### 📈 2. 분석 그래프 기록")
 st.caption("실습 프로그램의 그래프 화면을 캡처하여 업로드해 주세요.")
 
 graph_sections = [
-    ("track", "① 운동 궤적 (Position Track)"),
-    ("pos", "② 시간-위치 (x-t, y-t) 그래프"),
-    ("vel", "③ 시간-속도 (vx-t, vy-t) 그래프"),
-    ("accel", "④ 시간-가속도 (ay-t) 그래프")
+    ("pos", "① 시간-위치 (x-t, y-t) 그래프"),
+    ("vel", "② 시간-속도 (vx-t, vy-t) 그래프")
 ]
 
 for key, label in graph_sections:
@@ -142,19 +172,19 @@ st.write("분석 데이터를 바탕으로 다음 질문에 답해 보세요.")
 
 # 질문 및 답변 입력 영역
 st.markdown("#### 가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed")
+a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="a1")
 
 st.markdown("#### 나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?")
-a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed")
+a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="a2")
 
 st.markdown("#### 다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed")
+a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="a3")
 
 st.markdown("#### 라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?")
-a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed")
+a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="a4")
 
 # --- 추가 질문 마, 바 ---
-st.markdown("#### 마. 다음 표에 최고점 도달 시간, 최고점의 높이, 수평 도달 거리를 기록하시오.")
+st.markdown("#### 마. 분석 데이터(표, 그래프)에서 최고점 도달 시간, 최고점의 높이, 수평 도달 거리를 찾아 기록하시오.")
 m_cols = st.columns(3)
 m_labels = ["최고점의 도달 시간(s)", "최고점의 높이(h)", "수평도달 거리(m)"]
 for i, label in enumerate(m_labels):
@@ -165,6 +195,16 @@ for i, label in enumerate(m_labels):
 st.write("") # 간격
 
 st.markdown("#### 바. [포물선 운동 정밀 데이터 분석]에서 최고점 도달 시간을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
+st.markdown("""
+<div style="margin-bottom: 20px;">
+    <a href="?page=physics_sim/projectile_analysis_excel" target="_blank" style="text-decoration: none;">
+        <button style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            🚀 [포물선 운동 정밀 데이터 분석] 페이지 새 창에서 열기
+        </button>
+    </a>
+    <p style="font-size: 10pt; color: #666; margin-top: 5px;">※ 현재 페이지에서 이동하면 입력 중인 데이터가 사라질 수 있으므로, 반드시 새 창에서 확인하세요.</p>
+</div>
+""", unsafe_allow_html=True)
 st.write("**[이론값]**")
 b_cols = st.columns(3)
 for i, label in enumerate(m_labels):
@@ -173,14 +213,16 @@ for i, label in enumerate(m_labels):
         st.text_input(label + " (이론)", label_visibility="collapsed", key=f"b_theory_{i}")
 
 st.write("**[추론 및 결과 비교 기록]**")
-a5 = st.text_area("결과 비교 및 추론", placeholder="이론값과 실제값의 차이가 발생하는 원인(공기 저항 등)을 물리적 원리와 함께 추론하여 적어주세요.", height=150, label_visibility="collapsed")
+a5 = st.text_area("결과 비교 및 추론", placeholder="이론값과 실제값의 차이가 발생하는 원인(공기 저항 등)을 물리적 원리와 함께 추론하여 적어주세요.", height=150, label_visibility="collapsed", key="a5")
 
 # --- 과제 제출 안내 (인쇄 제외) ---
 with st.expander("📤 과제 제출 방법 안내 (인쇄 시 출력되지 않음)", expanded=True):
     st.markdown("""
     1. 작성한 결과물을 상단 **'🖨️ 보고서 인쇄 / PDF 저장'** 버튼을 눌러 PDF로 저장하세요.
     2. 파일명을 **'이름.pdf'** 또는 **'이름_이름.pdf'**로 저장하세요. (예: 홍길동_김영철.pdf)
-    3. 저장한 파일을 **TEAMS 과제** 탭에 업로드하여 제출하세요.
+    3. 다음 두 파일을 **TEAMS 과제** 탭에 업로드하여 제출하세요.
+       - **보고서 제출** (PDF)
+       - **영상 분석 파일 제출** (예: 홍길동_김영철.vmbl)
     """)
 
 st.divider()

@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import json
 
 # 페이지 설정
 # st.set_page_config(page_title="포물선 운동 영상 분석 실습", layout="wide") # main_app에서 설정됨
@@ -33,7 +34,7 @@ st.markdown("""
     }
 
     @media print {
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stFileUploader"] { display: none !important; }
         .main .block-container { padding: 0 !important; }
         .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
     }
@@ -46,8 +47,34 @@ col_title, col_print = st.columns([4, 1])
 with col_title:
     st.title("📹 [포물선 운동 영상 분석 실습] 보고서")
 with col_print:
-    if st.button("🖨️ 보고서 인쇄 / PDF 저장", key="print_btn"):
+    if st.button("🖨️ 보고서 인쇄", key="print_btn", use_container_width=True):
         st.components.v1.html("<script>parent.window.print()</script>", height=0)
+    
+    # --- 데이터 불러오기 (JSON) ---
+    uploaded_json = st.file_uploader("📥 데이터 불러오기 (JSON)", type=["json"], key="load_json", label_visibility="collapsed")
+    if uploaded_json:
+        try:
+            loaded_data = json.load(uploaded_json)
+            for k, v in loaded_data.items():
+                st.session_state[k] = v
+            st.success("데이터 복구 완료!")
+            st.rerun()
+        except Exception as e:
+            st.error(f"불러오기 실패: {e}")
+
+    # --- 데이터 저장 (JSON) ---
+    save_keys = ['class_num', 'student_num', 'student_name', 'a1', 'a2', 'a3', 'a4']
+    save_dict = {k: st.session_state.get(k, '') for k in save_keys}
+    json_save = json.dumps(save_dict, ensure_ascii=False, indent=4)
+    
+    st.download_button(
+        "💾 데이터 저장 (JSON)", 
+        data=json_save, 
+        file_name=f"실습_데이터_{st.session_state.get('student_name', '무명')}.json", 
+        key="save_btn", 
+        use_container_width=True,
+        help="입력한 텍스트 답변들을 저장합니다. (이미지는 제외)"
+    )
 
 st.divider()
 
@@ -118,10 +145,8 @@ st.markdown("#### 📈 2. 분석 그래프 기록")
 st.caption("실습 프로그램의 그래프 화면을 캡처하여 업로드해 주세요.")
 
 graph_sections = [
-    ("track", "① 운동 궤적 (Position Track)"),
-    ("pos", "② 시간-위치 (x-t, y-t) 그래프"),
-    ("vel", "③ 시간-속도 (vx-t, vy-t) 그래프"),
-    ("accel", "④ 시간-가속도 (ay-t) 그래프")
+    ("pos", "① 시간-위치 (x-t, y-t) 그래프"),
+    ("vel", "② 시간-속도 (vx-t, vy-t) 그래프")
 ]
 
 for key, label in graph_sections:
@@ -142,16 +167,16 @@ st.write("분석 데이터를 바탕으로 다음 질문에 답해 보세요.")
 
 # 질문 및 답변 입력 영역
 st.markdown("#### 가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed")
+a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="a1")
 
 st.markdown("#### 나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?")
-a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed")
+a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="a2")
 
 st.markdown("#### 다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed")
+a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="a3")
 
 st.markdown("#### 라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?")
-a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed")
+a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="a4")
 
 st.divider()
 st.caption("사곡고등학교 물리학 II 시뮬레이션 및 실습 지원 포털 | 본 보고서는 작성 후 상단 인쇄 버튼을 통해 PDF로 저장할 수 있습니다.")
