@@ -2,6 +2,12 @@ import streamlit as st
 import os
 import base64
 
+try:
+    from streamlit_pdf_viewer import pdf_viewer
+    HAS_PDF_VIEWER = True
+except ImportError:
+    HAS_PDF_VIEWER = False
+
 st.title("🏠 물리학습 지원 포털")
 
 st.markdown("""
@@ -28,10 +34,14 @@ if os.path.exists(pdf_path):
         mime="application/pdf"
     )
 
-    with st.expander("평가계획 세부 계획서 내용 펼쳐보기"):
-        base64_pdf = base64.b64encode(pdf_data).decode('utf-8')
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
-        st.markdown(pdf_display, unsafe_allow_html=True)
+    with st.expander("평가계획 세부 계획서 내용 펼쳐보기", expanded=True):
+        if HAS_PDF_VIEWER:
+            pdf_viewer(pdf_path, width=700)
+        else:
+            # Fallback for Edge browser avoiding dataframe errors if blocked
+            base64_pdf = base64.b64encode(pdf_data).decode('utf-8')
+            pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf">'
+            st.markdown(pdf_display, unsafe_allow_html=True)
 else:
     st.warning("⚠️ 평가계획 세부 계획서 파일을 찾을 수 없습니다.")
 
