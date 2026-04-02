@@ -51,6 +51,18 @@ with col_print:
 
 st.divider()
 
+# --- 학생 정보 입력부 ---
+st.markdown("### 👤 학생 정보")
+info_c1, info_c2, info_c3 = st.columns(3)
+with info_c1:
+    class_num = st.text_input("반 (Class)", placeholder="예: 3-1", key="class_num")
+with info_c2:
+    student_num = st.text_input("번호 (Number)", placeholder="예: 01", key="student_num")
+with info_c3:
+    student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
+
+st.divider()
+
 # --- 탐구 기본 정보 ---
 st.markdown("### 📝 탐구 개요")
 c1, c2 = st.columns(2)
