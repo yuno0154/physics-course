@@ -2,9 +2,14 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import json
+import base64
+import io
 
-# 페이지 설정
-# st.set_page_config(page_title="수행평가 1-1: 포물선 운동 영상 분석 및 데이터 해석", layout="wide") # main_app에서 설정됨
+# --- 로드 대기 데이터 처리 (위젯 렌더링 전에 반드시 실행) ---
+if '_pending_load' in st.session_state:
+    pending = st.session_state.pop('_pending_load')
+    for k, v in pending.items():
+        st.session_state[k] = v
 
 # CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
@@ -13,24 +18,24 @@ st.markdown("""
     [data-testid="stAppViewMainContent"] {
         font-size: 12pt !important;
     }
-    
+
     /* 제목 크기 (18pt) */
     [data-testid="stAppViewMainContent"] h1 {
         font-size: 18pt !important;
         margin-bottom: 0.5rem !important;
     }
-    
+
     /* 주요 섹션 제목 (13pt) */
-    [data-testid="stAppViewMainContent"] h2, 
+    [data-testid="stAppViewMainContent"] h2,
     [data-testid="stAppViewMainContent"] h3 {
         font-size: 13pt !important;
         margin-top: 1rem !important;
         margin-bottom: 0.5rem !important;
     }
-    
+
     /* 질문 및 소제목 (12pt Bold) */
-    [data-testid="stAppViewMainContent"] h4, 
-    [data-testid="stAppViewMainContent"] h5, 
+    [data-testid="stAppViewMainContent"] h4,
+    [data-testid="stAppViewMainContent"] h5,
     [data-testid="stAppViewMainContent"] h6 {
         font-size: 12pt !important;
         font-weight: bold !important;
@@ -44,6 +49,28 @@ st.markdown("""
     .answer-box { border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; background-color: #f9f9f9; }
     </style>
 """, unsafe_allow_html=True)
+
+# --- 이미지 파일을 base64로 인코딩하는 함수 ---
+def file_to_b64(file_obj):
+    """업로드된 파일 객체를 base64 문자열로 변환"""
+    if file_obj is None:
+        return None, None
+    try:
+        file_obj.seek(0)
+        b64 = base64.b64encode(file_obj.read()).decode('utf-8')
+        return b64, file_obj.name
+    except Exception:
+        return None, None
+
+def get_img_b64_for_save(key):
+    """저장 시 이미지 b64 데이터 확보: 새 업로드 파일 우선, 없으면 기존 session_state 사용"""
+    file_obj = st.session_state.get(key)
+    if file_obj is not None:
+        b64, name = file_to_b64(file_obj)
+        if b64:
+            return b64, name
+    # 새 파일 없으면 기존 저장된 b64 재사용
+    return st.session_state.get(f'{key}_b64'), st.session_state.get(f'{key}_name')
 
 # --- 상단 헤더 섹션 (제목 및 작업 버튼 한 줄 배치) ---
 header_col1, header_col2, header_col3, header_col4 = st.columns([3.5, 0.8, 0.8, 0.8])
@@ -61,28 +88,36 @@ with header_col3:
         if uploaded_json:
             try:
                 loaded_data = json.load(uploaded_json)
-                for k, v in loaded_data.items():
-                    st.session_state[k] = v
-                st.success("복구 완료!")
+                # _pending_load에 저장 후 rerun → 위젯 렌더링 전에 적용됨
+                st.session_state['_pending_load'] = loaded_data
                 st.rerun()
             except Exception as e:
                 st.error(f"오류: {e}")
 
 with header_col4:
-    save_keys = [
-        'class_num', 'student_num', 'student_name', 
+    # 텍스트/숫자 데이터 키
+    text_keys = [
+        'class_num', 'student_num', 'student_name',
         'a1', 'a2', 'a3', 'a4', 'a5',
         'm_input_0', 'm_input_1', 'm_input_2',
         'b_theory_0', 'b_theory_1', 'b_theory_2'
     ]
-    save_dict = {k: st.session_state.get(k, '') for k in save_keys}
+    save_dict = {k: st.session_state.get(k, '') for k in text_keys}
+
+    # 이미지/파일 데이터 base64 인코딩 후 저장
+    for img_key in ['data_file', 'g_img_pos', 'g_img_vel']:
+        b64, name = get_img_b64_for_save(img_key)
+        if b64:
+            save_dict[f'{img_key}_b64'] = b64
+            save_dict[f'{img_key}_name'] = name
+
     json_save = json.dumps(save_dict, ensure_ascii=False, indent=4)
-    
+
     st.download_button(
-        "💾 저장", 
-        data=json_save, 
-        file_name=f"수행평가_{st.session_state.get('student_name', '무명')}.json", 
-        key="save_btn", 
+        "💾 저장",
+        data=json_save,
+        file_name=f"수행평가_{st.session_state.get('student_name', '무명')}.json",
+        key="save_btn",
         use_container_width=True
     )
 
@@ -145,6 +180,20 @@ if data_file:
             st.error(f"CSV 파일을 읽는데 실패했습니다: {e}")
     else:
         st.image(data_file, use_container_width=True, caption="[기록] 분석 데이터 표 이미지")
+elif st.session_state.get('data_file_b64'):
+    # 저장된 b64 이미지 복원
+    b64 = st.session_state['data_file_b64']
+    name = st.session_state.get('data_file_name', '')
+    img_bytes = base64.b64decode(b64)
+    if name.lower().endswith('.csv'):
+        try:
+            df = pd.read_csv(io.BytesIO(img_bytes))
+            st.dataframe(df, use_container_width=True)
+            st.caption("[기록] 분석 데이터 (CSV) — 저장 파일에서 복원됨")
+        except Exception as e:
+            st.error(f"CSV 복원 실패: {e}")
+    else:
+        st.image(img_bytes, use_container_width=True, caption="[기록] 분석 데이터 표 이미지 — 저장 파일에서 복원됨")
 else:
     st.info("실습 프로그램에서 다운로드한 CSV 파일 또는 캡처한 데이터 표 이미지를 업로드해 주세요.")
 
@@ -165,9 +214,13 @@ for key, label in graph_sections:
         g_img = st.file_uploader(f"{label} 이미지 업로드", type=['png', 'jpg', 'jpeg'], key=f"g_img_{key}", label_visibility="collapsed")
         if g_img:
             st.image(g_img, use_container_width=True, caption=label)
+        elif st.session_state.get(f'g_img_{key}_b64'):
+            b64 = st.session_state[f'g_img_{key}_b64']
+            img_bytes = base64.b64decode(b64)
+            st.image(img_bytes, use_container_width=True, caption=f"{label} — 저장 파일에서 복원됨")
         else:
             st.info(f"{label} 이미지를 업로드해 주세요.")
-        st.write("") # 간격 조절
+        st.write("")  # 간격 조절
 
 st.divider()
 
@@ -197,7 +250,7 @@ for i, label in enumerate(m_labels):
         st.markdown(f"<div style='background-color:#fce4d6; padding:5px; text-align:center; font-weight:bold; border:1px solid #000; font-size:12pt; color:black;'>{label}</div>", unsafe_allow_html=True)
         st.text_input(label, label_visibility="collapsed", key=f"m_input_{i}")
 
-st.write("") # 간격
+st.write("")  # 간격
 
 st.markdown("#### 바. [포물선 운동 정밀 데이터 분석]에서 최고점 도달 시간을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
 st.markdown("""
