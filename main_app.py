@@ -31,7 +31,8 @@ video_analysis_page = st.Page("physics_sim/video_analysis.py", title="\u00A0\u00
 practice_page = st.Page("physics_sim/projectile_practice.py", title="└─ 📝 확인: 연습 문제")
 
 # 3. 등속 원운동 섹션
-circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 등속 원운동 탐구 (Interactive)")
+circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="\u00A0\u00A0\u00A0\u00A0└ 🎡 [수행평가 1-2] 등속 원운동 탐구")
+circular_motion_advanced_page = st.Page("physics_sim/circular_motion_advanced.py", title="\u00A0\u00A0\u00A0\u00A0└ 🏀 [수행평가 1-3] 등속 원운동 심화 탐구")
 
 # 3. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="\u00A0\u00A0\u00A0\u00A0└ 📑 [수행평가 1-1] 제출")
@@ -47,10 +48,13 @@ pg = st.navigation({
         oblique_page, 
         excel_page, 
         video_analysis_page, 
-        practice_page,
-        circular_motion_page
+        practice_page
     ],
-    "📑 [수행평가] 기록 및 제출": [video_analysis_eval_page]
+    "📑 [수행평가] 기록 및 제출": [
+        video_analysis_eval_page,
+        circular_motion_page,
+        circular_motion_advanced_page
+    ]
 })
 
 # 공통 사이드바 설정 (디자인 카드 푸터)
