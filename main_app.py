@@ -31,8 +31,8 @@ video_analysis_page = st.Page("physics_sim/video_analysis.py", title="\u00A0\u00
 practice_page = st.Page("physics_sim/projectile_practice.py", title="└─ 📝 확인: 연습 문제")
 
 # 3. 등속 원운동 섹션
-circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념] 등속 원운동 기초 탐구")
-circular_motion_advanced_page = st.Page("physics_sim/circular_motion_adv_v2.py", title="🏀 [심화] 등속 원운동 심화 탐구")
+circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념] 원운동의 기초 (r, θ, s)")
+circular_motion_adv_page = st.Page("physics_sim/circular_motion_adv.py", title="🎡 [개념] 원운동의 표현 (v, ω, T)")
 
 # 3. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="\u00A0\u00A0\u00A0\u00A0└ 📑 [수행평가 1-1] 제출")
@@ -55,7 +55,7 @@ pg = st.navigation({
     ],
     "🎡 [학습주제 3] 등속 원운동": [
         circular_motion_page,
-        circular_motion_advanced_page
+        circular_motion_adv_page
     ]
 })
 
