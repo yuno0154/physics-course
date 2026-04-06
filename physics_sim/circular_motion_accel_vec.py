@@ -2,7 +2,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="원운동의 가속도: 벡터의 변화와 극한", layout="wide")
     
     # 상단 브랜딩 및 제목
     st.title("🏹 원운동의 가속도: 속도 벡터의 변화와 극한")
