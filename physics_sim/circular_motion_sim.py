@@ -50,114 +50,6 @@ def run_sim():
             const BasicCircularSim = () => {
                 // --- 상태 관리 ---
                 const [radius, setRadius] = useState(1.0); // 미터 단위
-                const [angleDeg, setAngleDeg] = useState(90); // 도 단위
-                const [activeTab, setActiveTab] = useState('missions'); // 'missions' 또는 'settings'
-                
-                // --- 계산 ---
-                const PI = Math.PI;
-                const angleRad = (angleDeg * PI) / 180;
-                const arcLength = radius * angleRad;
-
-                // 시각화용 스케일 조정 (2m가 충분히 들어가도록)
-                const scale = 110; 
-                const visualR = radius * scale;
-                const viewSize = 540;
-                const centerX = viewSize / 2;
-                const centerY = viewSize / 2;
-
-                const ballX = centerX + visualR * Math.cos(-angleRad);
-                const ballY = centerY + visualR * Math.sin(-angleRad);
-
-                // 부채꼴 경로 생성
-                const getSectorPath = () => {
-                    const startX = centerX + visualR;
-                    const startY = centerY;
-                    const largeArcFlag = angleDeg > 180 ? 1 : 0;
-                    return `M ${centerX} ${centerY} L ${startX} ${startY} A ${visualR} ${visualR} 0 ${largeArcFlag} 0 ${ballX} ${ballY} Z`;
-                };
-
-                const getArcPath = () => {
-                    const startX = centerX + visualR;
-                    const startY = centerY;
-                    const largeArcFlag = angleDeg > 180 ? 1 : 0;
-                    return `M ${startX} ${startY} A ${visualR} ${visualR} 0 ${largeArcFlag} 0 ${ballX} ${ballY}`;
-                };
-
-                return (
-                    <div className="flex flex-col items-center bg-transparent min-h-screen p-2 text-slate-800">
-                        <div className="w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden bg-white">
-                            
-                            {/* 상단 핵심 데이터 바 */}
-                            <div className="grid grid-cols-3 gap-4 p-5 bg-slate-900 text-white">
-                                <div className="text-center border-r border-slate-700">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">반지름 (r)</p>
-                                    <p className="text-2xl font-black text-sky-400">{radius.toFixed(1)} <small className="text-sm">m</small></p>
-                                </div>
-                                <div className="text-center border-r border-slate-700">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">중심각 (θ)</p>
-                                    <div className="flex flex-col items-center">
-                                        <p className="text-xl font-black text-amber-400">{angleDeg}°</p>
-                                        <p className="text-[10px] text-slate-500 font-mono">≈ {angleRad.toFixed(3)} rad</p>
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">호의 길이 (s)</p>
-                                    <p className="text-2xl font-black text-rose-400">{arcLength.toFixed(2)} <small className="text-sm">m</small></p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col lg:flex-row min-h-[580px]">
-                                {/* 1. 시각화 영역 */}
-                                <div className="flex-1 bg-slate-50 relative flex items-center justify-center p-4 border-b lg:border-b-0 lg:border-r border-slate-200">
-                                    <svg viewBox={`0 0 ${viewSize} ${viewSize}`} className="w-full h-full max-w-[500px] drop-shadow-xl">
-                                        {/* 가이드 그리드 */}
-                                        <circle cx={centerX} cy={centerY} r={50} fill="none" stroke="#cbd5e1" strokeWidth="0.5" />
-                                        <circle cx={centerX} cy={centerY} r={100} fill="none" stroke="#cbd5e1" strokeWidth="0.5" />
-                                        <circle cx={centerX} cy={centerY} r={150} fill="none" stroke="#cbd5e1" strokeWidth="0.5" />
-                                        <circle cx={centerX} cy={centerY} r={200} fill="none" stroke="#cbd5e1" strokeWidth="1" />
-                                        
-                                        {/* 전체 원 가이드 라인 */}
-                                        <circle cx={centerX} cy={centerY} r={visualR} fill="none" stroke="#e2e8f0" strokeWidth="1.5" strokeDasharray="4,4" />
-                                        
-                                        {/* 부채꼴 채우기 */}
-                                        <path d={getSectorPath()} fill="rgba(56, 189, 248, 0.08)" stroke="none" />
-                                        
-                                        {/* 반지름과 호 */}
-                                        <line x1={centerX} y1={centerY} x2={centerX + visualR} y2={centerY} stroke="#475569" strokeWidth="3" strokeLinecap="round" />
-                                        <line x1={centerX} y1={centerY} x2={ballX} y2={ballY} stroke="#475569" strokeWidth="3" strokeLinecap="round" />
-                                        
-                                        {/* 강조된 호의 길이 (빨간색) */}
-                                        <path d={getArcPath()} fill="none" stroke="#ef4444" strokeWidth="6" strokeLinecap="round" />
-                                        
-                                        {/* 중앙점 */}
-                                        <circle cx={centerX} cy={centerY} r="6" fill="#1e293b" />
-                                        
-                                        {/* 반지름 라벨 (r) */}
-                                        <text x={centerX + visualR/2} y={centerY + 20} textAnchor="middle" fill="#334155" className="text-sm italic font-bold">r = {radius}m</text>
-                                        
-                                        {/* 각도 라벨 (θ) */}
-                                        <g>
-                                            <path d={`M ${centerX + 40} ${centerY} A 40 40 0 ${angleDeg > 180 ? 1 : 0} 0 ${centerX + 40 * Math.cos(-angleRad)} ${centerY + 40 * Math.sin(-angleRad)}`} fill="none" stroke="#f59e0b" strokeWidth="2.5" />
-                                            <text x={centerX + 55 * Math.cos(-angleRad/2)} y={centerY + 55 * Math.sin(-angleRad/2)} textAnchor="middle" dominantBaseline="middle" fill="#d97706" className="text-xs font-bold font-mono">θ</text>
-                                        </g>
-
-                                        {/* 호 라벨 (s) */}
-                                        <text x={centerX + (visualR + 35) * Math.cos(-angleRad/2)} y={centerY + (visualR + 35) * Math.sin(-angleRad/2)} textAnchor="middle" dominantBaseline="middle" fill="#ef4444" className="text-lg italic font-black">s = {arcLength.toFixed(2)}m</text>
-                                    </svg>
-                                    
-                                    {/* 고정 예시 박스 */}
-                                    <div className="absolute top-4 right-4 flex flex-col gap-2 pointer-events-none">
-                                        <div className="bg-white/90 backdrop-blur-md p-3 rounded-xl border border-slate-200 shadow-lg text-[10px] leading-tight w-40">
-                                            <p className="font-bold text-slate-800 mb-1">📏 스케일 가이드</p>
-                                            <p className="text-slate-600">• 실선 원 : <span className="math-font">r</span> = 1.8m 지점</p>
-                                            <p className="text-slate-600">• 점선 : 현재 반지름 (<span className="math-font">r</span>)</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-            const BasicCircularSim = () => {
-                // --- 상태 관리 ---
-                const [radius, setRadius] = useState(1.0); // 미터 단위
                 const [angleRad, setAngleRad] = useState(1.0); // 라디안 단위 (기본 1.0)
                 const [activeTab, setActiveTab] = useState('missions');
                 
@@ -300,41 +192,30 @@ def run_sim():
                                             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">실험에 의한 탐구 과제</h4>
                                                 
-                                                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm group hover:border-blue-300 transition-colors">
+                                                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm transition-colors">
                                                     <div className="flex gap-3">
                                                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-black">1</span>
                                                         <p className="text-[12px] leading-relaxed text-slate-700">
-                                                            반지름(<span className="math-font">r</span>)을 <b>1.0m</b>로 설정하세요. <b>중심각($\theta$)을 1.00rad</b>로 정확히 입력한 뒤 <b>호의 길이(<span className="math-font">s</span>)</b>를 확인하세요. 
-                                                            <span className="block mt-1 text-slate-400 text-[10px] font-medium">(호의 길이와 반지름이 같아지는 특별한 각입니다.)</span>
+                                                            반지름(<span className="math-font">r</span>)을 <b>1.0m</b>로 설정하세요. <b>중심각($\\theta$)을 1.00rad</b>로 직접 입력한 뒤 <b>호의 길이(<span className="math-font">s</span>)</b>를 확인하세요. 
                                                         </p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm group hover:border-blue-300 transition-colors">
+                                                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm transition-colors">
                                                     <div className="flex gap-3">
                                                         <span className="flex-shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-black">2</span>
                                                         <p className="text-[12px] leading-relaxed text-slate-700">
-                                                            반지름을 <b>0.5m</b>로 줄였을 때, 호의 길이가 <b>3.14m(π)</b>가 되려면 라디안 각도는 얼마가 되어야 할까요? 
-                                                            <span className="block mt-1 text-slate-400 text-[10px] font-medium">(직접 숫자를 입력해보세요!)</span>
+                                                            반지름이 <b>0.5m</b>일 때, 호의 길이가 <b>3.14m(π)</b>가 되려면 중심각은 몇 라디안이 되어야 할까요? 
                                                         </p>
                                                     </div>
                                                 </div>
 
-                                                <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm group hover:border-blue-300 transition-colors">
-                                                    <div className="flex gap-3">
-                                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-black">3</span>
-                                                        <p className="text-[12px] leading-relaxed text-slate-700">
-                                                            중심각을 <b>6.28rad(2π)</b>로 입력해 보세요. 이것은 원의 한 바퀴(360°)와 같습니다. 반지름이 <b>1.0m</b>일 때 호의 길이(<span className="math-font">s</span>)는 얼마인가요?
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="p-4 bg-slate-900 rounded-2xl shadow-lg shadow-slate-100 mt-2">
-                                                    <p className="text-white text-[11px] font-bold mb-2 flex items-center gap-2 italic">
+                                                <div className="p-4 bg-slate-900 rounded-2xl shadow-lg mt-2">
+                                                    <p className="text-white text-[11px] font-bold mb-1 italic flex items-center gap-2">
                                                         <Icon name="lightbulb" size={14} className="text-amber-400" /> 탐구 정리
                                                     </p>
                                                     <p className="text-slate-400 text-[11px] leading-relaxed italic">
-                                                        "호의 길이 $s$는 반지름 $r$과 라디안각 $\theta$의 곱($r \times \theta$)으로 매우 간단하게 계산됩니다."
+                                                        "호의 길이 $s$는 반지름 $r$과 라디안각 $\theta$의 곱($r \\times \\theta$)으로 매우 간단하게 계산됩니다."
                                                     </p>
                                                 </div>
                                             </div>
@@ -383,11 +264,6 @@ def run_sim():
                                                             onChange={e=>setAngleRad(parseFloat(e.target.value))} 
                                                             className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" 
                                                         />
-                                                        <div className="flex justify-between text-[10px] font-bold text-slate-400 pt-1">
-                                                            <span>0 rad</span>
-                                                            <span>π (3.14)</span>
-                                                            <span>2π (6.28)</span>
-                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -396,36 +272,15 @@ def run_sim():
                                                     <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">기본 관계식</h4>
                                                     <div className="flex flex-col items-center py-4 bg-slate-50 rounded-2xl">
                                                         <p className="text-3xl font-black text-slate-800 tracking-widest drop-shadow-sm">s = rθ</p>
-                                                        <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">라디안각(θ)을 사용하면 호의 길이를 즉시 알 수 있습니다.</p>
                                                     </div>
-                                                    <div className="space-y-2 text-[12px] text-slate-600 leading-relaxed font-bold">
-                                                        <p className="flex items-center justify-between">
-                                                            <span className="font-medium">계산 과정:</span>
-                                                            <span>{radius.toFixed(1)}m × {angleRad.toFixed(2)}rad = <span className="text-rose-500 text-sm">{arcLength.toFixed(2)}m</span></span>
-                                                        </p>
+                                                    <div className="text-[12px] text-slate-600 leading-relaxed font-bold text-center">
+                                                        {radius.toFixed(1)}m × {angleRad.toFixed(2)}rad = <span className="text-rose-500 text-sm">{arcLength.toFixed(2)}m</span>
                                                     </div>
-                                                </div>
-
-                                                {/* 라디안 정의 */}
-                                                <div className="bg-amber-50 p-5 rounded-2xl border border-amber-100">
-                                                    <p className="text-[11px] font-black text-amber-800 mb-2 flex items-center gap-1">
-                                                        <Icon name="bookmark" size={14} /> 라디안(Radian)의 약속
-                                                    </p>
-                                                    <p className="text-[11px] text-amber-950/70 leading-relaxed space-y-1">
-                                                        • <b>라디안</b>을 사용하면 각도가 곧 <b>호($s$)와 반지름($r$)의 비율</b>이 됩니다.<br/>
-                                                        • <b>$\theta = 1.00$</b> : 호의 길이($s$)가 반지름($r$)과 정확히 일치하는 각도입니다.<br/>
-                                                        • <b>$360^\circ$</b> : 반지름의 **약 6.28배** 만큼 호가 생기는 각도입니다.
-                                                    </p>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
                             </div>
                         </div>
                     </div>
@@ -439,7 +294,7 @@ def run_sim():
     </html>
     """
 
-    # Streamlit 컴포넌트로 HTML 삽입 (높이를 더 확보하여 잘림 방지)
+    # Streamlit 컴포넌트로 HTML 삽입
     components.html(react_code, height=820, scrolling=False)
 
 if __name__ == "__main__":
