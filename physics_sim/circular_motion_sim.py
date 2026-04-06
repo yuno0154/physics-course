@@ -2,18 +2,16 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="등속 원운동 시뮬레이션", layout="wide")
+    st.set_page_config(page_title="원운동의 기초: 라디안과 호의 길이", layout="wide")
     
-    # 상단 안내 문구 (Streamlit 스타일)
-    st.title("🎡 등속 원운동 (Uniform Circular Motion) 탐구")
+    # 상단 브랜딩 및 제목
+    st.title("📏 원운동의 기초: 라디안(Radian)과 호의 길이")
     st.markdown("""
-    이 시뮬레이션은 등속 원운동의 물리적 원리를 시각적으로 학습하기 위해 제작되었습니다. 
-    **속도 벡터(접선 방향)**와 **가속도 벡터(중심 방향)**의 관계를 관찰하고, 
-    '실 끊기' 기능을 통해 구심력이 사라질 때의 관성 운동을 확인해 보세요.
+    이 시뮬레이션은 원운동을 이해하기 위한 가장 기초적인 개념인 **반지름($r$), 중심각($\\theta$), 호의 길이($s$)** 사이의 관계를 탐구합니다.
+    물리학에서 각도의 단위로 왜 **'라디안(rad)'**을 사용하는지 시각적으로 확인해 보세요.
     """)
 
     # React 컴포넌트를 위한 HTML/JS 소스
-    # 주요 라이브러리: React, ReactDOM, Babel (JSX 변환), Tailwind CSS, Lucide Icons
     react_code = """
     <!DOCTYPE html>
     <html lang="ko">
@@ -26,10 +24,11 @@ def run_sim():
         <script src="https://cdn.tailwindcss.com"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-            body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: transparent; }
+            @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
+            body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; background: transparent; }
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+            .math-font { font-family: 'Times New Roman', serif; font-style: italic; }
         </style>
     </head>
     <body>
@@ -38,7 +37,6 @@ def run_sim():
         <script type="text/babel">
             const { useState, useEffect, useRef } = React;
 
-            // Lucide 아이콘 컴포넌트 래퍼 (CDN 환경 대응)
             const Icon = ({ name, size = 18, className = "" }) => {
                 const iconRef = useRef(null);
                 useEffect(() => {
@@ -49,201 +47,172 @@ def run_sim():
                 return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
             };
 
-            const CircularMotionSimulation = () => {
+            const BasicCircularSim = () => {
                 // --- 상태 관리 ---
-                const [mass, setMass] = useState(2.5);
-                const [radius, setRadius] = useState(120);
-                const [linearVelocity, setLinearVelocity] = useState(150);
-                const [isPaused, setIsPaused] = useState(false);
-                const [isCut, setIsCut] = useState(false);
+                const [radius, setRadius] = useState(1.0); // 미터 단위
+                const [angleDeg, setAngleDeg] = useState(90); // 도 단위
                 
-                const [angle, setAngle] = useState(0);
-                const [startAngle, setStartAngle] = useState(0);
-                const [cutPosition, setCutPosition] = useState({ x: 0, y: 0 });
-                const [cutVelocity, setCutVelocity] = useState({ x: 0, y: 0 });
-                const [elapsedTimeAfterCut, setElapsedTimeAfterCut] = useState(0);
+                // --- 계산 ---
+                const PI = Math.PI;
+                const angleRad = (angleDeg * PI) / 180;
+                const arcLength = radius * angleRad;
+                const circumference = 2 * PI * radius;
 
-                const requestRef = useRef();
-                const lastTimeRef = useRef();
+                // 시각화용 스케일 (1m = 120px)
+                const scale = 120;
+                const visualR = radius * scale;
+                const centerX = 220;
+                const centerY = 220;
 
-                // --- 물리량 계산 ---
-                const r = radius;
-                const v = linearVelocity;
-                const omega = v / r;
-                const centripetalAcc = (v * v) / r;
-                const centripetalForce = mass * centripetalAcc;
+                const ballX = centerX + visualR * Math.cos(-angleRad);
+                const ballY = centerY + visualR * Math.sin(-angleRad);
 
-                const animate = (time) => {
-                    if (lastTimeRef.current !== undefined && !isPaused) {
-                        const deltaTime = (time - lastTimeRef.current) / 1000;
-                        if (!isCut) {
-                            setAngle((prev) => (prev + omega * deltaTime) % (Math.PI * 2));
-                        } else {
-                            setElapsedTimeAfterCut((prev) => prev + deltaTime);
-                        }
-                    }
-                    lastTimeRef.current = time;
-                    requestRef.current = requestAnimationFrame(animate);
+                // 부채꼴 경로 생성
+                const getSectorPath = () => {
+                    const startX = centerX + visualR;
+                    const startY = centerY;
+                    const largeArcFlag = angleDeg > 180 ? 1 : 0;
+                    return `M ${centerX} ${centerY} L ${startX} ${startY} A ${visualR} ${visualR} 0 ${largeArcFlag} 0 ${ballX} ${ballY} Z`;
                 };
-
-                useEffect(() => {
-                    requestRef.current = requestAnimationFrame(animate);
-                    return () => cancelAnimationFrame(requestRef.current);
-                }, [isPaused, isCut, omega]);
-
-                const handleCut = () => {
-                    if (isCut) return;
-                    const x = r * Math.cos(angle);
-                    const y = r * Math.sin(angle);
-                    const vx = -v * Math.sin(angle);
-                    const vy = v * Math.cos(angle);
-                    setCutPosition({ x, y });
-                    setCutVelocity({ x: vx, y: vy });
-                    setIsCut(true);
-                    setElapsedTimeAfterCut(0);
-                };
-
-                const handleReset = () => {
-                    setIsCut(false);
-                    setAngle(0);
-                    setElapsedTimeAfterCut(0);
-                    setIsPaused(false);
-                };
-
-                const centerX = 250;
-                const centerY = 250;
-                let ballX, ballY, velX, velY, accX, accY;
-
-                if (!isCut) {
-                    ballX = centerX + r * Math.cos(angle);
-                    ballY = centerY + r * Math.sin(angle);
-                    velX = -Math.sin(angle) * (v / 2);
-                    velY = Math.cos(angle) * (v / 2);
-                    accX = -Math.cos(angle) * (centripetalAcc / 5);
-                    accY = -Math.sin(angle) * (centripetalAcc / 5);
-                } else {
-                    ballX = centerX + cutPosition.x + cutVelocity.x * elapsedTimeAfterCut;
-                    ballY = centerY + cutPosition.y + cutVelocity.y * elapsedTimeAfterCut;
-                    velX = cutVelocity.x / 2;
-                    velY = cutVelocity.y / 2;
-                    accX = 0; accY = 0;
-                }
 
                 const getArcPath = () => {
-                    if (isCut) return null;
-                    const startX = centerX + r;
+                    const startX = centerX + visualR;
                     const startY = centerY;
-                    let diff = angle;
-                    const largeArcFlag = diff > Math.PI ? 1 : 0;
-                    return `M ${centerX} ${centerY} L ${startX} ${startY} A ${r} ${r} 0 ${largeArcFlag} 1 ${ballX} ${ballY} Z`;
+                    const largeArcFlag = angleDeg > 180 ? 1 : 0;
+                    return `M ${startX} ${startY} A ${visualR} ${visualR} 0 ${largeArcFlag} 0 ${ballX} ${ballY}`;
                 };
 
                 return (
-                    <div className="flex flex-col items-center bg-white min-h-screen p-2 text-slate-800">
-                        <div className="w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden bg-white">
-                            {/* 헤더 데이터 */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-900 text-white">
-                                <div className="space-y-1">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase">선속도 (v)</p>
-                                    <p className="text-xl font-mono text-emerald-400">{v.toFixed(0)} <small className="text-[10px]">px/s</small></p>
+                    <div className="flex flex-col items-center bg-transparent min-h-screen p-2 text-slate-800">
+                        <div className="w-full max-w-6xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden bg-white">
+                            
+                            {/* 상단 핵심 데이터 바 */}
+                            <div className="grid grid-cols-3 gap-4 p-5 bg-slate-900 text-white">
+                                <div className="text-center border-r border-slate-700">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">반지름 (r)</p>
+                                    <p className="text-2xl font-black text-sky-400">{radius.toFixed(1)} <small className="text-sm">m</small></p>
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase">각속도 (ω)</p>
-                                    <p className="text-xl font-mono text-amber-400">{omega.toFixed(3)} <small className="text-[10px]">rad/s</small></p>
+                                <div className="text-center border-r border-slate-700">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">중심각 (θ)</p>
+                                    <div className="flex flex-col items-center">
+                                        <p className="text-xl font-black text-amber-400">{angleDeg}°</p>
+                                        <p className="text-[10px] text-slate-500 font-mono">≈ {angleRad.toFixed(3)} rad</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase">구심 가속도 (a)</p>
-                                    <p className="text-xl font-mono text-rose-400">{centripetalAcc.toFixed(1)}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase">구심력 (F)</p>
-                                    <p className="text-xl font-mono text-sky-400">{centripetalForce.toFixed(1)} <small className="text-[10px]">N</small></p>
+                                <div className="text-center">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">호의 길이 (s)</p>
+                                    <p className="text-2xl font-black text-rose-400">{arcLength.toFixed(2)} <small className="text-sm">m</small></p>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col lg:flex-row h-[550px]">
-                                {/* 캔버스 */}
-                                <div className="flex-1 bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
-                                    <svg viewBox="0 0 500 500" className="w-full h-full max-w-[450px]">
-                                        <circle cx={centerX} cy={centerY} r="3" fill="#64748b" />
-                                        {!isCut && <circle cx={centerX} cy={centerY} r={r} fill="none" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,4" />}
-                                        {!isCut && <path d={getArcPath()} fill="rgba(245, 158, 11, 0.15)" />}
-                                        {!isCut && <line x1={centerX} y1={centerY} x2={ballX} y2={ballY} stroke="#94a3b8" strokeWidth="2" />}
+                            <div className="flex flex-col lg:flex-row min-h-[500px]">
+                                {/* 1. 시각화 영역 */}
+                                <div className="flex-1 bg-slate-50 relative flex items-center justify-center p-8 border-b lg:border-b-0 lg:border-r border-slate-200">
+                                    <svg viewBox="0 0 440 440" className="w-full h-full max-w-[400px] drop-shadow-lg">
+                                        {/* 전체 원 가이드 라인 */}
+                                        <circle cx={centerX} cy={centerY} r={visualR} fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4" />
                                         
-                                        {/* Velocity Vector */}
+                                        {/* 부채꼴 채우기 */}
+                                        <path d={getSectorPath()} fill="rgba(56, 189, 248, 0.1)" stroke="none" />
+                                        
+                                        {/* 반지름과 호 */}
+                                        <line x1={centerX} y1={centerY} x2={centerX + visualR} y2={centerY} stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
+                                        <line x1={centerX} y1={centerY} x2={ballX} y2={ballY} stroke="#64748b" strokeWidth="2" strokeLinecap="round" />
+                                        
+                                        {/* 강조된 호의 길이 (빨간색) */}
+                                        <path d={getArcPath()} fill="none" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+                                        
+                                        {/* 라벨들 */}
+                                        <circle cx={centerX} cy={centerY} r="4" fill="#1e293b" />
+                                        
+                                        {/* 반지름 라벨 (r) */}
+                                        <text x={centerX + visualR/2} y={centerY + 15} textAnchor="middle" fill="#334155" className="text-sm italic font-bold">r</text>
+                                        
+                                        {/* 각도 라벨 (θ) */}
                                         <g>
-                                            <line x1={ballX} y1={ballY} x2={ballX + velX} y2={ballY + velY} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
-                                            <text x={ballX + velX + 5} y={ballY + velY} fill="#059669" className="text-[12px] font-bold font-mono">v</text>
+                                            <path d={`M ${centerX + 30} ${centerY} A 30 30 0 ${angleDeg > 180 ? 1 : 0} 0 ${centerX + 30 * Math.cos(-angleRad)} ${centerY + 30 * Math.sin(-angleRad)}`} fill="none" stroke="#f59e0b" strokeWidth="2" />
+                                            <text x={centerX + 40 * Math.cos(-angleRad/2)} y={centerY + 40 * Math.sin(-angleRad/2)} textAnchor="middle" dominantBaseline="middle" fill="#d97706" className="text-xs font-bold font-mono">θ</text>
                                         </g>
-                                        
-                                        {/* Acceleration Vector */}
-                                        {!isCut && (
-                                            <g>
-                                                <line x1={ballX} y1={ballY} x2={ballX + accX} y2={ballY + accY} stroke="#ef4444" strokeWidth="3" markerEnd="url(#arrow-red)" />
-                                                <text x={ballX + accX - 15} y={ballY + accY - 5} fill="#dc2626" className="text-[12px] font-bold font-mono">a</text>
-                                            </g>
-                                        )}
 
-                                        <circle cx={ballX} cy={ballY} r={10 + mass * 2} fill="url(#grad)" stroke="#1e293b" strokeWidth="1" />
-                                        
-                                        <defs>
-                                            <radialGradient id="grad">
-                                                <stop offset="0%" stopColor="#475569" />
-                                                <stop offset="100%" stopColor="#0f172a" />
-                                            </radialGradient>
-                                            <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#10b981"/></marker>
-                                            <marker id="arrow-red" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#ef4444"/></marker>
-                                        </defs>
+                                        {/* 호 라벨 (s) */}
+                                        <text x={centerX + (visualR + 25) * Math.cos(-angleRad/2)} y={centerY + (visualR + 25) * Math.sin(-angleRad/2)} textAnchor="middle" dominantBaseline="middle" fill="#ef4444" className="text-base italic font-black">s</text>
                                     </svg>
                                     
-                                    <div className="absolute top-4 left-4 bg-white/70 backdrop-blur-sm p-2 rounded-lg border border-slate-200 text-[10px] space-y-1 shadow-sm">
-                                        <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div><span>속도</span></div>
-                                        <div className="flex items-center gap-1.5"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span>가속도</span></div>
+                                    {/* 고정 예시 박스 (이미지 내용 반영) */}
+                                    <div className="absolute top-4 right-4 flex flex-col gap-2">
+                                        <div className="bg-white/80 backdrop-blur-md p-3 rounded-xl border border-slate-200 shadow-sm text-[11px] leading-tight w-48">
+                                            <p className="font-bold text-slate-800 mb-1">💡 예시: 한 바퀴 (360°)</p>
+                                            <p className="text-slate-600">• 반지름 <span className="math-font">r</span> = 1m 이면<br/>원둘레 <span className="math-font">s</span> = 6.28m (2π)</p>
+                                            <p className="text-slate-600 mt-1">• 반지름 <span className="math-font">r</span> = 0.5m 이면<br/>원둘레 <span className="math-font">s</span> = 3.14m (π)</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* 컨트롤러 */}
-                                <div className="w-full lg:w-72 bg-slate-50 border-l border-slate-200 p-5 flex flex-col gap-6 overflow-y-auto no-scrollbar">
-                                    <div className="space-y-4">
+                                {/* 2. 컨트롤 및 개념 학습 영역 */}
+                                <div className="w-full lg:w-96 bg-slate-50 p-6 flex flex-col gap-8">
+                                    {/* 조절 바 */}
+                                    <div className="space-y-6">
                                         <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                            <Icon name="settings-2" size={14} /> 설정 (Parameters)
+                                            <Icon name="sliders" size={14} /> 매개변수 조절
                                         </h4>
-                                        <div className="space-y-5">
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-xs font-semibold"><span>질량 (m)</span><span>{mass.toFixed(1)} kg</span></div>
-                                                <input type="range" min="0.5" max="5.0" step="0.1" value={mass} onChange={e=>setMass(parseFloat(e.target.value))} className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900" />
+                                        <div className="space-y-6">
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-sm font-bold text-slate-700">반지름 (<span className="math-font">r</span>)</span>
+                                                    <span className="text-lg font-mono text-sky-600">{radius.toFixed(1)} m</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="0.1" max="2.0" step="0.1" value={radius} 
+                                                    onChange={e=>setRadius(parseFloat(e.target.value))} 
+                                                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600" 
+                                                />
                                             </div>
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-xs font-semibold"><span>반지름 (r)</span><span>{radius} px</span></div>
-                                                <input type="range" min="50" max="200" step="1" value={radius} onChange={e=>{setRadius(parseInt(e.target.value)); if(isCut) handleReset();}} className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <div className="flex justify-between text-xs font-semibold"><span>선속도 (v)</span><span>{linearVelocity} px/s</span></div>
-                                                <input type="range" min="50" max="400" step="5" value={linearVelocity} onChange={e=>{setLinearVelocity(parseInt(e.target.value)); if(isCut) handleReset();}} className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-900" />
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-sm font-bold text-slate-700">중심각 (<span className="math-font">θ</span>)</span>
+                                                    <span className="text-lg font-mono text-amber-600">{angleDeg}°</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="0" max="360" step="1" value={angleDeg} 
+                                                    onChange={e=>setAngleDeg(parseInt(e.target.value))} 
+                                                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500" 
+                                                />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3 pt-2">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button onClick={()=>setIsPaused(!isPaused)} className="flex items-center justify-center gap-2 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition-colors">
-                                                <Icon name={isPaused ? "play" : "pause"} size={14} /> {isPaused ? "시작" : "정지"}
-                                            </button>
-                                            <button onClick={handleReset} className="flex items-center justify-center gap-2 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition-colors">
-                                                <Icon name="rotate-ccw" size={14} /> 초기화
-                                            </button>
+                                    {/* 관계식 카드 */}
+                                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                                        <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">기본 관계식</h4>
+                                        <div className="flex flex-col items-center py-2 bg-slate-50 rounded-xl">
+                                            <p className="text-3xl font-black text-slate-800 tracking-widest">s = rθ</p>
+                                            <p className="text-[10px] text-slate-500 mt-1">(호의 길이 = 반지름 × 라디안각)</p>
                                         </div>
-                                        <button onClick={handleCut} disabled={isCut} className={`w-full py-3 flex items-center justify-center gap-2 rounded-xl text-xs font-black shadow-lg transition-all ${isCut ? 'bg-slate-100 text-slate-300' : 'bg-rose-500 text-white hover:bg-rose-600 active:scale-95'}`}>
-                                            <Icon name="scissors" size={16} /> 실 끊기 (관성 확인)
-                                        </button>
+                                        <div className="space-y-2 text-[12px] text-slate-600 leading-relaxed">
+                                            <p className="flex items-center gap-2">
+                                                <span className="w-1.5 h-1.5 bg-rose-400 rounded-full"></span>
+                                                <span>{radius.toFixed(1)}m × {angleRad.toFixed(3)}rad = <b>{arcLength.toFixed(2)}m</b></span>
+                                            </p>
+                                            <p className="flex items-center gap-2 pt-1 border-t border-slate-100">
+                                                <Icon name="check-circle-2" size={12} className="text-emerald-500" />
+                                                <span>반지름(<span className="math-font">r</span>)이 커지면 호(<span className="math-font">s</span>)도 길어집니다.</span>
+                                            </p>
+                                            <p className="flex items-center gap-2">
+                                                <Icon name="check-circle-2" size={12} className="text-emerald-500" />
+                                                <span>각도(<span className="math-font">θ</span>)가 커지면 호(<span className="math-font">s</span>)도 길어집니다.</span>
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <div className="mt-auto bg-white p-3 rounded-xl border border-slate-200 space-y-2">
-                                        <p className="text-[10px] font-bold text-slate-400">학습 포인트</p>
-                                        <div className="text-[11px] leading-relaxed text-slate-600 space-y-1">
-                                            <p>• <b>v = rω</b>: 반지름과 선속도의 비례</p>
-                                            <p>• <b>a = v²/r</b>: 구심 가속도의 크기</p>
-                                            <p>• 실을 끊으면 물체는 <b>접선 방향</b>으로 운동합니다.</p>
+                                    {/* 라디안의 정의 (이미지 하단 내용) */}
+                                    <div className="mt-auto space-y-3">
+                                        <div className="bg-amber-50 p-4 rounded-2xl border border-amber-100 italic">
+                                            <p className="text-[11px] font-bold text-amber-800 mb-1">📌 라디안(Radian)의 약속</p>
+                                            <p className="text-[11px] text-amber-700 leading-relaxed">
+                                                • <b>각도의 단위:</b> 원둘레를 360등분한 '도(°)' 대신, 반지름과 호의 길이 비율로 각을 정합니다.<br/>
+                                                • <b>1 라디안:</b> 호의 길이(<span className="math-font">s</span>)가 반지름(<span className="math-font">r</span>)과 같아질 때의 각도.<br/>
+                                                • <b>변환:</b> 6.28 : 360° = 1 : (<b>약 57.3°</b>)
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -254,14 +223,14 @@ def run_sim():
             };
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<CircularMotionSimulation />);
+            root.render(<BasicCircularSim />);
         </script>
     </body>
     </html>
     """
 
-    # Streamlit 컴포넌트로 HTML 삽입 (높이를 충분히 확보)
-    components.html(react_code, height=700, scrolling=False)
+    # Streamlit 컴포넌트로 HTML 삽입
+    components.html(react_code, height=650, scrolling=False)
 
 if __name__ == "__main__":
     run_sim()
