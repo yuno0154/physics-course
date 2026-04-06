@@ -32,7 +32,7 @@ practice_page = st.Page("physics_sim/projectile_practice.py", title="└─ 📝
 
 # 3. 등속 원운동 섹션
 circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념] 등속 원운동 기초 탐구")
-circular_motion_advanced_page = st.Page("physics_sim/circular_motion_advanced.py", title="🏀 [심화] 등속 원운동 심화 탐구")
+circular_motion_advanced_page = st.Page("physics_sim/circular_motion_adv_v2.py", title="🏀 [심화] 등속 원운동 심화 탐구")
 
 # 3. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="\u00A0\u00A0\u00A0\u00A0└ 📑 [수행평가 1-1] 제출")
