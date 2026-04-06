@@ -166,7 +166,7 @@ def run_sim():
                                 <div className="flex-1 bg-slate-50 relative overflow-hidden flex items-center justify-center p-4">
                                     <svg viewBox="0 0 500 500" className="w-full h-full max-w-[450px]">
                                         <circle cx={centerX} cy={centerY} r="3" fill="#64748b" />
-                                        {!isCut && <circle cx={centerX} cy={centerY} r={r} fill="none" stroke="#64748b" strokeWidth="3" strokeDasharray="6,6" />}
+                                        {!isCut && <circle cx={centerX} cy={centerY} r={r} fill="none" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,4" />}
                                         {!isCut && <path d={getArcPath()} fill="rgba(245, 158, 11, 0.15)" />}
                                         {!isCut && <line x1={centerX} y1={centerY} x2={ballX} y2={ballY} stroke="#94a3b8" strokeWidth="2" />}
                                         
@@ -191,8 +191,8 @@ def run_sim():
                                                 <stop offset="0%" stopColor="#475569" />
                                                 <stop offset="100%" stopColor="#0f172a" />
                                             </radialGradient>
-                                            <marker id="arrow-green" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 Z" fill="#10b981"/></marker>
-                                            <marker id="arrow-red" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 Z" fill="#ef4444"/></marker>
+                                            <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#10b981"/></marker>
+                                            <marker id="arrow-red" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#ef4444"/></marker>
                                         </defs>
                                     </svg>
                                     
