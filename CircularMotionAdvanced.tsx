@@ -118,7 +118,7 @@ const CircularMotionAdvanced = () => {
               {/* Mode 1: Radian 학습 */}
               {mode === 1 && (
                 <g>
-                  <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="4,4" />
+                  <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="6,6" />
                   {/* 부채꼴 영역 */}
                   <path 
                     d={`M ${CX} ${CY} L ${CX + radius} ${CY} A ${radius} ${radius} 0 ${theta > Math.PI ? 1 : 0} 1 ${CX + radius * Math.cos(theta)} ${CY + radius * Math.sin(theta)} Z`} 
@@ -155,7 +155,7 @@ const CircularMotionAdvanced = () => {
                     const vy = Math.cos(angle) * (v * 0.5);
                     return (
                       <g key={i}>
-                        <circle cx={CX} cy={CY} r={r} fill="none" stroke="#f1f5f9" strokeWidth="1" />
+                        <circle cx={CX} cy={CY} r={r} fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="6,6" />
                         <line x1={CX} y1={CY} x2={x} y2={y} stroke="#cbd5e1" strokeWidth="1" />
                         {/* Velocity Arrow */}
                         <line x1={x} y1={y} x2={x + vx} y2={y + vy} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
@@ -169,7 +169,7 @@ const CircularMotionAdvanced = () => {
               {/* Mode 3: Delta v 증명 */}
               {mode === 3 && (
                 <g>
-                   <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#e2e8f0" strokeWidth="1.5" strokeDasharray="5,5" />
+                   <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="6,6" />
                    
                    {!isCut ? (
                      <>
@@ -239,9 +239,9 @@ const CircularMotionAdvanced = () => {
 
               {/* 벡터 화살표 정의 */}
               <defs>
-                <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L0,10 L10,5 Z" fill="#10b981"/></marker>
-                <marker id="arrow-red" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L0,10 L10,5 Z" fill="#ef4444"/></marker>
-                <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L0,10 L10,5 Z" fill="#3b82f6"/></marker>
+                <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 Z" fill="#10b981"/></marker>
+                <marker id="arrow-red" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 Z" fill="#ef4444"/></marker>
+                <marker id="arrow-blue" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 Z" fill="#3b82f6"/></marker>
               </defs>
             </svg>
 
