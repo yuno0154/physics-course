@@ -155,7 +155,7 @@ const CircularMotionAdvanced = () => {
                     const vy = Math.cos(angle) * (v * 0.5);
                     return (
                       <g key={i}>
-                        <circle cx={CX} cy={CY} r={r} fill="none" stroke="#64748b" strokeWidth="3" strokeDasharray="6,6" />
+                        <circle cx={CX} cy={CY} r={r} fill="none" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,4" />
                         <line x1={CX} y1={CY} x2={x} y2={y} stroke="#94a3b8" strokeWidth="2" />
                         {/* Velocity Arrow */}
                         <line x1={x} y1={y} x2={x + vx} y2={y + vy} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
@@ -169,7 +169,7 @@ const CircularMotionAdvanced = () => {
               {/* Mode 3: Delta v 증명 */}
               {mode === 3 && (
                 <g>
-                   <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#64748b" strokeWidth="3" strokeDasharray="6,6" />
+                   <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,4" />
                    
                    {!isCut ? (
                      <>
@@ -239,9 +239,9 @@ const CircularMotionAdvanced = () => {
 
               {/* 벡터 화살표 정의 */}
               <defs>
-                <marker id="arrow-green" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 Z" fill="#10b981"/></marker>
-                <marker id="arrow-red" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 Z" fill="#ef4444"/></marker>
-                <marker id="arrow-blue" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 Z" fill="#3b82f6"/></marker>
+                <marker id="arrow-green" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#10b981"/></marker>
+                <marker id="arrow-red" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#ef4444"/></marker>
+                <marker id="arrow-blue" markerUnits="userSpaceOnUse" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L0,8 L9,4 Z" fill="#3b82f6"/></marker>
               </defs>
             </svg>
 
