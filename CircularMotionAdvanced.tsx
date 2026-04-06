@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Scissors, Settings2, Info, Activity, Layers, ArrowRight, MousePointer2 } from 'lucide-react';
+import { Play, Pause, RotateCcw, Scissors, Settings2, Info, Activity, Layers, ArrowRight, MousePointer2, HelpCircle } from 'lucide-react';
 
 /**
  * 물리학Ⅱ 등속 원운동 심화 탐구 (3단계 학습 모드)
@@ -9,6 +9,7 @@ const CircularMotionAdvanced = () => {
   const [mode, setMode] = useState(1); // 1: Radian, 2: v=rw, 3: Delta v
   const [isPaused, setIsPaused] = useState(false);
   const [isCut, setIsCut] = useState(false);
+  const [activeTab, setActiveTab] = useState('settings'); // 'settings' or 'activity'
   
   // 공통 물리 파라미터
   const [radius, setRadius] = useState(120);
@@ -118,7 +119,7 @@ const CircularMotionAdvanced = () => {
               {/* Mode 1: Radian 학습 */}
               {mode === 1 && (
                 <g>
-                  <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#64748b" strokeWidth="3" strokeDasharray="6,6" />
+                  <circle cx={CX} cy={CY} r={radius} fill="none" stroke="#334155" strokeWidth="2.5" strokeDasharray="4,4" />
                   {/* 부채꼴 영역 */}
                   <path 
                     d={`M ${CX} ${CY} L ${CX + radius} ${CY} A ${radius} ${radius} 0 ${theta > Math.PI ? 1 : 0} 1 ${CX + radius * Math.cos(theta)} ${CY + radius * Math.sin(theta)} Z`} 
@@ -286,72 +287,175 @@ const CircularMotionAdvanced = () => {
             </div>
           </div>
 
-          {/* 컨트롤 패널 */}
-          <div className="w-full lg:w-96 bg-slate-50 p-8 flex flex-col gap-8 overflow-y-auto border-l border-slate-100">
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 text-blue-600">
-                <Settings2 size={20} />
-                <h3 className="font-black text-sm uppercase tracking-widest">환경 설정</h3>
-              </div>
-              
-              <div className="space-y-6">
-                {/* 반지름 슬라이더 */}
-                <div className="space-y-2">
-                  <div className="flex justify-between font-mono text-sm"><span>Radius (r)</span><span className="text-blue-600 font-bold">{radius} px</span></div>
-                  <input type="range" min="50" max="200" step="1" value={radius} onChange={e=>setRadius(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+          {/* 컨트롤 및 활동지 패널 */}
+          <div className="w-full lg:w-96 bg-slate-50 flex flex-col overflow-hidden border-l border-slate-100">
+            {/* 탭 헤더 */}
+            <div className="flex border-b border-slate-200">
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider transition-all ${activeTab === 'settings' ? 'bg-white text-blue-600 border-b-2 border-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <Settings2 size={16} /> 조작 설정
+              </button>
+              <button 
+                onClick={() => setActiveTab('activity')}
+                className={`flex-1 py-4 flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider transition-all ${activeTab === 'activity' ? 'bg-white text-emerald-600 border-b-2 border-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+              >
+                <HelpCircle size={16} /> 학습 활동지
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 space-y-8">
+              {activeTab === 'settings' ? (
+                <>
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 text-blue-600">
+                      <Settings2 size={20} />
+                      <h3 className="font-black text-sm uppercase tracking-widest">환경 설정</h3>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* 반지름 슬라이더 */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between font-mono text-sm"><span>Radius (r)</span><span className="text-blue-600 font-bold">{radius} px</span></div>
+                        <input type="range" min="50" max="200" step="1" value={radius} onChange={e=>setRadius(parseInt(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                      </div>
+
+                      {mode === 1 ? (
+                        <div className="space-y-2">
+                          <div className="flex justify-between font-mono text-sm"><span>Angle (θ)</span><span className="text-red-500 font-bold">{theta.toFixed(2)} rad</span></div>
+                          <input type="range" min="0" max={Math.PI * 2} step="0.01" value={theta} onChange={e=>setTheta(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex justify-between font-mono text-sm"><span>Angular Vel (ω)</span><span className="text-emerald-500 font-bold">{omega.toFixed(1)} rad/s</span></div>
+                          <input type="range" min="0.5" max="5.0" step="0.1" value={omega} onChange={e=>setOmega(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
+                        </div>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2 text-slate-500">
+                      <Activity size={20} />
+                      <h3 className="font-black text-sm uppercase tracking-widest">인터랙션</h3>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <button onClick={() => setIsPaused(!isPaused)} className="flex items-center justify-center gap-2 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm font-bold text-sm hover:bg-slate-100 transition-all">
+                        {isPaused ? <Play size={18} fill="currentColor"/> : <Pause size={18} fill="currentColor"/>}
+                        {isPaused ? '시작' : '일시 정지'}
+                      </button>
+                      <button onClick={handleReset} className="flex items-center justify-center gap-2 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm font-bold text-sm hover:bg-slate-100 transition-all">
+                        <RotateCcw size={18} /> 초기화
+                      </button>
+
+                      {mode === 3 && (
+                        <>
+                          <button onClick={saveVector} className="col-span-2 flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 font-bold text-sm hover:bg-blue-700 transition-all">
+                             <MousePointer2 size={18} /> 벡터 자취 저장 {savedVectors.length}/2
+                          </button>
+                          <button onClick={handleCut} disabled={isCut} className={`col-span-2 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm transition-all shadow-md ${isCut ? 'bg-slate-100 text-slate-300' : 'bg-rose-500 text-white hover:bg-rose-600'}`}>
+                             <Scissors size={18} /> 실 끊기 (관성 관찰)
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </section>
+                </>
+              ) : (
+                /* 활동지 내용 */
+                <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
+                  {mode === 1 && (
+                    <section className="space-y-4">
+                      <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold inline-block">Step 1. 수학적 기초</div>
+                      <h4 className="font-bold text-slate-800 italic">"왜 굳이 라디안(rad)인가?"</h4>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-4 text-sm leading-relaxed">
+                        <div className="space-y-2">
+                          <p className="font-bold text-blue-600 flex items-center gap-2"><ArrowRight size={14}/> 탐구 미션</p>
+                          <p className="text-slate-600">반지름을 100px로 설정하고, 호의 길이(s)가 100px이 될 때까지 각도를 조절해보세요.</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                          <p className="font-bold text-xs text-slate-400 uppercase mb-2">인출 질문 (Retrieval)</p>
+                          <p className="font-semibold text-slate-700">"호의 길이(s)가 반지름(r)과 정확히 같아지는 순간의 각도는 약 몇 도인가요? 이때의 rad 값은?"</p>
+                          <div className="mt-3 h-8 bg-white border border-slate-200 rounded-lg flex items-center px-3 text-slate-300 italic text-xs">직접 인출하여 답변해보세요...</div>
+                        </div>
+                        <p className="text-xs text-slate-500 italic bg-blue-50 p-2 rounded-lg border border-blue-100">
+                          <strong>핵심 정리:</strong> s = rθ 관계에서 θ = 1(rad)일 때 비로소 호의 길이와 반지름이 같아집니다.
+                        </p>
+                      </div>
+                    </section>
+                  )}
+
+                  {mode === 2 && (
+                    <section className="space-y-4">
+                      <div className="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold inline-block">Step 2. 운동의 기술</div>
+                      <h4 className="font-bold text-slate-800 italic">"바깥쪽 개미가 더 빠른가요?"</h4>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-4 text-sm leading-relaxed">
+                        <div className="space-y-2">
+                          <p className="font-bold text-emerald-600 flex items-center gap-2"><ArrowRight size={14}/> 탐구 미션</p>
+                          <p className="text-slate-600">반지름이 다른 두 물체를 동시에 회전시키며 각 속도 벡터를 관찰하세요.</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                          <p className="font-bold text-xs text-slate-400 uppercase mb-2">인출 질문 (Retrieval)</p>
+                          <p className="font-semibold text-slate-700">"두 물체의 각속도(ω)는 똑같지만, 접선 속도(v) 화살표 길이는 누가 더 긴가요? 그 물리적 이유는?"</p>
+                          <div className="mt-3 h-8 bg-white border border-slate-200 rounded-lg flex items-center px-3 text-slate-300 italic text-xs">두 반지름의 비와 속도의 비를 비교해보세요...</div>
+                        </div>
+                        <p className="text-xs text-slate-500 italic bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                          <strong>명시적 지도:</strong> v = Δs/Δt = r(Δθ/Δt) = rω 임을 수치 대조를 통해 확인합니다.
+                        </p>
+                      </div>
+                    </section>
+                  )}
+
+                  {mode === 3 && (
+                    <section className="space-y-4">
+                      <div className="bg-rose-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold inline-block">Step 3. 역학의 본질</div>
+                      <h4 className="font-bold text-slate-800 italic">"속력이 일정한데 왜 힘이 필요한가?"</h4>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-200 space-y-4 text-sm leading-relaxed">
+                        <div className="space-y-2">
+                          <p className="font-bold text-rose-600 flex items-center gap-2"><ArrowRight size={14}/> 탐구 미션</p>
+                          <p className="text-slate-600">'벡터 자취' 기능을 켜서 서로 다른 두 지점의 속도 벡터를 기록하고 차이를 확인하세요.</p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                          <p className="font-bold text-xs text-slate-400 uppercase mb-2">인출 질문 (Retrieval)</p>
+                          <p className="font-semibold text-slate-700">"두 속도 벡터의 차이(Δv)는 원의 어느 방향으로 나타나나요? 실이 갑자기 사라진다면 물체는?"</p>
+                          <div className="mt-3 h-8 bg-white border border-slate-200 rounded-lg flex items-center px-3 text-slate-300 italic text-xs">'실 끊기' 버튼을 눌러 관성 방향을 관찰하세요...</div>
+                        </div>
+                        <p className="text-xs text-slate-500 italic bg-rose-50 p-2 rounded-lg border border-rose-100">
+                          <strong>교정 포인트:</strong> '원심력'은 가상적인 힘이며, 본질은 관성과 중심을 향하는 구심력입니다.
+                        </p>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 공통 평가 섹션 */}
+                  <section className="space-y-4 border-t border-slate-200 pt-6">
+                    <div className="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold inline-block">Step 4. 평가 및 전이</div>
+                    <h4 className="font-bold text-slate-800 italic">"도로 설계자 미션: 안전한 곡선"</h4>
+                    <div className="bg-slate-100 p-4 rounded-2xl border border-slate-200 space-y-4 text-sm leading-relaxed">
+                      <p className="text-slate-600 font-medium">문제: "비가 와서 마찰력이 줄어들면 구심력이 부족해집니다. 이때 사고를 막으려면 자동차는 어떻게 해야 할까요?"</p>
+                      <ul className="text-xs space-y-2 text-slate-500">
+                        <li>(1) 속력을 줄여야 한다 ($v \downarrow$)</li>
+                        <li>(2) 회전 반경을 키워야 한다 ($r \uparrow$)</li>
+                      </ul>
+                      <p className="text-xs font-bold text-slate-700 bg-white p-2 rounded border border-slate-200 inline-block">
+                        근거: F = m v²/r 수식을 바탕으로 설명해보세요.
+                      </p>
+                    </div>
+                  </section>
                 </div>
+              )}
+            </div>
 
-                {mode === 1 ? (
-                  <div className="space-y-2">
-                    <div className="flex justify-between font-mono text-sm"><span>Angle (θ)</span><span className="text-red-500 font-bold">{theta.toFixed(2)} rad</span></div>
-                    <input type="range" min="0" max={Math.PI * 2} step="0.01" value={theta} onChange={e=>setTheta(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-red-500" />
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex justify-between font-mono text-sm"><span>Angular Vel (ω)</span><span className="text-emerald-500 font-bold">{omega.toFixed(1)} rad/s</span></div>
-                    <input type="range" min="0.5" max="5.0" step="0.1" value={omega} onChange={e=>setOmega(parseFloat(e.target.value))} className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500" />
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 text-slate-500">
-                <Activity size={20} />
-                <h3 className="font-black text-sm uppercase tracking-widest">인터랙션</h3>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => setIsPaused(!isPaused)} className="flex items-center justify-center gap-2 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm font-bold text-sm hover:bg-slate-100 transition-all">
-                  {isPaused ? <Play size={18} fill="currentColor"/> : <Pause size={18} fill="currentColor"/>}
-                  {isPaused ? '애니메이션 시작' : '일시 정지'}
-                </button>
-                <button onClick={handleReset} className="flex items-center justify-center gap-2 py-4 bg-white border border-slate-200 rounded-2xl shadow-sm font-bold text-sm hover:bg-slate-100 transition-all">
-                  <RotateCcw size={18} /> 재설정
-                </button>
-
-                {mode === 3 && (
-                  <>
-                    <button onClick={saveVector} className="col-span-2 flex items-center justify-center gap-2 py-4 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-100 font-bold text-sm hover:bg-blue-700 transition-all">
-                       <MousePointer2 size={18} /> 벡터 자취 저장 (Δv 증명) {savedVectors.length}/2
-                    </button>
-                    <button onClick={handleCut} disabled={isCut} className={`col-span-2 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-sm transition-all shadow-md ${isCut ? 'bg-slate-100 text-slate-300' : 'bg-rose-500 text-white hover:bg-rose-600'}`}>
-                       <Scissors size={18} /> 구심력 제거 (실 끊기)
-                    </button>
-                  </>
-                )}
-              </div>
-            </section>
-
-            {/* 도식적 안내 */}
-            <div className="mt-auto p-6 bg-blue-50 rounded-3xl border border-blue-100 space-y-3">
-               <div className="flex items-center gap-2 text-blue-800 font-black text-xs uppercase tracking-wider">
-                 <Info size={16} /> 학습 가이드
+            <div className="p-8 border-t border-slate-100 bg-white">
+               <div className="flex items-center gap-2 text-blue-800 font-black text-[10px] uppercase tracking-tighter mb-2">
+                 <Info size={14} /> 학습 가이드 요약
                </div>
-               <p className="text-[11px] leading-relaxed text-blue-700/80">
-                 {mode === 1 && "호의 길이와 반지름이 같아지는 지점이 바로 1 라디안(약 57.3도)입니다. 라디안은 반지름에 대한 호의 상대적 비율로 정의된 각도 단위입니다."}
-                 {mode === 2 && "각속도가 같더라도 회전 반경이 클수록 선속도(접선 속도)는 선형적으로 증가합니다. 대관람차의 가장자리가 중심보다 빠른 이유와 같습니다."}
-                 {mode === 3 && "속도 벡터의 크기는 변하지 않지만 방향이 지속적으로 변합니다. 두 지점의 속도 벡터를 겹쳐보면 그 차이인 속도 변화량(Δv)은 항상 원의 중심을 향하게 됩니다."}
+               <p className="text-[10px] leading-relaxed text-blue-700/60 font-medium">
+                 {mode === 1 && "라디안은 호의 길이와 반지름의 비로 각도를 정의한 것으로, 물리 공식의 단순화에 필수적입니다."}
+                 {mode === 2 && "동일한 회전축에서 반지름이 커지면 더 긴 궤적을 돌아야 하므로 선속도가 빨라집니다."}
+                 {mode === 3 && "속도 방향의 변화가 바로 가속도이며, 이 가속도를 만드는 근원이 중심을 향하는 구심력입니다."}
                </p>
             </div>
           </div>
