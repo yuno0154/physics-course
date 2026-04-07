@@ -313,9 +313,18 @@ def run_sim():
                                 </div>
                                 <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white">
                                     <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
-                                    <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="v_x = -v sin ωt" yLabel="v_y = v cos ωt" colorX="#10b981" colorY="#059669" scale={1 / omega} yMax="v" />
-                                    <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="a_x = -a cos ωt" yLabel="a_y = -a sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1 / (omega * omega)} yMax="a" />
+                                    <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
+                                    <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="ax = -rω² cos ωt" yLabel="ay = -rω² sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1/(omega*omega)} yMax="rω²" />
                                 </div>
+                            </div>
+
+                            {/* 연습 문제 섹션 */}
+                            <div className="w-full max-w-7xl space-y-8 mb-20 p-8">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="w-2 h-8 bg-sky-500 rounded-full"></div>
+                                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">📝 실전 연습 문제 (Simulation Driven)</h2>
+                                </div>
+                                <PracticeSection />
                             </div>
 
                             <div className="bg-white border-t border-slate-100">
