@@ -100,6 +100,7 @@ def run_sim():
                 const [omega, setOmega] = useState(1.0); 
                 const [radius, setRadius] = useState(1.0);
                 const [activeId, setActiveId] = useState(null);
+                const [activeView, setActiveView] = useState('sim'); // 'sim', 'practice'
 
                 const [showPos, setShowPos] = useState(true);
                 const [showVel, setShowVel] = useState(true);
@@ -132,9 +133,6 @@ def run_sim():
 
                 const graphWidth = 400;
                 const graphHeight = 110;
-
-                // 수동 조작 핸들러
-                const handleMouseDown = (e) => {
                     if (!isManual) return;
                     setIsDragging(true);
                     updateTimeFromEvent(e);
@@ -402,160 +400,188 @@ def run_sim():
 
                 return (
                     <div className="flex flex-col items-center bg-transparent min-h-screen p-1 text-slate-800">
-                        <div className="w-full max-w-7xl rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8 transition-all">
-                            <div className="flex items-center justify-between px-8 py-4 bg-slate-900 text-white border-b border-slate-800">
-                                <div className="flex items-center gap-6">
-                                    <button onClick={() => setIsManual(!isManual)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${isManual ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}`}>
-                                        {isManual ? 'MANUAL' : 'AUTO'}
-                                    </button>
-                                    <button onClick={() => setIsPlaying(!isPlaying)} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying && !isManual ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
-                                        <Icon name={isPlaying && !isManual ? "pause" : "play"} size={24} className="text-white" />
-                                    </button>
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">물리 변수 제어</p>
-                                        <div className="flex gap-4">
-                                            <span className="text-xl font-black text-sky-400 italic">t = {time.toFixed(2)}s</span>
-                                            <span className="text-xl font-black text-amber-500 italic">ωt = {wt.toFixed(2)}rad</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-8">
-                                    <div className="w-44 space-y-1">
-                                        <p className="text-[10px] text-slate-400 font-black uppercase">반지름 (r)</p>
-                                        <input type="range" min="0.5" max="1.5" step="0.1" value={radius} onChange={e=>setRadius(parseFloat(e.target.value))} className="w-full h-1 accent-sky-500" />
-                                    </div>
-                                    <div className="w-44 space-y-1">
-                                        <p className="text-[10px] text-slate-400 font-black uppercase">각속도 (ω)</p>
-                                        <input type="range" min="0.5" max="2.0" step="0.1" value={omega} onChange={e=>setOmega(parseFloat(e.target.value))} className="w-full h-1 accent-amber-500" />
-                                    </div>
+                        <div className="w-full max-w-7xl min-h-[850px] rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8 transition-all flex">
+                            
+                            <div className="w-[100px] flex-shrink-0 bg-slate-900 flex flex-col items-center py-10 gap-8 border-r border-white/5">
+                                <button 
+                                    onClick={() => setActiveView('sim')}
+                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'sim' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-slate-500 hover:text-slate-400'}`}
+                                >
+                                    <Icon name="activity" size={24} />
+                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">실험 분석</span>
+                                </button>
+                                <button 
+                                    onClick={() => setActiveView('practice')}
+                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'practice' ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/20' : 'text-slate-500 hover:text-slate-400'}`}
+                                >
+                                    <Icon name="clipboard-list" size={24} />
+                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">평가 연습</span>
+                                </button>
+                                <div className="mt-auto pb-6">
+                                    <Icon name="cpu" size={20} className="text-slate-700" />
                                 </div>
                             </div>
 
-                            <div className="flex flex-col lg:flex-row divide-x divide-slate-100 min-h-[640px]">
-                                <div className="lg:w-[450px] bg-slate-50 flex flex-col items-center justify-center p-8 relative border-r">
-                                    <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 w-[140px]">
-                                        <button onClick={()=>setShowPos(!showPos)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showPos ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>위치(r) 벡터 표시</button>
-                                        <button onClick={()=>setShowVel(!showVel)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showVel ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도(v) 벡터 표시</button>
-                                        <button onClick={()=>setShowComp(!showComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showComp ? 'bg-teal-500 border-teal-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도 성분 (vx, vy)</button>
-                                        <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-rose-500 border-rose-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
-                                        <button onClick={()=>setShowAccComp(!showAccComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAccComp ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도 성분 (ax, ay)</button>
-                                    </div>
-                                    <svg ref={svgRef} viewBox="0 0 400 400" className={`w-full h-full max-w-[340px] select-none ${isManual ? 'cursor-move' : ''}`} onMouseDown={handleMouseDown}>
-                                        <defs>
-                                            <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#10b981" />
-                                            </marker>
-                                            <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f59e0b" />
-                                            </marker>
-                                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#3b82f6" />
-                                            </marker>
-                                            <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f43f5e" />
-                                            </marker>
-                                        </defs>
-
-                                        <line x1="0" y1="200" x2="400" y2="200" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
-                                        <line x1="200" y1="0" x2="200" y2="400" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
-                                        <circle cx="200" cy="200" r={radius * 120} fill="none" stroke="#e2e8f0" strokeWidth="2" />
-
-                                        {showPos && (
-                                            <g>
-                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrow-blue)" />
-                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
-                                                <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
-                                            </g>
-                                        )}
-                                        {showAcc && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120 - acc.y * 80} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
-                                        )}
-                                        {showAccComp && (
-                                            <g opacity="0.8">
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120} stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - acc.y * 80} stroke="#d97706" strokeWidth="6" strokeLinecap="round" />
-                                                <text x={200 + pos.x * 120 + acc.x * 80} y={200 - pos.y * 120 - 10} className="fill-amber-600 text-[11px] font-black italic">ax</text>
-                                                <text x={200 + pos.x * 120 + 10} y={200 - pos.y * 120 - acc.y * 80} className="fill-amber-800 text-[11px] font-black italic">ay</text>
-                                            </g>
-                                        )}
-                                        {showComp && (
-                                            <g opacity="0.9">
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120} stroke="#10b981" strokeWidth="7" strokeLinecap="round" />
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - vel.y * 110} stroke="#059669" strokeWidth="7" strokeLinecap="round" />
-                                                <text x={200 + pos.x * 120 + vel.x * 110} y={200 - pos.y * 120 - 12} className="fill-emerald-600 text-[12px] font-black italic">vx</text>
-                                                <text x={200 + pos.x * 120 + 12} y={200 - pos.y * 120 - vel.y * 110} className="fill-emerald-800 text-[12px] font-black italic">vy</text>
-                                            </g>
-                                        )}
-                                        {showVel && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120 - vel.y * 110} stroke="#10b981" strokeWidth="4" markerEnd="url(#arrow-green)" />
-                                        )}
-                                        <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="10" fill="#0f172a" stroke="white" strokeWidth="4" />
-                                    </svg>
-                                    {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-6 py-2 rounded-full text-xs font-black animate-pulse shadow-xl">드래그하여 직접 조작하세요!</div>}
-                                </div>
-                                <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white shadow-inner">
-                                    <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
-                                    
-                                    {/* 분석 2: 속도 성분 그래프 */}
-                                    <div className="space-y-4 pt-4 pb-4">
-                                        <div className="flex items-center gap-2 border-l-4 border-emerald-500 pl-3">
-                                            <h3 className="font-black text-slate-800 text-sm italic">분석 2: 속도 성분 ($v_x, v_y$)</h3>
+                            <div className="flex-1 flex flex-col bg-slate-50/30 overflow-hidden">
+                                {activeView === 'sim' ? (
+                                    <>
+                                        <div className="flex items-center justify-between px-8 py-4 bg-slate-900 text-white border-b border-slate-800">
+                                            <div className="flex items-center gap-6">
+                                                <button onClick={() => setIsManual(!isManual)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${isManual ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                                                    {isManual ? 'MANUAL' : 'AUTO'}
+                                                </button>
+                                                <button onClick={() => setIsPlaying(!isPlaying)} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying && !isManual ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
+                                                    <Icon name={isPlaying && !isManual ? "pause" : "play"} size={24} className="text-white" />
+                                                </button>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">물리 변수 제어</p>
+                                                    <div className="flex gap-4">
+                                                        <span className="text-xl font-black text-sky-400 italic">t = {time.toFixed(2)}s</span>
+                                                        <span className="text-xl font-black text-amber-500 italic">ωt = {wt.toFixed(2)}rad</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-8">
+                                                <div className="w-44 space-y-1">
+                                                    <p className="text-[10px] text-slate-400 font-black uppercase">반지름 (r)</p>
+                                                    <input type="range" min="0.5" max="1.5" step="0.1" value={radius} onChange={e=>setRadius(parseFloat(e.target.value))} className="w-full h-1 accent-sky-500 text-slate-900" />
+                                                </div>
+                                                <div className="w-44 space-y-1">
+                                                    <p className="text-[10px] text-slate-400 font-black uppercase">각속도 (ω)</p>
+                                                    <input type="range" min="0.5" max="2.0" step="0.1" value={omega} onChange={e=>setOmega(parseFloat(e.target.value))} className="w-full h-1 accent-amber-500" />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
-                                    </div>
 
-                                    <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="ax = -rω² cos ωt" yLabel="ay = -rω² sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1/(omega*omega)} yMax="rω²" />
-                                </div>
-                            </div>
+                                        <div className="flex flex-col lg:flex-row divide-x divide-slate-100 min-h-[640px] bg-white">
+                                            <div className="lg:w-[450px] bg-slate-50 flex flex-col items-center justify-center p-8 relative border-r">
+                                                <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 w-[140px]">
+                                                    <button onClick={()=>setShowPos(!showPos)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showPos ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>위치(r) 벡터 표시</button>
+                                                    <button onClick={()=>setShowVel(!showVel)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showVel ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도(v) 벡터 표시</button>
+                                                    <button onClick={()=>setShowComp(!showComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showComp ? 'bg-teal-500 border-teal-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도 성분 (vx, vy)</button>
+                                                    <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-rose-500 border-rose-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
+                                                    <button onClick={()=>setShowAccComp(!showAccComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAccComp ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도 성분 (ax, ay)</button>
+                                                </div>
+                                                <svg ref={svgRef} viewBox="0 0 400 400" className={`w-full h-full max-w-[340px] select-none ${isManual ? 'cursor-move' : ''}`} onMouseDown={handleMouseDown}>
+                                                    <defs>
+                                                        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                            <path d="M 0 2 L 10 5 L 0 8 Z" fill="#10b981" />
+                                                        </marker>
+                                                        <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                            <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f59e0b" />
+                                                        </marker>
+                                                        <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                            <path d="M 0 2 L 10 5 L 0 8 Z" fill="#3b82f6" />
+                                                        </marker>
+                                                        <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                            <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f43f5e" />
+                                                        </marker>
+                                                    </defs>
 
-                            {/* 연습 문제 섹션 - 분석 2 외부 하단으로 이동 */}
-                            <div className="bg-slate-50 border-t border-slate-100 p-12">
-                                <div className="max-w-4xl mx-auto space-y-12">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-3 h-10 bg-slate-900 rounded-full"></div>
-                                            <h2 className="text-3xl font-black text-slate-800 tracking-tighter">실전 연습 문제 (Physics Lab Workspace)</h2>
-                                        </div>
-                                        <div className="px-5 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs font-black text-slate-400">
-                                            분석 2 응용 단계
-                                        </div>
-                                    </div>
-                                    <PracticeSection />
-                                </div>
-                            </div>
+                                                    <line x1="0" y1="200" x2="400" y2="200" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
+                                                    <line x1="200" y1="0" x2="200" y2="400" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
+                                                    <circle cx="200" cy="200" r={radius * 120} fill="none" stroke="#e2e8f0" strokeWidth="2" />
 
-                            <div className="bg-white border-t border-slate-100">
-                                <AccordionItem id="pos" title="1단계: 위치 벡터의 정의" icon="map-pin" activeId={activeId} onToggle={handleToggle}>
-                                    <div className="math-block">
-                                        <p className="mb-2">원점 <MathSymbol text="O"/>를 기준으로 시간에 <MathSymbol text="t"/>에 따른 위치 벡터 <MathSymbol text="r" isVector={true} color="#2563eb"/>는 다음과 같습니다.</p>
-                                        <div className="text-xl font-black text-center py-2">r(t) = (r cos ωt, r sin ωt)</div>
-                                        <p className="text-slate-500 text-xs mt-2">※ 여기서 <MathSymbol text="ω"/>는 각속도이며, <MathSymbol text="θ = ωt"/> 임을 이용합니다.</p>
-                                    </div>
-                                </AccordionItem>
-                                <AccordionItem id="vel" title="2단계: 속도 벡터 (위치의 미분)" icon="zap" activeId={activeId} onToggle={handleToggle}>
-                                    <div className="math-block">
-                                        <p className="mb-2">속도 <MathSymbol text="v" isVector={true} color="#10b981"/>는 위치 벡터를 시간 <MathSymbol text="t"/>에 대해 미분하여 구합니다.</p>
-                                        <div className="text-lg font-black text-center py-2 space-y-1">
-                                            <div className="text-slate-400 text-sm">v(t) = dr/dt = (d(r cos ωt)/dt, d(r sin ωt)/dt)</div>
-                                            <div className="text-emerald-600 text-xl font-black font-serif italic">= (-rω sin ωt, rω cos ωt)</div>
+                                                    {showPos && (
+                                                        <g>
+                                                            <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrow-blue)" />
+                                                            <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+                                                            <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+                                                        </g>
+                                                    )}
+                                                    {showAcc && (
+                                                        <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120 - acc.y * 80} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
+                                                    )}
+                                                    {showAccComp && (
+                                                        <g opacity="0.8">
+                                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120} stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
+                                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - acc.y * 80} stroke="#d97706" strokeWidth="6" strokeLinecap="round" />
+                                                            <text x={200 + pos.x * 120 + acc.x * 80} y={200 - pos.y * 120 - 10} className="fill-amber-600 text-[11px] font-black italic">ax</text>
+                                                            <text x={200 + pos.x * 120 + 10} y={200 - pos.y * 120 - acc.y * 80} className="fill-amber-800 text-[11px] font-black italic">ay</text>
+                                                        </g>
+                                                    )}
+                                                    {showComp && (
+                                                        <g opacity="0.9">
+                                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120} stroke="#10b981" strokeWidth="7" strokeLinecap="round" />
+                                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - vel.y * 110} stroke="#059669" strokeWidth="7" strokeLinecap="round" />
+                                                            <text x={200 + pos.x * 120 + vel.x * 110} y={200 - pos.y * 120 - 12} className="fill-emerald-600 text-[12px] font-black italic">vx</text>
+                                                            <text x={200 + pos.x * 120 + 12} y={200 - pos.y * 120 - vel.y * 110} className="fill-emerald-800 text-[12px] font-black italic">vy</text>
+                                                        </g>
+                                                    )}
+                                                    {showVel && (
+                                                        <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120 - vel.y * 110} stroke="#10b981" strokeWidth="4" markerEnd="url(#arrow-green)" />
+                                                    )}
+                                                    <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="10" fill="#0f172a" stroke="white" strokeWidth="4" />
+                                                </svg>
+                                                {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-6 py-2 rounded-full text-xs font-black animate-pulse shadow-xl">드래그하여 직접 조작하세요!</div>}
+                                            </div>
+                                            <div className="flex-1 p-6 space-y-4 max-h-[700px] overflow-y-auto no-scrollbar bg-white shadow-inner">
+                                                <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
+                                                <div className="space-y-4 pt-4 pb-4">
+                                                    <div className="flex items-center gap-2 border-l-4 border-emerald-500 pl-3">
+                                                        <h3 className="font-black text-slate-800 text-sm italic">2: 속도 성분 ($v_x, v_y$)</h3>
+                                                    </div>
+                                                    <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
+                                                </div>
+                                                <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="ax = -rω² cos ωt" yLabel="ay = -rω² sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1/(omega*omega)} yMax="rω²" />
+                                            </div>
                                         </div>
-                                        <p className="text-slate-400 text-[11px] mt-2 italic font-medium leading-relaxed">결과: 속도의 크기는 v = rω 이며, 방향은 항상 궤적의 접선 방향입니다.</p>
-                                    </div>
-                                </AccordionItem>
-                                <AccordionItem id="acc" title="3단계: 가속도 벡터 (속도의 미분)" icon="arrow-down-to-dot" activeId={activeId} onToggle={handleToggle}>
-                                    <div className="math-block">
-                                        <p className="mb-2">가속도 <MathSymbol text="a" isVector={true} color="#f59e0b"/>는 속도 벡터를 한 번 더 미분하여 얻습니다.</p>
-                                        <div className="text-lg font-black text-center py-2 space-y-1">
-                                            <div className="text-slate-400 text-sm">a(t) = dv/dt = (-d(rω sin ωt)/dt, d(rω cos ωt)/dt)</div>
-                                            <div className="text-amber-600 text-xl font-black font-serif italic">= (-rω² cos ωt, -rω² sin ωt)</div>
-                                            <div className="text-rose-500 text-2xl font-black mt-3 font-serif italic">= -ω² r(t)</div>
+
+                                        <div className="bg-white border-t border-slate-100 mt-0">
+                                            <AccordionItem id="pos" title="1단계: 위치 벡터의 정의" icon="map-pin" activeId={activeId} onToggle={handleToggle}>
+                                                <div className="math-block">
+                                                    <p className="mb-2">원점 <MathSymbol text="O"/>를 기준으로 시간에 <MathSymbol text="t"/>에 따른 위치 벡터 <MathSymbol text="r" isVector={true} color="#2563eb"/>는 다음과 같습니다.</p>
+                                                    <div className="text-xl font-black text-center py-2 text-slate-800 font-serif">r(t) = (r cos ωt, r sin ωt)</div>
+                                                    <p className="text-slate-500 text-xs mt-2 italic">※ 여기서 <MathSymbol text="ω"/>는 각속도이며, <MathSymbol text="θ = ωt"/> 임을 이용합니다.</p>
+                                                </div>
+                                            </AccordionItem>
+                                            <AccordionItem id="vel" title="2단계: 속도 벡터 (위치의 미분)" icon="zap" activeId={activeId} onToggle={handleToggle}>
+                                                <div className="math-block">
+                                                    <p className="mb-2">속도 <MathSymbol text="v" isVector={true} color="#10b981"/>는 위치 벡터를 시간 <MathSymbol text="t"/>에 대해 미분하여 구합니다.</p>
+                                                    <div className="text-lg font-black text-center py-2 space-y-1">
+                                                        <div className="text-slate-400 text-sm">v(t) = dr/dt = (d(r cos ωt)/dt, d(r sin ωt)/dt)</div>
+                                                        <div className="text-emerald-600 text-xl font-black font-serif italic">= (-rω sin ωt, rω cos ωt)</div>
+                                                    </div>
+                                                    <p className="text-slate-400 text-[11px] mt-2 italic font-medium leading-relaxed">결과: 속도의 크기는 v = rω 이며, 방향은 항상 궤적의 접선 방향입니다.</p>
+                                                </div>
+                                            </AccordionItem>
+                                            <AccordionItem id="acc" title="3단계: 가속도 벡터 (속도의 미분)" icon="arrow-down-to-dot" activeId={activeId} onToggle={handleToggle}>
+                                                <div className="math-block">
+                                                    <p className="mb-2">가속도 <MathSymbol text="a" isVector={true} color="#f59e0b"/>는 속도 벡터를 한 번 더 미분하여 얻습니다.</p>
+                                                    <div className="text-lg font-black text-center py-2 space-y-1 text-slate-800">
+                                                        <div className="text-slate-400 text-sm italic underline">a(t) = dv/dt = (-d(rω sin ωt)/dt, d(rω cos ωt)/dt)</div>
+                                                        <div className="text-amber-600 text-xl font-black font-serif italic">= (-rω² cos ωt, -rω² sin ωt)</div>
+                                                        <div className="text-rose-500 text-2xl font-black mt-3 font-serif italic tracking-tighter">= -ω² r(t)</div>
+                                                    </div>
+                                                    <p className="text-slate-400 text-[11px] mt-2 italic font-medium leading-relaxed">결과: 가속도는 위치 벡터와 방향이 반대이며(중심 방향), 그 크기는 a = rω² = v²/r 입니다.</p>
+                                                </div>
+                                            </AccordionItem>
                                         </div>
-                                        <p className="text-slate-400 text-[11px] mt-2 italic font-medium leading-relaxed">결과: 가속도는 위치 벡터와 방향이 반대이며(중심 방향), 그 크기는 a = rω² = v²/r 입니다.</p>
+                                    </>
+                                ) : (
+                                    <div className="flex-1 bg-slate-50 p-12 overflow-y-auto no-scrollbar">
+                                        <div className="max-w-4xl mx-auto space-y-12">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="w-16 h-16 bg-slate-900 rounded-[1.5rem] flex items-center justify-center text-white shadow-2xl">
+                                                        <Icon name="clipboard-list" size={32} />
+                                                    </div>
+                                                    <div>
+                                                        <h2 className="text-4xl font-black text-slate-800 tracking-tighter">실전 연습 문제 (Physics Lab)</h2>
+                                                        <p className="text-slate-400 font-bold italic text-sm">등속 원운동의 성분 분석과 관련된 핵심 문제들을 해결해 보세요.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="px-6 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs font-black text-slate-400 tracking-widest uppercase">
+                                                    Assessment Mode
+                                                </div>
+                                            </div>
+                                            <PracticeSection />
+                                        </div>
                                     </div>
-                                </AccordionItem>
+                                )}
                             </div>
                         </div>
-                   </div>
+                    </div>
                 );
             };
 
