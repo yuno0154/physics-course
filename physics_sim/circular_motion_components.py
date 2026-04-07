@@ -215,68 +215,183 @@ def run_sim():
                 );
 
                 const PracticeSection = () => {
-                    const [answers, setAnswers] = useState({ q1: '', q2: '' });
-                    const [results, setResults] = useState({ q1: null, q2: null });
+                    const [answers, setAnswers] = useState({ 
+                        ox: Array(7).fill(null),
+                        q1: '', q2_a: '', q2_f: '', q3: ''
+                    });
+                    const [submitted, setSubmitted] = useState(false);
 
-                    const checkQ1 = () => {
-                        const isCorrect = answers.q1.includes('접선') || answers.q1.includes('90');
-                        setResults(prev => ({ ...prev, q1: isCorrect }));
+                    const oxQuestions = [
+                        "(1) 속도가 일정하다.",
+                        "(2) 가속도가 일정하다.",
+                        "(3) 등가속도 운동이다.",
+                        "(4) 가속도의 크기는 일정하다.",
+                        "(5) 가속도의 방향은 원의 중심 방향을 향하고 매순간 방향이 변한다.",
+                        "(6) 구심력의 크기는 일정하다.",
+                        "(7) 구심력의 방향은 일정하다."
+                    ];
+                    const oxCorrect = [false, false, false, true, true, true, false];
+
+                    const handleSubmit = () => {
+                        setSubmitted(true);
                     };
 
-                    const checkQ2 = () => {
-                        const val = parseFloat(answers.q2);
-                        const expected = radius * omega;
-                        const isCorrect = Math.abs(val - expected) < 0.1;
-                        setResults(prev => ({ ...prev, q2: isCorrect }));
+                    const getScore = () => {
+                        let score = 0;
+                        answers.ox.forEach((ans, i) => { if(ans === oxCorrect[i]) score++; });
+                        if(answers.q1 === '40') score++;
+                        if(answers.q2_a.includes('2.5') || answers.q2_a.includes('25')) score++; // Simplified
+                        if(answers.q3 === '14') score++;
+                        return score;
                     };
+
+                    if (submitted) {
+                        return (
+                            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500">
+                                <div className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                                        <Icon name="award" size={120} />
+                                    </div>
+                                    <h3 className="text-3xl font-black mb-2 italic">학습 결과 리포트</h3>
+                                    <p className="text-slate-400 font-bold mb-6 italic">제출이 완료되었습니다. 아래에서 상세 피드백을 확인하세요.</p>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                        <div className="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                                            <p className="text-[10px] text-sky-400 font-black uppercase mb-1">최종 점수</p>
+                                            <p className="text-4xl font-black">{getScore()} / 10</p>
+                                        </div>
+                                        <div className="bg-white/10 p-4 rounded-2xl border border-white/10 text-center">
+                                            <p className="text-[10px] text-emerald-400 font-black uppercase mb-1">학습 상태</p>
+                                            <p className="text-2xl font-black">{getScore() > 7 ? '우수함' : '복습 필요'}</p>
+                                        </div>
+                                        <button className="bg-blue-600 hover:bg-blue-500 p-4 rounded-2xl font-black transition-all flex flex-col items-center justify-center gap-1 shadow-lg shadow-blue-500/20">
+                                            <Icon name="download" size={20} />
+                                            <span className="text-xs">리포트(DOCX) 다운로드</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="bg-slate-800/50 p-6 rounded-3xl border border-white/5">
+                                            <h4 className="font-black text-amber-400 mb-3 flex items-center gap-2">
+                                                <Icon name="message-square" size={18} /> 정답 및 피드백
+                                            </h4>
+                                            <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
+                                                <div className="border-l-2 border-slate-700 pl-4 py-1">
+                                                    <p className="text-white font-bold mb-1">1. OX 퀴즈 핵심 피드백</p>
+                                                    <p>등속 원운동에서 **속력**은 일정하지만 **속도**는 방향이 계속 변하므로 일정하지 않습니다. 이로 인해 가속도의 '크기'는 일정하지만 '방향'은 항상 중심을 향하며 변하는 가속도 운동입니다.</p>
+                                                </div>
+                                                <div className="border-l-2 border-slate-700 pl-4 py-1">
+                                                    <p className="text-white font-bold mb-1">2. 계산 문제 풀이 가이드</p>
+                                                    <p>- 문제 1: $a_c = v^2/r = 20^2/10 = 40 m/s^2$</p>
+                                                    <p>- 문제 2: $a_c = v^2/r = (5\pi)^2/10 \approx 2.5\pi^2$, $F = ma_c = 5\pi^2 N$</p>
+                                                    <p>- 문제 3: $F = mr\omega^2 \rightarrow 196 = 1 \cdot 1 \cdot \omega^2 \rightarrow \omega = 14 rad/s$</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => setSubmitted(false)}
+                                        className="mt-8 text-slate-500 hover:text-white text-xs font-bold underline transition-colors"
+                                    >
+                                        다시 풀기
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    }
 
                     return (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">Q1</span>
-                                    <h5 className="font-bold text-sm text-slate-700">속도 벡터의 방향 탐구</h5>
-                                </div>
-                                <p className="text-xs text-slate-500 leading-relaxed italic">"위치 벡터(r)와 속도 벡터(v) 사이의 각도는 항상 몇 도인가요? 시각화 화면을 보고 답해보세요."</p>
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="text" 
-                                        value={answers.q1} 
-                                        onChange={e => setAnswers(prev => ({ ...prev, q1: e.target.value }))}
-                                        placeholder="정답 입력..." 
-                                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
-                                    />
-                                    <button onClick={checkQ1} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">확인</button>
-                                </div>
-                                {results.q1 !== null && (
-                                    <div className={`text-[11px] font-bold ${results.q1 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                                        {results.q1 ? "✅ 정답입니다! 항상 90도(접선 방향)를 이룹니다." : "❌ 다시 생각해보세요. 위치 벡터와 속도 벡터의 내적은 0입니다."}
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            {/* OX 퀴즈 섹션 */}
+                            <div className="bg-white rounded-[2.5rem] p-8 border-2 border-slate-100 shadow-xl overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 opacity-50"></div>
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="w-12 h-12 bg-sky-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                        <Icon name="check-square" size={24} />
                                     </div>
-                                )}
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-800">Part 1. 핵심 개념 OX 퀴즈</h3>
+                                        <p className="text-xs text-slate-400 font-bold italic tracking-tight">등속 원운동의 성질을 정확히 이해하고 있는지 확인하세요.</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {oxQuestions.map((q, i) => (
+                                        <div key={i} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-sky-200 transition-all group">
+                                            <span className="text-sm font-bold text-slate-700 group-hover:text-sky-700 transition-colors">{q}</span>
+                                            <div className="flex gap-2 mt-3 md:mt-0">
+                                                <button 
+                                                    onClick={() => setAnswers(prev => {
+                                                        const next = [...prev.ox];
+                                                        next[i] = true;
+                                                        return { ...prev, ox: next };
+                                                    })}
+                                                    className={`px-6 py-2 rounded-xl text-sm font-black transition-all ${answers.ox[i] === true ? 'bg-emerald-500 text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'}`}
+                                                >O</button>
+                                                <button 
+                                                    onClick={() => setAnswers(prev => {
+                                                        const next = [...prev.ox];
+                                                        next[i] = false;
+                                                        return { ...prev, ox: next };
+                                                    })}
+                                                    className={`px-6 py-2 rounded-xl text-sm font-black transition-all ${answers.ox[i] === false ? 'bg-rose-500 text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'}`}
+                                                >X</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">Q2</span>
-                                    <h5 className="font-bold text-sm text-slate-700">선속도 크기 계산</h5>
-                                </div>
-                                <p className="text-xs text-slate-500 leading-relaxed italic">"현재 설정된 반지름(r={radius})과 각속도(ω={omega})에서 선속도 v의 크기는 얼마인가요?"</p>
-                                <div className="flex gap-2">
-                                    <input 
-                                        type="number" 
-                                        value={answers.q2} 
-                                        onChange={e => setAnswers(prev => ({ ...prev, q2: e.target.value }))}
-                                        placeholder="수치 입력..." 
-                                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" 
-                                    />
-                                    <button onClick={checkQ2} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">확인</button>
-                                </div>
-                                {results.q2 !== null && (
-                                    <div className={`text-[11px] font-bold ${results.q2 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                                        {results.q2 ? `✅ 정답입니다! v = rω = ${(radius*omega).toFixed(2)} 입니다.` : "❌ 계산 수식이 v = rω 임을 잊지 마세요."}
+                            {/* 계산 문제 섹션 */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-xl space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xs font-black">P1</span>
+                                        <h4 className="font-bold text-slate-800">구심 가속도 계산</h4>
                                     </div>
-                                )}
+                                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic text-[13px] leading-relaxed text-slate-600 font-medium">
+                                        반지름이 <span className="text-blue-600 font-black">10.0m</span>인 원 궤도를 따라 <span className="text-blue-600 font-black">20.0m/s</span>의 일정한 속력으로 운동하는 물체의 구심 가속도는 몇 $m/s^2$인가?
+                                    </div>
+                                    <div className="relative">
+                                        <input 
+                                            type="text" 
+                                            value={answers.q1}
+                                            onChange={e => setAnswers(prev => ({ ...prev, q1: e.target.value }))}
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-lg font-black text-blue-700 outline-none focus:border-blue-400 transition-all placeholder:text-slate-300"
+                                            placeholder="값 입력..."
+                                        />
+                                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-black">$m/s^2$</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-8 rounded-[2.5rem] border-2 border-slate-100 shadow-xl space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-8 h-8 rounded-xl bg-emerald-500 text-white flex items-center justify-center text-xs font-black">P2</span>
+                                        <h4 className="font-bold text-slate-800">구심력과 질량</h4>
+                                    </div>
+                                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 italic text-[13px] leading-relaxed text-slate-600 font-medium">
+                                        길이가 <span className="text-emerald-500 font-black">1m</span>인 줄 끝에 질량이 <span className="text-emerald-500 font-black">1kg</span>인 추를 매달고 줄에 <span className="text-rose-500 font-black">196N</span>의 힘을 작용하여 등속 원운동을 시킬 때, 각속도는 몇 $rad/s$인가?
+                                    </div>
+                                    <div className="relative">
+                                        <input 
+                                            type="text" 
+                                            value={answers.q3}
+                                            onChange={e => setAnswers(prev => ({ ...prev, q3: e.target.value }))}
+                                            className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-lg font-black text-emerald-700 outline-none focus:border-emerald-400 transition-all placeholder:text-slate-300"
+                                            placeholder="값 입력..."
+                                        />
+                                        <span className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-400 font-black">$rad/s$</span>
+                                    </div>
+                                </div>
                             </div>
+
+                            <button 
+                                onClick={handleSubmit}
+                                className="w-full py-6 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] text-xl font-black shadow-2xl transition-all active:scale-[0.98] flex items-center justify-center gap-3"
+                            >
+                                <Icon name="send" size={24} />
+                                학습 활동 결과 제출하기
+                            </button>
                         </div>
                     );
                 };
@@ -382,23 +497,30 @@ def run_sim():
                                     <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
                                     
                                     {/* 분석 2: 속도 성분 그래프 */}
-                                    <div className="space-y-4 pt-4">
+                                    <div className="space-y-4 pt-4 pb-4">
                                         <div className="flex items-center gap-2 border-l-4 border-emerald-500 pl-3">
                                             <h3 className="font-black text-slate-800 text-sm italic">분석 2: 속도 성분 ($v_x, v_y$)</h3>
                                         </div>
                                         <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
-                                        
-                                        {/* 연습문제 섹션을 분석 2 바로 밑으로 이동 */}
-                                        <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="w-2 h-6 bg-emerald-400 rounded-full"></div>
-                                                <h4 className="font-black text-sm italic tracking-tight">📝 실전 연습 문제 (Simulation Driven)</h4>
-                                            </div>
-                                            <PracticeSection />
-                                        </div>
                                     </div>
 
                                     <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="ax = -rω² cos ωt" yLabel="ay = -rω² sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1/(omega*omega)} yMax="rω²" />
+                                </div>
+                            </div>
+
+                            {/* 연습 문제 섹션 - 분석 2 외부 하단으로 이동 */}
+                            <div className="bg-slate-50 border-t border-slate-100 p-12">
+                                <div className="max-w-4xl mx-auto space-y-12">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-3 h-10 bg-slate-900 rounded-full"></div>
+                                            <h2 className="text-3xl font-black text-slate-800 tracking-tighter">실전 연습 문제 (Physics Lab Workspace)</h2>
+                                        </div>
+                                        <div className="px-5 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs font-black text-slate-400">
+                                            분석 2 응용 단계
+                                        </div>
+                                    </div>
+                                    <PracticeSection />
                                 </div>
                             </div>
 
@@ -444,8 +566,8 @@ def run_sim():
     </html>
     """
 
-    # Streamlit 컴포넌트로 HTML 삽입
-    components.html(react_code, height=1150, scrolling=True)
+    # Streamlit 컴포넌트로 HTML 삽입 (높이 확대)
+    components.html(react_code, height=1800, scrolling=True)
 
 if __name__ == "__main__":
     run_sim()
