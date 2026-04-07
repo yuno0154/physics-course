@@ -104,7 +104,7 @@ def run_sim():
                 const [showPos, setShowPos] = useState(true);
                 const [showVel, setShowVel] = useState(true);
                 const [showAcc, setShowAcc] = useState(true);
-                const [showComp, setShowComp] = useState(false);
+                const [showComp, setShowComp] = useState(true);
                 const [showAccComp, setShowAccComp] = useState(false);
 
                 const [isDragging, setIsDragging] = useState(false);
@@ -214,13 +214,80 @@ def run_sim():
                     </div>
                 );
 
+                const PracticeSection = () => {
+                    const [answers, setAnswers] = useState({ q1: '', q2: '' });
+                    const [results, setResults] = useState({ q1: null, q2: null });
+
+                    const checkQ1 = () => {
+                        const isCorrect = answers.q1.includes('접선') || answers.q1.includes('90');
+                        setResults(prev => ({ ...prev, q1: isCorrect }));
+                    };
+
+                    const checkQ2 = () => {
+                        const val = parseFloat(answers.q2);
+                        const expected = radius * omega;
+                        const isCorrect = Math.abs(val - expected) < 0.1;
+                        setResults(prev => ({ ...prev, q2: isCorrect }));
+                    };
+
+                    return (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">Q1</span>
+                                    <h5 className="font-bold text-sm text-slate-700">속도 벡터의 방향 탐구</h5>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed italic">"위치 벡터(r)와 속도 벡터(v) 사이의 각도는 항상 몇 도인가요? 시각화 화면을 보고 답해보세요."</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value={answers.q1} 
+                                        onChange={e => setAnswers(prev => ({ ...prev, q1: e.target.value }))}
+                                        placeholder="정답 입력..." 
+                                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" 
+                                    />
+                                    <button onClick={checkQ1} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">확인</button>
+                                </div>
+                                {results.q1 !== null && (
+                                    <div className={`text-[11px] font-bold ${results.q1 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                                        {results.q1 ? "✅ 정답입니다! 항상 90도(접선 방향)를 이룹니다." : "❌ 다시 생각해보세요. 위치 벡터와 속도 벡터의 내적은 0입니다."}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black">Q2</span>
+                                    <h5 className="font-bold text-sm text-slate-700">선속도 크기 계산</h5>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed italic">"현재 설정된 반지름(r={radius})과 각속도(ω={omega})에서 선속도 v의 크기는 얼마인가요?"</p>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number" 
+                                        value={answers.q2} 
+                                        onChange={e => setAnswers(prev => ({ ...prev, q2: e.target.value }))}
+                                        placeholder="수치 입력..." 
+                                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" 
+                                    />
+                                    <button onClick={checkQ2} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">확인</button>
+                                </div>
+                                {results.q2 !== null && (
+                                    <div className={`text-[11px] font-bold ${results.q2 ? 'text-emerald-600' : 'text-rose-500'}`}>
+                                        {results.q2 ? `✅ 정답입니다! v = rω = ${(radius*omega).toFixed(2)} 입니다.` : "❌ 계산 수식이 v = rω 임을 잊지 마세요."}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                };
+
                 const handleToggle = (id) => {
                     setActiveId(activeId === id ? null : id);
                 };
 
                 return (
                     <div className="flex flex-col items-center bg-transparent min-h-screen p-1 text-slate-800">
-                        <div className="w-full max-w-7xl rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8">
+                        <div className="w-full max-w-7xl rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8 transition-all">
                             <div className="flex items-center justify-between px-8 py-4 bg-slate-900 text-white border-b border-slate-800">
                                 <div className="flex items-center gap-6">
                                     <button onClick={() => setIsManual(!isManual)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${isManual ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}`}>
@@ -311,20 +378,28 @@ def run_sim():
                                     </svg>
                                     {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-6 py-2 rounded-full text-xs font-black animate-pulse shadow-xl">드래그하여 직접 조작하세요!</div>}
                                 </div>
-                                <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white">
+                                <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white shadow-inner">
                                     <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
-                                    <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
+                                    
+                                    {/* 분석 2: 속도 성분 그래프 */}
+                                    <div className="space-y-4 pt-4">
+                                        <div className="flex items-center gap-2 border-l-4 border-emerald-500 pl-3">
+                                            <h3 className="font-black text-slate-800 text-sm italic">분석 2: 속도 성분 ($v_x, v_y$)</h3>
+                                        </div>
+                                        <GraphPanel title="2. 속도 성분 ($v_x$, $v_y$)" xFunc={t => -radius * omega * Math.sin(omega*t)} yFunc={t => radius * omega * Math.cos(omega*t)} xVal={vel.x} yVal={vel.y} xLabel="vx = -rω sin ωt" yLabel="vy = rω cos ωt" colorX="#10b981" colorY="#059669" scale={1/omega} yMax="rω" />
+                                        
+                                        {/* 연습문제 섹션을 분석 2 바로 밑으로 이동 */}
+                                        <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-2 h-6 bg-emerald-400 rounded-full"></div>
+                                                <h4 className="font-black text-sm italic tracking-tight">📝 실전 연습 문제 (Simulation Driven)</h4>
+                                            </div>
+                                            <PracticeSection />
+                                        </div>
+                                    </div>
+
                                     <GraphPanel title="3. 가속도 성분 ($a_x$, $a_y$)" xFunc={t => -radius * omega * omega * Math.cos(omega*t)} yFunc={t => -radius * omega * omega * Math.sin(omega*t)} xVal={acc.x} yVal={acc.y} xLabel="ax = -rω² cos ωt" yLabel="ay = -rω² sin ωt" colorX="#f59e0b" colorY="#d97706" scale={1/(omega*omega)} yMax="rω²" />
                                 </div>
-                            </div>
-
-                            {/* 연습 문제 섹션 */}
-                            <div className="w-full max-w-7xl space-y-8 mb-20 p-8">
-                                <div className="flex items-center gap-4 mb-2">
-                                    <div className="w-2 h-8 bg-sky-500 rounded-full"></div>
-                                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">📝 실전 연습 문제 (Simulation Driven)</h2>
-                                </div>
-                                <PracticeSection />
                             </div>
 
                             <div className="bg-white border-t border-slate-100">
