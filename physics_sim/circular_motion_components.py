@@ -402,32 +402,50 @@ def run_sim():
 
                 return (
                     <div className="flex flex-col items-center bg-transparent min-h-screen p-1 text-slate-800">
-                        <div className="w-full max-w-7xl min-h-[850px] rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8 transition-all flex">
+                        <div className="w-full max-w-7xl min-h-[850px] rounded-[32px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.2)] border border-slate-200 overflow-hidden bg-white mb-8 transition-all flex">
                             
-                            <div className="w-[100px] flex-shrink-0 bg-slate-900 flex flex-col items-center py-10 gap-8 border-r border-white/5">
-                                <button 
-                                    onClick={() => setActiveView('sim')}
-                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'sim' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-slate-500 hover:text-slate-400'}`}
-                                >
-                                    <Icon name="activity" size={24} />
-                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">주제 분석 2</span>
-                                </button>
-                                <button 
-                                    onClick={() => setActiveView('practice')}
-                                    className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'practice' ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/20' : 'text-slate-500 hover:text-slate-400'}`}
-                                >
-                                    <Icon name="clipboard-list" size={24} />
-                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">연습 문제</span>
-                                </button>
-                                <div className="mt-auto pb-6">
-                                    <Icon name="cpu" size={20} className="text-slate-700" />
+                            {/* 왼쪽 사이드 마스터 내비게이션 */}
+                            <div className="w-[240px] flex-shrink-0 bg-slate-900 flex flex-col py-10 border-r border-white/5 shadow-2xl">
+                                <div className="px-8 mb-10">
+                                    <div className="flex items-center gap-3 text-white mb-2">
+                                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black">2</div>
+                                        <span className="font-black text-lg tracking-tighter italic">분석 모드</span>
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Circular Motion Lab</p>
+                                </div>
+
+                                <div className="space-y-2 px-4">
+                                    <button 
+                                        onClick={() => setActiveView('sim')}
+                                        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${activeView === 'sim' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                                    >
+                                        <Icon name="activity" size={20} />
+                                        <span className="text-sm font-black tracking-tight">주제 분석 2</span>
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => setActiveView('practice')}
+                                        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${activeView === 'practice' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200'}`}
+                                    >
+                                        <Icon name="clipboard-list" size={20} />
+                                        <span className="text-sm font-black tracking-tight">연습 문제 (평가)</span>
+                                    </button>
+                                </div>
+
+                                <div className="mt-auto px-8 pb-8 text-slate-600">
+                                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1">
+                                        <Icon name="monitor" size={12} />
+                                        System Status
+                                    </div>
+                                    <p className="text-[10px] font-black italic color-emerald-500">Operation Ready</p>
                                 </div>
                             </div>
 
+                            {/* 메인 콘텐츠 영역 */}
                             <div className="flex-1 flex flex-col bg-slate-50/30 overflow-hidden">
                                 {activeView === 'sim' ? (
                                     <>
-                                        <div className="flex items-center justify-between px-8 py-4 bg-slate-900 text-white border-b border-slate-800">
+                                        <div className="flex items-center justify-between px-8 py-5 bg-slate-900 text-white border-b border-white/5 shadow-inner">
                                             <div className="flex items-center gap-6">
                                                 <button onClick={() => setIsManual(!isManual)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${isManual ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}`}>
                                                     {isManual ? 'MANUAL' : 'AUTO'}
