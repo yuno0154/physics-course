@@ -96,6 +96,7 @@ def run_sim():
             const ComponentSim = () => {
                 const [time, setTime] = useState(0);
                 const [isPlaying, setIsPlaying] = useState(true);
+                const [isManual, setIsManual] = useState(false);
                 const [omega, setOmega] = useState(1.0); 
                 const [radius, setRadius] = useState(1.0);
                 const [activeId, setActiveId] = useState(null);
@@ -103,13 +104,17 @@ def run_sim():
                 const [showPos, setShowPos] = useState(true);
                 const [showVel, setShowVel] = useState(true);
                 const [showAcc, setShowAcc] = useState(true);
+                const [showComp, setShowComp] = useState(false);
+
+                const [isDragging, setIsDragging] = useState(false);
+                const svgRef = useRef(null);
 
                 const maxTime = 12; 
                 const samples = 200; 
 
                 useEffect(() => {
                     let frame;
-                    if (isPlaying) {
+                    if (isPlaying && !isManual) {
                         const tick = () => {
                             setTime(t => (t + 0.05) % maxTime);
                             frame = requestAnimationFrame(tick);
@@ -117,7 +122,7 @@ def run_sim():
                         frame = requestAnimationFrame(tick);
                     }
                     return () => cancelAnimationFrame(frame);
-                }, [isPlaying]);
+                }, [isPlaying, isManual]);
 
                 const wt = (omega * time);
                 const pos = { x: radius * Math.cos(wt), y: radius * Math.sin(wt) };
@@ -126,6 +131,42 @@ def run_sim():
 
                 const graphWidth = 400;
                 const graphHeight = 110;
+
+                // 수동 조작 핸들러
+                const handleMouseDown = (e) => {
+                    if (!isManual) return;
+                    setIsDragging(true);
+                    updateTimeFromEvent(e);
+                };
+
+                const updateTimeFromEvent = (e) => {
+                    if (!svgRef.current) return;
+                    const rect = svgRef.current.getBoundingClientRect();
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    const dx = (mouseX / rect.width) * 400 - 200;
+                    const dy = 200 - (mouseY / rect.height) * 400; // SVG y is down, math y is up
+                    
+                    let theta = Math.atan2(dy, dx);
+                    if (theta < 0) theta += Math.PI * 2;
+                    
+                    // t = theta / omega
+                    setTime(theta / omega);
+                };
+
+                useEffect(() => {
+                    const handleMouseMove = (e) => { if (isDragging) updateTimeFromEvent(e); };
+                    const handleMouseUp = () => { setIsDragging(false); };
+                    if (isDragging) {
+                        window.addEventListener('mousemove', handleMouseMove);
+                        window.addEventListener('mouseup', handleMouseUp);
+                    }
+                    return () => {
+                        window.removeEventListener('mousemove', handleMouseMove);
+                        window.removeEventListener('mouseup', handleMouseUp);
+                    };
+                }, [isDragging, omega]);
 
                 const getPath = (func, scale = 1) => {
                     let points = [];
@@ -181,8 +222,11 @@ def run_sim():
                         <div className="w-full max-w-7xl rounded-[32px] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] border border-slate-200 overflow-hidden bg-white mb-8">
                             <div className="flex items-center justify-between px-8 py-4 bg-slate-900 text-white border-b border-slate-800">
                                 <div className="flex items-center gap-6">
-                                    <button onClick={() => setIsPlaying(!isPlaying)} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600 shadow-[0_0_15px_rgba(16,185,129,0.3)]'}`}>
-                                        <Icon name={isPlaying ? "pause" : "play"} size={24} className="text-white" />
+                                    <button onClick={() => setIsManual(!isManual)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border-2 ${isManual ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-transparent border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                                        {isManual ? 'MANUAL' : 'AUTO'}
+                                    </button>
+                                    <button onClick={() => setIsPlaying(!isPlaying)} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${isPlaying && !isManual ? 'bg-rose-500 hover:bg-rose-600' : 'bg-emerald-500 hover:bg-emerald-600'}`}>
+                                        <Icon name={isPlaying && !isManual ? "pause" : "play"} size={24} className="text-white" />
                                     </button>
                                     <div className="space-y-1">
                                         <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none">물리 변수 제어</p>
@@ -209,9 +253,10 @@ def run_sim():
                                     <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 w-[140px]">
                                         <button onClick={()=>setShowPos(!showPos)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showPos ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>위치(r) 벡터 표시</button>
                                         <button onClick={()=>setShowVel(!showVel)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showVel ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도(v) 벡터 표시</button>
+                                        <button onClick={()=>setShowComp(!showComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showComp ? 'bg-teal-500 border-teal-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도 성분 (vx, vy)</button>
                                         <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
                                     </div>
-                                    <svg viewBox="0 0 400 400" className="w-full h-full max-w-[340px] select-none">
+                                    <svg ref={svgRef} viewBox="0 0 400 400" className={`w-full h-full max-w-[340px] select-none ${isManual ? 'cursor-move' : ''}`} onMouseDown={handleMouseDown}>
                                         <defs>
                                             <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
                                                 <path d="M 0 2 L 10 5 L 0 8 Z" fill="#10b981" />
@@ -238,11 +283,20 @@ def run_sim():
                                         {showAcc && (
                                             <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 30} y2={200 - pos.y * 120 - acc.y * 30} stroke="#f59e0b" strokeWidth="3" markerEnd="url(#arrow-amber)" />
                                         )}
+                                        {showComp && (
+                                            <g opacity="0.7">
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 60} y2={200 - pos.y * 120} stroke="#10b981" strokeWidth="5" strokeLinecap="round" />
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - vel.y * 60} stroke="#059669" strokeWidth="5" strokeLinecap="round" />
+                                                <text x={200 + pos.x * 120 + vel.x * 60} y={200 - pos.y * 120 - 10} className="fill-emerald-600 text-[10px] font-black italic">vx</text>
+                                                <text x={200 + pos.x * 120 + 10} y={200 - pos.y * 120 - vel.y * 60} className="fill-emerald-800 text-[10px] font-black italic">vy</text>
+                                            </g>
+                                        )}
                                         {showVel && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 35} y2={200 - pos.y * 120 - vel.y * 35} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
+                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 60} y2={200 - pos.y * 120 - vel.y * 60} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
                                         )}
                                         <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="8" fill="#0f172a" stroke="white" strokeWidth="3" />
                                     </svg>
+                                    {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black animate-pulse shadow-lg">드래그하여 직접 조작하세요!</div>}
                                 </div>
                                 <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white">
                                     <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
