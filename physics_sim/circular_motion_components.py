@@ -29,8 +29,8 @@ def run_sim():
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             .math-font { font-family: 'Times New Roman', serif; font-style: italic; }
             .math-block { background: rgba(15, 23, 42, 0.03); padding: 12px; border-radius: 12px; font-size: 14px; line-height: 1.6; border: 1px solid rgba(15, 23, 42, 0.05); }
-            .graph-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
             .axis-line { stroke: #cbd5e1; stroke-width: 1.5; }
+            .graph-line { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
             .accordion-content { transition: all 0.3s ease-in-out; overflow: hidden; }
         </style>
     </head>
@@ -49,11 +49,13 @@ def run_sim():
                 return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
             };
 
-            const MathSymbol = ({ text, color = "inherit" }) => (
-                <span className="math-font font-bold px-0.5" style={{ color }}>{text}</span>
+            const MathSymbol = ({ text, color = "#1e293b", isVector = false }) => (
+                <span className="inline-flex flex-col items-center leading-none px-0.5" style={{ color }}>
+                    {isVector && <span className="text-[10px] scale-x-125">→</span>}
+                    <span className="math-font leading-none">{text}</span>
+                </span>
             );
 
-            // AccordionItem을 외부 컴포넌트로 정의
             const AccordionItem = ({ id, title, icon, activeId, onToggle, children }) => {
                 const isOpen = activeId === id;
                 return (
@@ -159,16 +161,12 @@ def run_sim():
                             <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#f1f5f9_1px,transparent_1px)] bg-[size:20px_20px]">
                                 <svg viewBox={`0 0 ${graphWidth} ${graphHeight}`} className="w-full h-full" preserveAspectRatio="none">
                                     <line x1="0" y1={graphHeight/2} x2={graphWidth} y2={graphHeight/2} className="axis-line" strokeDasharray="4,2" />
-                                    <line x1="0" y1="0" x2="0" y2={graphHeight} className="axis-line" stroke="#94a3b8" />
                                     <polyline points={getPath(xFunc, scale)} className="graph-line" stroke={colorX} opacity="0.2" />
                                     <polyline points={getPath(yFunc, scale)} className="graph-line" stroke={colorY} opacity="0.2" />
                                     <line x1={(time/maxTime)*graphWidth} y1="0" x2={(time/maxTime)*graphWidth} y2={graphHeight} stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2" />
                                     <circle cx={(time/maxTime)*graphWidth} cy={(graphHeight / 2) - xVal * (graphHeight / 2.5) * scale} r="5" fill={colorX} stroke="white" strokeWidth="2" />
                                     <circle cx={(time/maxTime)*graphWidth} cy={(graphHeight / 2) - yVal * (graphHeight / 2.5) * scale} r="5" fill={colorY} stroke="white" strokeWidth="2" />
                                 </svg>
-                                <div className="absolute bottom-0 left-0 w-full px-2 flex justify-between text-[9px] font-black text-slate-400">
-                                    <span>0s</span><span>시간 (t)</span><span>{maxTime}s</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -213,27 +211,37 @@ def run_sim():
                                         <button onClick={()=>setShowVel(!showVel)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showVel ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도(v) 벡터 표시</button>
                                         <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
                                     </div>
-                                    <svg viewBox="0 0 400 400" className="w-full h-full max-w-[340px] drop-shadow-2xl">
+                                    <svg viewBox="0 0 400 400" className="w-full h-full max-w-[340px] select-none">
+                                        <defs>
+                                            <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#10b981" />
+                                            </marker>
+                                            <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f59e0b" />
+                                            </marker>
+                                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#3b82f6" />
+                                            </marker>
+                                        </defs>
+
                                         <line x1="0" y1="200" x2="400" y2="200" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
                                         <line x1="200" y1="0" x2="200" y2="400" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
                                         <circle cx="200" cy="200" r={radius * 120} fill="none" stroke="#e2e8f0" strokeWidth="2" />
+
                                         {showPos && (
-                                            <g><line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="2" />
-                                               <line x1="200" y1="200" x2={200 + pos.x * 120} y2="200" stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
-                                               <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
+                                            <g>
+                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" />
+                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
+                                                <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
                                             </g>
                                         )}
                                         {showAcc && (
                                             <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 30} y2={200 - pos.y * 120 - acc.y * 30} stroke="#f59e0b" strokeWidth="3" markerEnd="url(#arrow-amber)" />
                                         )}
                                         {showVel && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 40} y2={200 - pos.y * 120 - vel.y * 40} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
+                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 35} y2={200 - pos.y * 120 - vel.y * 35} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
                                         )}
-                                        <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="10" fill="#0f172a" stroke="white" strokeWidth="3" />
-                                        <defs>
-                                            <marker id="arrow-green" markerWidth="6" markerHeight="6" refX="5" refY="3" orientation="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#10b981" /></marker>
-                                            <marker id="arrow-amber" markerWidth="6" markerHeight="6" refX="5" refY="3" orientation="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f59e0b" /></marker>
-                                        </defs>
+                                        <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="8" fill="#0f172a" stroke="white" strokeWidth="3" />
                                     </svg>
                                 </div>
                                 <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white">
@@ -243,18 +251,17 @@ def run_sim():
                                 </div>
                             </div>
 
-                            {/* 미분 유도 섹션 아코디언 */}
                             <div className="bg-white border-t border-slate-100">
                                 <AccordionItem id="pos" title="1단계: 위치 벡터의 정의" icon="map-pin" activeId={activeId} onToggle={handleToggle}>
                                     <div className="math-block">
-                                        <p className="mb-2">원점 <MathSymbol text="O"/>를 기준으로 시간에 <MathSymbol text="t"/>에 따른 위치 벡터 <MathSymbol text="r(t)" color="#2563eb"/>는 다음과 같습니다.</p>
+                                        <p className="mb-2">원점 <MathSymbol text="O"/>를 기준으로 시간에 <MathSymbol text="t"/>에 따른 위치 벡터 <MathSymbol text="r" isVector={true} color="#2563eb"/>는 다음과 같습니다.</p>
                                         <div className="text-xl font-black text-center py-2">r(t) = (r cos ωt, r sin ωt)</div>
                                         <p className="text-slate-500 text-xs mt-2">※ 여기서 <MathSymbol text="ω"/>는 각속도이며, <MathSymbol text="θ = ωt"/> 임을 이용합니다.</p>
                                     </div>
                                 </AccordionItem>
                                 <AccordionItem id="vel" title="2단계: 속도 벡터 (위치의 미분)" icon="zap" activeId={activeId} onToggle={handleToggle}>
                                     <div className="math-block">
-                                        <p className="mb-2">속도 <MathSymbol text="v(t)" color="#10b981"/>는 위치 벡터를 시간 <MathSymbol text="t"/>에 대해 미분하여 구합니다.</p>
+                                        <p className="mb-2">속도 <MathSymbol text="v" isVector={true} color="#10b981"/>는 위치 벡터를 시간 <MathSymbol text="t"/>에 대해 미분하여 구합니다.</p>
                                         <div className="text-lg font-black text-center py-2 space-y-1">
                                             <div className="text-slate-400 text-sm">v(t) = dr/dt = (d(r cos ωt)/dt, d(r sin ωt)/dt)</div>
                                             <div className="text-emerald-600 text-xl font-black font-serif italic">= (-rω sin ωt, rω cos ωt)</div>
@@ -264,7 +271,7 @@ def run_sim():
                                 </AccordionItem>
                                 <AccordionItem id="acc" title="3단계: 가속도 벡터 (속도의 미분)" icon="arrow-down-to-dot" activeId={activeId} onToggle={handleToggle}>
                                     <div className="math-block">
-                                        <p className="mb-2">가속도 <MathSymbol text="a(t)" color="#f59e0b"/>는 속도 벡터를 한 번 더 미분하여 얻습니다.</p>
+                                        <p className="mb-2">가속도 <MathSymbol text="a" isVector={true} color="#f59e0b"/>는 속도 벡터를 한 번 더 미분하여 얻습니다.</p>
                                         <div className="text-lg font-black text-center py-2 space-y-1">
                                             <div className="text-slate-400 text-sm">a(t) = dv/dt = (-d(rω sin ωt)/dt, d(rω cos ωt)/dt)</div>
                                             <div className="text-amber-600 text-xl font-black font-serif italic">= (-rω² cos ωt, -rω² sin ωt)</div>

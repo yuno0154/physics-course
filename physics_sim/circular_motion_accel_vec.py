@@ -144,7 +144,15 @@ def run_sim():
                                         <line x1={centerX-200} y1={centerY} x2={centerX+200} y2={centerY} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
                                         <line x1={centerX} y1={centerY-200} x2={centerX} y2={centerY+200} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
 
-                                        {showV1 && (<g><line x1={p1.x} y1={p1.y} x2={p1.x + v1.x} y2={p1.y + v1.y} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" /><text x={p1.x + v1.x * 1.3} y={p1.y + v1.y * 1.3} textAnchor="middle" fill="#3b82f6" className="vector-label font-black italic underline-offset-4">v₁</text></g>)}
+                                        {/* p2 지점에 v1 벡터를 평행 이동하여 뺄셈 시각화 (showDV가 켜져있을 때) */}
+                                        {showDV && (
+                                            <g opacity="0.5">
+                                                <line x1={p2.x} y1={p2.y} x2={p2.x + v1.x} y2={p2.y + v1.y} stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" markerEnd="url(#arrow-blue)" />
+                                                <line x1={p2.x + v1.x} y1={p2.y + v1.y} x2={p2.x + v2.x} y2={p2.y + v2.y} stroke="#f43f5e" strokeWidth="3" markerEnd="url(#arrow-red)" />
+                                            </g>
+                                        )}
+
+                                        {showV1 && (<g><line x1={p1.x} y1={p1.y} x2={p1.x + v1.x} y2={p1.y + v1.y} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" /><text x={p1.x + v1.x * 1.3} y={p1.y + v1.y * 1.3} textAnchor="middle" fill="#3b82f6" className="vector-label font-black italic">v₁</text></g>)}
                                         {showV2 && (<g><line x1={p2.x} y1={p2.y} x2={p2.x + v2.x} y2={p2.y + v2.y} stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow-green)" /><text x={p2.x + v2.x * 1.3} y={p2.y + v2.y * 1.3} textAnchor="middle" fill="#10b981" className="vector-label font-black italic">v₂</text></g>)}
                                         
                                         <circle cx={p1.x} cy={p1.y} r="8" fill="#3b82f6" stroke="white" strokeWidth="3" className="cursor-move shadow-md" onMouseDown={()=>setIsDragging('p1')} />
@@ -221,8 +229,8 @@ def run_sim():
                                     벡터 뺄셈의 시각화
                                 </h3>
                                 <p className="text-slate-600 text-[14px] leading-relaxed">
-                                    상세 분석 창에서 **파란색 점선($v_1$)**의 끝에서 **초록색 실선($v_2$)**의 끝으로 향하는 **빨간색 화살표($\Delta v$)**를 확인하세요. 
-                                    시간 간격을 줄이면 이 변화량이 점점 원의 중심을 향하게 됩니다.
+                                    **속도 변화 Δv** 버튼을 켜면, 두 번째 지점에 첫 번째 속도($v_1$)를 평행 이동시켜 놓은 모습과 그 차이($\Delta v$)가 원의 궤도 위에 표시됩니다. 
+                                    시간 간격을 줄이면 이 빨간색 화살표가 점점 원의 중심을 향하게 되는 것을 볼 수 있습니다.
                                 </p>
                             </div>
                             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
