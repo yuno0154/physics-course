@@ -27,7 +27,7 @@ practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [마�
 circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념1] 원운동의 기초")
 circular_motion_adv_page = st.Page("physics_sim/circular_motion_adv.py", title="🎡 [개념2] 원운동의 표현")
 circular_motion_accel_page = st.Page("physics_sim/circular_motion_accel_vec.py", title="🎡 [분석1] 가속도와 벡터")
-circular_motion_components_page = st.Page("physics_sim/circular_motion_adv_v3.py", title="🎡 [분석2] 속도 성분과 수동 조작")
+circular_motion_components_page = st.Page("physics_sim/circular_motion_components.py", title="🎡 [분석2] 원성분과 파동 (업그레이드)")
 
 # 4. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📑 [기록] 수행평가 제출")
