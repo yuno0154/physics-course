@@ -65,21 +65,17 @@ def run_sim():
                 const [showV2, setShowV2] = useState(true);
                 const [showDV, setShowDV] = useState(true);
 
-                // 반시계 방향(CCW) 운동: theta2가 theta1보다 앞선 각도
+                // 반시계 방향(CCW) 운동
                 const theta2 = theta1 + dTheta;
                 const centerX = 250;
                 const centerY = 250;
 
-                // 위치 벡터 p (SVG y축 반전 고려)
                 const p1 = { x: centerX + radius * Math.cos(theta1), y: centerY - radius * Math.sin(theta1) };
                 const p2 = { x: centerX + radius * Math.cos(theta2), y: centerY - radius * Math.sin(theta2) };
 
-                // 속도 벡터 v: r(t) = (r cos wt, r sin wt) -> v(t) = (-rw sin wt, rw cos wt)
-                // SVG y축 반전 때문에 v_y 성분의 부호가 계산과 반대로 적용됨
+                // v_x = -v sin wt, v_y = v cos wt (CCW)
                 const v1 = { x: -velMag * Math.sin(theta1), y: -velMag * Math.cos(theta1) };
                 const v2 = { x: -velMag * Math.sin(theta2), y: -velMag * Math.cos(theta2) };
-
-                // Δv = v2 - v1 (나중 속도 - 처음 속도)
                 const dv = { x: v2.x - v1.x, y: v2.y - v1.y };
 
                 const svgRef = useRef(null);
@@ -134,10 +130,18 @@ def run_sim():
 
                                     <svg ref={svgRef} viewBox="0 0 500 500" className="w-full h-full max-w-[500px] select-none">
                                         <defs>
-                                            <marker id="arrow-blue" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orientation="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#3b82f6" /></marker>
-                                            <marker id="arrow-green" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orientation="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#10b981" /></marker>
-                                            <marker id="arrow-red" markerWidth="5" markerHeight="5" refX="4.5" refY="2.5" orientation="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="#f43f5e" /></marker>
+                                            {/* 화살표 마커 설계 변경: markerUnits="userSpaceOnUse"로 크기 고정, 세밀한 삼각형 */}
+                                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#3b82f6" />
+                                            </marker>
+                                            <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#10b981" />
+                                            </marker>
+                                            <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f43f5e" />
+                                            </marker>
                                         </defs>
+
                                         <circle cx={centerX} cy={centerY} r={radius} fill="none" stroke="#e2e8f0" strokeWidth="2" strokeDasharray="4,4" />
                                         <line x1={centerX-200} y1={centerY} x2={centerX+200} y2={centerY} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
                                         <line x1={centerX} y1={centerY-200} x2={centerX} y2={centerY+200} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
@@ -149,7 +153,7 @@ def run_sim():
                                         <circle cx={p2.x} cy={p2.y} r="8" fill="#10b981" stroke="white" strokeWidth="3" className="cursor-move shadow-md" onMouseDown={()=>setIsDragging('p2')} />
                                         <circle cx={centerX} cy={centerY} r="4" fill="#0f172a" />
 
-                                        {/* 벡터 분산 상세 박스 (확대 지원) */}
+                                        {/* 상세 박스: 벡터 뺄셈 Δv = v2 - v1 */}
                                         <g transform={`translate(${isZoomed ? 50 : 350}, ${isZoomed ? 50 : 350})`} className="zoom-transition cursor-pointer" onClick={() => setIsZoomed(!isZoomed)}>
                                             <rect width={isZoomed ? 400 : 130} height={isZoomed ? 400 : 130} rx="24" fill="white" stroke="#cbd5e1" strokeWidth="1" fillOpacity="0.98" className="shadow-2xl" />
                                             <text x={isZoomed ? 200 : 65} y="22" textAnchor="middle" className={`font-black text-slate-400 ${isZoomed ? 'text-base' : 'text-[9px]'}`}>
@@ -157,19 +161,14 @@ def run_sim():
                                             </text>
                                             
                                             <g transform={`translate(${isZoomed ? 200 : 65}, ${isZoomed ? 200 : 70}) scale(${isZoomed ? 2.5 : 1})`}>
-                                                {/* v1 벡터 (시작점) */}
                                                 <line x1="0" y1="0" x2={v1.x/1.5} y2={v1.y/1.5} stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="3,2" markerEnd="url(#arrow-blue)" opacity="0.6" />
-                                                {/* v2 벡터 (같은 원점 시작) */}
                                                 <line x1="0" y1="0" x2={v2.x/1.5} y2={v2.y/1.5} stroke="#10b981" strokeWidth="1.5" markerEnd="url(#arrow-green)" />
-                                                
-                                                {/* Δv 벡터 (v1의 끝에서 v2의 끝으로) */}
-                                                <line x1={v1.x/1.5} y1={v1.y/1.5} x2={v2.x/1.5} y2={v2.y/1.5} stroke="#f43f5e" strokeWidth="2.5" markerEnd="url(#arrow-red)" />
+                                                <line x1={v1.x/1.5} y1={v1.y/1.5} x2={v2.x/1.5} y2={v2.y/1.5} stroke="#f43f5e" strokeWidth={isZoomed ? 2 : 2.5} markerEnd="url(#arrow-red)" />
                                                 
                                                 {isZoomed && (
                                                     <g>
                                                         <text x={v1.x/1.8} y={v1.y/1.8} dx="-10" className="text-[6px] fill-blue-600 font-bold">v₁</text>
                                                         <text x={v2.x/1.8} y={v2.y/1.8} dx="10" className="text-[6px] fill-emerald-600 font-bold">v₂</text>
-                                                        <text x={(v1.x+v2.x)/3} y={(v1.y+v2.y)/3} dy="-5" className="text-[7px] fill-rose-600 font-black">Δv</text>
                                                     </g>
                                                 )}
                                             </g>
@@ -257,7 +256,7 @@ def run_sim():
     """
 
     # Streamlit 컴포넌트로 HTML 삽입
-    components.html(react_code, height=1050, scrolling=True)
+    components.html(react_code, height=1100, scrolling=True)
 
 if __name__ == "__main__":
     run_sim()
