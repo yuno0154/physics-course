@@ -2,8 +2,6 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    # st.set_page_config is removed as it's handled by main_app.py
-    
     # 상단 브랜딩 및 제목
     st.title("🏹 원운동의 가속도: 속도 벡터의 변화와 극한")
     st.markdown("""
@@ -29,7 +27,7 @@ def run_sim():
             .no-scrollbar::-webkit-scrollbar { display: none; }
             .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
             .math-font { font-family: 'Times New Roman', serif; font-style: italic; font-weight: bold; }
-            .vector-label { font-weight: 800; font-style: italic; font-size: 13px; }
+            .vector-label { font-weight: 800; font-style: italic; font-size: 14px; }
             .zoom-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
             .math-card { background: rgba(15, 23, 42, 0.02); border: 1px solid rgba(15, 23, 42, 0.05); border-radius: 20px; transition: all 0.3s; }
             .math-card:hover { background: white; shadow: 0 10px 20px -5px rgba(0,0,0,0.05); border-color: rgba(37, 99, 235, 0.2); }
@@ -51,9 +49,9 @@ def run_sim():
             };
 
             const MathSymbol = ({ text, color = "#1e293b", isVector = false }) => (
-                <span className="math-font px-0.5 inline-flex flex-col items-center" style={{ color }}>
-                    {isVector && <span className="text-[8px] leading-3 -mb-1">→</span>}
-                    {text}
+                <span className="inline-flex flex-col items-center leading-none px-0.5" style={{ color }}>
+                    {isVector && <span className="text-[10px] scale-x-125">→</span>}
+                    <span className="math-font leading-none">{text}</span>
                 </span>
             );
 
@@ -146,8 +144,8 @@ def run_sim():
                                         <line x1={centerX-200} y1={centerY} x2={centerX+200} y2={centerY} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
                                         <line x1={centerX} y1={centerY-200} x2={centerX} y2={centerY+200} stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
 
-                                        {showV1 && (<g><line x1={p1.x} y1={p1.y} x2={p1.x + v1.x} y2={p1.y + v1.y} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" /><text x={p1.x + v1.x * 1.3} y={p1.y + v1.y * 1.3} textAnchor="middle" fill="#3b82f6" className="vector-label">v₁⃗</text></g>)}
-                                        {showV2 && (<g><line x1={p2.x} y1={p2.y} x2={p2.x + v2.x} y2={p2.y + v2.y} stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow-green)" /><text x={p2.x + v2.x * 1.3} y={p2.y + v2.y * 1.3} textAnchor="middle" fill="#10b981" className="vector-label">v₂⃗</text></g>)}
+                                        {showV1 && (<g><line x1={p1.x} y1={p1.y} x2={p1.x + v1.x} y2={p1.y + v1.y} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" /><text x={p1.x + v1.x * 1.3} y={p1.y + v1.y * 1.3} textAnchor="middle" fill="#3b82f6" className="vector-label font-black italic underline-offset-4">v₁</text></g>)}
+                                        {showV2 && (<g><line x1={p2.x} y1={p2.y} x2={p2.x + v2.x} y2={p2.y + v2.y} stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow-green)" /><text x={p2.x + v2.x * 1.3} y={p2.y + v2.y * 1.3} textAnchor="middle" fill="#10b981" className="vector-label font-black italic">v₂</text></g>)}
                                         
                                         <circle cx={p1.x} cy={p1.y} r="8" fill="#3b82f6" stroke="white" strokeWidth="3" className="cursor-move shadow-md" onMouseDown={()=>setIsDragging('p1')} />
                                         <circle cx={p2.x} cy={p2.y} r="8" fill="#10b981" stroke="white" strokeWidth="3" className="cursor-move shadow-md" onMouseDown={()=>setIsDragging('p2')} />
@@ -156,7 +154,7 @@ def run_sim():
                                         <g transform={`translate(${isZoomed ? 50 : 350}, ${isZoomed ? 50 : 350})`} className="zoom-transition cursor-pointer" onClick={() => setIsZoomed(!isZoomed)}>
                                             <rect width={isZoomed ? 400 : 130} height={isZoomed ? 400 : 130} rx="24" fill="white" stroke="#cbd5e1" strokeWidth="1" fillOpacity="0.98" className="shadow-2xl" />
                                             <text x={isZoomed ? 200 : 65} y="22" textAnchor="middle" className={`font-black text-slate-400 ${isZoomed ? 'text-base' : 'text-[9px]'}`}>
-                                                {isZoomed ? "속도 변화 관찰: Δv⃗ = v₂⃗ - v₁⃗" : "벡터 상세 관찰"}
+                                                {isZoomed ? "속도 변화 관찰: Δv = v₂ - v₁" : "벡터 상세 관찰"}
                                             </text>
                                             
                                             <g transform={`translate(${isZoomed ? 200 : 65}, ${isZoomed ? 200 : 70}) scale(${isZoomed ? 2.5 : 1})`}>
@@ -166,9 +164,9 @@ def run_sim():
                                                 
                                                 {isZoomed && (
                                                     <g>
-                                                        <text x={v1.x/1.8} y={v1.y/1.8} dx="-10" className="text-[8px] fill-blue-600 font-black italic">v₁⃗</text>
-                                                        <text x={v2.x/1.8} y={v2.y/1.8} dx="10" className="text-[8px] fill-emerald-600 font-black italic">v₂⃗</text>
-                                                        <text x={(v1.x+v2.x)/3} y={(v1.y+v2.y)/3} dy="-5" className="text-[10px] fill-rose-600 font-black italic">Δv⃗</text>
+                                                        <text x={v1.x/1.8} y={v1.y/1.8} dx="-10" className="text-[10px] fill-blue-600 font-black italic">v₁</text>
+                                                        <text x={v2.x/1.8} y={v2.y/1.8} dx="10" className="text-[10px] fill-emerald-600 font-black italic">v₂</text>
+                                                        <text x={(v1.x+v2.x)/3} y={(v1.y+v2.y)/3} dy="-5" className="text-[12px] fill-rose-600 font-black italic">Δv</text>
                                                     </g>
                                                 )}
                                             </g>
@@ -189,13 +187,13 @@ def run_sim():
                                             <div className="math-card p-4">
                                                 <div className="flex gap-3">
                                                     <span className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[11px] font-black shrink-0">2</span>
-                                                    <div className="text-[13px] font-bold text-slate-700 leading-snug">벡터 뺄셈 <MathSymbol text="Δv = v₂ - v₁" isVector={true} />은 <MathSymbol text="v₁" isVector={true} />의 끝에서 <MathSymbol text="v₂" isVector={true} />의 끝을 잇는 화살표입니다.</div>
+                                                    <div className="text-[13px] font-bold text-slate-700 leading-snug">벡터 뺄셈 <MathSymbol text="Δv" isVector={true} /> = <MathSymbol text="v₂" isVector={true} /> - <MathSymbol text="v₁" isVector={true} /> 은 지점간의 속도 변화를 나타냅니다.</div>
                                                 </div>
                                             </div>
                                             <div className="math-card p-4">
                                                 <div className="flex gap-3">
                                                     <span className="w-6 h-6 rounded-full bg-amber-500 text-white flex items-center justify-center text-[11px] font-black shrink-0">3</span>
-                                                    <div className="text-[13px] font-bold text-slate-700 leading-snug">가속도 식에 대입하면: <br/><MathSymbol text="a = (v·Δθ) / Δt" isVector={false}/> 가 됩니다.</div>
+                                                    <div className="text-[13px] font-bold text-slate-700 leading-snug">가속력의 결과로: <br/><MathSymbol text="a = (v·Δθ) / Δt"/> 의 크기를 가집니다.</div>
                                                 </div>
                                             </div>
                                             <div className="math-card p-4 bg-slate-900 border-slate-800">
@@ -223,8 +221,8 @@ def run_sim():
                                     벡터 뺄셈의 시각화
                                 </h3>
                                 <p className="text-slate-600 text-[14px] leading-relaxed">
-                                    상세 분석 창에서 **파란색 점선($\vec{v}_1$)**의 끝에서 **초록색 실선($\vec{v}_2$)**의 끝으로 향하는 **빨간색 화살표($\Delta \vec{v}$)**를 확인하세요. 
-                                    두 지점 사이의 시간 간격($\Delta t$)을 줄이면 이 빨간 화살표가 점점 원의 중심을 향하게 됩니다.
+                                    상세 분석 창에서 **파란색 점선($v_1$)**의 끝에서 **초록색 실선($v_2$)**의 끝으로 향하는 **빨간색 화살표($\Delta v$)**를 확인하세요. 
+                                    시간 간격을 줄이면 이 변화량이 점점 원의 중심을 향하게 됩니다.
                                 </p>
                             </div>
                             <div className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm space-y-4">
