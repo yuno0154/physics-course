@@ -133,6 +133,8 @@ def run_sim():
 
                 const graphWidth = 400;
                 const graphHeight = 110;
+
+                const handleMouseDown = (e) => {
                     if (!isManual) return;
                     setIsDragging(true);
                     updateTimeFromEvent(e);
@@ -408,14 +410,14 @@ def run_sim():
                                     className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'sim' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'text-slate-500 hover:text-slate-400'}`}
                                 >
                                     <Icon name="activity" size={24} />
-                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">실험 분석</span>
+                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">주제 분석 2</span>
                                 </button>
                                 <button 
                                     onClick={() => setActiveView('practice')}
                                     className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all duration-300 ${activeView === 'practice' ? 'bg-amber-500 text-white shadow-xl shadow-amber-500/20' : 'text-slate-500 hover:text-slate-400'}`}
                                 >
                                     <Icon name="clipboard-list" size={24} />
-                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">평가 연습</span>
+                                    <span className="text-[10px] font-black uppercase mt-2 tracking-tighter">연습 문제</span>
                                 </button>
                                 <div className="mt-auto pb-6">
                                     <Icon name="cpu" size={20} className="text-slate-700" />
