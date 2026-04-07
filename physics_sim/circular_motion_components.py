@@ -105,6 +105,7 @@ def run_sim():
                 const [showVel, setShowVel] = useState(true);
                 const [showAcc, setShowAcc] = useState(true);
                 const [showComp, setShowComp] = useState(false);
+                const [showAccComp, setShowAccComp] = useState(false);
 
                 const [isDragging, setIsDragging] = useState(false);
                 const svgRef = useRef(null);
@@ -249,12 +250,13 @@ def run_sim():
                             </div>
 
                             <div className="flex flex-col lg:flex-row divide-x divide-slate-100 min-h-[640px]">
-                                <div className="lg:w-[450px] bg-slate-50 flex flex-col items-center justify-center p-8 relative">
+                                <div className="lg:w-[450px] bg-slate-50 flex flex-col items-center justify-center p-8 relative border-r">
                                     <div className="absolute top-6 left-6 flex flex-col gap-2 z-10 w-[140px]">
                                         <button onClick={()=>setShowPos(!showPos)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showPos ? 'bg-blue-600 border-blue-600 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>위치(r) 벡터 표시</button>
                                         <button onClick={()=>setShowVel(!showVel)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showVel ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도(v) 벡터 표시</button>
                                         <button onClick={()=>setShowComp(!showComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showComp ? 'bg-teal-500 border-teal-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>속도 성분 (vx, vy)</button>
-                                        <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
+                                        <button onClick={()=>setShowAcc(!showAcc)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAcc ? 'bg-rose-500 border-rose-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도(a) 벡터 표시</button>
+                                        <button onClick={()=>setShowAccComp(!showAccComp)} className={`w-full py-1.5 rounded-lg text-[10px] font-black border-2 transition-all ${showAccComp ? 'bg-amber-500 border-amber-500 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400'}`}>가속도 성분 (ax, ay)</button>
                                     </div>
                                     <svg ref={svgRef} viewBox="0 0 400 400" className={`w-full h-full max-w-[340px] select-none ${isManual ? 'cursor-move' : ''}`} onMouseDown={handleMouseDown}>
                                         <defs>
@@ -267,6 +269,9 @@ def run_sim():
                                             <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
                                                 <path d="M 0 2 L 10 5 L 0 8 Z" fill="#3b82f6" />
                                             </marker>
+                                            <marker id="arrow-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+                                                <path d="M 0 2 L 10 5 L 0 8 Z" fill="#f43f5e" />
+                                            </marker>
                                         </defs>
 
                                         <line x1="0" y1="200" x2="400" y2="200" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4,4" />
@@ -275,28 +280,36 @@ def run_sim():
 
                                         {showPos && (
                                             <g>
-                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow-blue)" />
-                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
-                                                <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.4" />
+                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200 - pos.y * 120} stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrow-blue)" />
+                                                <line x1="200" y1="200" x2={200 + pos.x * 120} y2={200} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
+                                                <line x1="200" y1="200" x2="200" y2={200 - pos.y * 120} stroke="#f43f5e" strokeWidth="4" strokeLinecap="round" opacity="0.3" />
                                             </g>
                                         )}
                                         {showAcc && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 30} y2={200 - pos.y * 120 - acc.y * 30} stroke="#f59e0b" strokeWidth="3" markerEnd="url(#arrow-amber)" />
+                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120 - acc.y * 80} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
+                                        )}
+                                        {showAccComp && (
+                                            <g opacity="0.8">
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + acc.x * 80} y2={200 - pos.y * 120} stroke="#f59e0b" strokeWidth="6" strokeLinecap="round" />
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - acc.y * 80} stroke="#d97706" strokeWidth="6" strokeLinecap="round" />
+                                                <text x={200 + pos.x * 120 + acc.x * 80} y={200 - pos.y * 120 - 10} className="fill-amber-600 text-[11px] font-black italic">ax</text>
+                                                <text x={200 + pos.x * 120 + 10} y={200 - pos.y * 120 - acc.y * 80} className="fill-amber-800 text-[11px] font-black italic">ay</text>
+                                            </g>
                                         )}
                                         {showComp && (
-                                            <g opacity="0.7">
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 60} y2={200 - pos.y * 120} stroke="#10b981" strokeWidth="5" strokeLinecap="round" />
-                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - vel.y * 60} stroke="#059669" strokeWidth="5" strokeLinecap="round" />
-                                                <text x={200 + pos.x * 120 + vel.x * 60} y={200 - pos.y * 120 - 10} className="fill-emerald-600 text-[10px] font-black italic">vx</text>
-                                                <text x={200 + pos.x * 120 + 10} y={200 - pos.y * 120 - vel.y * 60} className="fill-emerald-800 text-[10px] font-black italic">vy</text>
+                                            <g opacity="0.9">
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120} stroke="#10b981" strokeWidth="7" strokeLinecap="round" />
+                                                <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120} y2={200 - pos.y * 120 - vel.y * 110} stroke="#059669" strokeWidth="7" strokeLinecap="round" />
+                                                <text x={200 + pos.x * 120 + vel.x * 110} y={200 - pos.y * 120 - 12} className="fill-emerald-600 text-[12px] font-black italic">vx</text>
+                                                <text x={200 + pos.x * 120 + 12} y={200 - pos.y * 120 - vel.y * 110} className="fill-emerald-800 text-[12px] font-black italic">vy</text>
                                             </g>
                                         )}
                                         {showVel && (
-                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 60} y2={200 - pos.y * 120 - vel.y * 60} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
+                                            <line x1={200 + pos.x * 120} y1={200 - pos.y * 120} x2={200 + pos.x * 120 + vel.x * 110} y2={200 - pos.y * 120 - vel.y * 110} stroke="#10b981" strokeWidth="4" markerEnd="url(#arrow-green)" />
                                         )}
-                                        <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="8" fill="#0f172a" stroke="white" strokeWidth="3" />
+                                        <circle cx={200 + pos.x * 120} cy={200 - pos.y * 120} r="10" fill="#0f172a" stroke="white" strokeWidth="4" />
                                     </svg>
-                                    {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-4 py-1.5 rounded-full text-[10px] font-black animate-pulse shadow-lg">드래그하여 직접 조작하세요!</div>}
+                                    {isManual && <div className="absolute bottom-8 bg-amber-500 text-white px-6 py-2 rounded-full text-xs font-black animate-pulse shadow-xl">드래그하여 직접 조작하세요!</div>}
                                 </div>
                                 <div className="flex-1 p-6 space-y-4 max-h-[660px] overflow-y-auto no-scrollbar bg-white">
                                     <GraphPanel title="1. 위치 성분 ($x$, $y$)" xFunc={t => radius * Math.cos(omega*t)} yFunc={t => radius * Math.sin(omega*t)} xVal={pos.x} yVal={pos.y} xLabel="x = r cos ωt" yLabel="y = r sin ωt" colorX="#3b82f6" colorY="#f43f5e" yMax="r" />
