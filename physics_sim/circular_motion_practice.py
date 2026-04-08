@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_practice():
-    st.title("📝 [마무리] 원운동 실전 연습 문제")
+    st.title("📝 원운동 복습 및 연습 문제")
     st.markdown("""
     등속 원운동의 성분 분석과 관련된 핵심 개념을 파악하고 실전 문제를 해결해 보세요.
     모든 문제를 풀고 '제출' 버튼을 누르면 정답 확인과 리포트 출력이 가능합니다.
@@ -34,21 +34,52 @@ def run_practice():
             };
 
             const PracticeSection = () => {
-                const [answers, setAnswers] = useState({ q1: '', q2: '', q3: '', q4: '', q5: '' });
+                const [answers, setAnswers] = useState({ 
+                    q1: Array(7).fill(''), 
+                    q2: '', q3: '', q4: '', q5: '' 
+                });
                 const [submitted, setSubmitted] = useState(false);
 
                 const questions = [
-                    { id: 'q1', title: '구심 가속도의 크기', text: '반지름 10m인 원 궤도를 20m/s의 속력으로 도는 물체의 구심 가속도는?', unit: 'm/s²', correct: '40' },
-                    { id: 'q2', title: '각속도 계산', text: '반지름 2m인 원을 10m/s의 속력으로 도는 물체의 각속도(ω)는?', unit: 'rad/s', correct: '5' },
-                    { id: 'q3', title: '주기와 진동수', text: '각속도가 2π rad/s인 물체의 회전 주기(T)는?', unit: 's', correct: '1' },
-                    { id: 'q4', title: '구심력 추론', text: '질량 2kg인 물체가 반지름 1m, 각속도 3rad/s로 회전할 때 필요한 구심력은?', unit: 'N', correct: '18' },
-                    { id: 'q5', title: '성분 분해', text: '반지름 r, 각속도 ω로 운동하는 물체의 x축 가속도 성분 ax의 최대 크기는?', unit: 'rω²', correct: '1' }
+                    { 
+                        id: 'q1', 
+                        type: 'ox',
+                        title: '원운동의 성질 이해', 
+                        text: '등속 원운동에 대한 다음 설명이 맞으면 O, 틀리면 X를 선택하세요.',
+                        items: [
+                            '속도가 일정하다.',
+                            '가속도가 일정하다.',
+                            '등가속도 운동이다.',
+                            '가속도의 크기는 일정하다.',
+                            '가속도의 방향은 원중심 방향이며 매분 방향이 변한다.',
+                            '구심력의 크기는 일정하다.',
+                            '구심력의 방향은 일정하다.'
+                        ],
+                        correct: ['X', 'X', 'X', 'O', 'O', 'O', 'X']
+                    },
+                    { id: 'q2', type: 'input', title: '각속도 계산', text: '반지름 2m인 원을 10m/s의 속력으로 도는 물체의 각속도(ω)는?', unit: 'rad/s', correct: '5' },
+                    { id: 'q3', type: 'input', title: '주기와 진동수', text: '각속도가 2π rad/s인 물체의 회전 주기(T)는?', unit: 's', correct: '1' },
+                    { id: 'q4', type: 'input', title: '구심력 추론', text: '질량 2kg인 물체가 반지름 1m, 각속도 3rad/s로 회전할 때 필요한 구심력은?', unit: 'N', correct: '18' },
+                    { id: 'q5', type: 'input', title: '성분 분해', text: '반지름 r, 각속도 ω로 운동하는 물체의 x축 가속도 성분 ax의 최대 크기는?', unit: 'rω²', correct: '1' }
                 ];
 
                 const getScore = () => {
                     let s = 0;
-                    questions.forEach(q => { if(answers[q.id].trim() === q.correct) s++; });
+                    questions.forEach(q => {
+                        if (q.type === 'ox') {
+                            const isCorrect = q.correct.every((ans, idx) => answers[q.id][idx] === ans);
+                            if (isCorrect) s++;
+                        } else {
+                            if (answers[q.id].trim() === q.correct) s++;
+                        }
+                    });
                     return s;
+                };
+
+                const handleOXChange = (qId, idx, val) => {
+                    const newArr = [...answers[qId]];
+                    newArr[idx] = val;
+                    setAnswers({ ...answers, [qId]: newArr });
                 };
 
                 if (submitted) {
@@ -62,12 +93,14 @@ def run_practice():
                                 </div>
                                 <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10">
                                     <p className="text-amber-400 font-bold flex items-center gap-2"><Icon name="info" /> 주요 해설</p>
-                                    <p className="text-sm text-slate-300 leading-relaxed">구심 가속도 a = v²/r = rω² 공식을 활용합니다. 각속도 ω = v/r 이며, 주기는 T = 2π/ω 입니다.</p>
+                                    <p className="text-sm text-slate-300 leading-relaxed font-medium">
+                                        원운동은 방향이 계속 변하기 때문에 속도와 가속도가 일정하지 않은 가속도 운동입니다. 단, 등속 원운동에서 속력과 가속도의 크기는 일정합니다.
+                                    </p>
                                 </div>
                             </div>
                             <div className="flex gap-4">
                                 <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">다시 풀기</button>
-                                <button className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">DOCX 리포트 다운로드</button>
+                                <button className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">PDF 리포트 저장</button>
                             </div>
                         </div>
                     );
@@ -83,11 +116,33 @@ def run_practice():
                                         <span className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl font-black italic">{String(i+1).padStart(2, '0')}</span>
                                         <h4 className="text-xl font-black text-slate-800 tracking-tighter">{q.title}</h4>
                                     </div>
-                                    <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-medium leading-relaxed italic border border-slate-100 uppercase text-sm tracking-tight">{q.text}</div>
-                                    <div className="relative">
-                                        <input type="text" value={answers[q.id]} onChange={e => setAnswers({...answers, [q.id]: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" placeholder="정답 입력..." />
-                                        <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{q.unit}</span>
-                                    </div>
+                                    <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-bold leading-relaxed italic border border-slate-100 text-sm tracking-tight">{q.text}</div>
+                                    
+                                    {q.type === 'ox' ? (
+                                        <div className="space-y-3">
+                                            {q.items.map((item, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
+                                                    <span className="text-sm font-bold text-slate-600">{idx+1}. {item}</span>
+                                                    <div className="flex gap-2">
+                                                        {['O', 'X'].map(val => (
+                                                            <button 
+                                                                key={val}
+                                                                onClick={() => handleOXChange(q.id, idx, val)}
+                                                                className={`w-12 h-10 rounded-lg font-black transition-all ${answers[q.id][idx] === val ? (val === 'O' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white') : 'bg-white text-slate-300 border border-slate-200'}`}
+                                                            >
+                                                                {val}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <input type="text" value={answers[q.id]} onChange={e => setAnswers({...answers, [q.id]: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" placeholder="정답 입력..." />
+                                            <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{q.unit}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
