@@ -225,38 +225,94 @@ def run_practice():
                         </div>
                     );
                     if (type === 'carousel') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100">
-                            <svg viewBox="0 0 200 120" className="w-full max-w-[240px]">
-                                <rect x="40" y="80" width="120" height="5" fill="#94a3b8" />
-                                <rect x="95" y="85" width="10" height="20" fill="#64748b" />
-                                <circle cx="70" cy="70" r="10" fill="#3b82f6" opacity="0.8" />
-                                <circle cx="150" cy="70" r="10" fill="#f43f5e" opacity="0.8" />
-                                <text x="65" y="73" fontSize="6" fill="white">2m</text>
-                                <text x="148" y="73" fontSize="6" fill="white">m</text>
-                                <text x="65" y="55" fontSize="8" fill="#3b82f6" fontWeight="bold">철수</text>
-                                <text x="145" y="55" fontSize="8" fill="#f43f5e" fontWeight="bold">영희</text>
-                                <text x="100" y="75" fontSize="10" fill="#94a3b8">⟳</text>
-                                <line x1="100" y1="90" x2="70" y2="90" stroke="#94a3b8" strokeWidth="1" markerEnd="url(#dot)" />
-                                <text x="85" y="100" fontSize="7" fill="#64748b">r</text>
-                                <text x="125" y="100" fontSize="7" fill="#64748b">2r</text>
+                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden">
+                            <svg viewBox="0 0 300 200" className="w-full max-w-[400px]">
+                                {/* Central Axis */}
+                                <rect x="146" y="40" width="8" height="100" fill="#64748b" rx="2" />
+                                <ellipse cx="150" cy="40" rx="6" ry="2" fill="#94a3b8" />
+                                
+                                {/* Rotating Disk (Perspective) */}
+                                <ellipse cx="150" cy="130" rx="140" ry="40" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="2" />
+                                <ellipse cx="150" cy="125" rx="140" ry="40" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
+                                
+                                {/* Grid/Radius Lines for reference (Subtle) */}
+                                <line x1="150" y1="125" x2="285" y2="125" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,2" />
+                                
+                                {/* Chul-soo (Distance r) */}
+                                <g transform="translate(195, 118)">
+                                    <path d="M-8,0 L8,0 L8,-4 L4,-4 L4,-18 L-4,-18 L-4,-4 L-8,-4 Z" fill="#3b82f6" />
+                                    <circle cx="0" cy="-22" r="4.5" fill="#3b82f6" />
+                                    <rect x="-10" y="2" width="20" height="10" rx="3" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="0.5" />
+                                    <text x="0" y="10" fontSize="8" fill="#1d4ed8" textAnchor="middle" fontWeight="black">2m</text>
+                                    <text x="0" y="-32" fontSize="10" fill="#1d4ed8" textAnchor="middle" fontWeight="black">철수</text>
+                                </g>
+
+                                {/* Young-hee (Distance 2r) */}
+                                <g transform="translate(265, 118)">
+                                    <path d="M-8,0 L8,0 L8,-4 L4,-4 L4,-18 L-4,-18 L-4,-4 L-8,-4 Z" fill="#f43f5e" />
+                                    <circle cx="0" cy="-22" r="4.5" fill="#f43f5e" />
+                                    <rect x="-10" y="2" width="20" height="10" rx="3" fill="rgba(244,63,94,0.15)" stroke="#f43f5e" strokeWidth="0.5" />
+                                    <text x="0" y="10" fontSize="8" fill="#be123c" textAnchor="middle" fontWeight="black">m</text>
+                                    <text x="0" y="-32" fontSize="10" fill="#be123c" textAnchor="middle" fontWeight="black">영희</text>
+                                </g>
+
+                                {/* Distance Markers */}
+                                <line x1="150" y1="145" x2="195" y2="145" stroke="#64748b" strokeWidth="1.5" />
+                                <line x1="150" y1="142" x2="150" y2="148" stroke="#64748b" strokeWidth="1.5" />
+                                <line x1="195" y1="142" x2="195" y2="148" stroke="#64748b" strokeWidth="1.5" />
+                                <text x="172" y="158" fontSize="10" fill="#64748b" textAnchor="middle" fontWeight="bold">r</text>
+
+                                <line x1="150" y1="170" x2="265" y2="170" stroke="#64748b" strokeWidth="1.5" />
+                                <line x1="150" y1="167" x2="150" y2="173" stroke="#64748b" strokeWidth="1.5" />
+                                <line x1="265" y1="167" x2="265" y2="173" stroke="#64748b" strokeWidth="1.5" />
+                                <text x="207" y="183" fontSize="10" fill="#64748b" textAnchor="middle" fontWeight="bold">2r</text>
+
+                                {/* Rotation Arrow */}
+                                <path d="M100,115 Q110,100 130,105" fill="none" stroke="#94a3b8" strokeWidth="2" markerEnd="url(#arrow_carousel)" />
+                                <defs>
+                                    <marker id="arrow_carousel" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
+                                    </marker>
+                                </defs>
                             </svg>
                         </div>
                     );
                     if (type === 'rocket') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center gap-4 border border-slate-100">
-                            <svg viewBox="0 0 100 100" className="w-24">
-                                <circle cx="50" cy="50" r="40" fill="none" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="2,2" />
-                                <circle cx="50" cy="50" r="2" fill="#64748b" />
-                                <circle cx="90" cy="50" r="5" fill="#f59e0b" />
-                                <text x="65" y="48" fontSize="8" fill="#94a3b8">100m</text>
-                            </svg>
-                            <svg viewBox="0 0 100 60" className="w-32">
-                                <line x1="10" y1="50" x2="90" y2="50" stroke="#94a3b8" />
-                                <line x1="10" y1="50" x2="10" y2="10" stroke="#94a3b8" />
-                                <polyline points="10,50 50,20 90,20" fill="none" stroke="#f43f5e" strokeWidth="2" />
-                                <text x="45" y="58" fontSize="6">t</text>
-                                <text x="10" y="20" fontSize="6" textAnchor="end">10m/s</text>
-                            </svg>
+                        <div className="bg-slate-50 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-center gap-12 border border-slate-100 overflow-hidden">
+                            <div className="flex flex-col items-center gap-2">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">(가) 로켓의 궤도</p>
+                                <svg viewBox="0 0 120 120" className="w-40 h-40">
+                                    <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4" />
+                                    <circle cx="60" cy="60" r="3" fill="#64748b" />
+                                    <text x="85" y="58" fontSize="8" fill="#94a3b8" fontWeight="bold">100m</text>
+                                    {/* Rocket Icon */}
+                                    <g transform="translate(110, 60) rotate(90)">
+                                        <path d="M0,-12 L4,0 L4,10 L-4,10 L-4,0 Z" fill="#f59e0b" />
+                                        <path d="M-4,10 L-6,14 L4,14 L4,10 Z" fill="#f43f5e" />
+                                        <path d="M-4,14 Q0,20 4,14" fill="#fbbf24" opacity="0.8" />
+                                        <circle cx="0" cy="0" r="2" fill="white" opacity="0.5" />
+                                    </g>
+                                </svg>
+                            </div>
+                            <div className="flex flex-col items-center gap-2">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">(나) 시간-속력 그래프</p>
+                                <svg viewBox="0 0 120 80" className="w-48 h-32">
+                                    <defs>
+                                        <linearGradient id="rocket_grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
+                                            <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M15,65 L60,25 L105,25 L105,65 Z" fill="url(#rocket_grad)" />
+                                    <line x1="10" y1="65" x2="110" y2="65" stroke="#94a3b8" strokeWidth="1.5" />
+                                    <line x1="15" y1="10" x2="15" y2="70" stroke="#94a3b8" strokeWidth="1.5" />
+                                    <polyline points="15,65 60,25 105,25" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" />
+                                    <text x="60" y="75" fontSize="8" fill="#64748b" textAnchor="middle">t</text>
+                                    <text x="110" y="75" fontSize="8" fill="#94a3b8">시간(s)</text>
+                                    <text x="12" y="25" fontSize="8" fill="#f43f5e" textAnchor="end" fontWeight="bold">10m/s</text>
+                                    <text x="12" y="10" fontSize="8" fill="#94a3b8" textAnchor="end">속력(v)</text>
+                                </svg>
+                            </div>
                         </div>
                     );
                     return null;
@@ -514,7 +570,7 @@ def run_practice():
     </body>
     </html>
     """
-    components.html(react_code, height=1600, scrolling=True)
+    components.html(react_code, height=1800, scrolling=True)
 
 if __name__ == "__main__":
     run_practice()
