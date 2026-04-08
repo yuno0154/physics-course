@@ -42,6 +42,7 @@ def run_practice():
                     q5: null,
                     q6: null
                 });
+                const [currentStep, setCurrentStep] = useState(0);
                 const [submitted, setSubmitted] = useState(false);
 
                 const questions = [
@@ -137,6 +138,16 @@ def run_practice():
                     }
                 ];
 
+                const isStepCompleted = (idx) => {
+                    const q = questions[idx];
+                    if (!q) return false;
+                    const ans = answers[q.id];
+                    if (q.type === 'ox') return ans.every(v => v !== '');
+                    if (q.type === 'sim_problem' || q.type === 'graph_problem') return ans.every(v => v !== '');
+                    if (q.type === 'concept_choice') return ans !== null;
+                    return false;
+                };
+
                 const getScore = () => {
                     let s = 0;
                     questions.forEach(q => {
@@ -180,19 +191,36 @@ def run_practice():
                 // Problem Visualizations
                 const ProblemView = ({ type }) => {
                     if (type === 'table') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100">
-                            <svg viewBox="0 0 200 120" className="w-full max-w-[240px]">
-                                <rect x="40" y="40" width="120" height="10" fill="#94a3b8" />
-                                <rect x="50" y="50" width="5" height="40" fill="#64748b" />
-                                <rect x="145" y="50" width="5" height="40" fill="#64748b" />
-                                <circle cx="100" cy="45" r="30" fill="none" stroke="#3b82f6" strokeWidth="1" strokeDasharray="2,2" />
-                                <line x1="100" y1="45" x2="100" y2="80" stroke="#475569" strokeWidth="1.5" />
-                                <circle cx="125" cy="35" r="6" fill="#10b981" />
-                                <circle cx="100" cy="85" r="8" fill="#a855f7" />
-                                <text x="122" y="38" fontSize="6" fill="white" textAnchor="middle">m</text>
-                                <text x="97" y="88" fontSize="6" fill="white" textAnchor="middle">2m</text>
-                                <text x="135" y="30" fontSize="8" fill="#10b981" fontWeight="bold">A</text>
-                                <text x="115" y="90" fontSize="8" fill="#a855f7" fontWeight="bold">B</text>
+                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden">
+                            <svg viewBox="0 0 240 160" className="w-full max-w-[320px]">
+                                {/* Table Legs (Behind) */}
+                                <rect x="65" y="70" width="4" height="25" fill="#94a3b8" />
+                                <rect x="175" y="70" width="4" height="25" fill="#94a3b8" />
+                                
+                                {/* Table Top (Perspective) */}
+                                <polygon points="40,70 200,70 230,110 70,110" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2" />
+                                
+                                {/* Hole */}
+                                <circle cx="135" cy="90" r="4" fill="#1e293b" />
+                                
+                                {/* Orbit Ellipse */}
+                                <ellipse cx="135" cy="90" rx="70" ry="25" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" />
+                                
+                                {/* Object A and Connecting String */}
+                                <line x1="135" y1="90" x2="195" y2="78" stroke="#64748b" strokeWidth="2" />
+                                <circle cx="195" cy="78" r="8" fill="#10b981" />
+                                <text x="195" y="81" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">m</text>
+                                <text x="210" y="75" fontSize="12" fill="#10b981" fontWeight="extrabold">A</text>
+
+                                {/* Hanging String and Weight B */}
+                                <line x1="135" y1="90" x2="135" y2="140" stroke="#475569" strokeWidth="2" />
+                                <rect x="123" y="140" width="24" height="15" rx="4" fill="#a855f7" />
+                                <text x="135" y="151" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">2m</text>
+                                <text x="155" y="152" fontSize="12" fill="#a855f7" fontWeight="extrabold">B</text>
+
+                                {/* Front Legs */}
+                                <rect x="70" y="110" width="6" height="40" fill="#475569" />
+                                <rect x="224" y="110" width="6" height="40" fill="#475569" />
                             </svg>
                         </div>
                     );
@@ -325,131 +353,158 @@ def run_practice():
 
                 return (
                     <div className="max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
-                        {questions.map((q, i) => (
-                            <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50 relative overflow-hidden group">
+                        {questions.slice(0, currentStep + 1).map((q, i) => (
+                            <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50 relative overflow-hidden group animate-in slide-in-from-right duration-500">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
                                 <div className="relative">
-                                    <div className="flex items-center gap-4 mb-6">
-                                        <span className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl font-black italic">{String(i+1).padStart(2, '0')}</span>
-                                        <h4 className="text-xl font-black text-slate-800 tracking-tighter">{q.title}</h4>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="flex items-center gap-4">
+                                            <span className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl font-black italic">{String(i+1).padStart(2, '0')}</span>
+                                            <h4 className="text-xl font-black text-slate-800 tracking-tighter">{q.title}</h4>
+                                        </div>
+                                        {i < currentStep && <span className="text-emerald-500 font-black flex items-center gap-1"><Icon name="check-circle" /> 완료됨</span>}
                                     </div>
                                     <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-bold leading-relaxed italic border border-slate-100 text-sm tracking-tight">{q.text}</div>
                                     
-                                    {q.type === 'ox' && (
-                                        <div className="space-y-3">
-                                            {q.items.map((item, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
-                                                    <span className="text-sm font-bold text-slate-600">{idx+1}. {item}</span>
-                                                    <div className="flex gap-2">
-                                                        {['O', 'X'].map(val => (
-                                                            <button 
-                                                                key={val}
-                                                                onClick={() => handleOXChange(q.id, idx, val)}
-                                                                className={`w-12 h-10 rounded-lg font-black transition-all ${answers[q.id][idx] === val ? (val === 'O' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white') : 'bg-white text-slate-300 border border-slate-200'}`}
-                                                            >
-                                                                {val}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-
-                                    {q.type === 'sim_problem' && (
-                                        <div className="space-y-8">
-                                            <ProblemSim radius={2} speedText="2π" mass={2} />
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                {q.items.map((sub, idx) => (
-                                                    <div key={idx} className="relative">
-                                                        <p className="text-[10px] text-slate-400 font-black uppercase mb-2 ml-2">({idx+1}) {sub.label}</p>
-                                                        <div className="relative">
-                                                            <input 
-                                                                type="text" 
-                                                                value={answers[q.id][idx]} 
-                                                                onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
-                                                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" 
-                                                                placeholder="값 입력..." 
-                                                            />
-                                                            <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{sub.unit}</span>
+                                    <div className={i < currentStep ? 'opacity-50 pointer-events-none grayscale-[0.5]' : ''}>
+                                        {q.type === 'ox' && (
+                                            <div className="space-y-3">
+                                                {q.items.map((item, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-4 bg-slate-100/50 rounded-xl">
+                                                        <span className="text-sm font-bold text-slate-600">{idx+1}. {item}</span>
+                                                        <div className="flex gap-2">
+                                                            {['O', 'X'].map(val => (
+                                                                <button 
+                                                                    key={val}
+                                                                    onClick={() => handleOXChange(q.id, idx, val)}
+                                                                    className={`w-12 h-10 rounded-lg font-black transition-all ${answers[q.id][idx] === val ? (val === 'O' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-rose-500 text-white shadow-lg') : 'bg-white text-slate-300 border border-slate-200'}`}
+                                                                >
+                                                                    {val}
+                                                                </button>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {q.type === 'graph_problem' && (
-                                        <div className="space-y-8">
-                                            <div className="flex flex-col md:flex-row gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
-                                                <VelocityGraph label="(가) t에 따른 vx" isSine={true} />
-                                                <VelocityGraph label="(나) t에 따른 vy" isSine={false} />
-                                            </div>
-                                            <div className="space-y-6">
-                                                {q.items.map((sub, idx) => (
-                                                    <div key={idx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 group/item">
-                                                        <p className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2">
-                                                            <span className="w-6 h-6 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-[10px] group-hover/item:bg-slate-900 group-hover/item:text-white transition-colors">{idx+1}</span>
-                                                            {sub.label}
-                                                        </p>
-                                                        {sub.type === 'choice' ? (
-                                                            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                                                                {sub.options.map((opt, oIdx) => (
-                                                                    <button 
-                                                                        key={oIdx}
-                                                                        onClick={() => handleSubInputChange(q.id, idx, oIdx)}
-                                                                        className={`py-3 px-2 rounded-xl text-[11px] font-bold border-2 transition-all ${parseInt(answers[q.id][idx]) === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                                                                    >
-                                                                        {opt}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <div className="relative max-w-xs">
+                                        {q.type === 'sim_problem' && (
+                                            <div className="space-y-8">
+                                                <ProblemSim radius={2} speedText="2π" mass={2} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {q.items.map((sub, idx) => (
+                                                        <div key={idx} className="relative">
+                                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-2 ml-2">({idx+1}) {sub.label}</p>
+                                                            <div className="relative">
                                                                 <input 
                                                                     type="text" 
                                                                     value={answers[q.id][idx]} 
                                                                     onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
-                                                                    className="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-rose-500 outline-none focus:border-rose-400 transition-all" 
+                                                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" 
                                                                     placeholder="..." 
                                                                 />
-                                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-slate-300 italic text-xs">{sub.unit}</span>
+                                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{sub.unit}</span>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {q.type === 'concept_choice' && (
-                                        <div className="space-y-6">
-                                            <ProblemView type={q.view} />
-                                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                                <p className="text-xs font-black text-slate-400 mb-3 uppercase tracking-tighter">[ 보 기 ]</p>
-                                                <div className="space-y-2 text-sm font-bold text-slate-600">
-                                                    {q.bogis.map((b, bIdx) => <p key={bIdx}>{['ㄱ', 'ㄴ', 'ㄷ'][bIdx]}. {b}</p>)}
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-                                                {q.options.map((opt, oIdx) => (
-                                                    <button 
-                                                        key={oIdx}
-                                                        onClick={() => handleChoiceSelect(q.id, oIdx)}
-                                                        className={`py-4 rounded-xl text-sm font-black border-2 transition-all ${answers[q.id] === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                                                    >
-                                                        {oIdx+1}. {opt}
-                                                    </button>
-                                                ))}
+                                        )}
+
+                                        {q.type === 'graph_problem' && (
+                                            <div className="space-y-8">
+                                                <div className="flex flex-col md:flex-row gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
+                                                    <VelocityGraph label="(가) t에 따른 vx" isSine={true} />
+                                                    <VelocityGraph label="(나) t에 따른 vy" isSine={false} />
+                                                </div>
+                                                <div className="space-y-6">
+                                                    {q.items.map((sub, idx) => (
+                                                        <div key={idx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 group/item">
+                                                            <p className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2">
+                                                                <span className="w-6 h-6 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-[10px] group-hover/item:bg-slate-900 group-hover/item:text-white transition-colors">{idx+1}</span>
+                                                                {sub.label}
+                                                            </p>
+                                                            {sub.type === 'choice' ? (
+                                                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                                                                    {sub.options.map((opt, oIdx) => (
+                                                                        <button 
+                                                                            key={oIdx}
+                                                                            onClick={() => handleSubInputChange(q.id, idx, oIdx)}
+                                                                            className={`py-3 px-2 rounded-xl text-[11px] font-bold border-2 transition-all ${parseInt(answers[q.id][idx]) === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                                                        >
+                                                                            {opt}
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="relative max-w-xs">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        value={answers[q.id][idx]} 
+                                                                        onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
+                                                                        className="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-rose-500 outline-none focus:border-rose-400 transition-all" 
+                                                                        placeholder="..." 
+                                                                    />
+                                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-slate-300 italic text-xs">{sub.unit}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
+                                        )}
+
+                                        {q.type === 'concept_choice' && (
+                                            <div className="space-y-6">
+                                                <ProblemView type={q.view} />
+                                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                                    <p className="text-xs font-black text-slate-400 mb-3 uppercase tracking-tighter">[ 보 기 ]</p>
+                                                    <div className="space-y-2 text-sm font-bold text-slate-600">
+                                                        {q.bogis.map((b, bIdx) => <p key={bIdx}>{['ㄱ', 'ㄴ', 'ㄷ'][bIdx]}. {b}</p>)}
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+                                                    {q.options.map((opt, oIdx) => (
+                                                        <button 
+                                                            key={oIdx}
+                                                            onClick={() => handleChoiceSelect(q.id, oIdx)}
+                                                            className={`py-4 rounded-xl text-sm font-black border-2 transition-all ${answers[q.id] === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
+                                                        >
+                                                            {oIdx+1}. {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {i === currentStep && isStepCompleted(i) && (
+                                        <div className="mt-8 pt-8 border-t border-slate-100 flex justify-end">
+                                            {i < questions.length - 1 ? (
+                                                <button 
+                                                    onClick={() => {
+                                                        setCurrentStep(i + 1);
+                                                        setTimeout(() => {
+                                                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                                                        }, 100);
+                                                    }}
+                                                    className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black shadow-lg hover:bg-emerald-400 transition-all flex items-center gap-2 animate-bounce"
+                                                >
+                                                    다음 문제 도전하기 <Icon name="arrow-right" />
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => setSubmitted(true)}
+                                                    className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2"
+                                                >
+                                                    최종 결과 제출하기 <Icon name="send" />
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
                             </div>
                         ))}
-                        <button onClick={() => setSubmitted(true)} className="w-full py-8 bg-slate-900 text-white rounded-[2.5rem] text-2xl font-black shadow-2xl hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-4">
-                            <Icon name="send" size={32} /> 평가 결과 제출하기
-                        </button>
                     </div>
                 );
             };
