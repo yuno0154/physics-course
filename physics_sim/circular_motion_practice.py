@@ -285,32 +285,37 @@ def run_practice():
                                     <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4" />
                                     <circle cx="60" cy="60" r="3" fill="#64748b" />
                                     <text x="85" y="58" fontSize="8" fill="#94a3b8" fontWeight="bold">100m</text>
-                                    {/* Rocket Icon */}
-                                    <g transform="translate(110, 60) rotate(90)">
-                                        <path d="M0,-12 L4,0 L4,10 L-4,10 L-4,0 Z" fill="#f59e0b" />
-                                        <path d="M-4,10 L-6,14 L4,14 L4,10 Z" fill="#f43f5e" />
-                                        <path d="M-4,14 Q0,20 4,14" fill="#fbbf24" opacity="0.8" />
+                                    {/* Rocket Icon: Tangential orientation (Points UP at the right) */}
+                                    <g transform="translate(110, 60)">
+                                        <path d="M0, -12 L4, 0 L4, 10 L-4, 10 L-4, 0 Z" fill="#f59e0b" />
+                                        <path d="M-4, 10 L-6, 14 L4, 14 L4, 10 Z" fill="#f43f5e" />
+                                        <path d="M-4, 14 Q0, 20 4, 14" fill="#fbbf24" opacity="0.8" />
                                         <circle cx="0" cy="0" r="2" fill="white" opacity="0.5" />
                                     </g>
                                 </svg>
                             </div>
                             <div className="flex flex-col items-center gap-2">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">(나) 시간-속력 그래프</p>
-                                <svg viewBox="0 0 120 80" className="w-48 h-32">
+                                <svg viewBox="0 0 150 100" className="w-56 h-40">
                                     <defs>
                                         <linearGradient id="rocket_grad" x1="0%" y1="0%" x2="0%" y2="100%">
                                             <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
                                             <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
                                         </linearGradient>
                                     </defs>
-                                    <path d="M15,65 L60,25 L105,25 L105,65 Z" fill="url(#rocket_grad)" />
-                                    <line x1="10" y1="65" x2="110" y2="65" stroke="#94a3b8" strokeWidth="1.5" />
-                                    <line x1="15" y1="10" x2="15" y2="70" stroke="#94a3b8" strokeWidth="1.5" />
-                                    <polyline points="15,65 60,25 105,25" fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" />
-                                    <text x="60" y="75" fontSize="8" fill="#64748b" textAnchor="middle">t</text>
-                                    <text x="110" y="75" fontSize="8" fill="#94a3b8">시간(s)</text>
-                                    <text x="12" y="25" fontSize="8" fill="#f43f5e" textAnchor="end" fontWeight="bold">10m/s</text>
-                                    <text x="12" y="10" fontSize="8" fill="#94a3b8" textAnchor="end">속력(v)</text>
+                                    {/* Grid Lines */}
+                                    <line x1="30" y1="30" x2="120" y2="30" stroke="#f1f5f9" strokeWidth="1" />
+                                    <line x1="75" y1="30" x2="75" y2="70" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2" />
+                                    
+                                    <path d="M30,70 L75,30 L120,30 L120,70 Z" fill="url(#rocket_grad)" />
+                                    <line x1="25" y1="70" x2="140" y2="70" stroke="#475569" strokeWidth="1.5" />
+                                    <line x1="30" y1="15" x2="30" y2="75" stroke="#475569" strokeWidth="1.5" />
+                                    <polyline points="30,70 75,30 120,30" fill="none" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" />
+                                    
+                                    <text x="75" y="85" fontSize="8" fill="#64748b" textAnchor="middle" fontWeight="bold">t</text>
+                                    <text x="140" y="85" fontSize="8" fill="#94a3b8" textAnchor="end">시간(s)</text>
+                                    <text x="25" y="30" fontSize="8" fill="#f43f5e" textAnchor="end" fontWeight="black">10m/s</text>
+                                    <text x="25" y="15" fontSize="8" fill="#94a3b8" textAnchor="end">속력(v)</text>
                                 </svg>
                             </div>
                         </div>
