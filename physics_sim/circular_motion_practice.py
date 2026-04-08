@@ -36,7 +36,7 @@ def run_practice():
             const PracticeSection = () => {
                 const [answers, setAnswers] = useState({ 
                     q1: Array(7).fill(''), 
-                    q2: '', q3: '', q4: '', q5: '' 
+                    q2: Array(5).fill(''),
                 });
                 const [submitted, setSubmitted] = useState(false);
 
@@ -51,16 +51,26 @@ def run_practice():
                             '가속도가 일정하다.',
                             '등가속도 운동이다.',
                             '가속도의 크기는 일정하다.',
-                            '가속도의 방향은 원중심 방향이며 매분 방향이 변한다.',
+                            '가속도의 방향은 원중심 방향이며 매순간 방향이 변한다.',
                             '구심력의 크기는 일정하다.',
                             '구심력의 방향은 일정하다.'
                         ],
                         correct: ['X', 'X', 'X', 'O', 'O', 'O', 'X']
                     },
-                    { id: 'q2', type: 'input', title: '각속도 계산', text: '반지름 2m인 원을 10m/s의 속력으로 도는 물체의 각속도(ω)는?', unit: 'rad/s', correct: '5' },
-                    { id: 'q3', type: 'input', title: '주기와 진동수', text: '각속도가 2π rad/s인 물체의 회전 주기(T)는?', unit: 's', correct: '1' },
-                    { id: 'q4', type: 'input', title: '구심력 추론', text: '질량 2kg인 물체가 반지름 1m, 각속도 3rad/s로 회전할 때 필요한 구심력은?', unit: 'N', correct: '18' },
-                    { id: 'q5', type: 'input', title: '성분 분해', text: '반지름 r, 각속도 ω로 운동하는 물체의 x축 가속도 성분 ax의 최대 크기는?', unit: 'rω²', correct: '1' }
+                    { 
+                        id: 'q2', 
+                        type: 'sim_problem',
+                        title: '원운동 물리량 계산 실습', 
+                        text: '아래 시뮬레이션의 조건을 읽고 물음의 값을 계산하시오. (단, π = 3.14로 계산하며 소수점 둘째 자리에서 반올림하세요.)',
+                        condition: { r: 2, v: '2π', m: 2 },
+                        items: [
+                            { label: '각속도', unit: 'rad/s', correct: '3.1' },
+                            { label: '주기', unit: 's', correct: '2' },
+                            { label: '진동수', unit: 'Hz', correct: '0.5' },
+                            { label: '구심 가속도의 크기', unit: 'm/s²', correct: '19.7' },
+                            { label: '구심력의 크기', unit: 'N', correct: '39.5' }
+                        ]
+                    }
                 ];
 
                 const getScore = () => {
@@ -68,9 +78,16 @@ def run_practice():
                     questions.forEach(q => {
                         if (q.type === 'ox') {
                             const isCorrect = q.correct.every((ans, idx) => answers[q.id][idx] === ans);
-                            if (isCorrect) s++;
-                        } else {
-                            if (answers[q.id].trim() === q.correct) s++;
+                            if (isCorrect) s += 1;
+                        } else if (q.type === 'sim_problem') {
+                            let correctCount = 0;
+                            q.items.forEach((item, idx) => {
+                                if (answers[q.id][idx].trim() === item.correct) correctCount++;
+                            });
+                            // All sub-items must be correct for 1 point, or give partial? 
+                            // Let's give 1 point if at least 3 correct for now, or 1 total.
+                            // Better: 1 point only if all correct.
+                            if (correctCount === q.items.length) s += 1;
                         }
                     });
                     return s;
@@ -82,6 +99,49 @@ def run_practice():
                     setAnswers({ ...answers, [qId]: newArr });
                 };
 
+                const handleSimInputChange = (qId, idx, val) => {
+                    const newArr = [...answers[qId]];
+                    newArr[idx] = val;
+                    setAnswers({ ...answers, [qId]: newArr });
+                };
+
+                // Small Sim Component for Question 2
+                const ProblemSim = ({ radius, speedText, mass }) => {
+                    const [angle, setAngle] = useState(0);
+                    useEffect(() => {
+                        const id = setInterval(() => setAngle(a => (a + 0.05) % (Math.PI * 2)), 30);
+                        return () => clearInterval(id);
+                    }, []);
+
+                    const x = 100 + Math.cos(angle) * 60;
+                    const y = 100 - Math.sin(angle) * 60;
+
+                    return (
+                        <div className="flex flex-col md:flex-row items-center gap-8 bg-slate-900 p-8 rounded-[2rem] text-white">
+                            <div className="w-48 h-48 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center relative">
+                                <svg viewBox="0 0 200 200" className="w-full h-full">
+                                    <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="4,4" />
+                                    <line x1="40" y1="100" x2="160" y2="100" stroke="rgba(255,255,255,0.05)" />
+                                    <line x1="100" y1="40" x2="100" y2="160" stroke="rgba(255,255,255,0.05)" />
+                                    <line x1="100" y1="100" x2={x} y2={y} stroke="#3b82f6" strokeWidth="2" opacity="0.5" />
+                                    <circle cx={x} cy={y} r="8" fill="#10b981" />
+                                    <text x="105" y="115" fontSize="10" fill="#94a3b8" className="italic">O</text>
+                                </svg>
+                            </div>
+                            <div className="flex-1 space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold">조건</span>
+                                    <p className="text-sm font-medium text-slate-300">반지름(r) = {radius}m, 속력(v) = {speedText}m/s, 질량(m) = {mass}kg</p>
+                                </div>
+                                <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase">준비할 공식</p>
+                                    <p className="text-xs text-slate-400 leading-relaxed italic">ω = v/r, T = 2π/ω, f = 1/T, a = v²/r, F = ma</p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                };
+
                 if (submitted) {
                     return (
                         <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
@@ -89,12 +149,16 @@ def run_practice():
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                                 <div className="bg-white/10 p-8 rounded-3xl text-center border border-white/10">
                                     <p className="text-sm text-sky-400 font-bold mb-2 uppercase">최종 점수</p>
-                                    <p className="text-6xl font-black">{getScore()} / 5</p>
+                                    <p className="text-6xl font-black">{getScore()} / 2</p>
                                 </div>
                                 <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10">
                                     <p className="text-amber-400 font-bold flex items-center gap-2"><Icon name="info" /> 주요 해설</p>
                                     <p className="text-sm text-slate-300 leading-relaxed font-medium">
-                                        원운동은 방향이 계속 변하기 때문에 속도와 가속도가 일정하지 않은 가속도 운동입니다. 단, 등속 원운동에서 속력과 가속도의 크기는 일정합니다.
+                                        (1) ω = 2π/2 = 3.14 rad/s<br/>
+                                        (2) T = 2π/π = 2s<br/>
+                                        (3) f = 1/2 = 0.5Hz<br/>
+                                        (4) ac = v²/r = (2π)²/2 = 2π² ≈ 19.7 m/s²<br/>
+                                        (5) Fc = mac = 2 * 19.7 = 39.4 N
                                     </p>
                                 </div>
                             </div>
@@ -118,7 +182,7 @@ def run_practice():
                                     </div>
                                     <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-bold leading-relaxed italic border border-slate-100 text-sm tracking-tight">{q.text}</div>
                                     
-                                    {q.type === 'ox' ? (
+                                    {q.type === 'ox' && (
                                         <div className="space-y-3">
                                             {q.items.map((item, idx) => (
                                                 <div key={idx} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all">
@@ -137,10 +201,28 @@ def run_practice():
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <div className="relative">
-                                            <input type="text" value={answers[q.id]} onChange={e => setAnswers({...answers, [q.id]: e.target.value})} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" placeholder="정답 입력..." />
-                                            <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{q.unit}</span>
+                                    )}
+
+                                    {q.type === 'sim_problem' && (
+                                        <div className="space-y-8">
+                                            <ProblemSim radius={2} speedText="2π" mass={2} />
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {q.items.map((sub, idx) => (
+                                                    <div key={idx} className="relative">
+                                                        <p className="text-[10px] text-slate-400 font-black uppercase mb-2 ml-2">({idx+1}) {sub.label}</p>
+                                                        <div className="relative">
+                                                            <input 
+                                                                type="text" 
+                                                                value={answers[q.id][idx]} 
+                                                                onChange={e => handleSimInputChange(q.id, idx, e.target.value)}
+                                                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" 
+                                                                placeholder="값 입력..." 
+                                                            />
+                                                            <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{sub.unit}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
