@@ -18,9 +18,10 @@ def run_sim():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+        <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js"></script>
+        <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
@@ -43,23 +44,38 @@ def run_sim():
             };
 
             const KeplerData = () => {
-                const [rechartsLoaded, setRechartsLoaded] = useState(false);
+                const [engineState, setEngineState] = useState('loading'); // loading, ready, error
 
                 useEffect(() => {
-                    const checkRecharts = setInterval(() => {
+                    let attempts = 0;
+                    const checkEngine = setInterval(() => {
+                        attempts++;
                         if (window.Recharts) {
-                            setRechartsLoaded(true);
-                            clearInterval(checkRecharts);
+                            setEngineState('ready');
+                            clearInterval(checkEngine);
+                        } else if (attempts > 60) { // 6초 경과 시 에러 처리
+                            setEngineState('error');
+                            clearInterval(checkEngine);
                         }
                     }, 100);
-                    return () => clearInterval(checkRecharts);
+                    return () => clearInterval(checkEngine);
                 }, []);
 
-                if (!rechartsLoaded) {
+                if (engineState === 'loading') {
                     return (
                         <div className="flex flex-col items-center justify-center h-80 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200">
                             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                            <p className="text-slate-400 font-bold tracking-tight">차트 엔진을 불러오고 있습니다...</p>
+                            <p className="text-slate-400 font-bold tracking-tight">차트 엔진을 준비 중입니다...</p>
+                        </div>
+                    );
+                }
+
+                if (engineState === 'error') {
+                    return (
+                        <div className="flex flex-col items-center justify-center h-80 bg-red-50 rounded-[32px] border-2 border-dashed border-red-200 p-8">
+                             <p className="text-red-800 font-black mb-2">엔진 로드 실패</p>
+                             <p className="text-red-500 text-xs mb-4">인터넷 연결을 확인해 주세요.</p>
+                             <button onClick={() => window.location.reload()} className="px-4 py-2 bg-red-600 text-white rounded-xl text-[11px] font-bold shadow-lg shadow-red-200">다시 시도</button>
                         </div>
                     );
                 }
