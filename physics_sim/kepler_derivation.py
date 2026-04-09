@@ -331,6 +331,119 @@ def run_sim():
                                 </div>
                             </div>
                         </div>
+
+                        {/* ── 탐구 질문 섹션 ── */}
+                        <div className="mt-10 space-y-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="h-1 flex-1 bg-gradient-to-r from-indigo-500/40 to-transparent rounded-full"/>
+                                <span className="text-xs font-black tracking-widest text-indigo-400 uppercase">심화 탐구 질문</span>
+                                <div className="h-1 flex-1 bg-gradient-to-l from-indigo-500/40 to-transparent rounded-full"/>
+                            </div>
+
+                            {/* 탐구 질문 1 */}
+                            <ExploreCard
+                                index="01"
+                                accentColor="#f59e0b"
+                                tag="역학적 탐구"
+                                title="태양계의 행성들은 왜 멀어질수록 공전 속도가 느려져야만 할까?"
+                                intent="단순히 공전 속도 공식을 암기하는 것을 넘어, 중력(구심력)과 관성(원심적 경향) 사이의 역학적 평형을 이해하기 위한 질문입니다."
+                                points={[
+                                    "중력이 거리의 제곱에 반비례하여 약해질 때, 궤도를 유지하기 위해 필요한 속도는 어떻게 변해야 할까?",
+                                    "만약 해왕성이 수성의 공전 속도(47.9 km/s)로 움직인다면 어떤 일이 벌어질까?",
+                                    "반대로 수성이 해왕성의 속도(5.4 km/s)로 느려진다면 궤도를 유지할 수 있을까?"
+                                ]}
+                                hints={[
+                                    { label: "힌트 1 — 궤도를 유지하는 조건",    text: "원 궤도를 유지하려면 구심력 = 중력이어야 합니다. 즉 GMm/r² = mv²/r 가 성립해야 하죠. 이 식에서 v를 r에 대해 정리하면 어떤 관계가 보이나요?" },
+                                    { label: "힌트 2 — 너무 빠른 행성",          text: "v²/r (필요 구심력) > GM/r² (실제 중력) 이면 중력이 부족해 행성이 바깥으로 튕겨 나갑니다. 해왕성 궤도에서 수성의 속도는 필요한 v보다 훨씬 클까요, 아닐까요?" },
+                                    { label: "힌트 3 — 너무 느린 행성",          text: "반대로 v²/r < GM/r² 이면 중력이 속도에 비해 너무 강해 행성이 안쪽으로 끌려 들어갑니다. 수성 궤도에서 해왕성 속도라면 중력을 이기기에 충분할까요?" }
+                                ]}
+                            />
+
+                            {/* 탐구 질문 2 */}
+                            <ExploreCard
+                                index="02"
+                                accentColor="#8b5cf6"
+                                tag="정량적·비교 탐구"
+                                title="중심 천체의 질량이 다른 외계 행성계에서도 케플러 제3법칙의 '조화 상수'는 일정할까?"
+                                intent="케플러 제3법칙(T² ∝ a³)의 비례 상수 k = 4π²/GM 이 중심 천체의 질량에 종속적이라는 사실을 탐구하기 위한 질문입니다."
+                                points={[
+                                    "태양계 데이터로 구한 a³/T² 값과, 질량이 태양의 2배인 항성을 도는 외계 행성계의 a³/T² 값을 비교하면 어떤 차이가 생길까?",
+                                    "중심 질량이 커질 때, 동일한 궤도 장반경(a)을 가진 행성의 공전 주기는 어떻게 변할까?",
+                                    "이 관계를 통해 보이지 않는 천체(블랙홀 등)의 질량을 역으로 추산하는 방법은 무엇일까?"
+                                ]}
+                                hints={[
+                                    { label: "힌트 1 — 비례 상수의 정체",          text: "T² = (4π²/GM) r³ 에서 비례 상수는 4π²/GM 입니다. 이 상수에서 변하는 것은 오직 중심 천체의 질량 M뿐이에요. 태양의 M과 2M을 대입하면 상수값은 어떻게 달라질까요?" },
+                                    { label: "힌트 2 — 같은 궤도, 다른 주기",       text: "동일한 a에서 M이 2배가 되면 T² = (4π²/2GM) a³ 이 됩니다. 원래보다 T는 커지나요 작아지나요? √2 와 관련이 있을 것입니다." },
+                                    { label: "힌트 3 — 보이지 않는 천체의 질량",     text: "관측 가능한 행성의 a(궤도 크기)와 T(공전 주기)를 측정하면 M = 4π²a³ / (GT²) 공식으로 중심 천체의 질량을 구할 수 있습니다. 이 원리가 블랙홀 질량 측정에 어떻게 응용될까요?" }
+                                ]}
+                            />
+                        </div>
+
+                    </div>
+                );
+            };
+
+            /* ── ExploreCard 컴포넌트 ── */
+            const ExploreCard = ({ index, accentColor, tag, title, intent, points, hints }) => {
+                const [openHint, setOpenHint] = React.useState(null);
+
+                const toggleHint = (i) => setOpenHint(prev => prev === i ? null : i);
+
+                return (
+                    <div className="bg-slate-900 rounded-[2.5rem] border border-slate-700 shadow-2xl overflow-hidden">
+                        {/* 헤더 */}
+                        <div className="flex items-start gap-6 p-8 pb-0">
+                            <div className="flex-shrink-0 w-16 h-16 rounded-2xl flex items-center justify-center font-black text-2xl shadow-lg"
+                                style={{ background: `${accentColor}22`, color: accentColor, border: `2px solid ${accentColor}55` }}>
+                                {index}
+                            </div>
+                            <div className="flex-1 pt-1">
+                                <span className="text-[10px] font-black tracking-widest uppercase px-3 py-1 rounded-full"
+                                    style={{ background: `${accentColor}22`, color: accentColor }}>
+                                    {tag}
+                                </span>
+                                <h5 className="text-lg font-black text-white mt-3 leading-snug">{title}</h5>
+                                <p className="text-slate-400 text-xs leading-relaxed mt-2 italic border-l-2 pl-3"
+                                    style={{ borderColor: `${accentColor}66` }}>{intent}</p>
+                            </div>
+                        </div>
+
+                        {/* 탐구 포인트 */}
+                        <div className="px-8 pt-6 pb-2">
+                            <p className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-3">탐구 포인트</p>
+                            <ul className="space-y-2">
+                                {points.map((pt, i) => (
+                                    <li key={i} className="flex items-start gap-3 text-slate-300 text-sm leading-relaxed">
+                                        <span className="mt-1 flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center"
+                                            style={{ background: `${accentColor}33`, color: accentColor }}>
+                                            {i + 1}
+                                        </span>
+                                        {pt}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* 힌트 아코디언 */}
+                        <div className="px-8 pt-5 pb-8 space-y-3">
+                            <p className="text-[10px] font-black tracking-widest text-slate-500 uppercase mb-3">💡 힌트 (클릭하여 확인)</p>
+                            {hints.map((h, i) => (
+                                <div key={i} className="rounded-2xl border overflow-hidden transition-all duration-300"
+                                    style={{ borderColor: openHint === i ? `${accentColor}66` : '#334155', background: openHint === i ? `${accentColor}11` : '#1e293b' }}>
+                                    <button
+                                        onClick={() => toggleHint(i)}
+                                        className="w-full flex items-center justify-between px-5 py-3 text-left transition-all"
+                                    >
+                                        <span className="text-sm font-bold" style={{ color: openHint === i ? accentColor : '#94a3b8' }}>{h.label}</span>
+                                        <span className="text-slate-500 text-lg font-bold transition-transform duration-300"
+                                            style={{ transform: openHint === i ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</span>
+                                    </button>
+                                    <div className={`accordion-content ${openHint === i ? 'open' : ''} px-5`}>
+                                        <p className="text-slate-300 text-sm leading-relaxed pb-4">{h.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 );
             };
@@ -341,7 +454,7 @@ def run_sim():
     </body>
     </html>
     """
-    components.html(react_code, height=1600, scrolling=True)
+    components.html(react_code, height=2600, scrolling=True)
 
 if __name__ == "__main__":
     run_sim()
