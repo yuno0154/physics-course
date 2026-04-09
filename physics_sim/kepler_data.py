@@ -12,6 +12,7 @@ def run_sim():
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
 <style>
@@ -169,7 +170,8 @@ const actualData = [
 ];
 
 const ScatterAnalysis = () => {
-    const [ready, setReady]           = useState(false);
+    const [ready, setReady]           = useState(!!window.Recharts);
+    const [loadErr, setLoadErr]       = useState(false);
     const [dMin, setDMin]             = useState(0);
     const [dMax, setDMax]             = useState(1000);
     const [selectedPlanet, setSP]     = useState('지구');
@@ -180,7 +182,13 @@ const ScatterAnalysis = () => {
     const domRef                      = useRef({min:0,max:1000});
 
     useEffect(()=>{
-        const t=setInterval(()=>{ if(window.Recharts){setReady(true);clearInterval(t);} },100);
+        if(window.Recharts){ setReady(true); return; }
+        let elapsed=0;
+        const t=setInterval(()=>{
+            elapsed+=200;
+            if(window.Recharts){ setReady(true); clearInterval(t); }
+            else if(elapsed>8000){ setLoadErr(true); clearInterval(t); }
+        },200);
         return ()=>clearInterval(t);
     },[]);
 
@@ -200,7 +208,8 @@ const ScatterAnalysis = () => {
         return ()=>el.removeEventListener('wheel',onW);
     },[]);
 
-    if(!ready) return <div style={{padding:40,textAlign:'center',color:'#475569'}}>엔진 로딩 중...</div>;
+    if(loadErr) return <div style={{padding:40,textAlign:'center',color:'#ef4444',fontSize:14}}>⚠️ 그래프 라이브러리 로드 실패. 인터넷 연결을 확인 후 페이지를 새로고침하세요.</div>;
+    if(!ready)  return <div style={{padding:40,textAlign:'center',color:'#475569',fontSize:14}}>⏳ 분석 엔진 로딩 중...</div>;
 
     const { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Label } = window.Recharts;
 

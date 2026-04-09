@@ -62,41 +62,156 @@ def run_sim():
             };
 
             const StepDiagram = ({ step, color }) => {
-                const colors = { blue: "#3b82f6", indigo: "#6366f1", purple: "#a855f7", violet: "#8b5cf6", emerald: "#10b981" };
+                const colors = {
+                    blue:    "#3b82f6",
+                    indigo:  "#6366f1",
+                    purple:  "#a855f7",
+                    violet:  "#8b5cf6",
+                    emerald: "#10b981"
+                };
                 const c = colors[color] || "#3b82f6";
+
+                /* ── 공통 SVG 요소 ── */
+                const Orbit = ({ dasharray = "6 3", stroke = "#475569", width = 2 }) => (
+                    <circle cx="120" cy="95" r="68" fill="none"
+                        stroke={stroke} strokeWidth={width} strokeDasharray={dasharray} />
+                );
+                const Sun = () => (
+                    <g>
+                        <circle cx="120" cy="95" r="2" fill="rgba(251,191,36,0.3)" />
+                        <circle cx="120" cy="95" r="14" fill="#fbbf24" />
+                        <circle cx="120" cy="95" r="18" fill="none" stroke="rgba(251,191,36,0.3)" strokeWidth="4" />
+                    </g>
+                );
+                /* 마커 정의 (화살표 끝) */
+                const Defs = () => (
+                    <defs>
+                        <marker id="arr-red"   markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ef4444"/></marker>
+                        <marker id="arr-blue"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/></marker>
+                        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#10b981"/></marker>
+                        <marker id="arr-c"     markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points={`0 0, 8 3, 0 6`} fill={c}/></marker>
+                    </defs>
+                );
+
+                /* ── Step 1: F_gravity = F_centripetal ── */
+                if (step === 1) return (
+                    <div className="w-full h-48 flex items-center justify-center bg-slate-800 rounded-2xl p-3">
+                        <svg viewBox="0 0 240 190" className="w-full h-full">
+                            <Defs/>
+                            <Orbit stroke="#64748b" width="2" dasharray="6 3"/>
+                            <Sun/>
+                            {/* 행성 (오른쪽) */}
+                            <circle cx="188" cy="95" r="9" fill="#3b82f6"/>
+                            {/* 중력 화살표 (행성→태양, 빨간) */}
+                            <line x1="178" y1="95" x2="142" y2="95" stroke="#ef4444" strokeWidth="3.5" markerEnd="url(#arr-red)"/>
+                            {/* 구심력 표시 (같은 방향, 파란 점선 외곽) */}
+                            <line x1="178" y1="92" x2="148" y2="92" stroke="#818cf8" strokeWidth="2" strokeDasharray="4 2" markerEnd="url(#arr-blue)"/>
+                            {/* 반지름 */}
+                            <line x1="120" y1="95" x2="179" y2="95" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3"/>
+                            {/* 레이블 */}
+                            <text x="162" y="85" textAnchor="middle" fontSize="11" fontWeight="800" fill="#ef4444">F중력</text>
+                            <text x="163" y="108" textAnchor="middle" fontSize="11" fontWeight="800" fill="#818cf8">F구심</text>
+                            <text x="151" y="120" textAnchor="middle" fontSize="10" fill="#64748b">r</text>
+                            <text x="188" y="112" textAnchor="middle" fontSize="10" fontWeight="700" fill="#93c5fd">m</text>
+                            <text x="120" y="112" textAnchor="middle" fontSize="10" fontWeight="700" fill="#fde68a">M</text>
+                        </svg>
+                    </div>
+                );
+
+                /* ── Step 2: GMm/r² = mv²/r ── */
+                if (step === 2) return (
+                    <div className="w-full h-48 flex items-center justify-center bg-slate-800 rounded-2xl p-3">
+                        <svg viewBox="0 0 240 190" className="w-full h-full">
+                            <Defs/>
+                            <Orbit stroke="#64748b" width="2" dasharray="6 3"/>
+                            <Sun/>
+                            {/* 행성 */}
+                            <circle cx="188" cy="95" r="9" fill="#6366f1"/>
+                            {/* 반지름 선 */}
+                            <line x1="120" y1="95" x2="179" y2="95" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3"/>
+                            <text x="150" y="90" textAnchor="middle" fontSize="12" fontWeight="800" fill="#94a3b8">r</text>
+                            {/* 중력 화살표 */}
+                            <line x1="179" y1="95" x2="142" y2="95" stroke="#ef4444" strokeWidth="3.5" markerEnd="url(#arr-red)"/>
+                            <text x="162" y="83" textAnchor="middle" fontSize="10" fontWeight="800" fill="#ef4444">GMm/r²</text>
+                            {/* 속도 벡터 (접선, 위쪽) */}
+                            <line x1="188" y1="86" x2="188" y2="52" stroke="#10b981" strokeWidth="3.5" markerEnd="url(#arr-green)"/>
+                            <text x="205" y="70" textAnchor="middle" fontSize="12" fontWeight="800" fill="#10b981">v</text>
+                            {/* 구심가속도 */}
+                            <text x="188" y="118" textAnchor="middle" fontSize="10" fontWeight="700" fill="#818cf8">mv²/r</text>
+                            <text x="188" y="112" textAnchor="middle" fontSize="10" fontWeight="700" fill="#818cf8"> </text>
+                        </svg>
+                    </div>
+                );
+
+                /* ── Step 3: v = 2πr/T ── */
+                if (step === 3) return (
+                    <div className="w-full h-48 flex items-center justify-center bg-slate-800 rounded-2xl p-3">
+                        <svg viewBox="0 0 240 190" className="w-full h-full">
+                            <Defs/>
+                            {/* 궤도 강조 */}
+                            <Orbit stroke="#a78bfa" width="2.5" dasharray="none"/>
+                            <Sun/>
+                            {/* 행성 (상단) */}
+                            <circle cx="120" cy="27" r="9" fill="#a855f7"/>
+                            {/* 반지름 선 */}
+                            <line x1="120" y1="81" x2="120" y2="36" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3"/>
+                            <text x="108" y="58" textAnchor="middle" fontSize="12" fontWeight="800" fill="#94a3b8">r</text>
+                            {/* 속도 벡터 (접선, 오른쪽) */}
+                            <line x1="129" y1="27" x2="165" y2="27" stroke="#10b981" strokeWidth="3.5" markerEnd="url(#arr-green)"/>
+                            <text x="150" y="20" textAnchor="middle" fontSize="12" fontWeight="800" fill="#10b981">v</text>
+                            {/* 원주 표시 (호) */}
+                            <path d="M 120 27 A 68 68 0 0 1 188 95" fill="none" stroke="#a78bfa" strokeWidth="2.5"/>
+                            {/* 레이블 */}
+                            <text x="175" y="55" textAnchor="start" fontSize="10" fontWeight="700" fill="#c4b5fd">2πr</text>
+                            <text x="35" y="155" textAnchor="start" fontSize="11" fontWeight="800" fill="#a78bfa">v = 2πr / T</text>
+                        </svg>
+                    </div>
+                );
+
+                /* ── Step 4: 속력 v 대입 ── */
+                if (step === 4) return (
+                    <div className="w-full h-48 flex items-center justify-center bg-slate-800 rounded-2xl p-3">
+                        <svg viewBox="0 0 240 190" className="w-full h-full">
+                            <Defs/>
+                            <Orbit stroke="#64748b" width="2" dasharray="6 3"/>
+                            <Sun/>
+                            <circle cx="188" cy="95" r="9" fill="#8b5cf6"/>
+                            {/* 중력 */}
+                            <line x1="179" y1="95" x2="142" y2="95" stroke="#ef4444" strokeWidth="3" markerEnd="url(#arr-red)"/>
+                            {/* 속도 (접선) */}
+                            <line x1="188" y1="86" x2="188" y2="53" stroke="#10b981" strokeWidth="3" markerEnd="url(#arr-green)"/>
+                            {/* 반지름 */}
+                            <line x1="120" y1="95" x2="179" y2="95" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="4 3"/>
+                            {/* 대입 수식 힌트 */}
+                            <rect x="8" y="138" width="224" height="42" rx="8" fill="#1e1b4b" opacity="0.9"/>
+                            <text x="120" y="154" textAnchor="middle" fontSize="10" fontWeight="700" fill="#818cf8">v = 2πr/T 대입 →</text>
+                            <text x="120" y="170" textAnchor="middle" fontSize="10" fontWeight="800" fill="#c4b5fd">GM/r² = 4π²r / T²</text>
+                        </svg>
+                    </div>
+                );
+
+                /* ── Step 5: 최종 결론 T² = (4π²/GM)r³ ── */
                 return (
-                    <div className="w-full h-48 flex items-center justify-center bg-white rounded-3xl p-4">
-                        <svg viewBox="0 0 200 160" className="w-full h-full">
-                            <circle cx="100" cy="80" r="65" fill="none" stroke="#f1f5f9" strokeWidth="2" strokeDasharray="4,4" />
-                            <circle cx="100" cy="80" r="14" fill="#fbbf24" />
-                            {step === 1 && (
-                                <g>
-                                    <circle cx="165" cy="80" r="7" fill="#3b82f6" />
-                                    <line x1="164" y1="80" x2="125" y2="80" stroke={c} strokeWidth="5" />
-                                    <text x="145" y="70" textAnchor="middle" fontSize="14" fontWeight="900" fill={c}>F</text>
-                                </g>
-                            )}
-                            {step === 2 && (
-                                <g>
-                                    <circle cx="165" cy="80" r="7" fill="#6366f1" />
-                                    <line x1="165" y1="80" x2="130" y2="80" stroke={c} strokeWidth="5" />
-                                </g>
-                            )}
-                            {step === 3 && (
-                                <g>
-                                    <circle cx="165" cy="80" r="7" fill={c} />
-                                    <line x1="165" y1="80" x2="165" y2="35" stroke={c} strokeWidth="4" />
-                                </g>
-                            )}
-                            {step > 3 && (
-                                <g>
-                                    <text x="100" y="85" textAnchor="middle" fontSize="18" fontWeight="900" fill={c}>Algebra</text>
-                                </g>
-                            )}
+                    <div className="w-full h-48 flex items-center justify-center bg-slate-800 rounded-2xl p-3">
+                        <svg viewBox="0 0 240 190" className="w-full h-full">
+                            <Defs/>
+                            <Orbit stroke="#34d399" width="2.5" dasharray="none"/>
+                            <Sun/>
+                            {/* 행성1 가까이 */}
+                            <circle cx="155" cy="54" r="7" fill="#34d399"/>
+                            <line x1="120" y1="81" x2="149" y2="60" stroke="#94a3b8" strokeWidth="1.5" strokeDasharray="3 3"/>
+                            <text x="128" y="64" textAnchor="middle" fontSize="10" fill="#94a3b8">r₁</text>
+                            {/* 행성2 멀리 – 교육용 시각화이므로 다른 반지름 원 */}
+                            <circle cx="188" cy="95" r="9" fill="#6ee7b7" opacity="0.6"/>
+                            {/* T² ∝ r³ 레이블 */}
+                            <rect x="8" y="138" width="224" height="44" rx="8" fill="#064e3b" opacity="0.9"/>
+                            <text x="120" y="155" textAnchor="middle" fontSize="11" fontWeight="800" fill="#34d399">T² ∝ r³</text>
+                            <text x="120" y="172" textAnchor="middle" fontSize="10" fill="#6ee7b7">K = T²/r³ = 4π²/GM (일정)</text>
                         </svg>
                     </div>
                 );
             };
+
 
             const KeplerDerivation = () => {
                 const [expandedIdx, setExpandedIdx] = useState(0);
