@@ -194,9 +194,9 @@ const ScatterAnalysis = () => {
     },[]);
 
 
-    /* 버튼 줌 핸들러 */
-    const zoomIn  = () => { const c=(dMin+dMax)/2, rng=(dMax-dMin)*0.65; setDMin(Math.max(0,c-rng/2)); setDMax(c+rng/2); };
-    const zoomOut = () => { const c=(dMin+dMax)/2, rng=(dMax-dMin)*1.5;  setDMin(Math.max(0,c-rng/2)); setDMax(c+rng/2); };
+    /* 원점(0) 기준 줌 — dMin 항상 0, dMax만 배율 조정 */
+    const zoomIn  = () => { setDMin(0); setDMax(v => Math.max(0.5, v * 0.6)); };
+    const zoomOut = () => { setDMin(0); setDMax(v => Math.min(50000, v * 1.6)); };
 
     if(loadErr) return <div style={{padding:40,textAlign:'center',color:'#ef4444',fontSize:14}}>⚠️ 그래프 라이브러리 로드 실패. 인터넷 연결을 확인 후 페이지를 새로고침하세요.</div>;
     if(!ready)  return <div style={{padding:40,textAlign:'center',color:'#475569',fontSize:14}}>⏳ 분석 엔진 로딩 중...</div>;
