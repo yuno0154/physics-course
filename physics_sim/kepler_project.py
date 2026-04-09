@@ -34,103 +34,88 @@ def orbit_points(a_km, e, n=300):
     y = b * np.sin(theta)
     return x/1000, y/1000   # km 단위 반환
 
-def kepler_animation(a_km, e, planet_info, orbit_result):
-    """Plotly 타원 궤도 애니메이션 생성"""
+@st.cache_data(show_spinner=False)
+def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
+    """Plotly 타원 궤도 애니메이션 생성 (캐시 적용)"""
     a = a_km * 1000
-    b = a * np.sqrt(1 - e**2)
     c = a * e
-    R_body = planet_info["R_km"] * 1000
 
-    # 궤도상 행성 위치 (평균 이상점 근사)
-    N = 80
-    theta_arr = np.linspace(0, 2*np.pi, N, endpoint=False)
-    # 실제 케플러 방정식 근사 (뉴턴 반복)
-    E_arr = theta_arr.copy()
-    for _ in range(50):
-        E_arr = E_arr - (E_arr - e * np.sin(E_arr) - theta_arr) / (1 - e * np.cos(E_arr))
+    # ── 프레임 수 최소화: 36프레임이면 충분히 부드러움 ──
+    N = 36
+    M_mean = np.linspace(0, 2*np.pi, N, endpoint=False)
+    # 케플러 방정식 수치 해법 (15회 반복으로 충분)
+    E_arr = M_mean.copy()
+    for _ in range(15):
+        E_arr -= (E_arr - e * np.sin(E_arr) - M_mean) / (1 - e * np.cos(E_arr))
     true_theta = 2 * np.arctan2(np.sqrt(1+e)*np.sin(E_arr/2), np.sqrt(1-e)*np.cos(E_arr/2))
     r_arr = a * (1 - e**2) / (1 + e * np.cos(true_theta))
     px = r_arr * np.cos(true_theta) / 1000 - c/1000
     py = r_arr * np.sin(true_theta) / 1000
+    v_arr = np.sqrt(G * planet_M * (2/r_arr - 1/a))
 
-    # 현재 속력 계산
-    v_arr = np.sqrt(G * planet_info["M"] * (2/r_arr - 1/a))
-
-    # 궤도 경로
-    ox, oy = orbit_points(a_km, e)
-
+    # 궤도 경로 (점 수 축소)
+    ox, oy = orbit_points(a_km, e, n=120)
     scale = a_km * 1.6
+
+    # ── 프레임 생성: trace는 탐사선+속도벡터만 (궤도·천체는 base에 고정) ──
     frames = []
     for i in range(N):
+        vx = -np.sin(true_theta[i]) * v_arr[i] / orbit_vp
+        vy =  np.cos(true_theta[i]) * v_arr[i] / orbit_vp
+        vec_len = r_arr[i] / 1000 * 0.22
         frames.append(go.Frame(
             data=[
-                go.Scatter(x=ox, y=oy, mode="lines",
-                           line=dict(color="rgba(100,148,237,0.5)", width=1.5, dash="dot"),
-                           name="궤도", showlegend=False),
-                go.Scatter(x=[0], y=[0], mode="markers",
-                           marker=dict(size=22, color=planet_info["color"],
-                                       line=dict(color="white", width=2)),
-                           name=list(PLANETS.keys())[[p["M"] for p in PLANETS.values()].index(planet_info["M"])],
-                           showlegend=False),
                 go.Scatter(x=[px[i]], y=[py[i]], mode="markers",
-                           marker=dict(size=14, color="#38bdf8",
-                                       line=dict(color="white", width=2)),
-                           showlegend=False, name="탐사선"),
-                # 속도 벡터 (접선)
-                go.Scatter(
-                    x=[px[i], px[i] - r_arr[i]/1000 * np.sin(true_theta[i]) * 0.25 * v_arr[i]/orbit_result["vp"]],
-                    y=[py[i], py[i] + r_arr[i]/1000 * np.cos(true_theta[i]) * 0.25 * v_arr[i]/orbit_result["vp"]],
-                    mode="lines+markers",
-                    line=dict(color="#4ade80", width=3),
-                    marker=dict(size=[0, 8], symbol=["circle", "arrow"], color="#4ade80",
-                                angleref="previous"),
-                    showlegend=False, name="속도"),
-                go.Scatter(
-                    x=[None], y=[None], mode="markers",
-                    marker=dict(color="rgba(0,0,0,0)"),
-                    text=[f"v = {v_arr[i]/1000:.2f} km/s"],
-                    showlegend=False,
-                    textposition="top center"
-                ),
+                           marker=dict(size=13, color="#38bdf8",
+                                       line=dict(color="white", width=2))),
+                go.Scatter(x=[px[i], px[i] + vx*vec_len],
+                           y=[py[i], py[i] + vy*vec_len],
+                           mode="lines",
+                           line=dict(color="#4ade80", width=3)),
             ],
             name=str(i),
-            layout=go.Layout(
-                annotations=[dict(
-                    x=0.02, y=0.97, xref="paper", yref="paper",
-                    text=f"<b>현재 속도: {v_arr[i]/1000:.2f} km/s</b><br>"
-                         f"거리: {r_arr[i]/1000:.0f} km",
-                    showarrow=False, align="left",
-                    bgcolor="rgba(15,23,42,0.85)",
-                    bordercolor="#38bdf8", borderwidth=1,
-                    font=dict(color="white", size=13),
-                    borderpad=8
-                )]
-            )
+            layout=go.Layout(annotations=[dict(
+                x=0.02, y=0.97, xref="paper", yref="paper",
+                text=f"<b>속도: {v_arr[i]/1000:.2f} km/s</b><br>거리: {r_arr[i]/1000:.0f} km",
+                showarrow=False, align="left",
+                bgcolor="rgba(15,23,42,0.85)",
+                bordercolor="#38bdf8", borderwidth=1,
+                font=dict(color="white", size=13), borderpad=8
+            )])
         ))
 
     fig = go.Figure(
-        data=frames[0].data,
+        data=[
+            # 고정 trace (궤도 + 천체) — 매 프레임 재그리기 불필요
+            go.Scatter(x=ox, y=oy, mode="lines",
+                       line=dict(color="rgba(100,148,237,0.4)", width=1.5, dash="dot"),
+                       showlegend=False),
+            go.Scatter(x=[0], y=[0], mode="markers",
+                       marker=dict(size=22, color=planet_color,
+                                   line=dict(color="white", width=2)),
+                       showlegend=False),
+            # 애니메이션 trace (탐사선 + 속도벡터)
+            frames[0].data[0],
+            frames[0].data[1],
+        ],
         layout=go.Layout(
             template="plotly_dark",
-            paper_bgcolor="#0f172a",
-            plot_bgcolor="#0f172a",
+            paper_bgcolor="#0f172a", plot_bgcolor="#0f172a",
             xaxis=dict(range=[-scale, scale], zeroline=False,
                        showgrid=True, gridcolor="rgba(255,255,255,0.05)",
                        title="x (km)", tickfont=dict(size=11)),
             yaxis=dict(range=[-scale, scale], zeroline=False,
                        showgrid=True, gridcolor="rgba(255,255,255,0.05)",
                        scaleanchor="x", title="y (km)", tickfont=dict(size=11)),
-            height=500,
-            margin=dict(l=50, r=50, t=60, b=50),
+            height=480, margin=dict(l=50, r=50, t=55, b=50),
             title=dict(text="🛸 타원 궤도 애니메이션 (케플러 제2법칙 시각화)",
-                       font=dict(size=16, color="white"), x=0.5),
+                       font=dict(size=15, color="white"), x=0.5),
             updatemenus=[dict(
-                type="buttons",
-                showactive=False,
+                type="buttons", showactive=False,
                 y=1.12, x=1.0, xanchor="right",
                 buttons=[
                     dict(label="▶ Play", method="animate",
-                         args=[None, {"frame": {"duration": 60, "redraw": True},
+                         args=[None, {"frame": {"duration": 80, "redraw": False},
                                       "fromcurrent": True, "transition": {"duration": 0}}]),
                     dict(label="⏸ Pause", method="animate",
                          args=[[None], {"frame": {"duration": 0, "redraw": False},
@@ -140,26 +125,22 @@ def kepler_animation(a_km, e, planet_info, orbit_result):
                 font=dict(color="white", size=13)
             )],
             sliders=[dict(
-                steps=[dict(method="animate", args=[[f.name],
-                            {"mode": "immediate", "frame": {"duration": 60, "redraw": True},
-                             "transition": {"duration": 0}}],
-                            label=str(i)) for i, f in enumerate(frames)],
-                currentvalue=dict(prefix="프레임: ", font=dict(color="white")),
-                pad=dict(t=10),
-                bgcolor="#1e293b",
-                bordercolor="#334155",
-                tickcolor="#64748b",
-                font=dict(color="#94a3b8")
+                steps=[dict(method="animate",
+                            args=[[str(i)], {"mode": "immediate",
+                                             "frame": {"duration": 80, "redraw": False},
+                                             "transition": {"duration": 0}}],
+                            label="") for i in range(N)],
+                currentvalue=dict(prefix="", font=dict(color="white", size=1)),
+                pad=dict(t=8), bgcolor="#1e293b",
+                bordercolor="#334155", tickcolor="#64748b"
             )],
             annotations=[dict(
                 x=0.02, y=0.97, xref="paper", yref="paper",
-                text=f"<b>현재 속도: {v_arr[0]/1000:.2f} km/s</b><br>"
-                     f"거리: {r_arr[0]/1000:.0f} km",
+                text=f"<b>속도: {v_arr[0]/1000:.2f} km/s</b><br>거리: {r_arr[0]/1000:.0f} km",
                 showarrow=False, align="left",
                 bgcolor="rgba(15,23,42,0.85)",
                 bordercolor="#38bdf8", borderwidth=1,
-                font=dict(color="white", size=13),
-                borderpad=8
+                font=dict(color="white", size=13), borderpad=8
             )]
         ),
         frames=frames
@@ -167,10 +148,11 @@ def kepler_animation(a_km, e, planet_info, orbit_result):
     return fig
 
 
-def loglog_plot(a_km, e, planet_info):
-    """Log-Log Plot: T² vs a³"""
-    M = planet_info["M"]
-    a_ref = np.logspace(3.5, 6.5, 200)  # km
+@st.cache_data(show_spinner=False)
+def loglog_plot(a_km, e, planet_M):
+    """Log-Log Plot: T² vs a³ (캐시 적용)"""
+    M = planet_M
+    a_ref = np.logspace(3.5, 6.5, 120)  # km (200→120으로 축소)
     T_ref = 2 * np.pi * np.sqrt((a_ref * 1000)**3 / (G * M)) / 3600  # hours
 
     a_user = a_km
@@ -428,13 +410,13 @@ def run_sim():
     with col1:
         st.markdown("### 🎬 실시간 궤도 애니메이션")
         st.caption("▶ Play 버튼을 눌러 애니메이션을 시작하세요. 근일점(가장 가까운 지점)에서 속도가 가장 빠릅니다.")
-        fig_anim = kepler_animation(a_km, e, planet_info, orbit)
+        fig_anim = kepler_animation(a_km, e, planet_info["color"], planet_info["M"], orbit["vp"])
         st.plotly_chart(fig_anim, use_container_width=True, key="orbit_anim")
 
     with col2:
         st.markdown("### 📈 케플러 제3법칙 검증")
         st.caption("내 궤도(⭐)가 이론 직선 위에 놓여야 케플러 제3법칙을 만족합니다.")
-        fig_log = loglog_plot(a_km, e, planet_info)
+        fig_log = loglog_plot(a_km, e, planet_info["M"])
         st.plotly_chart(fig_log, use_container_width=True, key="loglog_plot")
 
         # 탐구 미션 카드
@@ -480,18 +462,22 @@ def run_sim():
             """)
     with q_col2:
         with st.expander("📌 미션 2 — 속도 차이의 물리적 인과관계", expanded=False):
+            vp_kms = orbit['vp']/1000
+            va_kms = orbit['va']/1000
+            ratio  = orbit['vp']/orbit['va']
             st.markdown(f"""
 현재 설정에서:
-- **근일점 속도 (최대):** {orbit['vp']/1000:.3f} km/s
-- **원일점 속도 (최소):** {orbit['va']/1000:.3f} km/s
-- **배율:** × {orbit['vp']/orbit['va']:.2f}
+- **근일점 속도 (최대):** {vp_kms:.3f} km/s
+- **원일점 속도 (최소):** {va_kms:.3f} km/s
+- **배율:** × {ratio:.2f}
 
 > **탐구 질문:** 이심률 $e$를 높였더니 근일점과 원일점의 속도 차이가 커졌다.
 > 그 이유는 케플러 **제2법칙**인가, 아니면 **역학적 에너지 보존**인가?
 > 두 관점에서 모두 설명하고, 어느 설명이 더 근본적인지 논하시오.
-
-*힌트: $v_p = \sqrt{\\frac{GM}{a}\\cdot\\frac{1+e}{1-e}}$ 에서 $e$가 클수록 $v_p$는?*
             """)
+            # LaTeX 수식은 별도 문자열로 분리 (f-string 내 {} 충돌 방지)
+            st.markdown(r"*힌트: $v_p = \sqrt{\frac{GM}{a}\cdot\frac{1+e}{1-e}}$ 에서 $e$가 클수록 $v_p$는?*")
+
 
 
 if __name__ == "__main__":
