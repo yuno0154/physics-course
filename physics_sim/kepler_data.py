@@ -65,7 +65,9 @@ const SimCanvas = ({ orbitalRadius, scaleRef }) => {
         if (!canvas) return;
         const onWheel = e => {
             e.preventDefault();
-            const f = e.deltaY > 0 ? 0.87 : 1.15;
+            // deltaY < 0 = 위로 스크롤(확대), > 0 = 아래 스크롤(축소)
+            const dir = e.deltaY < 0 ? 1 : -1;   // 위: +1, 아래: -1
+            const f   = dir > 0 ? 1.15 : 0.87;   // 확대 or 축소
             scaleRef.current = Math.max(0.25, Math.min(5, scaleRef.current * f));
         };
         canvas.addEventListener('wheel', onWheel, {passive:false});
@@ -196,13 +198,16 @@ const ScatterAnalysis = () => {
 
     useEffect(()=>{
         const el=chartRef.current; if(!el) return;
-        const onW=e=>{
+        const onW = e => {
             e.preventDefault();
-            const {min,max}=domRef.current;
-            const f=e.deltaY>0?1.25:0.8;
-            const c=(min+max)/2, rng=(max-min)*f;
-            setDMin(Math.max(0,c-rng/2));
-            setDMax(c+rng/2);
+            const {min, max} = domRef.current;
+            // deltaY < 0 = 위 스크롤(확대 → 범위 좁히기), > 0 = 아래(축소 → 범위 넓히기)
+            const zoomIn = e.deltaY < 0;
+            const f = zoomIn ? 0.8 : 1.25;
+            const c = (min + max) / 2;
+            const rng = (max - min) * f;
+            setDMin(Math.max(0, c - rng / 2));
+            setDMax(c + rng / 2);
         };
         el.addEventListener('wheel',onW,{passive:false});
         return ()=>el.removeEventListener('wheel',onW);
