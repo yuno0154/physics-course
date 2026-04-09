@@ -7,7 +7,7 @@ def run_sim():
     st.title("📊 케플러 제3법칙: 공전 주기와 궤도 반지름의 관계")
     st.markdown("""
     실제 태양계 행성들의 데이터를 통해 **조화의 법칙($T^2 \propto a^3$)**을 탐구합니다. 
-    행성을 클릭하여 해당 데이터가 그래프상의 어느 위치에 있는지 확인해 보세요.
+    내행성들을 자세히 보려면 **[내행성 집중 보기]** 버튼을 클릭해 보세요.
     """)
 
     react_code = r"""
@@ -47,6 +47,7 @@ def run_sim():
             const KeplerData = () => {
                 const [engineState, setEngineState] = useState('loading');
                 const [selectedPlanet, setSelectedPlanet] = useState('지구');
+                const [viewMode, setViewMode] = useState('all'); // 'all' or 'inner'
 
                 useEffect(() => {
                     let attempts = 0;
@@ -70,46 +71,62 @@ def run_sim():
                 const { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, Label } = window.Recharts;
 
                 const planetData = [
-                    { name: '수성', r: 0.39, t: 0.24, r3: 0.059, t2: 0.058, color: '#94a3b8' },
-                    { name: '금성', r: 0.72, t: 0.62, r3: 0.373, t2: 0.384, color: '#fbbf24' },
-                    { name: '지구', r: 1.00, t: 1.00, r3: 1.000, t2: 1.000, color: '#3b82f6' },
-                    { name: '화성', r: 1.52, t: 1.88, r3: 3.512, t2: 3.534, color: '#ef4444' },
-                    { name: '목성', r: 5.20, t: 11.86, r3: 140.6, t2: 140.7, color: '#f97316' }
+                    { name: '수성', r: 0.39, t: 0.24, r3: 0.059, t2: 0.058, color: '#94a3b8', type: 'inner' },
+                    { name: '금성', r: 0.72, t: 0.62, r3: 0.373, t2: 0.384, color: '#fbbf24', type: 'inner' },
+                    { name: '지구', r: 1.00, t: 1.00, r3: 1.000, t2: 1.000, color: '#3b82f6', type: 'inner' },
+                    { name: '화성', r: 1.52, t: 1.88, r3: 3.512, t2: 3.534, color: '#ef4444', type: 'inner' },
+                    { name: '목성', r: 5.20, t: 11.86, r3: 140.6, t2: 140.7, color: '#f97316', type: 'outer' }
                 ];
 
                 const currentPlanet = planetData.find(p => p.name === selectedPlanet) || planetData[2];
+                const chartDomain = viewMode === 'all' ? [0, 160] : [0, 5];
 
                 return (
                     <div className="max-w-7xl mx-auto p-4 flex flex-col gap-8 animate-in fade-in duration-700 pb-20">
                         {/* Top: Large Chart Section */}
                         <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-2xl space-y-8">
-                            <div className="flex justify-between items-center">
-                                <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                                        <Icon name="bar-chart-3" size={24} />
-                                    </div>
-                                    조화의 법칙 데이터 시각화 ($T^2$ vs $r^3$)
-                                </h3>
-                                <div className="px-6 py-3 bg-slate-900 rounded-2xl text-white flex items-center gap-4 border border-white/10 shadow-xl">
-                                    <span className="text-xs font-black text-slate-400 uppercase tracking-widest">실시간 매칭</span>
-                                    <span className="text-blue-400 font-black text-lg">{selectedPlanet}</span>
+                            <div className="flex justify-between items-end">
+                                <div className="space-y-2">
+                                    <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
+                                            <Icon name="bar-chart-3" size={24} />
+                                        </div>
+                                        조화의 법칙 데이터 시각화
+                                    </h3>
+                                    <p className="text-sm text-slate-400 font-bold ml-16 tracking-tight">($T^2$ vs $r^3$) - 관계식 검증 그래프</p>
+                                </div>
+                                <div className="flex gap-2">
+                                     <button 
+                                        onClick={() => setViewMode('all')}
+                                        className={`px-6 py-3 rounded-2xl font-black text-xs transition-all ${viewMode === 'all' ? 'bg-slate-900 text-white shadow-xl' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                     >
+                                        전체 보기 (태양계)
+                                     </button>
+                                     <button 
+                                        onClick={() => setViewMode('inner')}
+                                        className={`px-6 py-3 rounded-2xl font-black text-xs transition-all ${viewMode === 'inner' ? 'bg-blue-600 text-white shadow-xl shadow-blue-100' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                     >
+                                        내행성 집중 보기 (확대)
+                                     </button>
                                 </div>
                             </div>
 
-                            <div className="h-[500px] w-full bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner relative overflow-hidden">
+                            <div className="h-[550px] w-full bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100 shadow-inner relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px]"></div>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <ScatterChart margin={{ top: 20, right: 40, bottom: 60, left: 60 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                         <XAxis 
-                                            type="number" dataKey="r3" name="r³" domain={[0, 160]} 
+                                            type="number" dataKey="r3" name="r³" domain={chartDomain} 
                                             stroke="#64748b" tick={{fontSize: 12, fontWeight: 'bold'}}
+                                            allowDataOverflow={true}
                                         >
                                             <Label value="궤도 장반경의 세제곱 r³ (AU³)" position="bottom" offset={40} style={{ fontSize: '14px', fontWeight: '900', fill: '#475569' }} />
                                         </XAxis>
                                         <YAxis 
-                                            type="number" dataKey="t2" name="T²" domain={[0, 160]} 
+                                            type="number" dataKey="t2" name="T²" domain={chartDomain} 
                                             stroke="#64748b" tick={{fontSize: 12, fontWeight: 'bold'}}
+                                            allowDataOverflow={true}
                                         >
                                             <Label value="공전 주기의 제곱 T² (yr²)" angle={-90} position="left" offset={40} style={{ fontSize: '14px', fontWeight: '900', fill: '#475569' }} />
                                         </YAxis>
@@ -144,13 +161,18 @@ def run_sim():
                                                     fill={entry.name === selectedPlanet ? '#3b82f6' : '#cbd5e1'} 
                                                     stroke={entry.name === selectedPlanet ? '#3b82f6' : '#94a3b8'}
                                                     strokeWidth={entry.name === selectedPlanet ? 4 : 1}
-                                                    r={entry.name === selectedPlanet ? 12 : 6}
-                                                    style={{ transition: 'all 0.3s ease' }}
+                                                    r={entry.name === selectedPlanet ? 14 : 7}
+                                                    style={{ transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}
                                                 />
                                             ))}
                                         </Scatter>
                                     </ScatterChart>
                                 </ResponsiveContainer>
+                                {viewMode === 'inner' && (
+                                    <div className="absolute top-10 left-1/2 -translate-x-1/2 px-4 py-2 bg-blue-600/10 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-600/20 backdrop-blur-sm">
+                                        Zoom Mode: Inner Planets Focused
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -175,7 +197,13 @@ def run_sim():
                                             {planetData.map((p) => (
                                                 <tr 
                                                     key={p.name} 
-                                                    onClick={() => setSelectedPlanet(p.name)}
+                                                    onClick={() => {
+                                                        setSelectedPlanet(p.name);
+                                                        // 자동으로 뷰 전환 (옵션)
+                                                        if (p.type === 'inner' && viewMode === 'all') {
+                                                            // setViewMode('inner');
+                                                        }
+                                                    }}
                                                     className={`planet-row border-b border-slate-50 last:border-0 ${p.name === selectedPlanet ? 'selected-row' : ''}`}
                                                 >
                                                     <td className="p-5 font-black text-slate-800 flex items-center gap-3">
@@ -225,7 +253,7 @@ def run_sim():
     </body>
     </html>
     """
-    components.html(react_code, height=1100, scrolling=False)
+    components.html(react_code, height=1150, scrolling=False)
 
 if __name__ == "__main__":
     run_sim()
