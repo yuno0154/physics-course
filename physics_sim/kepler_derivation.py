@@ -6,11 +6,12 @@ def run_sim():
     
     st.title("🪐 케플러 제3법칙(조화의 법칙)의 수학적 유도")
     st.markdown("""
-    케플러는 관측을 통해 제3법칙을 발견했지만, 뉴턴은 자신의 **만유인력 법칙**과 **원운동의 역학**을 결합하여 이를 수학적으로 완벽히 증명했습니다.
-    아래의 단계별 과정을 통해 중력과 공전 주기의 관계를 이해해 보세요.
+    뉴턴의 **만유인력 법칙**과 **원운동의 구심력** 개념을 결합하여 케플러 제3법칙을 수학적으로 전개해 봅시다.
+    왼쪽의 그림과 오른쪽의 식을 함께 보며 과정을 이해해 보세요.
     """)
 
-    react_code = """
+    # raw string (r""")을 사용하여 백슬래시 기호가 파이썬 이스케이프 문자로 해석되는 것을 방지합니다.
+    react_code = r"""
     <!DOCTYPE html>
     <html lang="ko">
     <head>
@@ -26,27 +27,26 @@ def run_sim():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
             body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; background: transparent; }
-            .step-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-            .step-card:hover { transform: translateY(-5px); }
+            .step-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+            .step-card:hover { transform: scale(1.01); border-color: #3b82f6; }
+            .math-container { min-height: 2.5rem; display: flex; align-items: center; }
         </style>
     </head>
     <body>
         <div id="root"></div>
 
         <script type="text/babel">
-            const { useState, useEffect } = React;
+            const { useEffect, useRef } = React;
 
             const Icon = ({ name, size = 18, className = "" }) => {
                 useEffect(() => {
-                    if (window.lucide) {
-                        window.lucide.createIcons();
-                    }
+                    if (window.lucide) window.lucide.createIcons();
                 }, [name]);
                 return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
             };
 
             const MathBox = ({ formula, className = "" }) => {
-                const containerRef = React.useRef(null);
+                const containerRef = useRef(null);
                 useEffect(() => {
                     if (containerRef.current && window.katex) {
                         window.katex.render(formula, containerRef.current, {
@@ -55,7 +55,72 @@ def run_sim():
                         });
                     }
                 }, [formula]);
-                return <div ref={containerRef} className={`my-2 ${className}`}></div>;
+                return <div ref={containerRef} className={`math-container ${className}`}></div>;
+            };
+
+            const StepDiagram = ({ step, color }) => {
+                const colors = {
+                    blue: "#3b82f6",
+                    indigo: "#6366f1",
+                    purple: "#a855f7",
+                    violet: "#8b5cf6",
+                    emerald: "#10b981"
+                };
+                const c = colors[color] || "#3b82f6";
+
+                return (
+                    <div className="w-full h-full min-h-[140px] flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-100 p-2">
+                        <svg viewBox="0 0 200 160" className="w-full h-full max-h-[120px]">
+                            {/* Base Orbit */}
+                            <circle cx="100" cy="80" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="3,3" />
+                            <circle cx="100" cy="80" r="8" fill="#f59e0b" /> {/* Sun */}
+                            
+                            {step === 1 && (
+                                <g>
+                                    <circle cx="150" cy="80" r="5" fill="#3b82f6" />
+                                    <line x1="150" y1="80" x2="115" y2="80" stroke={c} strokeWidth="3" markerEnd="url(#arrow)" />
+                                    <text x="135" y="70" textAnchor="middle" fontSize="10" fontWeight="bold" fill={c}>F</text>
+                                </g>
+                            )}
+                            {step === 2 && (
+                                <g>
+                                    <circle cx="150" cy="80" r="5" fill="#6366f1" />
+                                    <line x1="150" y1="80" x2="120" y2="80" stroke={c} strokeWidth="3" markerEnd="url(#arrow)" />
+                                    <line x1="100" y1="80" x2="150" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="2,2" />
+                                    <text x="125" y="95" textAnchor="middle" fontSize="10" fill="#64748b">distance r</text>
+                                </g>
+                            )}
+                            {step === 3 && (
+                                <g>
+                                    <path d="M 150 80 A 50 50 0 1 1 50 80 A 50 50 0 1 1 150 80" fill="none" stroke={c} strokeWidth="3" strokeDasharray="10,5" opacity="0.5" />
+                                    <circle cx="150" cy="80" r="5" fill={c} />
+                                    <line x1="150" y1="80" x2="150" y2="40" stroke={c} strokeWidth="2" markerEnd="url(#arrow)" />
+                                    <text x="165" y="60" textAnchor="middle" fontSize="10" fontWeight="bold" fill={c}>v</text>
+                                    <text x="100" y="25" textAnchor="middle" fontSize="10" fill={c}>Circle = 2πr</text>
+                                </g>
+                            )}
+                            {step === 4 && (
+                                <g>
+                                    <rect x="75" y="55" width="50" height="50" fill="none" stroke={c} strokeWidth="2" rx="5" strokeDasharray="4,2" />
+                                    <text x="100" y="85" textAnchor="middle" fontSize="12" fontWeight="bold" fill={c}>v → Equation</text>
+                                </g>
+                            )}
+                             {step === 5 && (
+                                <g>
+                                    <circle cx="100" cy="80" r="50" fill="none" stroke={c} strokeWidth="2" />
+                                    <circle cx="150" cy="80" r="6" fill="#10b981" />
+                                    <text x="100" y="150" textAnchor="middle" fontSize="14" fontWeight="bold" fill={c}>T² ∝ r³</text>
+                                </g>
+                            )}
+
+                            <defs>
+                                <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                                    <path d="M0,0 L0,6 L5,3 Z" fill="currentColor" />
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                );
             };
 
             const KeplerDerivation = () => {
@@ -80,54 +145,63 @@ def run_sim():
                     },
                     {
                         title: "4. 속력을 공식에 대입",
-                        description: "2단계 공식의 v 자리에 3단계의 식을 대입하여 정리합니다.",
+                        description: "2단계 공식의 v 자리에 3단계의 식을 대입하여 방정식을 정리합니다.",
                         formula: "G \\frac{M}{r^2} = \\frac{(2\\pi r / T)^2}{r} = \\frac{4\\pi^2 r}{T^2}",
                         color: "violet"
                     },
                     {
                         title: "5. 최종 관계식 도출",
-                        description: "양변을 T²과 r³에 대해 정리하면 케플러 제3법칙이 유도됩니다.",
+                        description: "양변을 T²과 r³에 대해 마저 정리하면 케플러 제3법칙이 유도됩니다.",
                         formula: "T^2 = \\left( \\frac{4\\pi^2}{GM} \\right) r^3",
                         color: "emerald"
                     }
                 ];
 
                 return (
-                    <div className="max-w-4xl mx-auto p-4 space-y-8 pb-12">
-                        <div className="grid grid-cols-1 gap-6">
+                    <div className="max-w-6xl mx-auto p-4 space-y-6 pb-20 mt-4">
+                        <div className="flex flex-col gap-6">
                             {steps.map((step, idx) => (
-                                <div key={idx} className="step-card bg-white p-6 rounded-3xl border border-slate-200 shadow-xl flex gap-6 items-start relative overflow-hidden group">
-                                    <div className={`absolute top-0 left-0 w-2 h-full bg-${step.color}-500`}></div>
-                                    <div className={`w-12 h-12 bg-${step.color}-50 rounded-2xl flex items-center justify-center text-${step.color}-600 font-black text-xl shrink-0`}>
-                                        {idx + 1}
+                                <div key={idx} className="step-card bg-white rounded-3xl border border-slate-200 shadow-lg flex flex-col md:flex-row overflow-hidden group">
+                                    {/* Left: Diagram */}
+                                    <div className="w-full md:w-1/3 p-4 bg-slate-50 border-r border-slate-100 flex items-center justify-center">
+                                        <StepDiagram step={idx + 1} color={step.color} />
                                     </div>
-                                    <div className="flex-1">
-                                        <h4 className="text-lg font-black text-slate-800 mb-2">{step.title}</h4>
-                                        <p className="text-[14px] text-slate-500 mb-4 leading-relaxed font-medium">{step.description}</p>
-                                        <div className={`p-4 bg-${step.color}-50/50 rounded-2xl border border-${step.color}-100 animate-in fade-in slide-in-from-left-4 duration-700`}>
+                                    
+                                    {/* Right: Text & Math */}
+                                    <div className="flex-1 p-8 relative">
+                                        <div className={`absolute top-0 left-0 w-2 h-full bg-${step.color}-500 opacity-20 group-hover:opacity-100 transition-opacity`}></div>
+                                        <div className="flex items-start gap-4 mb-4">
+                                            <div className={`w-8 h-8 rounded-lg bg-${step.color}-100 text-${step.color}-600 flex items-center justify-center font-black text-sm shrink-0`}>
+                                                {idx + 1}
+                                            </div>
+                                            <h4 className="text-xl font-black text-slate-800">{step.title}</h4>
+                                        </div>
+                                        <p className="text-[14px] text-slate-500 mb-6 leading-relaxed font-semibold pr-4">{step.description}</p>
+                                        <div className={`p-6 bg-${step.color}-50/30 rounded-2xl border border-${step.color}-100/50`}>
                                             <MathBox formula={step.formula} className={`text-${step.color}-700 font-bold`} />
                                         </div>
                                     </div>
-                                    {idx < steps.length - 1 && (
-                                        <div className="absolute -bottom-6 left-10 text-slate-200 hidden md:block">
-                                            <Icon name="arrow-down" size={30} />
-                                        </div>
-                                    )}
                                 </div>
                             ))}
                         </div>
 
-                        <div className="bg-slate-900 p-8 rounded-[40px] text-white shadow-2xl relative overflow-hidden">
-                             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
-                             <h4 className="text-xl font-black text-blue-400 mb-4 flex items-center gap-2">
-                                <Icon name="check-circle" /> 유도 결과의 물리적 의미
-                             </h4>
-                             <p className="text-slate-300 text-sm leading-relaxed mb-6">
-                                괄호 안의 값 <span className="font-mono text-emerald-400 font-bold">4π²/GM</span>은 태양의 질량이 일정하다면 변하지 않는 **상수(K)**입니다. 
-                                따라서 행성의 종류에 상관없이 주기의 제곱과 궤도 반지름(장반경)의 세제곱의 비는 항상 일정하다는 것을 증명할 수 있습니다.
-                             </p>
-                             <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center">
-                                <MathBox formula="\\frac{T^2}{r^3} = \\frac{4\\pi^2}{GM} = Constant" className="text-2xl text-amber-400" />
+                        {/* Summary Section */}
+                        <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-2xl relative overflow-hidden mt-12 border-4 border-slate-800">
+                             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px]"></div>
+                             <div className="relative z-10 flex flex-col lg:flex-row items-center gap-10">
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2 text-blue-400 mb-4 font-black tracking-widest uppercase text-xs">
+                                        <Icon name="award" size={16} /> Conclusion
+                                    </div>
+                                    <h4 className="text-3xl font-black mb-6">증명 완료: $T^2 \propto r^3$</h4>
+                                    <p className="text-slate-400 text-sm leading-relaxed mb-0 font-medium italic">
+                                        태양의 질량 $M$이 일정하다면, 괄호 안의 모든 항은 상수가 됩니다.<br/>
+                                        따라서 공전 주기의 제곱($T^2$)은 궤도 반지름의 세제곱($r^3$)에 비례함을 알 수 있습니다.
+                                    </p>
+                                </div>
+                                <div className="w-full lg:w-fit p-8 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm self-stretch flex items-center justify-center">
+                                    <MathBox formula="T^2 = K \cdot r^3 \quad \left(K = \frac{4\pi^2}{GM}\right)" className="text-2xl text-amber-400 font-black" />
+                                </div>
                              </div>
                         </div>
                     </div>
@@ -140,7 +214,7 @@ def run_sim():
     </body>
     </html>
     """
-    components.html(react_code, height=1100, scrolling=False)
+    components.html(react_code, height=1250, scrolling=False)
 
 if __name__ == "__main__":
     run_sim()
