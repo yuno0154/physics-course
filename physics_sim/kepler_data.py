@@ -355,6 +355,39 @@ const ScatterAnalysis = () => {
     );
 };
 
+/* ─── QnA 토글 컴포넌트 ─── */
+const QnA = ({ items }) => {
+    const [openIdx, setOpenIdx] = useState(null);
+    return (
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {items.map((item, i) => (
+                <div key={i} style={{borderRadius:12,border:'1px solid #1e293b',overflow:'hidden',background:'#070b14'}}>
+                    {/* 질문 헤더 */}
+                    <button
+                        onClick={()=>setOpenIdx(openIdx===i?null:i)}
+                        style={{width:'100%',display:'flex',alignItems:'center',gap:12,padding:'13px 16px',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',fontFamily:'inherit'}}
+                    >
+                        <span style={{color:'#6366f1',fontWeight:800,minWidth:28,fontSize:15,flexShrink:0}}>Q{i+1}.</span>
+                        <span style={{color:'#94a3b8',fontSize:14,lineHeight:1.6,flex:1}}>{item.q}</span>
+                        <span style={{color:'#334155',fontSize:18,transition:'transform 0.25s',transform:openIdx===i?'rotate(180deg)':'rotate(0deg)',flexShrink:0}}>▾</span>
+                    </button>
+                    {/* 답 (펼침) */}
+                    <div style={{
+                        maxHeight: openIdx===i ? '200px' : '0px',
+                        overflow:'hidden',
+                        transition:'max-height 0.35s ease'
+                    }}>
+                        <div style={{padding:'0 16px 14px 56px',display:'flex',gap:10,alignItems:'flex-start'}}>
+                            <span style={{color:'#10b981',fontWeight:800,fontSize:13,flexShrink:0,marginTop:1}}>A.</span>
+                            <span style={{color:'#6ee7b7',fontSize:13,lineHeight:1.7}}>{item.a}</span>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 /* ─── 메인 앱 ─── */
 const App = () => {
     const [radius, setRadius]   = useState(1.0);
@@ -454,19 +487,26 @@ const App = () => {
                 </div>
 
                 {/* 학습 질문 */}
-                <div className="card" style={{display:'flex',flexDirection:'column',justifyContent:'center'}}>
+                <div className="card" style={{display:'flex',flexDirection:'column'}}>
                     <h3 style={{fontSize:16,fontWeight:700,color:'#fbbf24',marginBottom:20}}>💡 학습 질문 (인출 전략)</h3>
-                    {[
-                        '반지름이 2배가 될 때, 주기는 몇 배가 되나요? (비례 관계 인출)',
-                        'T²/a³ 값(K)이 모든 행성에서 일정한 이유는 무엇일까요?',
-                        '만약 태양의 질량이 2배가 된다면 K값은 어떻게 변할까요?',
-                        '반지름과 주기의 관계를 log-log 그래프로 그리면 어떤 형태일까요?'
-                    ].map((q,i)=>(
-                        <div key={i} style={{display:'flex',gap:12,fontSize:14,marginBottom:16,padding:'14px 16px',background:'#070b14',borderRadius:12,border:'1px solid #1e293b'}}>
-                            <span style={{color:'#6366f1',fontWeight:800,minWidth:28,fontSize:15}}>Q{i+1}.</span>
-                            <span style={{color:'#94a3b8',lineHeight:1.7}}>{q}</span>
-                        </div>
-                    ))}
+                    <QnA items={[
+                        {
+                            q:'반지름이 2배가 될 때, 주기는 몇 배가 되나요? (비례 관계 인출)',
+                            a:'T = a^(3/2) 이므로, a가 2배 → T = 2^(3/2) = 2√2 ≈ 2.83배가 됩니다.'
+                        },
+                        {
+                            q:'T²/a³ 값(K)이 모든 행성에서 일정한 이유는 무엇일까요?',
+                            a:'K = 4π²/(GM) 이며, G와 태양의 질량 M은 모든 행성에 공통이므로 K는 항상 같은 값입니다.'
+                        },
+                        {
+                            q:'만약 태양의 질량이 2배가 된다면 K값은 어떻게 변할까요?',
+                            a:'K = 4π²/(GM) 에서 M이 2배 → K는 1/2배(절반)로 작아집니다.'
+                        },
+                        {
+                            q:'반지름과 주기의 관계를 log-log 그래프로 그리면 어떤 형태일까요?',
+                            a:'log T = (3/2)log a + C 이므로, 기울기 3/2인 직선이 됩니다.'
+                        }
+                    ]}/>
                 </div>
             </div>
 

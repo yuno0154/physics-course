@@ -86,10 +86,10 @@ def run_sim():
                 /* 마커 정의 (화살표 끝) */
                 const Defs = () => (
                     <defs>
-                        <marker id="arr-red"   markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ef4444"/></marker>
-                        <marker id="arr-blue"  markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#3b82f6"/></marker>
-                        <marker id="arr-green" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#10b981"/></marker>
-                        <marker id="arr-c"     markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points={`0 0, 8 3, 0 6`} fill={c}/></marker>
+                        <marker id="arr-red"   markerWidth="4" markerHeight="3" refX="3.5" refY="1.5" orient="auto"><polygon points="0 0, 4 1.5, 0 3" fill="#ef4444"/></marker>
+                        <marker id="arr-blue"  markerWidth="4" markerHeight="3" refX="3.5" refY="1.5" orient="auto"><polygon points="0 0, 4 1.5, 0 3" fill="#3b82f6"/></marker>
+                        <marker id="arr-green" markerWidth="4" markerHeight="3" refX="3.5" refY="1.5" orient="auto"><polygon points="0 0, 4 1.5, 0 3" fill="#10b981"/></marker>
+                        <marker id="arr-c"     markerWidth="4" markerHeight="3" refX="3.5" refY="1.5" orient="auto"><polygon points={`0 0, 4 1.5, 0 3`} fill={c}/></marker>
                     </defs>
                 );
 
@@ -323,7 +323,7 @@ def run_sim():
                                     </div>
                                     <h4 className="text-4xl font-black mb-6 leading-tight">뉴턴의 힘으로 완성된 조화의 법칙</h4>
                                     <p className="text-slate-400 text-sm leading-relaxed italic pr-4">
-                                        중심 천체의 질량 $M$이 일정하다면 모든 행성에 대해 $T^2 / r^3$은 항상 일정한 값을 가짐을 수식으로 완벽히 증명했습니다.
+                                        중심 천체의 질량이 일정하다면 모든 행성에 대해 T²/r³은 항상 일정한 값을 가짐을 수식으로 완벽히 증명했습니다.
                                     </p>
                                 </div>
                                 <div className="bg-white/5 p-10 rounded-[3rem] border border-white/10 backdrop-blur-xl flex items-center justify-center">
