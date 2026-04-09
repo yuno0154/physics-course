@@ -181,7 +181,6 @@ const ScatterAnalysis = () => {
     const [virtualR, setVR]           = useState(3.0);
     const [virtualT, setVT]           = useState(Math.pow(3.0,1.5));
     const chartRef                    = useRef(null);
-    const domRef                      = useRef({min:0,max:1000});
 
     useEffect(()=>{
         if(window.Recharts){ setReady(true); return; }
@@ -194,24 +193,10 @@ const ScatterAnalysis = () => {
         return ()=>clearInterval(t);
     },[]);
 
-    useEffect(()=>{ domRef.current={min:dMin,max:dMax}; },[dMin,dMax]);
 
-    useEffect(()=>{
-        const el=chartRef.current; if(!el) return;
-        const onW = e => {
-            e.preventDefault();
-            const {min, max} = domRef.current;
-            // deltaY < 0 = 위 스크롤(확대 → 범위 좁히기), > 0 = 아래(축소 → 범위 넓히기)
-            const zoomIn = e.deltaY < 0;
-            const f = zoomIn ? 0.8 : 1.25;
-            const c = (min + max) / 2;
-            const rng = (max - min) * f;
-            setDMin(Math.max(0, c - rng / 2));
-            setDMax(c + rng / 2);
-        };
-        el.addEventListener('wheel',onW,{passive:false});
-        return ()=>el.removeEventListener('wheel',onW);
-    },[]);
+    /* 버튼 줌 핸들러 */
+    const zoomIn  = () => { const c=(dMin+dMax)/2, rng=(dMax-dMin)*0.65; setDMin(Math.max(0,c-rng/2)); setDMax(c+rng/2); };
+    const zoomOut = () => { const c=(dMin+dMax)/2, rng=(dMax-dMin)*1.5;  setDMin(Math.max(0,c-rng/2)); setDMax(c+rng/2); };
 
     if(loadErr) return <div style={{padding:40,textAlign:'center',color:'#ef4444',fontSize:14}}>⚠️ 그래프 라이브러리 로드 실패. 인터넷 연결을 확인 후 페이지를 새로고침하세요.</div>;
     if(!ready)  return <div style={{padding:40,textAlign:'center',color:'#475569',fontSize:14}}>⏳ 분석 엔진 로딩 중...</div>;
@@ -228,10 +213,12 @@ const ScatterAnalysis = () => {
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:8}}>
                 <div>
                     <h3 style={{color:'#e2e8f0',fontSize:16,fontWeight:700,marginBottom:4}}>태양계 행성 산점도 — r³ vs T²</h3>
-                    <p style={{color:'#475569',fontSize:12}}>🖱 마우스 휠로 확대/축소 | 행성 클릭 시 선택</p>
+                    <p style={{color:'#475569',fontSize:12}}>🔍 아래 버튼으로 확대/축소 | 행성 클릭 시 선택</p>
                 </div>
-                <div style={{display:'flex',gap:8}}>
-                    <span style={{fontSize:12,color:'#475569',display:'flex',alignItems:'center'}}>범위: 0 ~ {Math.round(dMax).toLocaleString()}</span>
+                <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                    <span style={{fontSize:12,color:'#475569'}}>범위: 0 ~ {Math.round(dMax).toLocaleString()}</span>
+                    <button className="planet-btn" style={{fontWeight:800,fontSize:15,padding:'6px 14px'}} onClick={zoomIn}>＋ 확대</button>
+                    <button className="planet-btn" style={{fontWeight:800,fontSize:15,padding:'6px 14px'}} onClick={zoomOut}>－ 축소</button>
                     <button className="planet-btn" onClick={()=>{setDMin(0);setDMax(1000);}}>태양계 전체</button>
                     <button className="planet-btn" onClick={()=>{setDMin(0);setDMax(10);}}>내행성 확대</button>
                 </div>
