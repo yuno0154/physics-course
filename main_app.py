@@ -32,6 +32,7 @@ circular_motion_practice_page = st.Page("physics_sim/circular_motion_practice.py
 
 # 5. 케플러 법칙 섹션
 kepler_sim_page = st.Page("physics_sim/kepler_sim.py", title="🪐 [분석1] 타원 궤도와 면적")
+kepler_derivation_page = st.Page("physics_sim/kepler_derivation.py", title="🪐 [증명] 제3법칙의 수학적 유도")
 kepler_data_page = st.Page("physics_sim/kepler_data.py", title="🪐 [분석2] 조화의 법칙 데이터")
 kepler_practice_page = st.Page("physics_sim/kepler_practice.py", title="📝 [마무리] 케플러 법칙 연습")
 kepler_project_page = st.Page("physics_sim/kepler_project.py", title="🚀 [평가] 화성 탐사 설계")
@@ -61,6 +62,7 @@ pg = st.navigation({
     ],
     "🪐 학습주제 4: 케플러 법칙": [
         kepler_sim_page,
+        kepler_derivation_page,
         kepler_data_page,
         kepler_practice_page,
         kepler_project_page

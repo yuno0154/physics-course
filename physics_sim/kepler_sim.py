@@ -55,15 +55,21 @@ def run_sim():
                             setPlanetPos(prev => {
                                 const a = semiMajorAxis;
                                 const e = eccentricity;
+                                const focusOffset = a * e;
+                                
+                                // 타원 궤도 방정식: r = a(1-e^2) / (1 + e cos(theta))
+                                // theta=0을 근일점(태양과 가장 가까운 지점)으로 설정
                                 const r = a * (1 - e * e) / (1 + e * Math.cos(prev.angle));
                                 
-                                // 각속도 dTheta = (h / r^2) dt. 
+                                // 각속도 dTheta = (h / r^2) dt -> 면적 속도 일정 법칙 모사
                                 const baseSpeed = 80; 
                                 const deltaAngle = (baseSpeed / (r * r)) * 10; 
                                 const newAngle = prev.angle + deltaAngle;
                                 
-                                const x = r * Math.cos(newAngle);
-                                const y = r * Math.sin(newAngle);
+                                // 태양의 위치(왼쪽 초점: -focusOffset)를 기준으로 좌표 계산
+                                // theta=0이 왼쪽(근일점)을 향하도록 Math.PI를 더함
+                                const x = -focusOffset + r * Math.cos(newAngle + Math.PI);
+                                const y = r * Math.sin(newAngle + Math.PI);
                                 
                                 return { x, y, angle: newAngle };
                             });
@@ -73,6 +79,19 @@ def run_sim():
                     }
                     return () => cancelAnimationFrame(animationFrame);
                 }, [isPlaying, eccentricity, semiMajorAxis]);
+
+                // 파라미터(이심률, 장반경) 변경 시 정지 상태에서도 행성 위치 동기화
+                useEffect(() => {
+                    setPlanetPos(prev => {
+                        const a = semiMajorAxis;
+                        const e = eccentricity;
+                        const focusOffset = a * e;
+                        const r = a * (1 - e * e) / (1 + e * Math.cos(prev.angle));
+                        const x = -focusOffset + r * Math.cos(prev.angle + Math.PI);
+                        const y = r * Math.sin(prev.angle + Math.PI);
+                        return { ...prev, x, y };
+                    });
+                }, [eccentricity, semiMajorAxis]);
 
                 useEffect(() => {
                     const canvas = canvasRef.current;
