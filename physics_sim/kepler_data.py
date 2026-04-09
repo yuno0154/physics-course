@@ -20,7 +20,7 @@ def run_sim():
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/recharts/umd/Recharts.min.js"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
@@ -32,7 +32,6 @@ def run_sim():
 
         <script type="text/babel">
             const { useState, useEffect } = React;
-            const { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = Recharts;
 
             const Icon = ({ name, size = 18, className = "" }) => {
                 useEffect(() => {
@@ -44,6 +43,29 @@ def run_sim():
             };
 
             const KeplerData = () => {
+                const [rechartsLoaded, setRechartsLoaded] = useState(false);
+
+                useEffect(() => {
+                    const checkRecharts = setInterval(() => {
+                        if (window.Recharts) {
+                            setRechartsLoaded(true);
+                            clearInterval(checkRecharts);
+                        }
+                    }, 100);
+                    return () => clearInterval(checkRecharts);
+                }, []);
+
+                if (!rechartsLoaded) {
+                    return (
+                        <div className="flex flex-col items-center justify-center h-80 bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200">
+                            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+                            <p className="text-slate-400 font-bold tracking-tight">차트 엔진을 불러오고 있습니다...</p>
+                        </div>
+                    );
+                }
+
+                const { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = window.Recharts;
+
                 const planetData = [
                     { name: '수성', r: 0.39, t: 0.24, r3: 0.059, t2: 0.058 },
                     { name: '금성', r: 0.72, t: 0.62, r3: 0.373, t2: 0.384 },
@@ -53,13 +75,13 @@ def run_sim():
                 ];
 
                 return (
-                    <div className="max-w-6xl mx-auto p-4 flex flex-col gap-8">
+                    <div className="max-w-6xl mx-auto p-4 flex flex-col gap-8 animate-in fade-in duration-700">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl space-y-6">
+                            <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-xl space-y-6">
                                 <h3 className="text-xl font-black text-slate-800 flex items-center gap-2">
                                     <Icon name="bar-chart-3" className="text-blue-600" /> 데이터 시각화 (T² vs r³)
                                 </h3>
-                                <div className="h-80 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                                <div className="h-80 w-full bg-slate-50 p-6 rounded-3xl border border-slate-100">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <ScatterChart margin={{ top: 20, right: 30, bottom: 40, left: 40 }}>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
@@ -79,11 +101,11 @@ def run_sim():
                                                 if (payload && payload[0]) {
                                                     const data = payload[0].payload;
                                                     return (
-                                                        <div className="bg-slate-900 text-white p-4 border border-slate-700 shadow-2xl rounded-2xl animate-in fade-in zoom-in-95">
-                                                            <p className="font-black text-blue-400 text-base mb-1">{data.name}</p>
-                                                            <div className="text-[11px] text-slate-400 space-y-0.5">
-                                                                <p>r³ = {data.r3.toFixed(3)} AU³</p>
-                                                                <p>T² = {data.t2.toFixed(3)} yr²</p>
+                                                        <div className="bg-slate-900 border border-slate-700 text-white p-5 shadow-2xl rounded-2xl">
+                                                            <p className="font-black text-blue-400 text-base mb-2">{data.name}</p>
+                                                            <div className="text-[12px] text-slate-400 space-y-1">
+                                                                <p className="flex justify-between gap-4"><span>r³:</span> <span className="text-white font-mono">{data.r3.toFixed(3)} AU³</span></p>
+                                                                <p className="flex justify-between gap-4"><span>T²:</span> <span className="text-white font-mono">{data.t2.toFixed(3)} yr²</span></p>
                                                             </div>
                                                         </div>
                                                     );
@@ -92,59 +114,62 @@ def run_sim():
                                             }} />
                                             <Scatter name="Planets" data={planetData}>
                                                 {planetData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={index === 2 ? '#ef4444' : '#3b82f6'} />
+                                                    <Cell key={`cell-${index}`} fill={index === 2 ? '#ef4444' : '#3b82f6'} stroke="white" strokeWidth={2} />
                                                 ))}
                                             </Scatter>
                                         </ScatterChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="p-5 bg-blue-50 rounded-2xl border-l-4 border-blue-500">
+                                <div className="p-5 bg-blue-50/50 rounded-2xl border-l-4 border-blue-500">
                                     <h4 className="font-bold text-slate-800 mb-2 underline underline-offset-4 flex items-center gap-2">
                                         <Icon name="lightbulb" size={16} /> 탐구 포인트
                                     </h4>
-                                    <p className="text-[13px] text-slate-600 leading-relaxed">
-                                        기울기가 정확히 <strong>1</strong>인 직선이 나타나는 것을 통해, 거리의 세제곱과 주기의 제곱이 비례함을 알 수 있습니다.
+                                    <p className="text-[13px] text-slate-600 leading-relaxed font-medium">
+                                        모든 데이터가 기울기가 1인 직선상에 위치합니다. 이는 <span className="text-blue-600 font-bold">$T^2$</span>과 <span className="text-blue-600 font-bold">$r^3$</span>이 완벽한 정비례 관계임을 시사합니다.
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl">
+                            <div className="bg-white p-8 rounded-[40px] border border-slate-200 shadow-xl">
                                 <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-                                    <Icon name="table" className="text-amber-600" /> 수치 데이터 테이블
+                                    <Icon name="table" className="text-amber-600" /> 수치 데이터 분석
                                 </h3>
-                                <div className="overflow-x-auto rounded-2xl border border-slate-100 mb-6">
-                                    <table className="w-full text-xs text-left border-collapse">
+                                <div className="overflow-hidden rounded-2xl border border-slate-100 mb-6 bg-white shadow-inner">
+                                    <table className="w-full text-[13px] text-left border-collapse">
                                         <thead>
                                             <tr className="bg-slate-50 text-slate-500 border-b border-slate-100 uppercase tracking-tighter">
                                                 <th className="p-4 font-black">행성</th>
                                                 <th className="p-4 font-black">r (AU)</th>
                                                 <th className="p-4 font-black">T (yr)</th>
-                                                <th className="p-4 font-black">r³ (AU³)</th>
-                                                <th className="p-4 font-black">T² (yr²)</th>
+                                                <th className="p-4 font-black text-blue-600">r³ (AU³)</th>
+                                                <th className="p-4 font-black text-amber-600">T² (yr²)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {planetData.map((p) => (
-                                                <tr key={p.name} className="hover:bg-slate-50 border-b border-slate-50 transition-colors">
+                                                <tr key={p.name} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
                                                     <td className="p-4 font-bold text-slate-800">{p.name}</td>
-                                                    <td className="p-4 font-mono">{p.r}</td>
-                                                    <td className="p-4 font-mono">{p.t}</td>
-                                                    <td className="p-4 font-mono bg-blue-50/50 font-bold text-blue-700">{p.r3.toFixed(3)}</td>
-                                                    <td className="p-4 font-mono bg-amber-50/50 font-bold text-amber-700">{p.t2.toFixed(3)}</td>
+                                                    <td className="p-4 font-mono text-slate-500">{p.r}</td>
+                                                    <td className="p-4 font-mono text-slate-500">{p.t}</td>
+                                                    <td className="p-4 font-mono bg-blue-50/20 font-black text-blue-700">{p.r3.toFixed(3)}</td>
+                                                    <td className="p-4 font-mono bg-amber-50/20 font-black text-amber-700">{p.t2.toFixed(3)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
-                                <div className="bg-slate-900 p-6 rounded-2xl text-white">
-                                    <div className="flex items-center gap-2 text-amber-400 mb-3 text-xs font-black">
+                                <div className="bg-slate-900 p-8 rounded-3xl text-white relative">
+                                    <div className="absolute top-0 right-0 p-6 opacity-10">
+                                        <Icon name="calculator" size={60} />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-amber-400 mb-4 text-xs font-black uppercase tracking-widest">
                                         <Icon name="calculator" size={16} /> 이론적 배경
                                     </div>
-                                    <div className="font-mono text-[14px] p-4 bg-white/5 rounded-xl border border-white/10 text-center mb-4">
-                                        T² / r³ = K (일정)
+                                    <div className="font-mono text-xl p-5 bg-white/5 rounded-2xl border border-white/10 text-center mb-6 text-white tracking-widest">
+                                        T² = K × r³
                                     </div>
-                                    <p className="text-[11px] text-slate-400 leading-relaxed italic">
-                                        여기서 K 값은 중심 천체의 질량에 의존하며, 태양계 행성들에 대해서는 이 비가 모두 소수점 셋째 자리까지 일치합니다.
+                                    <p className="text-[12px] text-slate-400 leading-relaxed font-medium italic">
+                                        이 비례상수 K는 $4\pi^2/GM$으로 정의되며, 태양계 내 모든 행성에서 동일한 값을 가집니다.
                                     </p>
                                 </div>
                             </div>
@@ -159,7 +184,7 @@ def run_sim():
     </body>
     </html>
     """
-    components.html(react_code, height=750, scrolling=False)
+    components.html(react_code, height=900, scrolling=False)
 
 if __name__ == "__main__":
     run_sim()
