@@ -69,53 +69,53 @@ def run_sim():
                 const c = colors[color] || "#3b82f6";
 
                 return (
-                    <div className="w-full h-full min-h-[140px] flex items-center justify-center bg-slate-50 rounded-2xl border border-slate-100 p-2">
-                        <svg viewBox="0 0 200 160" className="w-full h-full max-h-[120px]">
+                    <div className="w-full h-full min-h-[180px] flex items-center justify-center bg-white rounded-3xl p-4">
+                        <svg viewBox="0 0 200 160" className="w-full h-full drop-shadow-sm">
                             {/* Base Orbit */}
-                            <circle cx="100" cy="80" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="3,3" />
-                            <circle cx="100" cy="80" r="8" fill="#f59e0b" /> {/* Sun */}
+                            <circle cx="100" cy="80" r="65" fill="none" stroke="#f1f5f9" strokeWidth="2" strokeDasharray="4,4" />
+                            <circle cx="100" cy="80" r="14" fill="#fbbf24" className="animate-pulse" /> {/* Sun */}
                             
                             {step === 1 && (
                                 <g>
-                                    <circle cx="150" cy="80" r="5" fill="#3b82f6" />
-                                    <line x1="150" y1="80" x2="115" y2="80" stroke={c} strokeWidth="3" markerEnd="url(#arrow)" />
-                                    <text x="135" y="70" textAnchor="middle" fontSize="10" fontWeight="bold" fill={c}>F</text>
+                                    <circle cx="165" cy="80" r="7" fill="#3b82f6" />
+                                    <line x1="165" y1="80" x2="125" y2="80" stroke={c} strokeWidth="5" markerEnd="url(#arrow)" />
+                                    <text x="145" y="70" textAnchor="middle" fontSize="14" fontWeight="900" fill={c}>F</text>
                                 </g>
                             )}
                             {step === 2 && (
                                 <g>
-                                    <circle cx="150" cy="80" r="5" fill="#6366f1" />
-                                    <line x1="150" y1="80" x2="120" y2="80" stroke={c} strokeWidth="3" markerEnd="url(#arrow)" />
-                                    <line x1="100" y1="80" x2="150" y2="80" stroke="#94a3b8" strokeWidth="1" strokeDasharray="2,2" />
-                                    <text x="125" y="95" textAnchor="middle" fontSize="10" fill="#64748b">distance r</text>
+                                    <circle cx="165" cy="80" r="7" fill="#6366f1" />
+                                    <line x1="165" y1="80" x2="130" y2="80" stroke={c} strokeWidth="5" markerEnd="url(#arrow)" />
+                                    <line x1="100" y1="80" x2="165" y2="80" stroke="#94a3b8" strokeWidth="2" strokeDasharray="3,3" />
+                                    <text x="132" y="105" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#64748b">r</text>
                                 </g>
                             )}
                             {step === 3 && (
                                 <g>
-                                    <path d="M 150 80 A 50 50 0 1 1 50 80 A 50 50 0 1 1 150 80" fill="none" stroke={c} strokeWidth="3" strokeDasharray="10,5" opacity="0.5" />
-                                    <circle cx="150" cy="80" r="5" fill={c} />
-                                    <line x1="150" y1="80" x2="150" y2="40" stroke={c} strokeWidth="2" markerEnd="url(#arrow)" />
-                                    <text x="165" y="60" textAnchor="middle" fontSize="10" fontWeight="bold" fill={c}>v</text>
-                                    <text x="100" y="25" textAnchor="middle" fontSize="10" fill={c}>Circle = 2πr</text>
+                                    <circle cx="100" cy="80" r="65" fill="none" stroke={c} strokeWidth="4" strokeDasharray="12,6" opacity="0.6" />
+                                    <circle cx="165" cy="80" r="7" fill={c} />
+                                    <line x1="165" y1="80" x2="165" y2="30" stroke={c} strokeWidth="4" markerEnd="url(#arrow)" />
+                                    <text x="180" y="55" textAnchor="middle" fontSize="14" fontWeight="900" fill={c}>v</text>
+                                    <text x="100" y="30" textAnchor="middle" fontSize="13" fontWeight="bold" fill={c}>2πr</text>
                                 </g>
                             )}
                             {step === 4 && (
                                 <g>
-                                    <rect x="75" y="55" width="50" height="50" fill="none" stroke={c} strokeWidth="2" rx="5" strokeDasharray="4,2" />
-                                    <text x="100" y="85" textAnchor="middle" fontSize="12" fontWeight="bold" fill={c}>v → Equation</text>
+                                    <rect x="60" y="45" width="80" height="70" fill={`${c}10`} stroke={c} strokeWidth="3" rx="10" strokeDasharray="6,3" />
+                                    <text x="100" y="85" textAnchor="middle" fontSize="16" fontWeight="900" fill={c}>v → ΣF</text>
                                 </g>
                             )}
                              {step === 5 && (
                                 <g>
-                                    <circle cx="100" cy="80" r="50" fill="none" stroke={c} strokeWidth="2" />
-                                    <circle cx="150" cy="80" r="6" fill="#10b981" />
-                                    <text x="100" y="150" textAnchor="middle" fontSize="14" fontWeight="bold" fill={c}>T² ∝ r³</text>
+                                    <circle cx="100" cy="80" r="65" fill="none" stroke={c} strokeWidth="4" />
+                                    <circle cx="165" cy="80" r="9" fill="#10b981" />
+                                    <text x="100" y="155" textAnchor="middle" fontSize="18" fontWeight="900" fill={c}>T² ∝ r³</text>
                                 </g>
                             )}
 
                             <defs>
-                                <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                                    <path d="M0,0 L0,6 L5,3 Z" fill="currentColor" />
+                                <marker id="arrow" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                                    <path d="M0,0 L0,8 L7,4 Z" fill="currentColor" />
                                 </marker>
                             </defs>
                         </svg>
