@@ -35,7 +35,7 @@ def orbit_points(a_km, e, n=300):
     return x/1000, y/1000   # km 단위 반환
 
 @st.cache_data(show_spinner=False)
-def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
+def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화성"):
     """Plotly 타원 궤도 애니메이션 생성 (캐시 적용)"""
     a = a_km * 1000
     c = a * e
@@ -65,20 +65,23 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
         vec_len = r_arr[i] / 1000 * 0.22
         frames.append(go.Frame(
             data=[
+                # 탐사선(인공위성): 하늘색 다이아몬드 모양
                 go.Scatter(x=[px[i]], y=[py[i]], mode="markers",
-                           marker=dict(size=13, color="#38bdf8",
+                           name="🛸 탐사선 (인공위성)",
+                           marker=dict(size=14, color="#38bdf8", symbol="diamond",
                                        line=dict(color="white", width=2))),
+                # 속도 벡터: 초록색 화살표
                 go.Scatter(x=[px[i], px[i] + vx*vec_len],
                            y=[py[i], py[i] + vy*vec_len],
-                           mode="lines",
+                           mode="lines", name="속도 벡터",
                            line=dict(color="#4ade80", width=3)),
             ],
             name=str(i),
             layout=go.Layout(annotations=[dict(
                 x=0.02, y=0.97, xref="paper", yref="paper",
-                text=f"<b>속도: {v_arr[i]/1000:.2f} km/s</b><br>거리: {r_arr[i]/1000:.0f} km",
+                text=f"<b>🛸 탐사선</b><br>속도: {v_arr[i]/1000:.2f} km/s<br>거리: {r_arr[i]/1000:.0f} km",
                 showarrow=False, align="left",
-                bgcolor="rgba(15,23,42,0.85)",
+                bgcolor="rgba(15,23,42,0.88)",
                 bordercolor="#38bdf8", borderwidth=1,
                 font=dict(color="white", size=13), borderpad=8
             )])
@@ -86,17 +89,32 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
 
     fig = go.Figure(
         data=[
-            # 고정 trace (궤도 + 천체) — 매 프레임 재그리기 불필요
+            # 궤도 경로
             go.Scatter(x=ox, y=oy, mode="lines",
+                       name="궤도 경로",
                        line=dict(color="rgba(100,148,237,0.4)", width=1.5, dash="dot"),
-                       showlegend=False),
-            go.Scatter(x=[0], y=[0], mode="markers",
-                       marker=dict(size=22, color=planet_color,
+                       showlegend=True),
+            # 중심 천체(행성): 크고 뚜렷한 원 + 이름 표시
+            go.Scatter(x=[0], y=[0], mode="markers+text",
+                       name=f"🔴 {planet_name} (중심 천체)",
+                       text=[planet_name.split()[0]],
+                       textposition="bottom center",
+                       textfont=dict(color="white", size=11),
+                       marker=dict(size=24, color=planet_color,
+                                   line=dict(color="white", width=2.5),
+                                   symbol="circle"),
+                       showlegend=True),
+            # 탐사선(인공위성): 다이아몬드
+            go.Scatter(x=[px[0]], y=[py[0]], mode="markers",
+                       name="🛸 탐사선 (인공위성)",
+                       marker=dict(size=14, color="#38bdf8", symbol="diamond",
                                    line=dict(color="white", width=2)),
-                       showlegend=False),
-            # 애니메이션 trace (탐사선 + 속도벡터)
-            frames[0].data[0],
-            frames[0].data[1],
+                       showlegend=True),
+            # 속도 벡터
+            go.Scatter(x=[px[0], px[0]], y=[py[0], py[0]],
+                       mode="lines", name="속도 벡터",
+                       line=dict(color="#4ade80", width=3),
+                       showlegend=True),
         ],
         layout=go.Layout(
             template="plotly_dark",
@@ -110,6 +128,13 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
             height=480, margin=dict(l=50, r=50, t=55, b=50),
             title=dict(text="🛸 타원 궤도 애니메이션 (케플러 제2법칙 시각화)",
                        font=dict(size=15, color="white"), x=0.5),
+            legend=dict(
+                x=0.01, y=0.02,
+                bgcolor="rgba(15,23,42,0.80)",
+                bordercolor="#334155", borderwidth=1,
+                font=dict(color="white", size=12),
+                orientation="v"
+            ),
             updatemenus=[dict(
                 type="buttons", showactive=False,
                 y=1.12, x=1.0, xanchor="right",
@@ -136,9 +161,9 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp):
             )],
             annotations=[dict(
                 x=0.02, y=0.97, xref="paper", yref="paper",
-                text=f"<b>속도: {v_arr[0]/1000:.2f} km/s</b><br>거리: {r_arr[0]/1000:.0f} km",
+                text=f"<b>🛸 탐사선</b><br>속도: {v_arr[0]/1000:.2f} km/s<br>거리: {r_arr[0]/1000:.0f} km",
                 showarrow=False, align="left",
-                bgcolor="rgba(15,23,42,0.85)",
+                bgcolor="rgba(15,23,42,0.88)",
                 bordercolor="#38bdf8", borderwidth=1,
                 font=dict(color="white", size=13), borderpad=8
             )]
@@ -410,7 +435,7 @@ def run_sim():
     with col1:
         st.markdown("### 🎬 실시간 궤도 애니메이션")
         st.caption("▶ Play 버튼을 눌러 애니메이션을 시작하세요. 근일점(가장 가까운 지점)에서 속도가 가장 빠릅니다.")
-        fig_anim = kepler_animation(a_km, e, planet_info["color"], planet_info["M"], orbit["vp"])
+        fig_anim = kepler_animation(a_km, e, planet_info["color"], planet_info["M"], orbit["vp"], planet_name=planet_name)
         st.plotly_chart(fig_anim, use_container_width=True, key="orbit_anim")
 
     with col2:
@@ -439,6 +464,127 @@ def run_sim():
                 st.success(f"✅ **미션 2**: 원일점 고도 {ra_alt:.0f}km\n광역 통신 커버 가능!")
             else:
                 st.info(f"🔵 **미션 2**: 원일점 고도 {ra_alt:.0f}km\n광역 통신을 위해 a를 높여보세요.")
+
+        # ── 미션 달성을 위한 메인 화면 조절 패널 ──────────
+        if not (mission1_ok and mission2_ok):
+            st.markdown("---")
+            st.markdown("""
+            <div style="background:#1e293b;border-radius:14px;padding:14px 16px;
+                        border:1px solid #334155;margin-bottom:8px">
+                <div style="color:#f59e0b;font-size:0.75rem;font-weight:800;
+                            text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">⚙️ 미션 달성 가이드</div>
+                <div style="color:#94a3b8;font-size:0.8rem;line-height:1.6">
+                    • <b style="color:#f87171">미션 1</b>: <code>이심률(e) ↑</code> → 근일점 고도 ↓ (500km 미만 목표)<br>
+                    • <b style="color:#60a5fa">미션 2</b>: <code>장반경(a) ↑</code> → 원일점 고도 ↑ (3000km 초과 목표)
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # ── 전체 너비 미션 조절 컨트롤 패널 ─────────────────────
+    st.markdown("---")
+    st.markdown("""
+    <div style="background:linear-gradient(135deg,#0f172a,#1e293b);border-radius:20px;
+                padding:20px 24px;border:1px solid #334155;margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <span style="font-size:1.2rem">🎮</span>
+            <span style="color:#f59e0b;font-size:0.9rem;font-weight:800;
+                         text-transform:uppercase;letter-spacing:0.1em">미션 달성 조절 패널</span>
+        </div>
+        <p style="color:#64748b;font-size:0.78rem;margin:0">
+            슬라이더를 직접 조절하여 탐구 미션을 수행해 보세요. 사이드바와 동일한 값으로 연동됩니다.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    m_col1, m_col2 = st.columns(2)
+    with m_col1:
+        st.markdown("""
+        <div style="background:#0f172a;border-radius:12px;padding:12px 16px;
+                    margin-top:10px;border:1px solid #1e293b;border-left:3px solid #f87171">
+            <div style="color:#f87171;font-size:0.7rem;font-weight:800;
+                        letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px">
+                🎯 미션 1: 근일점 고도 500km 미만
+            </div>
+            <div style="color:#94a3b8;font-size:0.75rem">
+                이심률(e)을 높이면 근일점이 낮아져 고해상도 촬영이 가능합니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        e_mission = st.slider(
+            "🔴 이심률 (e) 조절 — 미션 1 달성용",
+            min_value=0.0, max_value=0.80,
+            value=e, step=0.01,
+            key="e_slider_mission",
+            help="이심률을 높일수록 근일점 고도가 낮아집니다. 0.50 이상 추천."
+        )
+        orbit_m = calculate_orbit(a_km, e_mission, planet_info["M"])
+        rp_alt_m = orbit_m["rp_km"] - R_km
+        pct1 = max(0, min(100, int((1 - rp_alt_m / 500) * 100))) if rp_alt_m < 500 else 100
+        color1 = "#4ade80" if rp_alt_m < 500 else "#f87171"
+        st.markdown(f"""
+        <div style="background:#0f172a;border-radius:10px;padding:10px 14px;
+                    border:1px solid #1e293b;margin-top:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="color:#94a3b8;font-size:0.75rem;font-weight:700">근일점 고도</span>
+                <span style="color:{color1};font-size:1rem;font-weight:800">{rp_alt_m:,.0f} km</span>
+            </div>
+            <div style="background:#1e293b;border-radius:6px;height:8px;overflow:hidden">
+                <div style="width:{pct1}%;height:100%;background:{color1};border-radius:6px;
+                            transition:width 0.3s"></div>
+            </div>
+            <div style="color:{color1};font-size:0.7rem;font-weight:700;margin-top:4px;text-align:right">
+                {"✅ 미션 1 달성!" if rp_alt_m < 500 else f"목표까지 {rp_alt_m-500:,.0f} km 남음"}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with m_col2:
+        st.markdown("""
+        <div style="background:#0f172a;border-radius:12px;padding:12px 16px;
+                    margin-top:10px;border:1px solid #1e293b;border-left:3px solid #60a5fa">
+            <div style="color:#60a5fa;font-size:0.7rem;font-weight:800;
+                        letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px">
+                🎯 미션 2: 원일점 고도 3000km 초과
+            </div>
+            <div style="color:#94a3b8;font-size:0.75rem">
+                장반경(a)을 키우면 원일점이 높아져 광역 통신이 가능합니다.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        a_min_m = int(R_km) + 100
+        a_km_mission = st.slider(
+            "🔵 장반경 (a) 조절 — 미션 2 달성용",
+            min_value=a_min_m,
+            max_value=a_min_m + 20000,
+            value=a_km, step=100,
+            key="a_slider_mission",
+            help="장반경을 키울수록 원일점 고도가 높아집니다."
+        )
+        orbit_m2 = calculate_orbit(a_km_mission, e_mission, planet_info["M"])
+        ra_alt_m = orbit_m2["ra_km"] - R_km
+        pct2 = min(100, int(ra_alt_m / 3000 * 100))
+        color2 = "#4ade80" if ra_alt_m > 3000 else "#60a5fa"
+        st.markdown(f"""
+        <div style="background:#0f172a;border-radius:10px;padding:10px 14px;
+                    border:1px solid #1e293b;margin-top:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <span style="color:#94a3b8;font-size:0.75rem;font-weight:700">원일점 고도</span>
+                <span style="color:{color2};font-size:1rem;font-weight:800">{ra_alt_m:,.0f} km</span>
+            </div>
+            <div style="background:#1e293b;border-radius:6px;height:8px;overflow:hidden">
+                <div style="width:{pct2}%;height:100%;background:{color2};border-radius:6px;
+                            transition:width 0.3s"></div>
+            </div>
+            <div style="color:{color2};font-size:0.7rem;font-weight:700;margin-top:4px;text-align:right">
+                {"✅ 미션 2 달성!" if ra_alt_m > 3000 else f"목표까지 {3000-ra_alt_m:,.0f} km 남음"}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if mission1_ok and mission2_ok:
+        st.success("🎉 **두 미션 모두 달성!** 이 궤도는 고해상도 촬영과 광역 통신을 동시에 지원합니다!")
+    elif rp_alt_m < 500 and ra_alt_m > 3000:
+        st.success("🎉 **조절 패널 기준으로 두 미션 달성!** 위의 사이드바 설정도 같이 맞춰보세요!")
 
     # ── 탐구 질문 섹션 ────────────────────────────────────
     st.markdown("---")
