@@ -152,8 +152,8 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
                        showgrid=True, gridcolor="rgba(255,255,255,0.05)",
                        scaleanchor="x", title="y (km)", tickfont=dict(size=11)),
             height=480, margin=dict(l=50, r=50, t=55, b=50),
-            title=dict(text="🛸 타원 궤도 애니메이션 (케플러 제2법칙 시각화)",
-                       font=dict(size=15, color="white"), x=0.5),
+            title=dict(text=f"🛸 애니메이션 (이심률 e: {e:.2f} | 장반경 a: {a_km:,.0f} km)",
+                       font=dict(size=14, color="#fde047"), x=0.5),
             legend=dict(
                 x=0.01, y=0.02,
                 bgcolor="rgba(15,23,42,0.80)",
@@ -389,6 +389,20 @@ def run_sim():
         planet_info = PLANETS[planet_name]
         R_km = planet_info["R_km"]
 
+        # 동기화를 위한 session_state 및 콜백 설정
+        if "orbit_a" not in st.session_state:
+            st.session_state.orbit_a = max(int(R_km) + 100, int(R_km * 1.5) + 3000)
+        if "orbit_e" not in st.session_state:
+            st.session_state.orbit_e = 0.30
+
+        def sync_sidebar():
+            st.session_state.orbit_a = st.session_state.side_a
+            st.session_state.orbit_e = st.session_state.side_e
+        def sync_main_e():
+            st.session_state.orbit_e = st.session_state.main_e
+        def sync_main_a():
+            st.session_state.orbit_a = st.session_state.main_a
+
         st.markdown(f"""
         <div style="background:#1e293b;border-radius:12px;padding:12px;margin:8px 0;border:1px solid #334155">
             <div style="color:#94a3b8;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em">선택된 천체</div>
@@ -404,8 +418,10 @@ def run_sim():
             "장반경 a (km) — 천체 표면 기준 고도 포함",
             min_value=a_min,
             max_value=a_min + 20000,
-            value=a_default,
+            value=st.session_state.orbit_a if st.session_state.orbit_a >= a_min else a_default,
             step=100,
+            key="side_a",
+            on_change=sync_sidebar,
             help="장반경은 천체 반지름보다 커야 합니다."
         )
         altitude_km = a_km - R_km
@@ -416,10 +432,16 @@ def run_sim():
             "이심률 e",
             min_value=0.0,
             max_value=0.80,
-            value=0.30,
+            value=st.session_state.orbit_e,
             step=0.01,
+            key="side_e",
+            on_change=sync_sidebar,
             help="0 = 원 궤도, 0.8 = 긴 타원 궤도"
         )
+        
+        # 상태 업데이트 확정
+        st.session_state.orbit_a = a_km
+        st.session_state.orbit_e = e
 
         orbit = calculate_orbit(a_km, e, planet_info["M"])
 
@@ -539,8 +561,9 @@ def run_sim():
         e_mission = st.slider(
             "🔴 이심률 (e) 조절 — 미션 1 달성용",
             min_value=0.0, max_value=0.80,
-            value=e, step=0.01,
-            key="e_slider_mission",
+            value=st.session_state.orbit_e, step=0.01,
+            key="main_e",
+            on_change=sync_main_e,
             help="이심률을 높일수록 근일점 고도가 낮아집니다. 0.50 이상 추천."
         )
         orbit_m = calculate_orbit(a_km, e_mission, planet_info["M"])
@@ -582,8 +605,10 @@ def run_sim():
             "🔵 장반경 (a) 조절 — 미션 2 달성용",
             min_value=a_min_m,
             max_value=a_min_m + 20000,
-            value=a_km, step=100,
-            key="a_slider_mission",
+            value=st.session_state.orbit_a if st.session_state.orbit_a >= a_min_m else a_min_m + 3000,
+            step=100,
+            key="main_a",
+            on_change=sync_main_a,
             help="장반경을 키울수록 원일점 고도가 높아집니다."
         )
         orbit_m2 = calculate_orbit(a_km_mission, e_mission, planet_info["M"])
