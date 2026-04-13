@@ -57,24 +57,45 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
     ox, oy = orbit_points(a_km, e, n=120)
     scale = a_km * 1.6
 
-    # ── 프레임 생성: trace는 탐사선+속도벡터만 (궤도·천체는 base에 고정) ──
+    # ── 프레임 생성: 5개 trace 모두 포함 (화성 사라짐 방지) ──
+    # trace 순서: [0]궤도경로, [1]화성, [2]이동궤적(trail), [3]탐사선, [4]속도벡터
     frames = []
     for i in range(N):
         vx = -np.sin(true_theta[i]) * v_arr[i] / orbit_vp
         vy =  np.cos(true_theta[i]) * v_arr[i] / orbit_vp
         vec_len = r_arr[i] / 1000 * 0.22
+        # 이동 궤적: 0번 ~ 현재까지 탐사선이 지나온 경로
+        trail_x = list(px[:i+1])
+        trail_y = list(py[:i+1])
         frames.append(go.Frame(
             data=[
-                # 탐사선(인공위성): 하늘색 다이아몬드 모양
+                # [0] 궤도 경로 — 매 프레임 유지 필수
+                go.Scatter(x=ox, y=oy, mode="lines",
+                           line=dict(color="rgba(100,148,237,0.35)", width=1.5, dash="dot"),
+                           showlegend=False),
+                # [1] 화성(중심 천체) — 매 프레임 유지 필수
+                go.Scatter(x=[0], y=[0], mode="markers+text",
+                           text=[planet_name.split()[0]],
+                           textposition="bottom center",
+                           textfont=dict(color="white", size=11),
+                           marker=dict(size=24, color=planet_color,
+                                       line=dict(color="white", width=2.5)),
+                           showlegend=False),
+                # [2] 이동 궤적 (탐사선이 지나온 경로)
+                go.Scatter(x=trail_x, y=trail_y, mode="lines",
+                           line=dict(color="rgba(56,189,248,0.5)", width=2),
+                           showlegend=False),
+                # [3] 탐사선(인공위성): 하늘색 다이아몬드
                 go.Scatter(x=[px[i]], y=[py[i]], mode="markers",
-                           name="🛸 탐사선 (인공위성)",
                            marker=dict(size=14, color="#38bdf8", symbol="diamond",
-                                       line=dict(color="white", width=2))),
-                # 속도 벡터: 초록색 화살표
+                                       line=dict(color="white", width=2)),
+                           showlegend=False),
+                # [4] 속도 벡터
                 go.Scatter(x=[px[i], px[i] + vx*vec_len],
                            y=[py[i], py[i] + vy*vec_len],
-                           mode="lines", name="속도 벡터",
-                           line=dict(color="#4ade80", width=3)),
+                           mode="lines",
+                           line=dict(color="#4ade80", width=3),
+                           showlegend=False),
             ],
             name=str(i),
             layout=go.Layout(annotations=[dict(
@@ -89,12 +110,12 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
 
     fig = go.Figure(
         data=[
-            # 궤도 경로
+            # [0] 궤도 경로 (점선)
             go.Scatter(x=ox, y=oy, mode="lines",
                        name="궤도 경로",
-                       line=dict(color="rgba(100,148,237,0.4)", width=1.5, dash="dot"),
+                       line=dict(color="rgba(100,148,237,0.35)", width=1.5, dash="dot"),
                        showlegend=True),
-            # 중심 천체(행성): 크고 뚜렷한 원 + 이름 표시
+            # [1] 화성(중심 천체)
             go.Scatter(x=[0], y=[0], mode="markers+text",
                        name=f"🔴 {planet_name} (중심 천체)",
                        text=[planet_name.split()[0]],
@@ -104,13 +125,18 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
                                    line=dict(color="white", width=2.5),
                                    symbol="circle"),
                        showlegend=True),
-            # 탐사선(인공위성): 다이아몬드
+            # [2] 이동 궤적 (초기: 시작점)
+            go.Scatter(x=[px[0]], y=[py[0]], mode="lines",
+                       name="이동 궤적",
+                       line=dict(color="rgba(56,189,248,0.5)", width=2),
+                       showlegend=True),
+            # [3] 탐사선(인공위성)
             go.Scatter(x=[px[0]], y=[py[0]], mode="markers",
                        name="🛸 탐사선 (인공위성)",
                        marker=dict(size=14, color="#38bdf8", symbol="diamond",
                                    line=dict(color="white", width=2)),
                        showlegend=True),
-            # 속도 벡터
+            # [4] 속도 벡터
             go.Scatter(x=[px[0], px[0]], y=[py[0], py[0]],
                        mode="lines", name="속도 벡터",
                        line=dict(color="#4ade80", width=3),
@@ -152,7 +178,7 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
             sliders=[dict(
                 steps=[dict(method="animate",
                             args=[[str(i)], {"mode": "immediate",
-                                             "frame": {"duration": 80, "redraw": False},
+                                             "frame": {"duration": 80, "redraw": True},
                                              "transition": {"duration": 0}}],
                             label="") for i in range(N)],
                 currentvalue=dict(prefix="", font=dict(color="white", size=1)),
