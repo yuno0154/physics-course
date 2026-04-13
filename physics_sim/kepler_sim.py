@@ -55,6 +55,7 @@ def run_sim():
                 const [isPlaying, setIsPlaying] = useState(false);
                 const [showAxes, setShowAxes] = useState(true);
                 const [showAreas, setShowAreas] = useState(false);
+                const [timeFraction, setTimeFraction] = useState(8);
                 const [planetPos, setPlanetPos] = useState({ x: 0, y: 0, angle: 0 });
                 const canvasRef = useRef(null);
 
@@ -144,36 +145,49 @@ def run_sim():
 
                     // 4. 면적 속도 일정 법칙 시각화 (동일 시간 구간 2개 표시)
                     if (showAreas) {
-                        const drawSector = (startAngle, color, label) => {
+                        // 케플러 방정식 수치해석 (Mean Anomaly -> True Anomaly)
+                        const solveKepler = (M, e) => {
+                            let E = M;
+                            for (let i = 0; i < 15; i++) {
+                                E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+                            }
+                            return E;
+                        };
+                        const getTrueAnomaly = (M, e) => {
+                            const E = solveKepler(M, e);
+                            return 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2));
+                        };
+
+                        const drawSector = (startM, color, label) => {
                             ctx.beginPath();
                             ctx.fillStyle = color;
                             ctx.globalAlpha = 0.4;
                             ctx.moveTo(centerX - focusOffset, centerY);
                             
-                            // 동일한 시간 간격(dt) 에 해당하는 각도 변화량을 근사적으로 계산
-                            // 면적 A = 0.5 * integral(r^2 dTheta) = const
-                            // 여기서는 시각화를 위해 고정된 '시간 조각' 20유닛 정도의 면적을 그림
-                            const deltaT = 4000; 
-                            for(let t = 0; t <= deltaT; t += 100) {
-                                const tempTheta = startAngle + (t / deltaT) * (startAngle === 0 ? 0.8 : 0.2) * (1+e*1.5);
-                                // 실제 적분 대신 이심률에 따른 개략적인 폭 차이 시뮬레이션
-                                // (정교한 계산: Kepler Equation solver가 필요하지만 교육용으로 비례 표현)
-                                const ratio = (baseSpeed / Math.pow(a * (1 - e * e) / (1 + e * Math.cos(startAngle)), 2)) * 300;
-                                const theta = startAngle + (t / deltaT) * ratio;
+                            // 주기의 1/N 만큼의 시간(Mean Anomaly 각도) 경과
+                            const dM = (Math.PI * 2) / timeFraction; 
+                            const numSteps = 60;
+                            
+                            for(let i = 0; i <= numSteps; i++) {
+                                const currentM = startM + (dM * i) / numSteps;
+                                const theta = getTrueAnomaly(currentM, e);
                                 const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
                                 const x = -focusOffset + r * Math.cos(theta + Math.PI);
                                 const y = r * Math.sin(theta + Math.PI);
                                 ctx.lineTo(centerX + x, centerY + y);
                             }
+                            
                             ctx.lineTo(centerX - focusOffset, centerY);
                             ctx.fill();
                             ctx.globalAlpha = 1.0;
                             ctx.strokeStyle = color;
+                            ctx.lineWidth = 1.5;
                             ctx.stroke();
                         };
 
-                        drawSector(0, '#f87171', '근일점 통과'); // 근일점 (왼쪽)
-                        drawSector(Math.PI, '#60a5fa', '원일점 통과'); // 원일점 (오른쪽)
+                        drawSector(0, '#ef4444', '근일점 통과'); // 근일점 (왼쪽)
+                        // 원일점 통과는 최원점을 중심으로 좌우 절반씩 면적을 차지하도록 시작점 조정
+                        drawSector(Math.PI - (Math.PI / timeFraction), '#3b82f6', '원일점 통과');
                     }
 
                     // 5. 태양
@@ -285,6 +299,19 @@ def run_sim():
                                                 <Icon name="pie-chart" size={20} /> 면적 속도 {showAreas ? 'ON' : 'OFF'}
                                             </button>
                                         </div>
+
+                                        {showAreas && (
+                                            <div className="space-y-3 pt-2 animate-in fade-in zoom-in duration-300">
+                                                <div className="flex justify-between items-center">
+                                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                                                        <Icon name="clock" size={14} /> 공전 관측 시간 (주기 T 기준)
+                                                    </label>
+                                                    <span className="px-3 py-1 bg-red-50 text-red-600 rounded-full font-mono font-black text-sm">T / {timeFraction}</span>
+                                                </div>
+                                                <input type="range" min="4" max="24" step="1" value={timeFraction} onChange={(ev) => setTimeFraction(parseInt(ev.target.value))} className="w-full h-2 bg-slate-100 rounded-xl appearance-none cursor-pointer" />
+                                                <p className="text-[10px] text-slate-400 text-center">조절 바를 움직여 동일 시간 동안 쓸고 간 면적의 크기를 비교해 보세요.</p>
+                                            </div>
+                                        )}
 
                                         <div className="space-y-3 pt-4 border-t border-slate-50">
                                             <button onClick={() => setIsPlaying(!isPlaying)} className={`w-full py-5 rounded-[1.5rem] font-black text-lg shadow-xl transition-all flex items-center justify-center gap-3 ${isPlaying ? 'bg-slate-800 text-white' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-200'}`}>
