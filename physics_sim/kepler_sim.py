@@ -185,8 +185,9 @@ def run_sim():
                             ctx.stroke();
                         };
 
-                        drawSector(0, '#ef4444', '근일점 통과'); // 근일점 (왼쪽)
-                        // 원일점 통과는 최원점을 중심으로 좌우 절반씩 면적을 차지하도록 시작점 조정
+                        // 근일점 통과는 근일점을 중심으로 좌우 절반씩 면적을 차지하도록 시작점 조정
+                        drawSector(-(Math.PI / timeFraction), '#ef4444', '근일점 통과'); 
+                        // 원일점 통과는 원일점을 중심으로 좌우 절반씩 면적을 차지하도록 시작점 조정
                         drawSector(Math.PI - (Math.PI / timeFraction), '#3b82f6', '원일점 통과');
                     }
 
