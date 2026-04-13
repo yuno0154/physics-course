@@ -19,6 +19,7 @@ def run_practice():
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
@@ -48,6 +49,67 @@ def run_practice():
                 });
                 const [currentStep, setCurrentStep] = useState(0);
                 const [submitted, setSubmitted] = useState(false);
+                const [studentInfo, setStudentInfo] = useState({ grade: '2', classNum: '', stNo: '', name: '' });
+
+                const exportToDocx = () => {
+                    if(!window.docx) {
+                        alert("문서 생성 라이브러리를 불러오지 못했습니다.");
+                        return;
+                    }
+                    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
+
+                    const doc = new Document({
+                        sections: [{
+                            properties: {},
+                            children: [
+                                new Paragraph({
+                                    text: "케플러 법칙 연습문제 평가 리포트",
+                                    heading: HeadingLevel.HEADING_1,
+                                    alignment: AlignmentType.CENTER,
+                                    spacing: { after: 400 }
+                                }),
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({ text: "학생 정보: ", bold: true, size: 28 }),
+                                        new TextRun({ text: `${studentInfo.grade}학년 ${studentInfo.classNum}반 ${studentInfo.stNo}번 ${studentInfo.name}`, size: 28 })
+                                    ],
+                                    spacing: { after: 200 }
+                                }),
+                                new Paragraph({
+                                    children: [
+                                        new TextRun({ text: "최종 평가 점수: ", bold: true, size: 36, color: "0052cc" }),
+                                        new TextRun({ text: `${getScore()} / ${getTotalItems()} 문항 정답`, size: 36, bold: true, color: "ff0000" })
+                                    ],
+                                    spacing: { after: 600 }
+                                }),
+                                new Paragraph({
+                                    text: "[상세 해설 및 정답 요약]",
+                                    heading: HeadingLevel.HEADING_2,
+                                    spacing: { after: 300 }
+                                }),
+                                new Paragraph({ text: "[1번. 타원 궤도 성질] 제2법칙(면적 속도 일정)에 의해 태양과 가장 가까운 근일점(A)에서 속력이 가장 빠르고, 원일점(B)에서 가장 느립니다. 제3법칙(조화 법칙)에 의해 주기의 제곱은 장반경(긴반지름) a의 세제곱에 비례합니다.", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[2번. 제3법칙 계산] T² ∝ a³ 이므로, 주기가 8배(8T)가 되면 주기의 제곱은 64배가 됩니다. 어떠한 수의 세제곱이 64가 되려면 해당 값은 4가 되어야 합니다. 따라서 장반경은 4a입니다.", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[3번. 면적 속도] 훑고 지나간 면적이 S로 같다면 어느 지점이든 걸린 시간은 T로 항상 같습니다. 2S가 되었다면 걸린 시간도 정확히 2배(2T)가 됩니다.", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[4번. 원운동 분석(1)] 인공위성의 속력은 v = √(GM/r)이므로 중심 행성의 질량(M)과 궤도 반지름(r)에만 영향을 받습니다. 거리가 가까운 A가 중력이 크고(1/r²), 가속도가 크고(1/r²), 속력이 빠르고(1/√r), 주기가 짧습니다.", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[5번. 원운동 분석(2)] 반지름 비가 r:4r=1:4 입니다. v는 1/√r에 비례하므로 속력비는 √4 : √1 = 2:1 입니다. 주기는 r^(3/2)에 비례하므로 1:8 입니다.", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[6번. 목성과 지구 물리량 분석] ㄱ. 중력의 크기 F = G(Mm/R²)입니다. 지구에 작용하는 힘은 m/r²에 비례하고 목성은 300m/25r² = 12m/r²에 비례하므로 목성이 더 큽니다. (O) ㄴ. 구심 가속도 a = GM/R² 로 행성의 질량(m)과 무관하며 거리가 짧은 지구가 더 큽니다. (O) ㄷ. 제3법칙(T² ∝ R³)에 의해 주기의 제곱은 125배입니다. 주기는 25배가 아니라 √125 ≈ 11.18배입니다. (X)", spacing: { after: 240 } }),
+                                new Paragraph({ text: "[7번. 인공위성 조화의 법칙] T² ∝ r³ 입니다. 궤도 반지름이 2배가 되면 주기의 제곱은 8배가 됩니다. 따라서 주기는 √8 배(혹은 2√2 배)가 됩니다.", spacing: { after: 240 } })
+                            ]
+                        }]
+                    });
+
+                    Packer.toBlob(doc).then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        const safeName = studentInfo.name.trim() ? studentInfo.name.trim() : '이름없음';
+                        a.download = `케플러리포트_${studentInfo.grade}학년_${studentInfo.classNum}반_${studentInfo.stNo}번_${safeName}.docx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        window.URL.revokeObjectURL(url);
+                    });
+                };
 
                 const questions = [
                     {
@@ -306,13 +368,13 @@ def run_practice():
                                 <text x="165" y="100" fontSize="12" fontWeight="bold">r</text>
                                 <circle cx="185" cy="100" r="8" fill="#facc15" />
                                 <text x="195" y="92" fontSize="14" fontWeight="bold">A</text>
-                                <path d="M 185 100 L 195 80" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
+                                <path d="M 185 100 L 168 70" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
                                 
                                 <line x1="150" y1="120" x2="70" y2="60" stroke="#64748b" strokeDasharray="2,2" />
                                 <text x="100" y="80" fontSize="12" fontWeight="bold">2r</text>
                                 <circle cx="70" cy="60" r="8" fill="#facc15" />
                                 <text x="60" y="50" fontSize="14" fontWeight="bold">B</text>
-                                <path d="M 70 60 L 50 75" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
+                                <path d="M 70 60 L 55 80" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
                             </svg>
                         );
                     } else if (type === 'circular_r_4r') {
@@ -384,13 +446,13 @@ def run_practice():
                                 <text x="165" y="100" fontSize="12" fontWeight="bold">r</text>
                                 <circle cx="185" cy="100" r="8" fill="#94a3b8" />
                                 <text x="195" y="92" fontSize="14" fontWeight="bold">A</text>
-                                <path d="M 185 100 L 175 80" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
+                                <path d="M 185 100 L 168 70" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
                                 
                                 <line x1="150" y1="120" x2="70" y2="60" stroke="#64748b" strokeDasharray="2,2" />
                                 <text x="100" y="80" fontSize="12" fontWeight="bold">2r</text>
                                 <circle cx="70" cy="60" r="8" fill="#94a3b8" />
                                 <text x="60" y="50" fontSize="14" fontWeight="bold">B</text>
-                                <path d="M 70 60 L 50 75" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
+                                <path d="M 70 60 L 55 80" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
                             </svg>
                         );
                     }
@@ -439,7 +501,7 @@ def run_practice():
                             </div>
                             <div className="flex gap-4">
                                 <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">오답 확인하기</button>
-                                <button className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">리포트 다운로드 (준비중)</button>
+                                <button onClick={exportToDocx} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">리포트 다운로드 (DOCX)</button>
                             </div>
                         </div>
                     );
@@ -447,6 +509,27 @@ def run_practice():
 
                 return (
                     <div className="max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] mt-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+                            <h3 className="text-white text-2xl font-black mb-6">📝 학생 정보 입력</h3>
+                            <div className="grid grid-cols-4 gap-4">
+                                <div>
+                                    <label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">학년</label>
+                                    <input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="예: 2" value={studentInfo.grade} onChange={e=>setStudentInfo({...studentInfo, grade: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">반</label>
+                                    <input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="반" value={studentInfo.classNum} onChange={e=>setStudentInfo({...studentInfo, classNum: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">번호</label>
+                                    <input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="번호" value={studentInfo.stNo} onChange={e=>setStudentInfo({...studentInfo, stNo: e.target.value})} />
+                                </div>
+                                <div>
+                                    <label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">이름</label>
+                                    <input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold flex-1" placeholder="이름" value={studentInfo.name} onChange={e=>setStudentInfo({...studentInfo, name: e.target.value})} />
+                                </div>
+                            </div>
+                        </div>
                         {questions.slice(0, currentStep + 1).map((q, i) => (
                             <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50 relative overflow-hidden group animate-in slide-in-from-right duration-500">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
