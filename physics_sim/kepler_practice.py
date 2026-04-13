@@ -42,7 +42,9 @@ def run_practice():
                     q2: Array(1).fill(''),
                     q3: Array(2).fill(''),
                     q4: Array(5).fill(''),
-                    q5: Array(2).fill('')
+                    q5: Array(2).fill(''),
+                    q6: Array(1).fill(''),
+                    q7: Array(1).fill('')
                 });
                 const [currentStep, setCurrentStep] = useState(0);
                 const [submitted, setSubmitted] = useState(false);
@@ -162,6 +164,36 @@ def run_practice():
                                 type: 'choice',
                                 options: ['1 : 2', '1 : 4', '1 : 8', '8 : 1'],
                                 correct: 2
+                            }
+                        ]
+                    },
+                    {
+                        id: 'q6',
+                        type: 'multiple_sub_questions',
+                        title: '행성의 궤도와 물리량 분석',
+                        text: '그림은 태양 주위를 도는 지구와 목성의 질량과 공전 궤도의 반지름을 간략하게 나타낸 것입니다.',
+                        view: 'sun_earth_jupiter',
+                        items: [
+                            {
+                                label: '이에 대한 설명으로 옳은 것만을 [보기]에서 있는 대로 고른 것은? [보기: ㄱ. 태양으로부터 받는 힘은 목성이 지구보다 크다. ㄴ. 구심 가속도의 크기는 지구가 목성보다 크다. ㄷ. 목성의 공전 주기는 지구의 약 25배이다.]',
+                                type: 'choice',
+                                options: ['① ㄱ', '② ㄴ', '③ ㄱ, ㄴ', '④ ㄱ, ㄷ', '⑤ ㄴ, ㄷ'],
+                                correct: 2
+                            }
+                        ]
+                    },
+                    {
+                        id: 'q7',
+                        type: 'multiple_sub_questions',
+                        title: '인공위성의 공전 주기',
+                        text: '그림과 같이 질량이 같은 인공위성 A, B가 반지름이 각각 r, 2r인 원 궤도를 따라 지구 주위를 등속 원운동하고 있습니다.',
+                        view: 'circular_r_2r_earth',
+                        items: [
+                            {
+                                label: 'B의 주기는 A의 몇 배인가?',
+                                type: 'choice',
+                                options: ['① 1/8 배', '② 1/4 배', '③ √2 배', '④ 4 배', '⑤ √8 배'],
+                                correct: 4
                             }
                         ]
                     }
@@ -301,15 +333,64 @@ def run_practice():
                                     <circle cx="78" cy="128" r="6" fill="#f59e0b" />
                                     <text x="90" y="140" fontSize="14" fontWeight="bold">A</text>
                                     <line x1="78" y1="128" x2="98" y2="108" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
-                                    <text x="105" y="105" fontSize="12" fill="#ef4444" fontWeight="bold">v_A</text>
+                                    <text x="105" y="105" fontSize="12" fill="#ef4444" fontWeight="bold">vA</text>
                                     
                                     <line x1="50" y1="100" x2="210" y2="100" stroke="#475569" strokeDasharray="2,2" />
                                     <text x="130" y="95" fontSize="12" fontWeight="bold">4r</text>
                                     <circle cx="210" cy="100" r="6" fill="#f59e0b" />
                                     <text x="225" y="105" fontSize="14" fontWeight="bold">B</text>
                                     <line x1="210" y1="100" x2="210" y2="70" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow)" />
-                                    <text x="215" y="65" fontSize="12" fill="#ef4444" fontWeight="bold">v_B</text>
+                                    <text x="215" y="65" fontSize="12" fill="#ef4444" fontWeight="bold">vB</text>
                                 </g>
+                            </svg>
+                        );
+                    } else if (type === 'sun_earth_jupiter') {
+                        svgContent = (
+                            <svg viewBox="0 0 450 160" className="w-full max-w-[450px]">
+                                <clipPath id="jupiterClip">
+                                    <rect x="0" y="0" width="450" height="160" />
+                                </clipPath>
+                                <g clipPath="url(#jupiterClip)">
+                                    <circle cx="280" cy="80" r="50" fill="none" stroke="#60a5fa" strokeWidth="1.5" />
+                                    <circle cx="280" cy="80" r="12" fill="#f59e0b" />
+                                    <text x="280" y="60" fontSize="12" textAnchor="middle" fontWeight="bold" fill="#f59e0b">태양</text>
+                                    
+                                    <circle cx="330" cy="80" r="6" fill="#10b981" />
+                                    <text x="345" y="84" fontSize="12" fontWeight="bold" fill="#1e293b">지구</text>
+                                    <text x="330" y="65" fontSize="11" fontWeight="bold" textAnchor="middle" fill="#0f172a">m</text>
+                                    <line x1="280" y1="80" x2="330" y2="80" stroke="#94a3b8" strokeDasharray="2,2" />
+                                    <text x="305" y="75" fontSize="12" fontWeight="bold">r</text>
+                                    
+                                    <path d="M 120 20 Q 90 80 120 140" fill="none" stroke="#22c55e" strokeWidth="1.5" markerStart="url(#arrow_green)" markerEnd="url(#arrow_green)"/>
+                                    <circle cx="106" cy="80" r="10" fill="#f97316" />
+                                    <text x="106" y="105" fontSize="12" textAnchor="middle" fontWeight="bold" fill="#ea580c">목성</text>
+                                    <text x="113" y="70" fontSize="11" fontWeight="bold" fill="#0f172a">300m</text>
+                                    
+                                    <line x1="106" y1="80" x2="280" y2="80" stroke="#94a3b8" strokeDasharray="2,2" />
+                                    <text x="193" y="75" fontSize="12" fontWeight="bold">5r</text>
+                                </g>
+                            </svg>
+                        );
+                    } else if (type === 'circular_r_2r_earth') {
+                        svgContent = (
+                            <svg viewBox="0 0 300 240" className="w-full max-w-[300px]">
+                                <circle cx="150" cy="120" r="40" fill="none" stroke="#60a5fa" strokeDasharray="4,4" />
+                                <circle cx="150" cy="120" r="100" fill="none" stroke="#60a5fa" strokeDasharray="4,4" />
+                                <circle cx="150" cy="120" r="16" fill="#93c5fd" />
+                                <circle cx="150" cy="120" r="8" fill="#10b981" />
+                                <text x="150" y="115" fontSize="12" textAnchor="middle" fontWeight="bold" fill="#1e3a8a">지구</text>
+                                
+                                <line x1="150" y1="120" x2="185" y2="100" stroke="#64748b" strokeDasharray="2,2" />
+                                <text x="165" y="100" fontSize="12" fontWeight="bold">r</text>
+                                <circle cx="185" cy="100" r="8" fill="#94a3b8" />
+                                <text x="195" y="92" fontSize="14" fontWeight="bold">A</text>
+                                <path d="M 185 100 L 175 80" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
+                                
+                                <line x1="150" y1="120" x2="70" y2="60" stroke="#64748b" strokeDasharray="2,2" />
+                                <text x="100" y="80" fontSize="12" fontWeight="bold">2r</text>
+                                <circle cx="70" cy="60" r="8" fill="#94a3b8" />
+                                <text x="60" y="50" fontSize="14" fontWeight="bold">B</text>
+                                <path d="M 70 60 L 50 75" fill="none" stroke="#3b82f6" strokeWidth="2" markerEnd="url(#arrow_blue)" />
                             </svg>
                         );
                     }
@@ -320,6 +401,12 @@ def run_practice():
                                 <defs>
                                     <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
                                         <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                                    </marker>
+                                    <marker id="arrow_blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                                    </marker>
+                                    <marker id="arrow_green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#22c55e" />
                                     </marker>
                                 </defs>
                             </svg>
@@ -345,6 +432,8 @@ def run_practice():
                                         <p><strong>[3번. 면적 속도]</strong><br/>훑고 지나간 면적이 S로 같다면 어느 지점이든 걸린 시간은 T로 항상 같습니다. 만약 지나간 면적이 2S가 되었다면 걸린 시간도 정확히 2배(2T)가 됩니다.</p>
                                         <p><strong>[4번. 원운동 분석(1)]</strong><br/>인공위성의 속력은 v = √(GM/r)이므로 중심 행성의 질량(M)과 궤도 반지름(r)에만 영향을 받습니다. 거리가 가까운 A가 중력이 크고(1/r²), 가속도가 크고(1/r²), 속력이 빠르고(1/√r), 주기가 짧습니다.</p>
                                         <p><strong>[5번. 원운동 분석(2)]</strong><br/>반지름 비가 r:4r=1:4 입니다. v는 1/√r에 비례하므로 속력비는 √4 : √1 = 2:1 입니다. 주기는 r^(3/2)에 비례하므로 1:8 입니다.</p>
+                                        <p><strong>[6번. 목성과 지구 물리량 분석]</strong><br/>ㄱ. 중력의 크기 F = G(Mm/R²)입니다. 지구에 작용하는 힘은 m/r²에 비례하고 목성은 300m/25r² = 12m/r²에 비례하므로 목성이 더 큽니다. (O)<br/> ㄴ. 구심 가속도 a = GM/R² 로 행성의 질량(m)과 무관하며 거리가 짧은 지구가 더 큽니다. (O)<br/> ㄷ. 제3법칙(T² ∝ R³)에 의해 주기의 제곱은 125배입니다. 주기는 25배가 아니라 √125 ≈ 11.18배입니다. (X)</p>
+                                        <p><strong>[7번. 인공위성 조화의 법칙]</strong><br/>T² ∝ r³ 입니다. 궤도 반지름이 2배가 되면 주기의 제곱은 8배가 됩니다. 따라서 주기는 √8 배(혹은 2√2 배)가 됩니다.</p>
                                     </div>
                                 </div>
                             </div>
@@ -381,7 +470,7 @@ def run_practice():
                                                         {sub.label}
                                                     </p>
                                                     {sub.type === 'choice' ? (
-                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                                                        <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
                                                             {sub.options.map((opt, oIdx) => (
                                                                 <button 
                                                                     key={oIdx}
@@ -445,7 +534,7 @@ def run_practice():
     </body>
     </html>
     """
-    components.html(react_code, height=1800, scrolling=True)
+    components.html(react_code, height=2000, scrolling=True)
 
 if __name__ == "__main__":
     run_practice()
