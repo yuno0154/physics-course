@@ -18,6 +18,7 @@ def run_practice():
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
         <script src="https://unpkg.com/lucide@latest"></script>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
@@ -44,6 +45,83 @@ def run_practice():
                 });
                 const [currentStep, setCurrentStep] = useState(0);
                 const [submitted, setSubmitted] = useState(false);
+                const [studentInfo, setStudentInfo] = useState({ grade: '3', classNum: '', stNo: '', name: '' });
+
+                const analyzeResults = () => {
+                    let totalItems = 0;
+                    let correctItems = 0;
+                    const itemAnalytics = questions.map(q => {
+                        let subResults = [];
+                        if (q.type === 'ox') {
+                            subResults = q.items.map((item, idx) => answers[q.id] && answers[q.id][idx] === q.correct[idx]);
+                        } else if (q.type === 'sim_problem') {
+                            subResults = q.items.map((item, idx) => answers[q.id] && answers[q.id][idx] && answers[q.id][idx].toString().trim() === item.correct);
+                        } else if (q.type === 'graph_problem') {
+                            subResults = q.items.map((item, idx) => {
+                                const ans = answers[q.id] ? answers[q.id][idx] : null;
+                                if (item.type === 'choice') {
+                                    return parseInt(ans) === item.correct;
+                                } else {
+                                    return ans && ans.toString().trim() === item.correct;
+                                }
+                            });
+                        } else if (q.type === 'concept_choice' || q.type === 'multi_choice') {
+                            const ans = answers[q.id];
+                            subResults = [ans !== null && parseInt(ans) === q.correct];
+                        }
+                        
+                        subResults.forEach(r => {
+                            totalItems++;
+                            if(r) correctItems++;
+                        });
+
+                        const isAllCorrect = subResults.every(v => v);
+                        return { id: q.id, title: q.title, subResults, isAllCorrect };
+                    });
+                    return { totalItems, correctItems, itemAnalytics };
+                };
+
+                const getExplanationText = (id) => {
+                    const explanations = {
+                        q1: "등속 원운동은 속도(방향 포함)가 매순간 변하므로 등가속도가 아닌 가속도 운동입니다. 구심력 크기는 일정하나 중심을 향하므로 방향이 변합니다.",
+                        q2: "ω = 2π/2 = 3.14 rad/s, T=2s, f=0.5Hz, a = v²/r = (2π)²/2 ≈ 19.7, F = 39.5N.",
+                        q3: "1회전에 2t₀가 소요되므로 주기는 2t₀입니다. ω=2π/2t₀ = π/t₀. 가속도는 중심으로 향합니다.",
+                        q4: "B가 정지해 있으므로 실의 장력 T=2mg입니다. 구심력 mv²/r = 2mg, v=√(2rg). (ㄱ, ㄷ)",
+                        q5: "영희의 거리가 2배이므로 속력과 가속도가 2배입니다. 구심력은 질량이 절반이라 철수와 같습니다. (ㄱ, ㄴ)",
+                        q6: "접선 가속도가 일정하므로 속력이 비례 증가하며, 추진력이 사라진 이후 일정한 속력을 유지합니다. (ㄱ, ㄷ)"
+                    };
+                    return explanations[id] || "";
+                };
+
+                const exportToDocx = () => {
+                    if(!window.docx) return alert("라이브러리 로드 실패");
+                    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
+                    const results = analyzeResults();
+                    
+                    const doc = new Document({
+                        sections: [{
+                            properties: {},
+                            children: [
+                                new Paragraph({ text: "원운동 연습문제 평가 리포트", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
+                                new Paragraph({ children: [new TextRun({ text: "학생 정보: ", bold: true, size: 28 }), new TextRun({ text: `${studentInfo.grade}학년 ${studentInfo.classNum}반 ${studentInfo.stNo}번 ${studentInfo.name}`, size: 28 })], spacing: { after: 200 } }),
+                                new Paragraph({ children: [new TextRun({ text: "최종 평가: ", bold: true, size: 36, color: "0052cc" }), new TextRun({ text: `${results.correctItems} / ${results.totalItems} 문항 정답`, size: 36, bold: true, color: "ff0000" })], spacing: { after: 600 } }),
+                                new Paragraph({ text: "[오답 해설 요약]", heading: HeadingLevel.HEADING_2, spacing: { after: 300 } }),
+                                ...results.itemAnalytics.filter(r => !r.isAllCorrect).map(r => new Paragraph({ text: `[${r.id.replace('q','')}번. ${r.title}] ${getExplanationText(r.id)}`, spacing: { after: 240 } }))
+                            ]
+                        }]
+                    });
+
+                    Packer.toBlob(doc).then(blob => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        const safeName = studentInfo.name.trim() ? studentInfo.name.trim() : '이름없음';
+                        a.download = `원운동리포트_${studentInfo.grade}학년_${studentInfo.classNum}반_${studentInfo.stNo}번_${safeName}.docx`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    });
+                };
 
                 const questions = [
                     { 
@@ -386,6 +464,61 @@ def run_practice():
                 };
 
                 if (submitted) {
+                    const results = analyzeResults();
+                    const wrongItems = results.itemAnalytics.filter(r => !r.isAllCorrect);
+                    
+                    return (
+                        <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
+                            <h3 className="text-3xl font-black mb-6 italic">평가 결과 리포트</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                                <div className="space-y-4 flex flex-col justify-between">
+                                    <div className="bg-white/10 p-8 rounded-3xl text-center border border-white/10">
+                                        <p className="text-sm text-sky-400 font-bold mb-2 uppercase">최종 점수</p>
+                                        <p className="text-6xl font-black">{results.correctItems} / {results.totalItems}</p>
+                                    </div>
+                                    <div className="bg-white/10 p-6 rounded-3xl flex-1 border border-white/10">
+                                        <p className="text-sm text-sky-400 font-bold mb-3 uppercase">문항별 정답 확인</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {results.itemAnalytics.map((res, i) => (
+                                                <div key={res.id} className={`p-3 rounded-xl border flex items-center justify-between ${res.isAllCorrect ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}`}>
+                                                    <span className="text-sm font-bold text-slate-300">{i+1}번</span>
+                                                    <span className="text-xs flex gap-1 flex-wrap justify-end">
+                                                        {res.subResults.map((r, ri) => (
+                                                            <span key={ri} className={`flex items-center justify-center w-5 h-5 rounded-md ${r ? 'bg-emerald-500/80 text-white' : 'bg-rose-500/80 text-white'}`}>
+                                                                {r ? 'O' : 'X'}
+                                                            </span>
+                                                        ))}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10 overflow-y-auto max-h-[400px] no-scrollbar">
+                                    <p className="text-rose-400 font-bold flex items-center gap-2"><Icon name="info" /> 오답 해설</p>
+                                    <div className="text-[13px] text-slate-300 leading-relaxed space-y-5">
+                                        {wrongItems.length === 0 ? (
+                                            <div className="p-4 bg-emerald-500/20 text-emerald-400 rounded-xl font-bold text-center">
+                                                모든 문제를 맞추셨습니다! 완벽합니다. 🎉
+                                            </div>
+                                        ) : (
+                                            wrongItems.map(r => (
+                                                <div key={r.id} className="p-4 bg-black/20 rounded-xl border border-white/5 disabled whitespace-pre-wrap">
+                                                    <strong className="text-rose-300 block mb-2">[{r.id.replace('q','')}번. {r.title}]</strong>
+                                                    {getExplanationText(r.id)}
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">오답 확인하기</button>
+                                <button onClick={exportToDocx} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">리포트 다운로드 (DOCX)</button>
+                            </div>
+                        </div>
+                    );
+                }
                     return (
                         <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
                             <h3 className="text-3xl font-black mb-6 italic">평가 결과 리포트</h3>
@@ -414,6 +547,15 @@ def run_practice():
 
                 return (
                     <div className="max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] mt-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
+                            <h3 className="text-white text-2xl font-black mb-6">📝 학생 정보 입력</h3>
+                            <div className="grid grid-cols-4 gap-4">
+                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">학년</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="예: 3" value={studentInfo.grade} onChange={e=>setStudentInfo({...studentInfo, grade: e.target.value})} /></div>
+                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">반</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="반" value={studentInfo.classNum} onChange={e=>setStudentInfo({...studentInfo, classNum: e.target.value})} /></div>
+                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">번호</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="번호" value={studentInfo.stNo} onChange={e=>setStudentInfo({...studentInfo, stNo: e.target.value})} /></div>
+                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">이름</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold flex-1" placeholder="이름" value={studentInfo.name} onChange={e=>setStudentInfo({...studentInfo, name: e.target.value})} /></div>
+                            </div>
+                        </div>
                         {questions.slice(0, currentStep + 1).map((q, i) => (
                             <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50 relative overflow-hidden group animate-in slide-in-from-right duration-500">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
