@@ -211,91 +211,139 @@ components.html(react_code, height=540, scrolling=False)
 # 탐구 표 구성
 st.markdown("### 🔍 시점에 따른 운동 및 힘 분석")
 
-with st.expander("👀 시점별 분석 결과 확인하기 (먼저 생각해 보고 클릭하세요!)"):
-    # 스타일링된 HTML 테이블
-    st.markdown("""
-    <style>
-        .physics-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-family: 'Pretendard', sans-serif;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .physics-table th {
-            background-color: #1e293b;
-            color: white;
-            padding: 15px;
-            text-align: center;
-            font-weight: 800;
-            font-size: 14px;
-            border: 1px solid #334155;
-        }
-        .physics-table td {
-            padding: 15px;
-            border: 1px solid #e2e8f0;
-            vertical-align: middle;
-            font-size: 14px;
-        }
-        .physics-table tr:nth-child(even) { background-color: #f8fafc; }
-        .label-cell { 
-            background-color: #f1f5f9; 
-            font-weight: 700; 
-            text-align: center; 
-            width: 15%;
-            color: #475569;
-        }
-        .force-tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-            margin: 2px;
-        }
-        .tag-blue { background: #dbeafe; color: #1e40af; }
-        .tag-green { background: #dcfce7; color: #166534; }
-        .tag-red { background: #fee2e2; color: #991b1b; }
-    </style>
+# 스타일링된 HTML 테이블 (각 셀마다 정답 확인 버튼 적용)
+st.markdown("""
+<style>
+    .physics-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-family: 'Pretendard', sans-serif;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .physics-table th {
+        background-color: #1e293b;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        font-weight: 800;
+        font-size: 14px;
+        border: 1px solid #334155;
+    }
+    .physics-table td {
+        padding: 15px;
+        border: 1px solid #e2e8f0;
+        vertical-align: middle;
+        font-size: 14px;
+        text-align: center;
+    }
+    .label-cell { 
+        background-color: #f1f5f9; 
+        font-weight: 700; 
+        text-align: center; 
+        width: 15%;
+        color: #475569;
+    }
+    .force-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 2px;
+    }
+    .tag-blue { background: #dbeafe; color: #1e40af; }
+    .tag-green { background: #dcfce7; color: #166534; }
+    .tag-red { background: #fee2e2; color: #991b1b; }
+    
+    /* 각 셀 정답 확인 버튼 스타일 */
+    summary {
+        cursor: pointer;
+        list-style: none;
+        background-color: #3b82f6;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-block;
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        transition: all 0.2s;
+    }
+    summary:hover { background-color: #2563eb; transform: translateY(-1px); }
+    details[open] summary { display: none; }
+    .answer-content { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+</style>
 
-    <table class="physics-table">
-        <thead>
-            <tr>
-                <th>구분</th>
-                <th>🚌 버스 밖에서 관찰한 손잡이</th>
-                <th>🙆 버스 안에서 관찰한 손잡이</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="label-cell">관찰한 운동 상태</td>
-                <td>버스의 진행 방향과 같게 <b>가속도 운동</b>을 함</td>
-                <td>움직이지 않고 한쪽으로 기울어진 채 <b>정지</b>해 있음</td>
-            </tr>
-            <tr>
-                <td class="label-cell">작용한 힘</td>
-                <td>
-                    <span class="force-tag tag-green">중력 (mg)</span>, 
-                    <span class="force-tag tag-blue">장력 (T)</span>, 
-                    <span class="force-tag tag-red">합력 (F)</span>
-                </td>
-                <td>
-                    <span class="force-tag tag-green">중력 (mg)</span>, 
-                    <span class="force-tag tag-blue">장력 (T)</span>, 
-                    <span class="force-tag tag-red">관성력 (fin)</span>
-                </td>
-            </tr>
-            <tr>
-                <td class="label-cell">운동 현상의 원인</td>
-                <td>실이 당기는 힘(장력)과 중력의 <b>합력이 알짜힘(F=ma)</b>으로 작용하여 버스와 함께 가속됨</td>
-                <td>중력, 장력, 그리고 <b>관성력(-ma)</b>이 세 힘의 평형을 이루어 정지한 것으로 보임</td>
-            </tr>
-        </tbody>
-    </table>
-    """, unsafe_allow_html=True)
+<table class="physics-table">
+    <thead>
+        <tr>
+            <th>구분</th>
+            <th>🚌 버스 밖에서 관찰한 손잡이</th>
+            <th>🙆 버스 안에서 관찰한 손잡이</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="label-cell">관찰한 운동 상태</td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">버스의 진행 방향과 같게 <b>가속도 운동</b>을 함</div>
+                </details>
+            </td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">움직이지 않고 한쪽으로 기울어진 채 <b>정지</b>해 있음</div>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td class="label-cell">작용한 힘</td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">
+                        <span class="force-tag tag-green">중력 (mg)</span>, 
+                        <span class="force-tag tag-blue">장력 (T)</span>, 
+                        <span class="force-tag tag-red">합력 (F)</span>
+                    </div>
+                </details>
+            </td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">
+                        <span class="force-tag tag-green">중력 (mg)</span>, 
+                        <span class="force-tag tag-blue">장력 (T)</span>, 
+                        <span class="force-tag tag-red">관성력 (fin)</span>
+                    </div>
+                </details>
+            </td>
+        </tr>
+        <tr>
+            <td class="label-cell">운동 현상의 원인</td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">실이 당기는 힘(장력)과 중력의 <b>합력이 알짜힘(F=ma)</b>으로 작용하여 버스와 함께 가속됨</div>
+                </details>
+            </td>
+            <td>
+                <details>
+                    <summary>정답 확인</summary>
+                    <div class="answer-content">중력, 장력, 그리고 <b>관성력(-ma)</b>이 세 힘의 평형을 이루어 정지한 것으로 보임</div>
+                </details>
+            </td>
+        </tr>
+    </tbody>
+</table>
+""", unsafe_allow_html=True)
 
-    # 탐구 질문
-    st.info("💡 **생각해보기**: 버스 안의 관찰자가 느끼는 '관성력'은 실제로 존재하는 힘일까요? 아니면 관찰자의 좌표계가 가속되기 때문에 나타나는 가상의 힘일까요?")
+# 탐구 질문
+st.info("💡 **생각해보기**: 버스 안의 관찰자가 느끼는 '관성력'은 실제로 존재하는 힘일까요? 아니면 관찰자의 좌표계가 가속되기 때문에 나타나는 가상의 힘일까요?")

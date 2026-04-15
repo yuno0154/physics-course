@@ -187,6 +187,7 @@ components.html(react_code, height=540, scrolling=False)
 st.markdown("### 📋 [탐구 문제] 엘리베이터 운동에 따른 몸무게 변화 분석")
 st.write("표는 엘리베이터가 정지해 있을 때 몸무게가 **650N**인 사람이 엘리베이터의 움직임에 따라 몸무게의 변화를 측정한 것이다.")
 
+# 스타일링된 HTML 테이블 (각 셀마다 정답 확인 버튼 적용)
 st.markdown("""
 <style>
     .elevator-table {
@@ -213,49 +214,67 @@ st.markdown("""
         border: 1px solid #e2e8f0;
         text-align: center;
         font-size: 14px;
+        vertical-align: middle;
     }
-    .elevator-table .label-col {
+    .label-col {
         background-color: #f8fafc;
         font-weight: 700;
         width: 25%;
     }
     .weight-val { font-weight: 800; color: #334155; }
-    .input-hint { color: #94a3b8; font-style: italic; font-size: 12px; }
+    
+    /* 각 셀 정답 확인 버튼 스타일 */
+    summary {
+        cursor: pointer;
+        list-style: none;
+        background-color: #0ea5e9;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-block;
+        color: white;
+        transition: all 0.2s;
+    }
+    summary:hover { background-color: #0284c7; }
+    details[open] summary { display: none; }
+    .answer-content { animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
 
 <table class="elevator-table">
     <thead>
         <tr>
             <th>구분</th>
-            <th>🚀 출발 직후의 몸무게(N)</th>
-            <th>↔ 등속 운동할 때의 몸무게(N)</th>
-            <th>🛑 멈추기 직전의 몸무게(N)</th>
+            <th>🚀 출발 직후</th>
+            <th>↔ 등속 운동</th>
+            <th>🛑 멈추기 직전</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td class="label-col">⬆️ 올라갈 때</td>
-            <td class="weight-val text-emerald-600">780 N</td>
-            <td class="weight-val">650 N</td>
-            <td class="weight-val text-rose-600">520 N</td>
+            <td class="label-col">⬆️ 올라갈 때 (몸무게)</td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val text-emerald-600">780 N</div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val">650 N</div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val text-rose-600">520 N</div></details></td>
         </tr>
         <tr>
-            <td class="label-col">⬇️ 내려갈 때</td>
-            <td class="weight-val text-rose-600">520 N</td>
-            <td class="weight-val">650 N</td>
-            <td class="weight-val text-emerald-600">780 N</td>
+            <td class="label-col">⬇️ 내려갈 때 (몸무게)</td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val text-rose-600">520 N</div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val">650 N</div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content weight-val text-emerald-600">780 N</div></details></td>
         </tr>
         <tr>
             <td class="label-col">관성력의 크기와 방향</td>
-            <td class="input-hint">? (크기, 방향)</td>
-            <td class="input-hint">0</td>
-            <td class="input-hint">? (크기, 방향)</td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>130 N (아래)</b></div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>0</b></div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>130 N (위)</b></div></details></td>
         </tr>
         <tr>
-            <td class="label-col">엘리베이터의 가속도<br>크기와 방향</td>
-            <td class="input-hint">? (크기, 방향)</td>
-            <td class="input-hint">0</td>
-            <td class="input-hint">? (크기, 방향)</td>
+            <td class="label-col">엘리베이터의 가속도</td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>2 m/s² (위)</b></div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>0</b></div></details></td>
+            <td><details><summary>확인</summary><div class="answer-content"><b>2 m/s² (아래)</b></div></details></td>
         </tr>
     </tbody>
 </table>
