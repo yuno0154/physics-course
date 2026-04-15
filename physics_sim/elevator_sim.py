@@ -40,13 +40,13 @@ react_code = """
             const [accel, setAccel] = useState(0);
             const [view, setView] = useState('external'); 
             const [isMoving, setIsMoving] = useState(false);
-            const [showForces, setShowForces] = useState(true);
+            const [selectedForces, setSelectedForces] = useState({ N: false, mg: false, F: false });
             
             const posRef = useRef(0);
             const velRef = useRef(0);
             const [renderPos, setRenderPos] = useState(0);
 
-            const g = 10; // Simplify g for the exercise match (650N weight)
+            const g = 10; 
             const m = 65; 
             const apparentWeight = m * (g + accel);
             const inertialForce = -m * accel;
@@ -70,8 +70,19 @@ react_code = """
                 return () => cancelAnimationFrame(animationId);
             }, [isMoving, accel]);
 
+            const handleReset = () => {
+                setIsMoving(false);
+                posRef.current = 0;
+                velRef.current = 0;
+                setRenderPos(0);
+            };
+
             const shaftOffset = view === 'internal' ? (renderPos % 200) : 0;
             const elevatorY = view === 'internal' ? 80 : (100 + (renderPos % 400 + 400) % 400 - 100);
+
+            const toggleForce = (f) => {
+                setSelectedForces(prev => ({ ...prev, [f]: !prev[f] }));
+            };
 
             return (
                 <div className="p-4 max-w-full mx-auto space-y-4">
@@ -83,20 +94,35 @@ react_code = """
                                         <button onClick={() => setView('external')} className={`flex-1 py-1.5 rounded-xl transition-all ${view === 'external' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-500'}`}>외부 (관성계)</button>
                                         <button onClick={() => setView('internal')} className={`flex-1 py-1.5 rounded-xl transition-all ${view === 'internal' ? 'bg-white text-sky-600 shadow-sm' : 'text-slate-500'}`}>내부 (비관성계)</button>
                                     </div>
-                                    <div className="p-4 bg-slate-50 rounded-2xl">
+                                    <div className="p-4 bg-slate-50 rounded-2xl text-left">
                                         <div className="flex justify-between text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">가속도 <span className="text-sky-600">{accel.toFixed(1)} m/s²</span></div>
                                         <input type="range" min="-10" max="10" step="1" value={accel} onChange={(e)=>setAccel(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600" />
                                         <div className="flex justify-between text-[9px] mt-1 text-slate-400 font-bold"><span>하강 가속</span><span>정지/등속</span><span>상승 가속</span></div>
                                     </div>
                                     
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                        <input type="checkbox" id="forces" checked={showForces} onChange={(e)=>setShowForces(e.target.checked)} className="w-4 h-4 accent-sky-600" />
-                                        <label htmlFor="forces">힘 벡터 표시</label>
+                                    <div className="space-y-2 text-left">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">힘 벡터 선택</div>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <button onClick={() => toggleForce('N')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.N ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                수직항력 (N)
+                                            </button>
+                                            <button onClick={() => toggleForce('mg')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.mg ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                중력 (mg)
+                                            </button>
+                                            <button onClick={() => toggleForce('F')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.F ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                {view === 'internal' ? '관성력 (f)' : '합력 (F=ma)'}
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <button onClick={()=>setIsMoving(!isMoving)} className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 ${isMoving ? 'bg-rose-500 text-white' : 'bg-sky-600 text-white shadow-lg'}`}>
-                                        <Icon name={isMoving ? "pause" : "play"} /> {isMoving ? "운행 중지" : "엘리베이터 운행"}
-                                    </button>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={()=>setIsMoving(!isMoving)} className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 ${isMoving ? 'bg-rose-500 text-white' : 'bg-sky-600 text-white shadow-lg'}`}>
+                                            <Icon name={isMoving ? "pause" : "play"} /> {isMoving ? "운행 중지" : "운동 시작"}
+                                        </button>
+                                        <button onClick={handleReset} className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all">
+                                            <Icon name="refresh-cw" size={16} /> 초기화 (Reset)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -112,11 +138,11 @@ react_code = """
                         <div className="lg:col-span-9">
                             <div className="bg-white rounded-[40px] shadow-2xl border border-slate-100 overflow-hidden relative h-[500px]">
                                 <div className="p-4 bg-slate-900 flex justify-between text-white/50 text-[10px] font-black uppercase tracking-widest">
-                                    <span>{view === 'internal' ? 'OBSERVER INSIDE (FIXED BOX)' : 'OBSERVER OUTSIDE (MOVING BOX)'}</span>
+                                    <span>{view === 'internal' ? '엘리베이터 안의 관찰자 (비관성 좌표계)' : '엘리베이터 밖의 관찰자 (관성 좌표계)'}</span>
                                     <div className="flex gap-4">
-                                        <span className="text-blue-400">● Normal Force (N)</span>
-                                        <span className="text-emerald-400">● Gravity (mg)</span>
-                                        {view==='internal' && <span className="text-rose-400">● Inertial Force (f)</span>}
+                                        <span className={`transition-opacity ${selectedForces.N ? 'text-blue-400 opacity-100' : 'opacity-20'}`}>● 수직항력 (N)</span>
+                                        <span className={`transition-opacity ${selectedForces.mg ? 'text-emerald-400 opacity-100' : 'opacity-20'}`}>● 중력 (mg)</span>
+                                        <span className={`transition-opacity ${selectedForces.F ? 'text-rose-400 opacity-100' : 'opacity-20'}`}>● {view==='internal' ? '관성력 (f)' : '합력 (F)'}</span>
                                     </div>
                                 </div>
                                 <div className="relative h-full bg-slate-50 overflow-hidden">
@@ -130,18 +156,52 @@ react_code = """
                                         <g transform={`translate(0, ${shaftOffset})`}>
                                             {[...Array(10)].map((_, i) => (
                                                 <g key={i}>
-                                                    <line x1="180" y1={i * 100 - 200} x2="160" y2={i * 100 - 200} stroke="#cbd5e1" strokeWidth="2" />
-                                                    <text x="140" y={i * 100 - 195} className="text-[10px] fill-slate-300 font-bold">{10 - i}F</text>
+                                                    <line x1="280" y1={i * 100 - 200} x2="260" y2={i * 100 - 200} stroke="#cbd5e1" strokeWidth="2" />
+                                                    <text x="240" y={i * 100 - 195} className="text-[10px] fill-slate-300 font-bold">{10 - i}F</text>
                                                 </g>
                                             ))}
                                             {[...Array(10)].map((_, i) => (
-                                                <line key={i} x1="420" y1={i * 100 - 200} x2="440" y2={i * 100 - 200} stroke="#cbd5e1" strokeWidth="2" />
+                                                <line key={i} x1="520" y1={i * 100 - 200} x2="540" y2={i * 100 - 200} stroke="#cbd5e1" strokeWidth="2" />
                                             ))}
                                         </g>
-                                        <line x1="180" y1="0" x2="180" y2="450" stroke="#e2e8f0" strokeWidth="1" />
-                                        <line x1="420" y1="0" x2="420" y2="450" stroke="#e2e8f0" strokeWidth="1" />
+                                        <line x1="280" y1="0" x2="280" y2="450" stroke="#e2e8f0" strokeWidth="1" />
+                                        <line x1="520" y1="0" x2="520" y2="450" stroke="#e2e8f0" strokeWidth="1" />
 
-                                        <g transform={`translate(200, ${elevatorY})`}>
+                                        <g transform="translate(100, 225)">
+                                            <rect x="-80" y="-120" width="160" height="240" rx="16" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="2" />
+                                            <text x="0" y="-100" textAnchor="middle" className="text-[11px] font-black fill-slate-400 italic">힘의 자유체도 (FBD)</text>
+                                            <circle cx="0" cy="0" r="10" fill="#475569" />
+                                            
+                                            {selectedForces.mg && (
+                                                <g>
+                                                    <line x1="0" y1="0" x2="0" y2="70" stroke="#10b981" strokeWidth="4" markerEnd="url(#arrow-green)" />
+                                                    <text x="15" y="60" className="text-[10px] font-bold fill-emerald-600">mg</text>
+                                                </g>
+                                            )}
+                                            {selectedForces.N && (
+                                                <g>
+                                                    <line x1="0" y1="0" x2="0" y2={-apparentWeight/10} stroke="#3b82f6" strokeWidth="4" markerEnd="url(#arrow-blue)" />
+                                                    <text x="15" y="-60" className="text-[10px] font-bold fill-blue-600">N</text>
+                                                </g>
+                                            )}
+                                            {selectedForces.F && Math.abs(accel) > 0.1 && (
+                                                <g>
+                                                    {view === 'internal' ? (
+                                                        <>
+                                                            <line x1="0" y1="0" x2="0" y2={inertialForce/10} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
+                                                            <text x="-35" y={inertialForce > 0 ? 30 : -30} className="text-[10px] font-bold fill-rose-600">f (관성력)</text>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <line x1="-20" y1="0" x2="-20" y2={-accel * 5} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
+                                                            <text x="-55" y={accel > 0 ? -30 : 30} className="text-[10px] font-bold fill-rose-600">F (합력)</text>
+                                                        </>
+                                                    )}
+                                                </g>
+                                            )}
+                                        </g>
+
+                                        <g transform={`translate(300, ${elevatorY})`}>
                                             <rect x="0" y="0" width="200" height="280" rx="20" fill="white" stroke="#94a3b8" strokeWidth="4" />
                                             <rect x="30" y="240" width="140" height="15" rx="4" fill="#334155" />
                                             <g transform="translate(100, 240) scale(0.9)">
@@ -150,19 +210,6 @@ react_code = """
                                                 <rect x="-20" y="-60" width="15" height="60" rx="4" fill="#334155" />
                                                 <rect x="5" y="-60" width="15" height="60" rx="4" fill="#334155" />
                                             </g>
-
-                                            {showForces && (
-                                                <g transform="translate(100, 160)">
-                                                    {/* mg */}
-                                                    <line x1="0" y1="0" x2="0" y2={650/10} stroke="#10b981" strokeWidth="4" markerEnd="url(#arrow-green)" />
-                                                    {/* N */}
-                                                    <line x1="0" y1="0" x2="0" y2={-apparentWeight/10} stroke="#3b82f6" strokeWidth="4" markerEnd="url(#arrow-blue)" />
-                                                    {/* f_in (only if internal) */}
-                                                    {view === 'internal' && Math.abs(accel) > 0.1 && (
-                                                        <line x1="0" y1="0" x2="0" y2={inertialForce/10} stroke="#f43f5e" strokeWidth="4" markerEnd="url(#arrow-red)" />
-                                                    )}
-                                                </g>
-                                            )}
                                         </g>
                                     </svg>
                                 </div>
@@ -254,15 +301,15 @@ st.markdown("""
     <tbody>
         <tr>
             <td class="label-col">⬆️ 올라갈 때 (몸무게)</td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val text-emerald-600">780 N</div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val">650 N</div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val text-rose-600">520 N</div></details></td>
+            <td class="weight-val text-emerald-600">780 N</td>
+            <td class="weight-val">650 N</td>
+            <td class="weight-val text-rose-600">520 N</td>
         </tr>
         <tr>
             <td class="label-col">⬇️ 내려갈 때 (몸무게)</td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val text-rose-600">520 N</div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val">650 N</div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content weight-val text-emerald-600">780 N</div></details></td>
+            <td class="weight-val text-rose-600">520 N</td>
+            <td class="weight-val">650 N</td>
+            <td class="weight-val text-emerald-600">780 N</td>
         </tr>
         <tr>
             <td class="label-col">관성력의 크기와 방향</td>
