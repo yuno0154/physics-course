@@ -112,10 +112,10 @@ react_code = """
                         <div className="lg:col-span-9">
                             <div className="bg-slate-100 rounded-[40px] shadow-2xl border border-slate-200 overflow-hidden relative h-[500px]">
                                 <div className="p-4 bg-slate-900 flex justify-between text-white/50 text-[10px] font-black uppercase tracking-widest">
-                                    <span>{view === 'internal' ? 'OBSERVER ON DISK (ROTATING FRAME)' : 'OBSERVER OFF DISK (INERTIAL FRAME)'}</span>
+                                    <span>{view === 'internal' ? '원판 위의 관찰자 (회전 좌표계)' : '원판 밖의 관찰자 (관성 좌표계)'}</span>
                                     <div className="flex gap-4">
-                                        <span className="text-emerald-500">● Elastic Force (F)</span>
-                                        {view==='internal' && <span className="text-rose-400">● Centrifugal Force (Fc)</span>}
+                                        <span className="text-emerald-500">● 탄성력 (F)</span>
+                                        {view==='internal' && <span className="text-rose-400">● 원심력 (Fc)</span>}
                                     </div>
                                 </div>
                                 <div className="relative h-full overflow-hidden bg-[radial-gradient(circle_at_center,_#eff6ff_0%,_#dbeafe_100%)]">
@@ -141,7 +141,7 @@ react_code = """
                                             {/* Spring Scale */}
                                             <line x1="0" y1="0" x2={r} y2="0" stroke="#cbd5e1" strokeWidth="6" strokeDasharray="4 2" />
                                             <rect x="20" y="-12" width="60" height="24" rx="4" fill="#f8fafc" stroke="#94a3b8" strokeWidth="2" />
-                                            <text x="50" y="4" textAnchor="middle" className="text-[10px] font-black fill-slate-500">SPRING SCALE</text>
+                                            <text x="50" y="4" textAnchor="middle" className="text-[10px] font-black fill-slate-500">용수철 저울</text>
 
                                             {/* Mass m */}
                                             <circle cx={r} cy="0" r="15" fill="#1e293b" />

@@ -40,7 +40,7 @@ react_code = """
             const [accel, setAccel] = useState(2); 
             const [view, setView] = useState('external'); 
             const [isMoving, setIsMoving] = useState(false);
-            const [showForces, setShowForces] = useState(true);
+            const [selectedForces, setSelectedForces] = useState({ T: false, mg: false, F: false });
             
             const posRef = useRef(0);
             const velRef = useRef(0);
@@ -75,6 +75,14 @@ react_code = """
                 return () => cancelAnimationFrame(animationId);
             }, [accel, isMoving, targetTheta]);
 
+            const handleReset = () => {
+                setIsMoving(false);
+                posRef.current = 0;
+                velRef.current = 0;
+                setRenderPos(0);
+                setCurrentTheta(0);
+            };
+
             const pivotX = 180; 
             const pivotY = 50;
             const bobX = pivotX - L * Math.sin(currentTheta);
@@ -85,6 +93,10 @@ react_code = """
 
             const m = 1; 
             const scale = 8; // Force vector scale
+
+            const toggleForce = (f) => {
+                setSelectedForces(prev => ({ ...prev, [f]: !prev[f] }));
+            };
 
             return (
                 <div className="p-4 max-w-full mx-auto space-y-4">
@@ -104,29 +116,41 @@ react_code = """
                                         <input type="range" min="-10" max="10" step="0.5" value={accel} onChange={(e) => setAccel(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600" />
                                     </div>
 
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                                        <input type="checkbox" id="forces" checked={showForces} onChange={(e)=>setShowForces(e.target.checked)} className="w-4 h-4 accent-blue-600" />
-                                        <label htmlFor="forces">힘 벡터 표시 (T, mg, F/f)</label>
+                                    <div className="space-y-2">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">힘 벡터 선택</div>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <button onClick={() => toggleForce('T')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.T ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                장력 (T)
+                                            </button>
+                                            <button onClick={() => toggleForce('mg')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.mg ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                중력 (mg)
+                                            </button>
+                                            <button onClick={() => toggleForce('F')} className={`px-3 py-2 rounded-xl text-[11px] font-bold transition-all border ${selectedForces.F ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-white text-slate-400 border-slate-100'}`}>
+                                                {view === 'internal' ? '관성력 (-ma)' : '합력 (F=ma)'}
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <button onClick={() => setIsMoving(!isMoving)} className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 ${isMoving ? 'bg-rose-500 text-white' : 'bg-blue-600 text-white shadow-lg'}`}>
-                                        <Icon name={isMoving ? "pause" : "play"} /> {isMoving ? "정지" : "운동 시작"}
-                                    </button>
+                                    <div className="flex flex-col gap-2">
+                                        <button onClick={() => setIsMoving(!isMoving)} className={`w-full py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 ${isMoving ? 'bg-rose-500 text-white' : 'bg-blue-600 text-white shadow-lg'}`}>
+                                            <Icon name={isMoving ? "pause" : "play"} /> {isMoving ? "정지" : "운동 시작"}
+                                        </button>
+                                        <button onClick={handleReset} className="w-full py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 bg-slate-200 text-slate-600 hover:bg-slate-300 transition-all">
+                                            <Icon name="refresh-cw" size={16} /> 초기화 (Reset)
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <div className="lg:col-span-9">
                             <div className="bg-white rounded-[40px] shadow-2xl border border-slate-100 overflow-hidden relative h-[500px]">
-                                <div className="absolute top-4 left-4 z-10 flex gap-4 pointer-events-none">
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/80 rounded-full border border-slate-200 text-[10px] font-bold">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500"></div> 장력 (T)
-                                    </div>
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/80 rounded-full border border-slate-200 text-[10px] font-bold">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500"></div> 중력 (mg)
-                                    </div>
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/80 rounded-full border border-slate-200 text-[10px] font-bold">
-                                        <div className="w-2 h-2 rounded-full bg-rose-500"></div> {view === 'internal' ? '관성력 (-ma)' : '합력 (F=ma)'}
+                                <div className="p-4 bg-slate-900 flex justify-between text-white/50 text-[10px] font-black uppercase tracking-widest">
+                                    <span>{view === 'internal' ? '버스 안의 관찰자 (비관성 좌표계)' : '버스 밖의 관찰자 (관성 좌표계)'}</span>
+                                    <div className="flex gap-4">
+                                        <span className={`transition-opacity ${selectedForces.T ? 'text-blue-400 opacity-100' : 'opacity-20'}`}>● 장력 (T)</span>
+                                        <span className={`transition-opacity ${selectedForces.mg ? 'text-emerald-400 opacity-100' : 'opacity-20'}`}>● 중력 (mg)</span>
+                                        <span className={`transition-opacity ${selectedForces.F ? 'text-rose-400 opacity-100' : 'opacity-20'}`}>● {view==='internal' ? '관성력 (-ma)' : '합력 (F)'}</span>
                                     </div>
                                 </div>
 
@@ -171,23 +195,22 @@ react_code = """
                                             <line x1="190" y1="50" x2={bobX+10} y2={bobY} stroke="white" strokeWidth="4" />
                                             <circle cx={bobX+10} cy={bobY} r="15" fill="#f1f5f9" stroke="#1e293b" strokeWidth="3" />
 
-                                            {showForces && (
-                                                <g transform={`translate(${bobX+10}, ${bobY})`}>
-                                                    {/* Tension T */}
-                                                    <line x1="0" y1="0" x2={(180 - bobX)*scale/12} y2={(50 - bobY)*scale/12} stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrow-blue)" />
-                                                    {/* Gravity mg */}
-                                                    <line x1="0" y1="0" x2="0" y2={g * scale} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />
-                                                    
-                                                    {view === 'internal' ? (
+                                            <g transform={`translate(${bobX+10}, ${bobY})`}>
+                                                {/* Tension T */}
+                                                {selectedForces.T && <line x1="0" y1="0" x2={(180 - bobX)*scale/12} y2={(50 - bobY)*scale/12} stroke="#3b82f6" strokeWidth="3" markerEnd="url(#arrow-blue)" />}
+                                                {/* Gravity mg */}
+                                                {selectedForces.mg && <line x1="0" y1="0" x2="0" y2={g * scale} stroke="#10b981" strokeWidth="3" markerEnd="url(#arrow-green)" />}
+                                                
+                                                {selectedForces.F && (
+                                                    view === 'internal' ? (
                                                         /* Inertial Force -ma */
                                                         <line x1="0" y1="0" x2={-accel * scale} y2="0" stroke="#f43f5e" strokeWidth="3" markerEnd="url(#arrow-red)" />
                                                     ) : (
-                                                        /* Net Force F=ma (drawn from end of T or separately) */
-                                                        /* Here we draw it horizontally from bob to match conceptual diagrams */
+                                                        /* Net Force F=ma */
                                                         <line x1="0" y1="0" x2={accel * scale} y2="0" stroke="#f43f5e" strokeWidth="3" markerEnd="url(#arrow-red)" />
-                                                    )}
-                                                </g>
-                                            )}
+                                                    )
+                                                )}
+                                            </g>
                                         </g>
                                     </svg>
                                 </div>

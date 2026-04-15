@@ -563,34 +563,6 @@ def run_practice():
                         </div>
                     );
                 }
-                    return (
-                        <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
-                            <h3 className="text-3xl font-black mb-6 italic">평가 결과 리포트</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                                <div className="bg-white/10 p-8 rounded-3xl text-center border border-white/10 flex flex-col justify-center">
-                                    <p className="text-sm text-sky-400 font-bold mb-2 uppercase">최종 맞춘 문항 수</p>
-                                    <p className="text-6xl font-black">{getScore()} / {getTotalItems()}</p>
-                                </div>
-                                <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10 overflow-y-auto max-h-[400px] no-scrollbar">
-                                    <p className="text-amber-400 font-bold flex items-center gap-2 text-lg"><Icon name="info" /> 문제 해설</p>
-                                    <div className="text-[13px] text-slate-300 leading-relaxed space-y-5">
-                                        <p><strong>[1번. 타원 궤도 성질]</strong><br/>제2법칙(면적 속도 일정)에 의해 태양과 가장 가까운 근일점(A)에서 속력이 가장 빠르고, 원일점(B)에서 가장 느립니다. 제3법칙(조화 법칙)에 의해 주기의 제곱은 장반경(긴반지름) a의 세제곱에 비례합니다.</p>
-                                        <p><strong>[2번. 제3법칙 계산]</strong><br/>T² ∝ a³ 이므로, 주기가 8배(8T)가 되면 주기의 제곱은 64배가 됩니다. 어떤 수의 세제곱이 64가 되려면 값은 4가 되어야 합니다. 따라서 장반경은 4a입니다.</p>
-                                        <p><strong>[3번. 면적 속도]</strong><br/>훑고 지나간 면적이 S로 같다면 어느 지점이든 걸린 시간은 T로 항상 같습니다. 만약 지나간 면적이 2S가 되었다면 걸린 시간도 정확히 2배(2T)가 됩니다.</p>
-                                        <p><strong>[4번. 원운동 분석(1)]</strong><br/>인공위성의 속력은 v = √(GM/r)이므로 중심 행성의 질량(M)과 궤도 반지름(r)에만 영향을 받습니다. 거리가 가까운 A가 중력이 크고(1/r²), 가속도가 크고(1/r²), 속력이 빠르고(1/√r), 주기가 짧습니다.</p>
-                                        <p><strong>[5번. 원운동 분석(2)]</strong><br/>반지름 비가 r:4r=1:4 입니다. v는 1/√r에 비례하므로 속력비는 √4 : √1 = 2:1 입니다. 주기는 r^(3/2)에 비례하므로 1:8 입니다.</p>
-                                        <p><strong>[6번. 목성과 지구 물리량 분석]</strong><br/>ㄱ. 중력의 크기 F = G(Mm/R²)입니다. 지구에 작용하는 힘은 m/r²에 비례하고 목성은 300m/25r² = 12m/r²에 비례하므로 목성이 더 큽니다. (O)<br/> ㄴ. 구심 가속도 a = GM/R² 로 행성의 질량(m)과 무관하며 거리가 짧은 지구가 더 큽니다. (O)<br/> ㄷ. 제3법칙(T² ∝ R³)에 의해 주기의 제곱은 125배입니다. 주기는 25배가 아니라 √125 ≈ 11.18배입니다. (X)</p>
-                                        <p><strong>[7번. 인공위성 조화의 법칙]</strong><br/>T² ∝ r³ 입니다. 궤도 반지름이 2배가 되면 주기의 제곱은 8배가 됩니다. 따라서 주기는 √8 배(혹은 2√2 배)가 됩니다.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">오답 확인하기</button>
-                                <button onClick={exportToDocx} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">리포트 다운로드 (DOCX)</button>
-                            </div>
-                        </div>
-                    );
-                }
 
                 return (
                     <div className="max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
