@@ -2,10 +2,11 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_practice():
+    # Note: st.set_page_config is handled by main_app.py when using st.navigation
     st.title("📝 원운동 복습 및 연습 문제")
     st.markdown("""
     등속 원운동의 성분 분석과 관련된 핵심 개념을 파악하고 실전 문제를 해결해 보세요.
-    모든 문제를 풀고 '제출' 버튼을 누르면 정답 확인과 리포트 출력이 가능합니다.
+    모든 문제를 풀고 '제출하기' 버튼을 누르면 정답 확인과 해설 리포트가 출력됩니다.
     """)
 
     react_code = """
@@ -23,25 +24,259 @@ def run_practice():
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap');
             body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; background: transparent; }
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         </style>
     </head>
     <body>
         <div id="root"></div>
         <script type="text/babel">
-            const { useState, useEffect } = React;
+            const { useState, useEffect, useMemo } = React;
+
+            // --- Constants & Data ---
+            const QUESTIONS_DATA = [
+                {
+                    id: 'q1',
+                    type: 'multiple_sub_questions',
+                    title: '원운동의 성질 분석',
+                    text: '등속 원운동하는 물체의 물리적 성질에 대한 설명입니다. 옳은 것만 골라보세요.',
+                    view: 'circular_basic',
+                    items: [
+                        {
+                            label: '(1) 등속 원운동하는 물체의 가속도에 대한 설명으로 옳은 것은?',
+                            type: 'choice',
+                            options: ['가속도가 0이다', '가속도가 일정하다', '가속도의 크기만 일정하다', '방향만 일정하다'],
+                            correct: 2
+                        },
+                        {
+                            label: '(2) 물체에 작용하는 알짜힘(구심력)의 방향은?',
+                            type: 'choice',
+                            options: ['접선 방향', '원중심 방향', '원심력 방향', '매순간 변하지 않는다'],
+                            correct: 1
+                        }
+                    ]
+                },
+                {
+                    id: 'q2',
+                    type: 'multiple_sub_questions',
+                    title: '원운동 물리량 계산',
+                    text: '반지름(r)이 2m이고질량이 2kg인 물체가 v = 2π m/s의 속력으로 등속 원운동하고 있습니다. (π = 3.14로 계산하시오)',
+                    view: 'circular_calc',
+                    items: [
+                        { label: '1. 각속도(ω)는 얼마인가?', type: 'input', unit: 'rad/s', correct: '3.14' },
+                        { label: '2. 공전 주기(T)는 몇 초인가?', type: 'input', unit: 's', correct: '2' },
+                        { label: '3. 구심 가속도의 크기는?', type: 'input', unit: 'm/s²', correct: '19.72' }
+                    ]
+                },
+                {
+                    id: 'q3',
+                    type: 'multiple_sub_questions',
+                    title: '속도 성분 그래프 분석',
+                    text: '그림은 xy 평면에서 원운동하는 물체 A의 x축, y축 방향 속 성분 vx, vy를 시간에 따라 나타낸 것입니다.',
+                    view: 'velocity_graphs',
+                    items: [
+                        {
+                            label: '(1) 물체의 공전 주기는 얼마인가?',
+                            type: 'input',
+                            unit: 't₀',
+                            correct: '2'
+                        },
+                        {
+                            label: '(2) t = t₀일 때 물체의 가속도 방향은?',
+                            type: 'choice',
+                            options: ['+x 방향', '-x 방향', '+y 방향', '-y 방향'],
+                            correct: 1
+                        }
+                    ]
+                },
+                {
+                    id: 'q4',
+                    type: 'multiple_sub_questions',
+                    title: '등속 원운동과 장력의 평형',
+                    text: '질량이 각각 m, 2m인 물체 A, B가 실로 연결되어 있습니다. A는 반지름 r인 원운동을 하고, B는 정지해 있습니다.',
+                    view: 'table_balance',
+                    items: [
+                        {
+                            label: 'A에 작용하는 구심력의 크기는 얼마인가?',
+                            type: 'choice',
+                            options: ['mg', '2mg', '0.5mg', 'g'],
+                            correct: 1
+                        },
+                        {
+                            label: 'A의 공전 속력 v를 구하시오.',
+                            type: 'choice',
+                            options: ['√(rg)', '√(2rg)', '2√(rg)', '√(0.5rg)'],
+                            correct: 1
+                        }
+                    ]
+                },
+                {
+                    id: 'q5',
+                    type: 'multiple_sub_questions',
+                    title: '회전 장치에서의 물리량 비교',
+                    text: '질량이 2m, m인 철수와 영희가 회전축으로부터 각각 r, 2r 거리에 앉아 등속 원운동하고 있습니다.',
+                    view: 'disk_rotation',
+                    items: [
+                        {
+                            label: '철수와 영희의 각속도(ω) 관계는?',
+                            type: 'choice',
+                            options: ['철수가 더 크다', '영희가 더 크다', '서로 같다'],
+                            correct: 2
+                        },
+                        {
+                            label: '철수와 영희에게 작용하는 구심력의 크기비(철수:영희)는?',
+                            type: 'choice',
+                            options: ['1 : 1', '1 : 2', '2 : 1', '1 : 4'],
+                            correct: 0
+                        }
+                    ]
+                },
+                {
+                    id: 'q6',
+                    type: 'multiple_sub_questions',
+                    title: '가변 속력 원운동의 분석',
+                    text: '반지름 100m인 원 궤도를 도는 로켓의 속력이 시간 t까지 일정하게 증가하다가 그 이후 일정(10m/s)하게 유지됩니다.',
+                    view: 'rocket_v_t',
+                    items: [
+                        {
+                            label: 't 이후 로켓의 구심 가속도의 크기는?',
+                            type: 'input',
+                            unit: 'm/s²',
+                            correct: '1'
+                        },
+                        {
+                            label: '0초에서 t까지 접선 가속도에 대한 설명으로 옳은 것은?',
+                            type: 'choice',
+                            options: ['0이다', '일정하다', '증가한다', '알 수 없다'],
+                            correct: 1
+                        }
+                    ]
+                }
+            ];
+
+            const EXPLANATIONS = {
+                q1: "등속 원운동은 속력은 일정하지만 운동 방향이 매순간 변하므로 '가속도 운동'입니다. 가속도의 크기(v²/r)는 일정하지만 방향이 항상 원의 중심을 향하므로 방향이 변하는 가속도 운동입니다.",
+                q2: "1. v=rω 에서 ω = v/r = 2π/2 = 3.14 rad/s 입니다.\\n2. T = 2π/ω = 2s 입니다.\\n3. a = v²/r = (2π)² / 2 = 2π² ≈ 19.72 m/s² 입니다.",
+                q3: "속도 성분이 sin, cos 파형을 그리며 한 주기를 도는 데 걸리는 시간은 2t₀입니다. t=t₀일 때 vx=0이고 vy는 최대 음수이므로 물체는 원의 가장 윗부분에서 아래로 움직이는 중이며, 가속도(중심 방향)는 -x 방향이 됩니다.",
+                q4: "B가 정지해 있으므로 실의 장력 T는 B의 무게 2mg와 같습니다. 이 장력이 A의 구심력(mv²/r)이 됩니다. 따라서 mv²/r = 2mg 식을 정리하면 v = √(2rg)가 됩니다.",
+                q5: "같은 회전판 위에 있으므로 각속도 ω는 같습니다. 구심력 F = mrω² 입니다. 철수는 (2m)rω², 영희는 (m)(2r)ω² 으로 두 힘의 크기는 1:1로 같습니다.",
+                q6: "구심 가속도 a = v²/r 입니다. t 이후 v=10, r=100 이므로 a = 100/100 = 1 m/s² 입니다. 0~t 구간에서 속력이 일정하게 증가(일차함수)하므로 접선 가속도(dv/dt)는 기울기로 일정합니다."
+            };
+
+            // --- Components ---
             const Icon = ({ name, size = 18, className = "" }) => {
                 useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
                 return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
             };
 
+            const ProblemView = ({ type }) => {
+                if (type === 'none') return null;
+                
+                let svgInner = null;
+                if (type === 'circular_basic') {
+                    svgInner = (
+                        <g transform="translate(175, 100)">
+                            <circle cx="0" cy="0" r="70" fill="none" stroke="#60a5fa" strokeWidth="2" strokeDasharray="4,4" />
+                            <circle cx="0" cy="0" r="4" fill="#1e293b" />
+                            <line x1="0" y1="0" x2="60" y2="-35" stroke="#94a3b8" strokeDasharray="2,2" />
+                            <circle cx="60" cy="-35" r="8" fill="#f59e0b" />
+                            <path d="M 60 -35 L 85 -75" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow_basic)" />
+                            <text x="80" y="-80" fontSize="12" fill="#ef4444" fontWeight="bold">v</text>
+                            <path d="M 60 -35 L 20 -12" fill="none" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow_green)" />
+                            <text x="15" y="-5" fontSize="12" fill="#10b981" fontWeight="bold">F</text>
+                        </g>
+                    );
+                } else if (type === 'circular_calc') {
+                    svgInner = (
+                        <g transform="translate(175, 100)">
+                            <circle cx="0" cy="0" r="60" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" />
+                            <circle cx="0" cy="0" r="4" fill="#475569" />
+                            <line x1="0" y1="0" x2="60" y2="0" stroke="#64748b" strokeWidth="2" />
+                            <text x="25" y="-5" fontSize="12" fontWeight="bold">r=2m</text>
+                            <circle cx="60" cy="0" r="10" fill="#8b5cf6" />
+                            <text x="60" y="3" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">2kg</text>
+                            <path d="M 60 0 L 60 -40" fill="none" stroke="#f43f5e" strokeWidth="2" markerEnd="url(#arrow_basic)" />
+                            <text x="70" y="-20" fontSize="12" fill="#f43f5e" fontWeight="extrabold">v</text>
+                        </g>
+                    );
+                } else if (type === 'velocity_graphs') {
+                    svgInner = (
+                        <g transform="translate(50, 40)">
+                            <text x="0" y="-10" fontSize="10" fontWeight="bold" fill="#64748b">vx-t 그래프</text>
+                            <line x1="0" y1="30" x2="100" y2="30" stroke="#cbd5e1" />
+                            <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" />
+                            <path d="M 10 30 Q 35 60 60 30 Q 85 0 100 20" fill="none" stroke="#f43f5e" strokeWidth="2" />
+                            <text x="60" y="45" fontSize="8">t₀</text>
+                            
+                            <g transform="translate(150, 0)">
+                                <text x="0" y="-10" fontSize="10" fontWeight="bold" fill="#64748b">vy-t 그래프</text>
+                                <line x1="0" y1="30" x2="100" y2="30" stroke="#cbd5e1" />
+                                <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" />
+                                <path d="M 10 0 Q 35 30 60 60 Q 85 30 100 0" fill="none" stroke="#3b82f6" strokeWidth="2" />
+                                <text x="60" y="45" fontSize="8">t₀</text>
+                            </g>
+                        </g>
+                    );
+                } else if (type === 'table_balance') {
+                    svgInner = (
+                        <g transform="translate(175, 40)">
+                            <polygon points="-80,60 80,60 110,100 -50,100" fill="#f1f5f9" stroke="#94a3b8" />
+                            <circle cx="15" cy="80" r="4" fill="#1e293b" />
+                            <ellipse cx="15" cy="80" rx="60" ry="20" fill="none" stroke="#3b82f6" strokeDasharray="4,4" />
+                            <line x1="15" y1="80" x2="70" y2="72" stroke="#64748b" strokeWidth="2" />
+                            <circle cx="70" cy="72" r="8" fill="#10b981" />
+                            <text x="82" y="70" fontSize="10" fontWeight="bold">A(m)</text>
+                            <line x1="15" y1="80" x2="15" y2="130" stroke="#64748b" strokeWidth="2" />
+                            <rect x="5" y="130" width="20" height="15" rx="2" fill="#a855f7" />
+                            <text x="30" y="142" fontSize="10" fontWeight="bold">B(2m)</text>
+                        </g>
+                    );
+                } else if (type === 'disk_rotation') {
+                    svgInner = (
+                        <g transform="translate(175, 100)">
+                            <ellipse cx="0" cy="30" rx="140" ry="40" fill="#e2e8f0" stroke="#94a3b8" />
+                            <line x1="0" y1="-40" x2="0" y2="30" stroke="#64748b" strokeWidth="4" />
+                            <circle cx="50" cy="20" r="8" fill="#3b82f6" />
+                            <text x="50" y="40" fontSize="10" textAnchor="middle" fontWeight="bold">철수(r)</text>
+                            <circle cx="110" cy="25" r="8" fill="#f43f5e" />
+                            <text x="110" y="45" fontSize="10" textAnchor="middle" fontWeight="bold">영희(2r)</text>
+                        </g>
+                    );
+                } else if (type === 'rocket_v_t') {
+                    svgInner = (
+                        <g transform="translate(40, 40)">
+                            <line x1="20" y1="120" x2="20" y2="20" stroke="#475569" strokeWidth="2" />
+                            <line x1="20" y1="120" x2="280" y2="120" stroke="#475569" strokeWidth="2" />
+                            <polyline points="20,120 120,40 260,40" fill="none" stroke="#f59e0b" strokeWidth="4" />
+                            <text x="120" y="135" textAnchor="middle" fontSize="12" fontWeight="bold">t</text>
+                            <text x="20" y="35" textAnchor="end" fontSize="12" fontWeight="bold" fill="#f59e0b">10m/s</text>
+                            <text x="280" y="135" textAnchor="end" fontSize="10" fill="#94a3b8">시간(s)</text>
+                        </g>
+                    );
+                }
+                
+                return (
+                    <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden mb-6">
+                        <svg viewBox="0 0 350 200" className="w-full max-w-[450px]">
+                            <defs>
+                                <marker id="arrow_basic" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                                </marker>
+                                <marker id="arrow_green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                                </marker>
+                            </defs>
+                            {svgInner}
+                        </svg>
+                    </div>
+                );
+            };
+
             const PracticeSection = () => {
-                const [answers, setAnswers] = useState({ 
-                    q1: Array(7).fill(''), 
-                    q2: Array(5).fill(''),
-                    q3: Array(5).fill(''),
-                    q4: null,
-                    q5: null,
-                    q6: null
+                const [answers, setAnswers] = useState(() => {
+                    const init = {};
+                    QUESTIONS_DATA.forEach(q => { init[q.id] = q.items.map(() => ''); });
+                    return init;
                 });
                 const [currentStep, setCurrentStep] = useState(0);
                 const [submitted, setSubmitted] = useState(false);
@@ -50,210 +285,48 @@ def run_practice():
                 const analyzeResults = () => {
                     let totalItems = 0;
                     let correctItems = 0;
-                    const itemAnalytics = questions.map(q => {
-                        let subResults = [];
-                        if (q.type === 'ox') {
-                            subResults = q.items.map((item, idx) => answers[q.id] && answers[q.id][idx] === q.correct[idx]);
-                        } else if (q.type === 'sim_problem') {
-                            subResults = q.items.map((item, idx) => answers[q.id] && answers[q.id][idx] && answers[q.id][idx].toString().trim() === item.correct);
-                        } else if (q.type === 'graph_problem') {
-                            subResults = q.items.map((item, idx) => {
-                                const ans = answers[q.id] ? answers[q.id][idx] : null;
-                                if (item.type === 'choice') {
-                                    return parseInt(ans) === item.correct;
-                                } else {
-                                    return ans && ans.toString().trim() === item.correct;
-                                }
-                            });
-                        } else if (q.type === 'concept_choice' || q.type === 'multi_choice') {
-                            const ans = answers[q.id];
-                            subResults = [ans !== null && parseInt(ans) === q.correct];
-                        }
-                        
-                        subResults.forEach(r => {
+                    const itemAnalytics = QUESTIONS_DATA.map(q => {
+                        const subResults = q.items.map((item, idx) => {
+                            const ans = answers[q.id][idx];
+                            let isCorrect = false;
+                            if (item.type === 'choice') {
+                                if (parseInt(ans) === item.correct) isCorrect = true;
+                            } else {
+                                if (ans && ans.toString().trim() === item.correct) isCorrect = true;
+                            }
                             totalItems++;
-                            if(r) correctItems++;
+                            if (isCorrect) correctItems++;
+                            return isCorrect;
                         });
-
                         const isAllCorrect = subResults.every(v => v);
                         return { id: q.id, title: q.title, subResults, isAllCorrect };
                     });
                     return { totalItems, correctItems, itemAnalytics };
                 };
 
-                const getExplanationText = (id) => {
-                    const explanations = {
-                        q1: "등속 원운동은 속도(방향 포함)가 매순간 변하므로 등가속도가 아닌 가속도 운동입니다. 구심력 크기는 일정하나 중심을 향하므로 방향이 변합니다.",
-                        q2: "ω = 2π/2 = 3.14 rad/s, T=2s, f=0.5Hz, a = v²/r = (2π)²/2 ≈ 19.7, F = 39.5N.",
-                        q3: "1회전에 2t₀가 소요되므로 주기는 2t₀입니다. ω=2π/2t₀ = π/t₀. 가속도는 중심으로 향합니다.",
-                        q4: "B가 정지해 있으므로 실의 장력 T=2mg입니다. 구심력 mv²/r = 2mg, v=√(2rg). (ㄱ, ㄷ)",
-                        q5: "영희의 거리가 2배이므로 속력과 가속도가 2배입니다. 구심력은 질량이 절반이라 철수와 같습니다. (ㄱ, ㄴ)",
-                        q6: "접선 가속도가 일정하므로 속력이 비례 증가하며, 추진력이 사라진 이후 일정한 속력을 유지합니다. (ㄱ, ㄷ)"
-                    };
-                    return explanations[id] || "";
-                };
-
                 const exportToDocx = () => {
-                    if(!window.docx) return alert("라이브러리 로드 실패");
+                    if(!window.docx) { alert("문서 생성 라이브러리를 불러오지 못했습니다."); return; }
                     const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = window.docx;
                     const results = analyzeResults();
-                    
                     const doc = new Document({
                         sections: [{
                             properties: {},
                             children: [
                                 new Paragraph({ text: "원운동 연습문제 평가 리포트", heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
-                                new Paragraph({ children: [new TextRun({ text: "학생 정보: ", bold: true, size: 28 }), new TextRun({ text: `${studentInfo.grade}학년 ${studentInfo.classNum}반 ${studentInfo.stNo}번 ${studentInfo.name}`, size: 28 })], spacing: { after: 200 } }),
-                                new Paragraph({ children: [new TextRun({ text: "최종 평가: ", bold: true, size: 36, color: "0052cc" }), new TextRun({ text: `${results.correctItems} / ${results.totalItems} 문항 정답`, size: 36, bold: true, color: "ff0000" })], spacing: { after: 600 } }),
-                                new Paragraph({ text: "[오답 해설 요약]", heading: HeadingLevel.HEADING_2, spacing: { after: 300 } }),
-                                ...results.itemAnalytics.filter(r => !r.isAllCorrect).map(r => new Paragraph({ text: `[${r.id.replace('q','')}번. ${r.title}] ${getExplanationText(r.id)}`, spacing: { after: 240 } }))
+                                new Paragraph({ children: [ new TextRun({ text: "학생 정보: ", bold: true, size: 28 }), new TextRun({ text: `${studentInfo.grade}학년 ${studentInfo.classNum}반 ${studentInfo.stNo}번 ${studentInfo.name}`, size: 28 }) ], spacing: { after: 200 } }),
+                                new Paragraph({ children: [ new TextRun({ text: "최종 평가 점수: ", bold: true, size: 36, color: "0052cc" }), new TextRun({ text: `${results.correctItems} / ${results.totalItems} 문항 정답`, size: 36, bold: true, color: "ff0000" }) ], spacing: { after: 600 } }),
+                                ...results.itemAnalytics.filter(r => !r.isAllCorrect).map(r => new Paragraph({ text: `[${r.id.replace('q','')}번. ${r.title}] ${EXPLANATIONS[r.id]}`, spacing: { after: 240 } }))
                             ]
                         }]
                     });
-
                     Packer.toBlob(doc).then(blob => {
                         const url = window.URL.createObjectURL(blob);
                         const a = document.createElement("a");
                         a.href = url;
-                        const safeName = studentInfo.name.trim() ? studentInfo.name.trim() : '이름없음';
+                        const safeName = studentInfo.name.trim() || '이름없음';
                         a.download = `원운동리포트_${studentInfo.grade}학년_${studentInfo.classNum}반_${studentInfo.stNo}번_${safeName}.docx`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a); window.URL.revokeObjectURL(url);
                     });
-                };
-
-                const questions = [
-                    { 
-                        id: 'q1', 
-                        type: 'ox',
-                        title: '원운동의 성질 이해', 
-                        text: '등속 원운동에 대한 다음 설명이 맞으면 O, 틀리면 X를 선택하세요.',
-                        items: [
-                            '속도가 일정하다.',
-                            '가속도가 일정하다.',
-                            '등가속도 운동이다.',
-                            '가속도의 크기는 일정하다.',
-                            '가속도의 방향은 원중심 방향이며 매순간 방향이 변한다.',
-                            '구심력의 크기는 일정하다.',
-                            '구심력의 방향은 일정하다.'
-                        ],
-                        correct: ['X', 'X', 'X', 'O', 'O', 'O', 'X']
-                    },
-                    { 
-                        id: 'q2', 
-                        type: 'sim_problem',
-                        title: '원운동 물리량 계산 실습', 
-                        text: '아래 시뮬레이션의 조건을 읽고 물음의 값을 계산하시오. (단, π = 3.14로 계산하며 소수점 둘째 자리에서 반올림하세요.)',
-                        condition: { r: 2, v: '2π', m: 2 },
-                        items: [
-                            { label: '각속도', unit: 'rad/s', correct: '3.1' },
-                            { label: '주기', unit: 's', correct: '2' },
-                            { label: '진동수', unit: 'Hz', correct: '0.5' },
-                            { label: '구심 가속도의 크기', unit: 'm/s²', correct: '19.7' },
-                            { label: '구심력의 크기', unit: 'N', correct: '39.5' }
-                        ]
-                    },
-                    {
-                        id: 'q3',
-                        type: 'graph_problem',
-                        title: '속도 성분 그래프 분석 [심화]',
-                        text: '그림 (가), (나)는 xy 평면에서 원점을 중심으로 등속 원운동하는 물체의 속도 성분 vx, vy를 시간에 따라 나타낸 것입니다.',
-                        items: [
-                            { label: '물체의 주기를 구하시오', unit: 't₀', correct: '2', type: 'input' },
-                            { 
-                                label: '물체의 각속도는?', 
-                                type: 'choice',
-                                options: ['π / 2t₀', 'π / t₀', '2π / t₀', 't₀ / π', '2t₀ / π'],
-                                correct: 1
-                            },
-                            { label: 't = t₀일 때 가속도의 방향은?', type: 'choice', options: ['+x 방향', '-x 방향', '+y 방향', '-y 방향'], correct: 1 },
-                            { label: 't = 2t₀일 때 가속도의 방향은?', type: 'choice', options: ['+x 방향', '-x 방향', '+y 방향', '-y 방향'], correct: 0 },
-                            { label: 't = t₀일 때 가속도의 크기는?', unit: 'πv₀ / t₀', correct: '1', type: 'input' }
-                        ]
-                    },
-                    {
-                        id: 'q4',
-                        type: 'concept_choice',
-                        title: '등속 원운동과 장력의 평형',
-                        text: '질량이 각각 m, 2m인 두 물체 A, B를 마찰이 없는 실험대의 구멍을 통과하는 실로 연결하였습니다. A는 반지름 r인 원운동을 하고, B는 정지해 있습니다.',
-                        view: 'table',
-                        bogis: [
-                            'A에 작용하는 구심력의 크기는 2mg이다.',
-                            '구심 가속도의 크기는 g이다.',
-                            'A의 속력은 √(2rg)이다.'
-                        ],
-                        options: ['ㄱ', 'ㄴ', 'ㄷ', 'ㄱ, ㄴ', 'ㄱ, ㄷ'],
-                        correct: 4
-                    },
-                    {
-                        id: 'q5',
-                        type: 'concept_choice',
-                        title: '회전 장치에서의 물리량 비교',
-                        text: '철수(2m)와 영희(m)가 회전축으로부터 각각 r, 2r 거리에 앉아 등속 원운동하고 있습니다.',
-                        view: 'carousel',
-                        bogis: [
-                            '속력은 영희가 철수의 2배이다.',
-                            '가속도의 크기는 영희가 철수의 2배이다.',
-                            '구심력의 크기는 철수가 영희의 2배이다.'
-                        ],
-                        options: ['ㄱ', 'ㄴ', 'ㄷ', 'ㄱ, ㄴ', 'ㄱ, ㄴ, ㄷ'],
-                        correct: 3
-                    },
-                    {
-                        id: 'q6',
-                        type: 'concept_choice',
-                        title: '가변 속력 원운동의 분석',
-                        text: '반지름 100m인 원 궤도를 도는 로켓의 속력이 시간 t까지 일정하게 증가하다가 그 이후 일정(10m/s)하게 유지됩니다.',
-                        view: 'rocket',
-                        bogis: [
-                            '0초에서 t까지 로켓의 추진력은 일정하고, t 이후는 0이다.',
-                            '0초에서 t까지 실의 장력은 시간에 비례하여 증가한다.',
-                            't 이후 로켓의 구심 가속도의 크기는 1m/s²이다.'
-                        ],
-                        options: ['ㄱ', 'ㄴ', 'ㄱ, ㄷ', 'ㄴ, ㄷ', 'ㄱ, ㄴ, ㄷ'],
-                        correct: 2
-                    }
-                ];
-
-                const isStepCompleted = (idx) => {
-                    const q = questions[idx];
-                    if (!q) return false;
-                    const ans = answers[q.id];
-                    if (q.type === 'ox') return ans.every(v => v !== '');
-                    if (q.type === 'sim_problem' || q.type === 'graph_problem') return ans.every(v => v !== '');
-                    if (q.type === 'concept_choice') return ans !== null;
-                    return false;
-                };
-
-                const getScore = () => {
-                    let s = 0;
-                    questions.forEach(q => {
-                        if (q.type === 'ox') {
-                            const isCorrect = q.correct.every((ans, idx) => answers[q.id][idx] === ans);
-                            if (isCorrect) s += 1;
-                        } else if (q.type === 'sim_problem' || q.type === 'graph_problem') {
-                            let correctCount = 0;
-                            q.items.forEach((item, idx) => {
-                                const ans = answers[q.id][idx];
-                                if (item.type === 'choice') {
-                                    if (parseInt(ans) === item.correct) correctCount++;
-                                } else {
-                                    if (ans && ans.trim() === item.correct) correctCount++;
-                                }
-                            });
-                            if (correctCount === q.items.length) s += 1;
-                        } else if (q.type === 'concept_choice') {
-                            if (answers[q.id] === q.correct) s += 1;
-                        }
-                    });
-                    return s;
-                };
-
-                const handleOXChange = (qId, idx, val) => {
-                    const newArr = [...answers[qId]];
-                    newArr[idx] = val;
-                    setAnswers({ ...answers, [qId]: newArr });
                 };
 
                 const handleSubInputChange = (qId, idx, val) => {
@@ -262,231 +335,32 @@ def run_practice():
                     setAnswers({ ...answers, [qId]: newArr });
                 };
 
-                const handleChoiceSelect = (qId, val) => {
-                    setAnswers({ ...answers, [qId]: val });
-                };
-
-                // Problem Visualizations
-                const ProblemView = ({ type }) => {
-                    if (type === 'table') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden">
-                            <svg viewBox="0 0 240 160" className="w-full max-w-[320px]">
-                                {/* Table Legs (Behind) */}
-                                <rect x="65" y="70" width="4" height="25" fill="#94a3b8" />
-                                <rect x="175" y="70" width="4" height="25" fill="#94a3b8" />
-                                
-                                {/* Table Top (Perspective) */}
-                                <polygon points="40,70 200,70 230,110 70,110" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="2" />
-                                
-                                {/* Hole */}
-                                <circle cx="135" cy="90" r="4" fill="#1e293b" />
-                                
-                                {/* Orbit Ellipse */}
-                                <ellipse cx="135" cy="90" rx="70" ry="25" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" />
-                                
-                                {/* Object A and Connecting String */}
-                                <line x1="135" y1="90" x2="195" y2="78" stroke="#64748b" strokeWidth="2" />
-                                <circle cx="195" cy="78" r="8" fill="#10b981" />
-                                <text x="195" y="81" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">m</text>
-                                <text x="210" y="75" fontSize="12" fill="#10b981" fontWeight="extrabold">A</text>
-
-                                {/* Hanging String and Weight B */}
-                                <line x1="135" y1="90" x2="135" y2="140" stroke="#475569" strokeWidth="2" />
-                                <rect x="123" y="140" width="24" height="15" rx="4" fill="#a855f7" />
-                                <text x="135" y="151" fontSize="8" fill="white" textAnchor="middle" fontWeight="bold">2m</text>
-                                <text x="155" y="152" fontSize="12" fill="#a855f7" fontWeight="extrabold">B</text>
-
-                                {/* Front Legs */}
-                                <rect x="70" y="110" width="6" height="40" fill="#475569" />
-                                <rect x="224" y="110" width="6" height="40" fill="#475569" />
-                            </svg>
-                        </div>
-                    );
-                    if (type === 'carousel') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden">
-                            <svg viewBox="0 0 300 200" className="w-full max-w-[400px]">
-                                {/* Central Axis */}
-                                <rect x="146" y="40" width="8" height="100" fill="#64748b" rx="2" />
-                                <ellipse cx="150" cy="40" rx="6" ry="2" fill="#94a3b8" />
-                                
-                                {/* Rotating Disk (Perspective) */}
-                                <ellipse cx="150" cy="130" rx="140" ry="40" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="2" />
-                                <ellipse cx="150" cy="125" rx="140" ry="40" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" />
-                                
-                                {/* Grid/Radius Lines for reference (Subtle) */}
-                                <line x1="150" y1="125" x2="285" y2="125" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4,2" />
-                                
-                                {/* Chul-soo (Distance r) */}
-                                <g transform="translate(195, 118)">
-                                    <path d="M-8,0 L8,0 L8,-4 L4,-4 L4,-18 L-4,-18 L-4,-4 L-8,-4 Z" fill="#3b82f6" />
-                                    <circle cx="0" cy="-22" r="4.5" fill="#3b82f6" />
-                                    <rect x="-10" y="2" width="20" height="10" rx="3" fill="rgba(59,130,246,0.15)" stroke="#3b82f6" strokeWidth="0.5" />
-                                    <text x="0" y="10" fontSize="8" fill="#1d4ed8" textAnchor="middle" fontWeight="black">2m</text>
-                                    <text x="0" y="-32" fontSize="10" fill="#1d4ed8" textAnchor="middle" fontWeight="black">철수</text>
-                                </g>
-
-                                {/* Young-hee (Distance 2r) */}
-                                <g transform="translate(265, 118)">
-                                    <path d="M-8,0 L8,0 L8,-4 L4,-4 L4,-18 L-4,-18 L-4,-4 L-8,-4 Z" fill="#f43f5e" />
-                                    <circle cx="0" cy="-22" r="4.5" fill="#f43f5e" />
-                                    <rect x="-10" y="2" width="20" height="10" rx="3" fill="rgba(244,63,94,0.15)" stroke="#f43f5e" strokeWidth="0.5" />
-                                    <text x="0" y="10" fontSize="8" fill="#be123c" textAnchor="middle" fontWeight="black">m</text>
-                                    <text x="0" y="-32" fontSize="10" fill="#be123c" textAnchor="middle" fontWeight="black">영희</text>
-                                </g>
-
-                                {/* Distance Markers */}
-                                <line x1="150" y1="145" x2="195" y2="145" stroke="#64748b" strokeWidth="1.5" />
-                                <line x1="150" y1="142" x2="150" y2="148" stroke="#64748b" strokeWidth="1.5" />
-                                <line x1="195" y1="142" x2="195" y2="148" stroke="#64748b" strokeWidth="1.5" />
-                                <text x="172" y="158" fontSize="10" fill="#64748b" textAnchor="middle" fontWeight="bold">r</text>
-
-                                <line x1="150" y1="170" x2="265" y2="170" stroke="#64748b" strokeWidth="1.5" />
-                                <line x1="150" y1="167" x2="150" y2="173" stroke="#64748b" strokeWidth="1.5" />
-                                <line x1="265" y1="167" x2="265" y2="173" stroke="#64748b" strokeWidth="1.5" />
-                                <text x="207" y="183" fontSize="10" fill="#64748b" textAnchor="middle" fontWeight="bold">2r</text>
-
-                                {/* Rotation Arrow */}
-                                <path d="M100,115 Q110,100 130,105" fill="none" stroke="#94a3b8" strokeWidth="2" markerEnd="url(#arrow_carousel)" />
-                                <defs>
-                                    <marker id="arrow_carousel" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
-                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8" />
-                                    </marker>
-                                </defs>
-                            </svg>
-                        </div>
-                    );
-                    if (type === 'rocket') return (
-                        <div className="bg-slate-50 p-6 rounded-3xl flex flex-col md:flex-row items-center justify-center gap-12 border border-slate-100 overflow-hidden">
-                            <div className="flex flex-col items-center gap-2">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">(가) 로켓의 궤도</p>
-                                <svg viewBox="0 0 120 120" className="w-40 h-40">
-                                    <circle cx="60" cy="60" r="50" fill="none" stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4" />
-                                    <circle cx="60" cy="60" r="3" fill="#64748b" />
-                                    <text x="85" y="58" fontSize="8" fill="#94a3b8" fontWeight="bold">100m</text>
-                                    {/* Rocket Icon: Tangential orientation (Points UP at the right) */}
-                                    <g transform="translate(110, 60)">
-                                        <path d="M0, -12 L4, 0 L4, 10 L-4, 10 L-4, 0 Z" fill="#f59e0b" />
-                                        <path d="M-4, 10 L-6, 14 L4, 14 L4, 10 Z" fill="#f43f5e" />
-                                        <path d="M-4, 14 Q0, 20 4, 14" fill="#fbbf24" opacity="0.8" />
-                                        <circle cx="0" cy="0" r="2" fill="white" opacity="0.5" />
-                                    </g>
-                                </svg>
-                            </div>
-                            <div className="flex flex-col items-center gap-2">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">(나) 시간-속력 그래프</p>
-                                <svg viewBox="0 0 150 100" className="w-56 h-40">
-                                    <defs>
-                                        <linearGradient id="rocket_grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                                            <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
-                                            <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
-                                        </linearGradient>
-                                    </defs>
-                                    {/* Grid Lines */}
-                                    <line x1="30" y1="30" x2="120" y2="30" stroke="#f1f5f9" strokeWidth="1" />
-                                    <line x1="75" y1="30" x2="75" y2="70" stroke="#f1f5f9" strokeWidth="1" strokeDasharray="2,2" />
-                                    
-                                    <path d="M30,70 L75,30 L120,30 L120,70 Z" fill="url(#rocket_grad)" />
-                                    <line x1="25" y1="70" x2="140" y2="70" stroke="#475569" strokeWidth="1.5" />
-                                    <line x1="30" y1="15" x2="30" y2="75" stroke="#475569" strokeWidth="1.5" />
-                                    <polyline points="30,70 75,30 120,30" fill="none" stroke="#f43f5e" strokeWidth="3" strokeLinecap="round" />
-                                    
-                                    <text x="75" y="85" fontSize="8" fill="#64748b" textAnchor="middle" fontWeight="bold">t</text>
-                                    <text x="140" y="85" fontSize="8" fill="#94a3b8" textAnchor="end">시간(s)</text>
-                                    <text x="25" y="30" fontSize="8" fill="#f43f5e" textAnchor="end" fontWeight="black">10m/s</text>
-                                    <text x="25" y="15" fontSize="8" fill="#94a3b8" textAnchor="end">속력(v)</text>
-                                </svg>
-                            </div>
-                        </div>
-                    );
-                    return null;
-                };
-
-                // Velocity Graph Component
-                const VelocityGraph = ({ label, isSine }) => {
-                    const pts = [];
-                    for(let i=0; i<=100; i++) {
-                        const t = i/100 * 3;
-                        const v = isSine ? Math.sin(Math.PI * t) : Math.cos(Math.PI * t);
-                        pts.push(`${i*1.5},${40 - v*30}`);
-                    }
-                    return (
-                        <div className="bg-white p-4 rounded-xl border border-slate-100 flex-1">
-                            <p className="text-[10px] font-black text-slate-400 mb-2">{label}</p>
-                            <svg viewBox="0 0 150 80" className="w-full">
-                                <line x1="10" y1="40" x2="140" y2="40" stroke="#cbd5e1" strokeWidth="1" />
-                                <line x1="10" y1="5" x2="10" y2="75" stroke="#cbd5e1" strokeWidth="1" />
-                                <polyline points={pts.join(' ')} fill="none" stroke="#f43f5e" strokeWidth="2" />
-                                <text x="142" y="45" fontSize="8" fill="#94a3b8">t</text>
-                                <text x="5" y="10" fontSize="8" fill="#94a3b8">v₀</text>
-                                <text x="5" y="75" fontSize="8" fill="#94a3b8">-v₀</text>
-                                <text x="55" y="55" fontSize="8" fill="#94a3b8">t₀</text>
-                                <text x="105" y="55" fontSize="8" fill="#94a3b8">2t₀</text>
-                            </svg>
-                        </div>
-                    );
-                };
-
-                // Small Sim Component for Question 2
-                const ProblemSim = ({ radius, speedText, mass }) => {
-                    const [angle, setAngle] = useState(0);
-                    useEffect(() => {
-                        const id = setInterval(() => setAngle(a => (a + 0.05) % (Math.PI * 2)), 30);
-                        return () => clearInterval(id);
-                    }, []);
-
-                    const x = 100 + Math.cos(angle) * 60;
-                    const y = 100 - Math.sin(angle) * 60;
-
-                    return (
-                        <div className="flex flex-col md:flex-row items-center gap-8 bg-slate-900 p-8 rounded-[2rem] text-white">
-                            <div className="w-48 h-48 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center relative">
-                                <svg viewBox="0 0 200 200" className="w-full h-full">
-                                    <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" strokeDasharray="4,4" />
-                                    <line x1="40" y1="100" x2="160" y2="100" stroke="rgba(255,255,255,0.05)" />
-                                    <line x1="100" y1="40" x2="100" y2="160" stroke="rgba(255,255,255,0.05)" />
-                                    <line x1="100" y1="100" x2={x} y2={y} stroke="#3b82f6" strokeWidth="2" opacity="0.5" />
-                                    <circle cx={x} cy={y} r="8" fill="#10b981" />
-                                    <text x="105" y="115" fontSize="10" fill="#94a3b8" className="italic">O</text>
-                                </svg>
-                            </div>
-                            <div className="flex-1 space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold">조건</span>
-                                    <p className="text-sm font-medium text-slate-300">반지름(r) = {radius}m, 속력(v) = {speedText}m/s, 질량(m) = {mass}kg</p>
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10 space-y-1">
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase">준비할 공식</p>
-                                    <p className="text-xs text-slate-400 leading-relaxed italic">ω = v/r, T = 2π/ω, f = 1/T, a = v²/r, F = ma</p>
-                                </div>
-                            </div>
-                        </div>
-                    );
+                const isStepCompleted = (idx) => {
+                    const q = QUESTIONS_DATA[idx];
+                    return q && answers[q.id].every(v => v !== '');
                 };
 
                 if (submitted) {
                     const results = analyzeResults();
                     const wrongItems = results.itemAnalytics.filter(r => !r.isAllCorrect);
-                    
                     return (
-                        <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
+                        <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl">
                             <h3 className="text-3xl font-black mb-6 italic">평가 결과 리포트</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                                <div className="space-y-4 flex flex-col justify-between">
+                                <div className="space-y-4">
                                     <div className="bg-white/10 p-8 rounded-3xl text-center border border-white/10">
                                         <p className="text-sm text-sky-400 font-bold mb-2 uppercase">최종 점수</p>
                                         <p className="text-6xl font-black">{results.correctItems} / {results.totalItems}</p>
                                     </div>
-                                    <div className="bg-white/10 p-6 rounded-3xl flex-1 border border-white/10">
-                                        <p className="text-sm text-sky-400 font-bold mb-3 uppercase">문항별 정답 확인</p>
+                                    <div className="bg-white/10 p-6 rounded-3xl border border-white/10 overflow-y-auto max-h-[300px] no-scrollbar">
+                                        <p className="text-sm text-sky-400 font-bold mb-3 uppercase">문항별 정답</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             {results.itemAnalytics.map((res, i) => (
                                                 <div key={res.id} className={`p-3 rounded-xl border flex items-center justify-between ${res.isAllCorrect ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}`}>
-                                                    <span className="text-sm font-bold text-slate-300">{i+1}번</span>
-                                                    <span className="text-xs flex gap-1 flex-wrap justify-end">
+                                                    <span className="text-xs font-bold text-slate-300">{i+1}번</span>
+                                                    <span className="flex gap-1">
                                                         {res.subResults.map((r, ri) => (
-                                                            <span key={ri} className={`flex items-center justify-center w-5 h-5 rounded-md ${r ? 'bg-emerald-500/80 text-white' : 'bg-rose-500/80 text-white'}`}>
-                                                                {r ? 'O' : 'X'}
-                                                            </span>
+                                                            <span key={ri} className={`w-5 h-5 flex items-center justify-center rounded text-[10px] ${r ? 'bg-emerald-500' : 'bg-rose-500'}`}>{r?'O':'X'}</span>
                                                         ))}
                                                     </span>
                                                 </div>
@@ -494,230 +368,96 @@ def run_practice():
                                         </div>
                                     </div>
                                 </div>
-                                <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10 overflow-y-auto max-h-[400px] no-scrollbar">
-                                    <p className="text-rose-400 font-bold flex items-center gap-2"><Icon name="info" /> 오답 해설</p>
-                                    <div className="text-[13px] text-slate-300 leading-relaxed space-y-5">
-                                        {wrongItems.length === 0 ? (
-                                            <div className="p-4 bg-emerald-500/20 text-emerald-400 rounded-xl font-bold text-center">
-                                                모든 문제를 맞추셨습니다! 완벽합니다. 🎉
+                                <div className="bg-white/10 p-8 rounded-3xl border border-white/10 overflow-y-auto max-h-[400px] no-scrollbar">
+                                    <p className="text-rose-400 font-bold flex items-center gap-2 mb-4"><Icon name="info" /> 오답 해설</p>
+                                    {wrongItems.length === 0 ? <p className="text-emerald-400 font-bold">만점입니다! 축하합니다!</p> : 
+                                        wrongItems.map(r => (
+                                            <div key={r.id} className="mb-4 p-4 bg-black/20 rounded-xl border border-white/5 whitespace-pre-wrap text-[13px] leading-relaxed">
+                                                <strong className="text-rose-300 block mb-1">[{r.id.replace('q','')}번. {r.title}]</strong>
+                                                {EXPLANATIONS[r.id]}
                                             </div>
-                                        ) : (
-                                            wrongItems.map(r => (
-                                                <div key={r.id} className="p-4 bg-black/20 rounded-xl border border-white/5 disabled whitespace-pre-wrap">
-                                                    <strong className="text-rose-300 block mb-2">[{r.id.replace('q','')}번. {r.title}]</strong>
-                                                    {getExplanationText(r.id)}
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
+                                        ))
+                                    }
                                 </div>
                             </div>
                             <div className="flex gap-4">
-                                <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">오답 확인하기</button>
-                                <button onClick={exportToDocx} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">리포트 다운로드 (DOCX)</button>
-                            </div>
-                        </div>
-                    );
-                }
-                    return (
-                        <div className="max-w-4xl mx-auto p-6 bg-slate-900 rounded-[3rem] text-white shadow-2xl animate-in zoom-in duration-500">
-                            <h3 className="text-3xl font-black mb-6 italic">평가 결과 리포트</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                                <div className="bg-white/10 p-8 rounded-3xl text-center border border-white/10">
-                                    <p className="text-sm text-sky-400 font-bold mb-2 uppercase">최종 점수</p>
-                                    <p className="text-6xl font-black">{getScore()} / 6</p>
-                                </div>
-                                <div className="bg-white/10 p-8 rounded-3xl space-y-4 border border-white/10 overflow-y-auto max-h-[400px] no-scrollbar">
-                                    <p className="text-amber-400 font-bold flex items-center gap-2"><Icon name="info" /> 주요 해설</p>
-                                    <div className="text-[13px] text-slate-300 leading-relaxed space-y-5">
-                                        <p><strong>[2~3번]</strong> 성분 분석과 계산 공식을 정확히 적용했습니다.</p>
-                                        <p><strong>[4번]</strong> B가 정지해 있으므로 실의 장력 T=2mg입니다. 이 장력이 A의 구심력으로 작용하므로 mv²/r = 2mg, v=√(2rg)입니다. (ㄱ, ㄷ)</p>
-                                        <p><strong>[5번]</strong> 같은 회전판 위에 있으므로 각속도 ω는 같습니다. v=rω, a=rω²이므로 반지름이 2배인 영희가 철수의 속력과 가속도의 2배입니다. 구심력 F=mrω²은 철수(2m*r)와 영희(m*2r)가 같습니다. (ㄱ, ㄴ)</p>
-                                        <p><strong>[6번]</strong> v가 t까지 비례하므로 접선 가속도는 일정하고 추진력도 일정합니다. t 이후 v가 일정하므로 추진력은 0입니다. t 이후 a_c = v²/r = 100/100 = 1m/s²입니다. (ㄱ, ㄷ)</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex gap-4">
-                                <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold hover:bg-slate-600 transition-all">다시 풀기</button>
-                                <button className="flex-1 py-4 bg-blue-600 rounded-2xl font-black hover:bg-blue-500 transition-all shadow-lg shadow-blue-500/30">PDF 리포트 저장</button>
+                                <button onClick={() => setSubmitted(false)} className="flex-1 py-4 bg-slate-700 rounded-2xl font-bold">오답 확인</button>
+                                <button onClick={exportToDocx} className="flex-1 py-4 bg-blue-600 rounded-2xl font-black">리포트 다운로드</button>
                             </div>
                         </div>
                     );
                 }
 
                 return (
-                    <div className="max-w-4xl mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 pb-20">
-                        <div className="bg-slate-900 p-8 rounded-[2.5rem] mt-4 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-500">
-                            <h3 className="text-white text-2xl font-black mb-6">📝 학생 정보 입력</h3>
+                    <div className="max-w-4xl mx-auto p-4 space-y-8 pb-20">
+                        <div className="bg-slate-900 p-8 rounded-[2.5rem] mt-4 shadow-2xl text-white">
+                            <h3 className="text-2xl font-black mb-6">📝 학생 정보 입력</h3>
                             <div className="grid grid-cols-4 gap-4">
-                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">학년</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="예: 3" value={studentInfo.grade} onChange={e=>setStudentInfo({...studentInfo, grade: e.target.value})} /></div>
-                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">반</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="반" value={studentInfo.classNum} onChange={e=>setStudentInfo({...studentInfo, classNum: e.target.value})} /></div>
-                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">번호</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold" placeholder="번호" value={studentInfo.stNo} onChange={e=>setStudentInfo({...studentInfo, stNo: e.target.value})} /></div>
-                                <div><label className="text-slate-400 text-sm font-bold ml-2 mb-2 block">이름</label><input type="text" className="w-full bg-slate-800 text-white p-4 rounded-2xl outline-none font-bold flex-1" placeholder="이름" value={studentInfo.name} onChange={e=>setStudentInfo({...studentInfo, name: e.target.value})} /></div>
+                                {['grade', 'classNum', 'stNo', 'name'].map(field => (
+                                    <div key={field}>
+                                        <label className="text-slate-400 text-xs font-bold mb-2 block">{field === 'grade' ? '학년' : field === 'classNum' ? '반' : field === 'stNo' ? '번호' : '이름'}</label>
+                                        <input type="text" className="w-full bg-slate-800 p-4 rounded-2xl outline-none font-bold" value={studentInfo[field]} onChange={e => setStudentInfo({...studentInfo, [field]: e.target.value})} />
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        {questions.slice(0, currentStep + 1).map((q, i) => (
-                            <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50 relative overflow-hidden group animate-in slide-in-from-right duration-500">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform"></div>
-                                <div className="relative">
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-4">
-                                            <span className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl font-black italic">{String(i+1).padStart(2, '0')}</span>
-                                            <h4 className="text-xl font-black text-slate-800 tracking-tighter">{q.title}</h4>
-                                        </div>
-                                        {i < currentStep && <span className="text-emerald-500 font-black flex items-center gap-1"><Icon name="check-circle" /> 완료됨</span>}
+                        {QUESTIONS_DATA.slice(0, currentStep + 1).map((q, i) => (
+                            <div key={q.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border-2 border-slate-50">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <span className="w-10 h-10 bg-slate-900 text-white flex items-center justify-center rounded-xl font-black">{(i+1 < 10 ? '0' : '') + (i+1)}</span>
+                                        <h4 className="text-xl font-black text-slate-800">{q.title}</h4>
                                     </div>
-                                    <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-bold leading-relaxed italic border border-slate-100 text-sm tracking-tight">{q.text}</div>
-                                    
-                                    <div className={i < currentStep ? 'opacity-50 pointer-events-none grayscale-[0.5]' : ''}>
-                                        {q.type === 'ox' && (
-                                            <div className="space-y-3">
-                                                {q.items.map((item, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-4 bg-slate-100/50 rounded-xl">
-                                                        <span className="text-sm font-bold text-slate-600">{idx+1}. {item}</span>
-                                                        <div className="flex gap-2">
-                                                            {['O', 'X'].map(val => (
-                                                                <button 
-                                                                    key={val}
-                                                                    onClick={() => handleOXChange(q.id, idx, val)}
-                                                                    className={`w-12 h-10 rounded-lg font-black transition-all ${answers[q.id][idx] === val ? (val === 'O' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-rose-500 text-white shadow-lg') : 'bg-white text-slate-300 border border-slate-200'}`}
-                                                                >
-                                                                    {val}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {q.type === 'sim_problem' && (
-                                            <div className="space-y-8">
-                                                <ProblemSim radius={2} speedText="2π" mass={2} />
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    {q.items.map((sub, idx) => (
-                                                        <div key={idx} className="relative">
-                                                            <p className="text-[10px] text-slate-400 font-black uppercase mb-2 ml-2">({idx+1}) {sub.label}</p>
-                                                            <div className="relative">
-                                                                <input 
-                                                                    type="text" 
-                                                                    value={answers[q.id][idx]} 
-                                                                    onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
-                                                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xl font-black text-blue-600 outline-none focus:border-blue-400 focus:bg-white transition-all" 
-                                                                    placeholder="..." 
-                                                                />
-                                                                <span className="absolute right-6 top-1/2 -translate-y-1/2 font-black text-slate-300 italic">{sub.unit}</span>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {q.type === 'graph_problem' && (
-                                            <div className="space-y-8">
-                                                <div className="flex flex-col md:flex-row gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-100 shadow-inner">
-                                                    <VelocityGraph label="(가) t에 따른 vx" isSine={true} />
-                                                    <VelocityGraph label="(나) t에 따른 vy" isSine={false} />
-                                                </div>
-                                                <div className="space-y-6">
-                                                    {q.items.map((sub, idx) => (
-                                                        <div key={idx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100 group/item">
-                                                            <p className="text-sm font-black text-slate-700 mb-4 flex items-center gap-2">
-                                                                <span className="w-6 h-6 bg-slate-200 text-slate-500 rounded-lg flex items-center justify-center text-[10px] group-hover/item:bg-slate-900 group-hover/item:text-white transition-colors">{idx+1}</span>
-                                                                {sub.label}
-                                                            </p>
-                                                            {sub.type === 'choice' ? (
-                                                                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                                                                    {sub.options.map((opt, oIdx) => (
-                                                                        <button 
-                                                                            key={oIdx}
-                                                                            onClick={() => handleSubInputChange(q.id, idx, oIdx)}
-                                                                            className={`py-3 px-2 rounded-xl text-[11px] font-bold border-2 transition-all ${parseInt(answers[q.id][idx]) === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-lg' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                                                                        >
-                                                                            {opt}
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            ) : (
-                                                                <div className="relative max-w-xs">
-                                                                    <input 
-                                                                        type="text" 
-                                                                        value={answers[q.id][idx]} 
-                                                                        onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
-                                                                        className="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-rose-500 outline-none focus:border-rose-400 transition-all" 
-                                                                        placeholder="..." 
-                                                                    />
-                                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 font-black text-slate-300 italic text-xs">{sub.unit}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {q.type === 'concept_choice' && (
-                                            <div className="space-y-6">
-                                                <ProblemView type={q.view} />
-                                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                                                    <p className="text-xs font-black text-slate-400 mb-3 uppercase tracking-tighter">[ 보 기 ]</p>
-                                                    <div className="space-y-2 text-sm font-bold text-slate-600">
-                                                        {q.bogis.map((b, bIdx) => <p key={bIdx}>{['ㄱ', 'ㄴ', 'ㄷ'][bIdx]}. {b}</p>)}
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-                                                    {q.options.map((opt, oIdx) => (
-                                                        <button 
-                                                            key={oIdx}
-                                                            onClick={() => handleChoiceSelect(q.id, oIdx)}
-                                                            className={`py-4 rounded-xl text-sm font-black border-2 transition-all ${answers[q.id] === oIdx ? 'bg-slate-900 border-slate-900 text-white shadow-xl scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'}`}
-                                                        >
-                                                            {oIdx+1}. {opt}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {i === currentStep && isStepCompleted(i) && (
-                                        <div className="mt-8 pt-8 border-t border-slate-100 flex justify-end">
-                                            {i < questions.length - 1 ? (
-                                                <button 
-                                                    onClick={() => {
-                                                        setCurrentStep(i + 1);
-                                                        setTimeout(() => {
-                                                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                                                        }, 100);
-                                                    }}
-                                                    className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black shadow-lg hover:bg-emerald-400 transition-all flex items-center gap-2 animate-bounce"
-                                                >
-                                                    다음 문제 도전하기 <Icon name="arrow-right" />
-                                                </button>
-                                            ) : (
-                                                <button 
-                                                    onClick={() => setSubmitted(true)}
-                                                    className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all flex items-center gap-2"
-                                                >
-                                                    최종 결과 제출하기 <Icon name="send" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
+                                    {i < currentStep && <span className="text-emerald-500 font-bold flex items-center gap-1"><Icon name="check-circle" /> 완료</span>}
                                 </div>
+                                <div className="bg-slate-50 p-6 rounded-2xl mb-6 text-slate-600 font-bold text-sm leading-relaxed whitespace-pre-wrap">{q.text}</div>
+                                <div className={i < currentStep ? 'opacity-40 pointer-events-none' : ''}>
+                                    <ProblemView type={q.view} />
+                                    <div className="space-y-6">
+                                        {q.items.map((sub, idx) => (
+                                            <div key={idx} className="bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+                                                <p className="text-sm font-black text-slate-700 mb-4">{sub.label}</p>
+                                                {sub.type === 'choice' ? (
+                                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                                                        {sub.options.map((opt, oIdx) => (
+                                                            <button key={oIdx} onClick={() => handleSubInputChange(q.id, idx, oIdx)}
+                                                            className={`py-3 px-2 rounded-xl text-[12px] font-bold border-2 transition-all ${parseInt(answers[q.id][idx]) === oIdx ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}>
+                                                                {opt}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative max-w-xs flex items-center gap-2">
+                                                        <input type="text" value={answers[q.id][idx]} onChange={e => handleSubInputChange(q.id, idx, e.target.value)}
+                                                        className="w-full bg-white border-2 border-slate-200 rounded-xl px-4 py-3 text-lg font-black text-blue-500 outline-none focus:border-blue-400" placeholder="..." />
+                                                        <span className="font-black text-slate-400 text-sm whitespace-nowrap">{sub.unit}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                {i === currentStep && isStepCompleted(i) && (
+                                    <div className="mt-8 pt-8 border-t border-slate-100 flex justify-end">
+                                        {i < QUESTIONS_DATA.length - 1 ? (
+                                            <button onClick={() => { setCurrentStep(i + 1); setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100); }}
+                                            className="px-10 py-4 bg-emerald-500 text-white rounded-2xl font-black shadow-lg hover:bg-emerald-600 transition-all">다음 문제</button>
+                                        ) : (
+                                            <button onClick={() => setSubmitted(true)} className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg hover:bg-slate-800 transition-all">제출하기</button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
                 );
             };
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<PracticeSection />);
+            ReactDOM.createRoot(document.getElementById('root')).render(<PracticeSection />);
         </script>
     </body>
     </html>
     """
-    components.html(react_code, height=1800, scrolling=True)
+    components.html(react_code, height=2200, scrolling=True)
 
 if __name__ == "__main__":
     run_practice()
