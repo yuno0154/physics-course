@@ -195,23 +195,26 @@ def run_practice():
                             <circle cx="0" cy="0" r="4" fill="#1e293b" />
                             <line x1="0" y1="0" x2="60" y2="-35" stroke="#94a3b8" strokeDasharray="2,2" />
                             <circle cx="60" cy="-35" r="8" fill="#f59e0b" />
-                            <path d="M 60 -35 L 85 -75" fill="none" stroke="#ef4444" strokeWidth="2" markerEnd="url(#arrow_basic)" />
-                            <text x="80" y="-80" fontSize="12" fill="#ef4444" fontWeight="bold">v</text>
-                            <path d="M 60 -35 L 20 -12" fill="none" stroke="#10b981" strokeWidth="2" markerEnd="url(#arrow_green)" />
-                            <text x="15" y="-5" fontSize="12" fill="#10b981" fontWeight="bold">F</text>
+                            {/* Velocity Vector: Tangent (Perpendicular to Radius) */}
+                            <path d="M 60 -35 L 40 -69" fill="none" stroke="#ef4444" strokeWidth="2.5" markerEnd="url(#arrow_basic)" />
+                            <text x="35" y="-75" fontSize="12" fill="#ef4444" fontWeight="bold">v</text>
+                            {/* Centripetal Force: Directly to Center */}
+                            <path d="M 60 -35 L 26 -15" fill="none" stroke="#10b981" strokeWidth="2.5" markerEnd="url(#arrow_green)" />
+                            <text x="25" y="-5" fontSize="12" fill="#10b981" fontWeight="bold">F</text>
                         </g>
                     );
                 } else if (type === 'circular_calc') {
                     svgInner = (
                         <g transform="translate(175, 100)">
-                            <circle cx="0" cy="0" r="60" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" />
+                            <circle cx="0" cy="0" r="65" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeDasharray="4,4" />
                             <circle cx="0" cy="0" r="4" fill="#475569" />
-                            <line x1="0" y1="0" x2="60" y2="0" stroke="#64748b" strokeWidth="2" />
+                            <line x1="0" y1="0" x2="65" y2="0" stroke="#64748b" strokeWidth="2" />
                             <text x="25" y="-5" fontSize="12" fontWeight="bold">r=2m</text>
-                            <circle cx="60" cy="0" r="10" fill="#8b5cf6" />
-                            <text x="60" y="3" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">2kg</text>
-                            <path d="M 60 0 L 60 -40" fill="none" stroke="#f43f5e" strokeWidth="2" markerEnd="url(#arrow_basic)" />
-                            <text x="70" y="-20" fontSize="12" fill="#f43f5e" fontWeight="extrabold">v</text>
+                            <circle cx="65" cy="0" r="10" fill="#8b5cf6" />
+                            <text x="65" y="3" fontSize="10" fill="white" textAnchor="middle" fontWeight="bold">2kg</text>
+                            {/* Velocity Vector: Tangent (Vertical at this point) */}
+                            <path d="M 65 0 L 65 -45" fill="none" stroke="#f43f5e" strokeWidth="2.5" markerEnd="url(#arrow_basic)" />
+                            <text x="72" y="-25" fontSize="12" fill="#f43f5e" fontWeight="extrabold">v</text>
                         </g>
                     );
                 } else if (type === 'velocity_graphs') {
