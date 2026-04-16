@@ -63,9 +63,24 @@ def run_practice():
                     text: '반지름(r)이 2m이고질량이 2kg인 물체가 v = 2π m/s의 속력으로 등속 원운동하고 있습니다. (π = 3.14로 계산하시오)',
                     view: 'circular_calc',
                     items: [
-                        { label: '1. 각속도(ω)는 얼마인가?', type: 'input', unit: 'rad/s', correct: '3.14' },
-                        { label: '2. 공전 주기(T)는 몇 초인가?', type: 'input', unit: 's', correct: '2' },
-                        { label: '3. 구심 가속도의 크기는?', type: 'input', unit: 'm/s²', correct: '19.72' }
+                        { 
+                            label: '1. 각속도(ω)는 얼마인가?', 
+                            type: 'choice', 
+                            options: ['1.57 rad/s', '3.14 rad/s', '6.28 rad/s', '9.42 rad/s'],
+                            correct: 1 
+                        },
+                        { 
+                            label: '2. 공전 주기(T)는 몇 초인가?', 
+                            type: 'choice', 
+                            options: ['1s', '2s', '4s', 'π s'],
+                            correct: 1 
+                        },
+                        { 
+                            label: '3. 구심 가속도의 크기는?', 
+                            type: 'choice', 
+                            options: ['9.86 m/s²', '19.72 m/s²', '39.44 m/s²', '4.93 m/s²'],
+                            correct: 1 
+                        }
                     ]
                 },
                 {
@@ -77,9 +92,9 @@ def run_practice():
                     items: [
                         {
                             label: '(1) 물체의 공전 주기는 얼마인가?',
-                            type: 'input',
-                            unit: 't₀',
-                            correct: '2'
+                            type: 'choice',
+                            options: ['0.5 t₀', 't₀', '1.5 t₀', '2 t₀'],
+                            correct: 3
                         },
                         {
                             label: '(2) t = t₀일 때 물체의 가속도 방향은?',
@@ -93,7 +108,7 @@ def run_practice():
                     id: 'q4',
                     type: 'multiple_sub_questions',
                     title: '등속 원운동과 장력의 평형',
-                    text: '질량이 각각 m, 2m인 물체 A, B가 실로 연결되어 있습니다. A는 반지름 r인 원운동을 하고, B는 정지해 있습니다.',
+                    text: '질량이 각각 m, 2m인 두 물체 A, B를 마찰이 없는 실험대의 구멍을 통과하는 실로 연결하였습니다. A는 반지름 r인 원운동을 하고, B는 정지해 있습니다.',
                     view: 'table_balance',
                     items: [
                         {
@@ -140,9 +155,9 @@ def run_practice():
                     items: [
                         {
                             label: 't 이후 로켓의 구심 가속도의 크기는?',
-                            type: 'input',
-                            unit: 'm/s²',
-                            correct: '1'
+                            type: 'choice',
+                            options: ['0.1 m/s²', '1 m/s²', '10 m/s²', '100 m/s²'],
+                            correct: 1
                         },
                         {
                             label: '0초에서 t까지 접선 가속도에 대한 설명으로 옳은 것은?',
@@ -200,20 +215,35 @@ def run_practice():
                         </g>
                     );
                 } else if (type === 'velocity_graphs') {
+                    const vxPath = Array.from({length: 41}, (_, i) => {
+                        const t = i / 20; // 0 to 2
+                        const x = 10 + (t * 50);
+                        const y = 30 - 25 * Math.sin(Math.PI * t);
+                        return `${x},${y}`;
+                    }).join(' ');
+                    const vyPath = Array.from({length: 41}, (_, i) => {
+                        const t = i / 20; // 0 to 2
+                        const x = 10 + (t * 50);
+                        const y = 30 - 25 * Math.cos(Math.PI * t);
+                        return `${x},${y}`;
+                    }).join(' ');
+
                     svgInner = (
                         <g transform="translate(50, 40)">
-                            <text x="0" y="-10" fontSize="10" fontWeight="bold" fill="#64748b">vx-t 그래프</text>
-                            <line x1="0" y1="30" x2="100" y2="30" stroke="#cbd5e1" />
-                            <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" />
-                            <path d="M 10 30 Q 35 60 60 30 Q 85 0 100 20" fill="none" stroke="#f43f5e" strokeWidth="2" />
-                            <text x="60" y="45" fontSize="8">t₀</text>
+                            <text x="0" y="-12" fontSize="10" fontWeight="bold" fill="#64748b">vx-t 그래프</text>
+                            <line x1="0" y1="30" x2="120" y2="30" stroke="#cbd5e1" strokeWidth="1" />
+                            <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" strokeWidth="1" />
+                            <polyline points={vxPath} fill="none" stroke="#f43f5e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <text x="60" y="45" fontSize="8" fontWeight="bold">t₀</text>
+                            <text x="110" y="45" fontSize="8" fontWeight="bold">2t₀</text>
                             
                             <g transform="translate(150, 0)">
-                                <text x="0" y="-10" fontSize="10" fontWeight="bold" fill="#64748b">vy-t 그래프</text>
-                                <line x1="0" y1="30" x2="100" y2="30" stroke="#cbd5e1" />
-                                <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" />
-                                <path d="M 10 0 Q 35 30 60 60 Q 85 30 100 0" fill="none" stroke="#3b82f6" strokeWidth="2" />
-                                <text x="60" y="45" fontSize="8">t₀</text>
+                                <text x="0" y="-12" fontSize="10" fontWeight="bold" fill="#64748b">vy-t 그래프</text>
+                                <line x1="0" y1="30" x2="120" y2="30" stroke="#cbd5e1" strokeWidth="1" />
+                                <line x1="10" y1="0" x2="10" y2="60" stroke="#cbd5e1" strokeWidth="1" />
+                                <polyline points={vyPath} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                <text x="60" y="45" fontSize="8" fontWeight="bold">t₀</text>
+                                <text x="110" y="45" fontSize="8" fontWeight="bold">2t₀</text>
                             </g>
                         </g>
                     );
