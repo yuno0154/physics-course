@@ -859,77 +859,180 @@ function renderInertial(cx, cy, accel, force) {
 }
 
 // ══════════════════════════════════════════════
-//  [3] 비관성계 (Rotating Frame — 관성계와 동일 원형 링 이미지)
-//  ★ 핵심: 링·우주인은 고정, 별만 -angle 회전
-//         관성력(원심력) 화살표 + 수직항력 화살표 표시
+//  [3] 비관성계 (Rotating Frame)
+//  ✦ 외부 관찰과 동일한 링 이미지
+//  ✦ 차이: 별이 -angle 방향(겉보기 회전), 링은 고정
+//  ✦ 관성력(원심력) 화살표 표시
 // ══════════════════════════════════════════════
 function renderRotating(cx, cy, accel, force) {
-    // 관성계와 동일한 스케일 사용
-    const scale   = Math.min(canvas.width, canvas.height) / 480;
-    const visualR = r * scale;
+    // 외부 관찰과 동일한 스케일·링 크기
+    const scale   = Math.min(canvas.width, canvas.height) / 560;
+    const visualR = Math.min(canvas.width, canvas.height) * 0.36;
 
-    // ★ 비관성계: 링·우주인 고정, 별만 -angle 방향으로 회전(겉보기 회전)
+    // ★ 별·지구만 -angle 방향(겉보기 회전), 링 전체는 고정
     drawSpace(cx, cy, -angle);
-    drawEarth(cx, cy, scale * 0.6, -angle + earthAngle);
+    drawEarth(cx, cy, scale * 0.5, -angle + earthAngle);
 
     ctx.save();
     ctx.translate(cx, cy);
 
-    const cabinH   = 52 * scale;
-    const hullT    = 16 * scale;
-
-    // 선체 (가장 바깥 원) — 고정
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth   = hullT;
-    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
-
-    ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth   = hullT * 0.6;
-    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
-
-    // 생활 공간 배경
-    ctx.fillStyle = 'rgba(16,185,129,0.04)';   // 비관성계 틴트 (초록)
-    ctx.beginPath();
-    ctx.arc(0, 0, visualR - hullT / 2, 0, Math.PI * 2);
-    ctx.arc(0, 0, Math.max(1, visualR - cabinH), 0, Math.PI * 2, true);
-    ctx.fill();
-
-    // 내벽 (천장)
-    ctx.strokeStyle = 'rgba(16,185,129,0.25)';
-    ctx.lineWidth   = 2 * scale;
-    ctx.beginPath(); ctx.arc(0, 0, Math.max(1, visualR - cabinH), 0, Math.PI * 2); ctx.stroke();
-
-    // 분리 격벽 (8칸) — 고정
-    ctx.strokeStyle = 'rgba(71,85,105,0.3)'; ctx.lineWidth = 1.5 * scale;
-    for (let i = 0; i < 8; i++) {
-        const a = (i / 8) * Math.PI * 2;
-        const x1 = Math.cos(a) * (visualR - cabinH);
-        const y1 = Math.sin(a) * (visualR - cabinH);
-        const x2 = Math.cos(a) * (visualR - hullT / 2);
-        const y2 = Math.sin(a) * (visualR - hullT / 2);
-        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    // ── 허브 연결 지주 (고정 — 비관성계에서는 지주가 움직이지 않음) ──
+    const spokeCount = 6;
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth   = 14 * scale;
+    for (let i = 0; i < spokeCount; i++) {
+        const a = (i / spokeCount) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * visualR * 0.85, Math.sin(a) * visualR * 0.85);
+        ctx.stroke();
     }
 
-    // ── 우주인: 비관성계에서는 고정 위치 (오른쪽, angle=0 기준) ──
-    const fixedAng = 0;   // 비관성계 — 우주인이 항상 오른쪽에 고정
-    const ax = Math.cos(fixedAng) * (visualR - hullT / 2);
-    const ay = Math.sin(fixedAng) * (visualR - hullT / 2);
+    // ── 태양광 패널 (고정) ──
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-visualR * 0.06, -visualR * 1.18, visualR * 0.12, visualR * 0.3);
+    ctx.fillRect(-visualR * 0.06,  visualR * 0.88, visualR * 0.12, visualR * 0.3);
+    ctx.fillStyle = 'rgba(16,185,129,0.3)';   // 비관성계 패널 색 (초록)
+    for (let s of [-1, 1]) {
+        for (let k = 0; k < 4; k++) {
+            ctx.fillRect(
+                -visualR * 0.25 + k * visualR * 0.13,
+                s > 0 ? visualR * 0.9 : -visualR * 1.12,
+                visualR * 0.11, visualR * 0.22
+            );
+        }
+    }
+
+    // ── 허브 (중심부, 고정) ──
+    const hubR = 34 * scale;
+    const hubGrad = ctx.createRadialGradient(-hubR*0.3, -hubR*0.3, 0, 0, 0, hubR);
+    hubGrad.addColorStop(0, '#94a3b8');
+    hubGrad.addColorStop(0.6, '#334155');
+    hubGrad.addColorStop(1, '#0f172a');
+    ctx.fillStyle = hubGrad;
+    ctx.beginPath(); ctx.arc(0, 0, hubR, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2.5 * scale;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(16,185,129,0.5)'; ctx.lineWidth = 1.5 * scale;
+    ctx.beginPath(); ctx.arc(0, 0, hubR * 0.55, 0, Math.PI * 2); ctx.stroke();
+
+    ctx.restore();
+
+    // ── 토러스 링 본체 — 고정 (비관성계: 링이 회전하지 않음) ──
+    ctx.save();
+    ctx.translate(cx, cy);
+    // ★ 비관성계: 링 고정 — ctx.rotate(angle) 없음
+
+    const tubeW = 38 * scale;
+
+    // 링 그림자
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth   = tubeW * 2.4;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
+
+    // 링 기본 몸체
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth   = tubeW * 2.0;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
+
+    // 링 중간 레이어
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth   = tubeW * 1.4;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
+
+    // 링 표면
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth   = tubeW * 0.7;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
+
+    // 하이라이트 (상단)
+    const hlGrad = ctx.createLinearGradient(0, -visualR - tubeW, 0, -visualR + tubeW);
+    hlGrad.addColorStop(0, 'rgba(148,163,184,0.6)');
+    hlGrad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = hlGrad;
+    ctx.lineWidth   = tubeW * 0.35;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+
+    // 링 내벽 어두운 선
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.lineWidth   = 1.5 * scale;
+    ctx.beginPath(); ctx.arc(0, 0, visualR - tubeW * 0.6, 0, Math.PI * 2); ctx.stroke();
+
+    // 창문 / 격벽 (16칸)
+    ctx.strokeStyle = 'rgba(16,185,129,0.3)';
+    ctx.lineWidth   = 2 * scale;
+    const segCount = 16;
+    for (let i = 0; i < segCount; i++) {
+        const a0 = (i / segCount) * Math.PI * 2;
+        const a1 = ((i + 0.05) / segCount) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, visualR - tubeW * 0.2, a0, a1);
+        ctx.stroke();
+    }
+
+    // ── 우주인: 비관성계에서 고정 위치 (오른쪽) ──
+    const fixedAng = 0;
+    const ax = Math.cos(fixedAng) * (visualR - tubeW * 0.5);
+    const ay = Math.sin(fixedAng) * (visualR - tubeW * 0.5);
     drawAstronaut(ax, ay, fixedAng - Math.PI / 2, scale, true);
 
-    // ── 별 (배경) 회전 방향 표시 — 점선 호 화살표 ──
-    const starArrowR = visualR + hullT * 2.5;
-    const starAngNow = (-angle + Math.PI / 2) % (Math.PI * 2);
-    ctx.strokeStyle = 'rgba(148,163,184,0.55)';
-    ctx.lineWidth   = 2 * scale;
-    ctx.setLineDash([6 * scale, 4 * scale]);
+    // ── 관성력(원심력) — 바깥 방향(+x), 초록 ──
+    const arrowLen = Math.max(30 * scale, Math.min(visualR * 0.4, accel * 6 * scale));
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.strokeStyle = '#10b981';
+    ctx.fillStyle   = '#10b981';
+    ctx.lineWidth   = 4.5 * scale;
+    ctx.shadowColor = '#10b981';
+    ctx.shadowBlur  = 18;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(arrowLen, 0); ctx.stroke();
     ctx.beginPath();
-    ctx.arc(0, 0, starArrowR, starAngNow - 0.7, starAngNow);
+    ctx.moveTo(arrowLen, 0);
+    ctx.lineTo(arrowLen - 12 * scale, -6 * scale);
+    ctx.lineTo(arrowLen - 12 * scale,  6 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.font = `bold ${11 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('관성력(원심력)', 4 * scale, -13 * scale);
+    ctx.font = `${9 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(110,231,183,0.9)';
+    ctx.fillText('F = mω²r = ' + force.toFixed(1) + ' N', 4 * scale, -2 * scale);
+    ctx.restore();
+
+    // ── 수직항력 — 안쪽 방향(-x), 빨간 ──
+    ctx.save();
+    ctx.translate(ax, ay);
+    ctx.strokeStyle = '#ef4444';
+    ctx.fillStyle   = '#ef4444';
+    ctx.lineWidth   = 3.5 * scale;
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur  = 12;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-arrowLen * 0.85, 0); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-arrowLen * 0.85, 0);
+    ctx.lineTo(-arrowLen * 0.85 + 11 * scale, -5 * scale);
+    ctx.lineTo(-arrowLen * 0.85 + 11 * scale,  5 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.font = `bold ${10 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('수직항력(N)', -arrowLen * 0.75, 16 * scale);
+    ctx.restore();
+
+    // ── 별 겉보기 회전 방향 화살표 ──
+    const starArrowR = visualR + tubeW * 1.7;
+    const starAngNow = (-angle + Math.PI * 0.5) % (Math.PI * 2);
+    ctx.strokeStyle = 'rgba(148,163,184,0.5)';
+    ctx.lineWidth   = 2 * scale;
+    ctx.setLineDash([5 * scale, 4 * scale]);
+    ctx.beginPath();
+    ctx.arc(0, 0, starArrowR, starAngNow - 0.65, starAngNow);
     ctx.stroke();
     ctx.setLineDash([]);
-    // 화살표 머리
     const sAX = Math.cos(starAngNow) * starArrowR;
     const sAY = Math.sin(starAngNow) * starArrowR;
-    ctx.fillStyle = 'rgba(148,163,184,0.55)';
+    ctx.fillStyle = 'rgba(148,163,184,0.5)';
     ctx.save();
     ctx.translate(sAX, sAY);
     ctx.rotate(starAngNow - Math.PI / 2);
@@ -937,73 +1040,25 @@ function renderRotating(cx, cy, accel, force) {
     ctx.moveTo(0, 0); ctx.lineTo(-5 * scale, -10 * scale); ctx.lineTo(5 * scale, -10 * scale);
     ctx.closePath(); ctx.fill();
     ctx.restore();
-    // 레이블
     ctx.font = `bold ${9 * scale}px JetBrains Mono, monospace`;
-    ctx.fillStyle = 'rgba(148,163,184,0.7)';
-    const lblA = starAngNow - 0.35;
-    ctx.fillText('별 겉보기 회전', Math.cos(lblA) * (starArrowR + 14 * scale) - 30 * scale,
-                                   Math.sin(lblA) * (starArrowR + 14 * scale));
-
-    // ── 관성력(원심력) 화살표 — 바깥쪽(center→바깥), 초록 ──
-    const arrowLen = Math.max(28 * scale, Math.min(visualR * 0.45, accel * 7 * scale));
-    // 우주인 위치에서 바깥으로 (fixedAng 방향)
-    ctx.save();
-    ctx.translate(ax, ay);
-    ctx.rotate(fixedAng);   // 바깥 방향
-    ctx.strokeStyle = '#10b981';
-    ctx.fillStyle   = '#10b981';
-    ctx.lineWidth   = 5 * scale;
-    ctx.shadowColor = '#10b981';
-    ctx.shadowBlur  = 18;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(arrowLen, 0); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(arrowLen, 0);
-    ctx.lineTo(arrowLen - 13 * scale, -6 * scale);
-    ctx.lineTo(arrowLen - 13 * scale,  6 * scale);
-    ctx.closePath(); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.font = `bold ${12 * scale}px JetBrains Mono, monospace`;
-    ctx.fillStyle = '#10b981';
-    ctx.fillText('관성력(원심력)', 4 * scale, -14 * scale);
-    ctx.font = `${9 * scale}px JetBrains Mono, monospace`;
-    ctx.fillStyle = 'rgba(110,231,183,0.9)';
-    ctx.fillText('F = mω²r = ' + force.toFixed(1) + ' N', 4 * scale, -3 * scale);
-    ctx.restore();
-
-    // ── 수직항력 화살표 — 중심 방향(fixedAng+π), 빨간 ──
-    ctx.save();
-    ctx.translate(ax, ay);
-    ctx.rotate(fixedAng + Math.PI);   // 안쪽 방향
-    ctx.strokeStyle = '#ef4444';
-    ctx.fillStyle   = '#ef4444';
-    ctx.lineWidth   = 4 * scale;
-    ctx.shadowColor = '#ef4444';
-    ctx.shadowBlur  = 12;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(arrowLen * 0.85, 0); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(arrowLen * 0.85, 0);
-    ctx.lineTo(arrowLen * 0.85 - 11 * scale, -5 * scale);
-    ctx.lineTo(arrowLen * 0.85 - 11 * scale,  5 * scale);
-    ctx.closePath(); ctx.fill();
-    ctx.shadowBlur = 0;
-    ctx.font = `bold ${11 * scale}px JetBrains Mono, monospace`;
-    ctx.fillStyle = '#ef4444';
-    ctx.fillText('수직항력(N)', 4 * scale, -12 * scale);
-    ctx.restore();
+    ctx.fillStyle = 'rgba(148,163,184,0.65)';
+    const lblA2 = starAngNow - 0.33;
+    ctx.fillText('별 겉보기 회전',
+        Math.cos(lblA2) * (starArrowR + 12 * scale) - 28 * scale,
+        Math.sin(lblA2) * (starArrowR + 12 * scale));
 
     ctx.restore();
 
     // ── 비관성계 레이블 ──
     ctx.save();
-    ctx.font = 'bold 13px JetBrains Mono, monospace';
+    ctx.font = `bold ${13 * scale}px JetBrains Mono, monospace`;
     ctx.fillStyle = 'rgba(16,185,129,0.9)';
-    ctx.fillText('NON-INERTIAL FRAME — 비관성계 (회전 좌표계)', 14, 28);
-    ctx.font = '10px JetBrains Mono, monospace';
-    ctx.fillStyle = 'rgba(148,163,184,0.7)';
+    ctx.fillText('NON-INERTIAL FRAME — 비관성계', 14, 28);
+    ctx.font = `${11 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(148,163,184,0.6)';
     ctx.fillText('링·우주인 고정 | 별이 반대 방향으로 도는 것처럼 보임', 14, 46);
     ctx.restore();
 }
-
 // ─────────────────────────────────────────────
 canvas.addEventListener('mousemove', e => {
     const r = canvas.getBoundingClientRect();
