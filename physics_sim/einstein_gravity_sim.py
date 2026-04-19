@@ -68,22 +68,24 @@ const drawStars = (ctx, W, H, t) => {
 /* ── 시공간 격자 (Grid) ── */
 function drawGrid(ctx, W, H, mode, sunX, sunY) {
     ctx.save();
-    ctx.strokeStyle = mode === 'newton' ? 'rgba(71, 85, 105, 0.2)' : 'rgba(99, 102, 241, 0.15)';
-    ctx.lineWidth = 0.8;
+    // 격자 선명도 대폭 강화
+    ctx.strokeStyle = mode === 'newton' ? 'rgba(100, 116, 139, 0.4)' : 'rgba(99, 102, 241, 0.6)';
+    ctx.lineWidth = 1.2;
     
-    const step = 40;
+    const step = 45;
     const cols = Math.ceil(W/step) + 2;
     const rows = Math.ceil(H/step) + 2;
 
     for (let i = -1; i <= cols; i++) {
-        // 수직선
         ctx.beginPath();
         for (let j = -1; j <= rows; j++) {
             let px = i * step, py = j * step;
             if (mode === 'einstein') {
                 const dx = px - sunX, dy = py - sunY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const force = 1500 / (dist + 50); // 질량 중심을 향한 왜곡 (과장됨)
+                const distSq = dx*dx + dy*dy;
+                const dist = Math.sqrt(distSq);
+                // 왜곡 강도 증가 및 범위 조정
+                const force = 3500 / (dist + 60); 
                 px -= (dx / (dist + 1)) * force;
                 py -= (dy / (dist + 1)) * force;
             }
@@ -93,14 +95,13 @@ function drawGrid(ctx, W, H, mode, sunX, sunY) {
         ctx.stroke();
     }
     for (let j = -1; j <= rows; j++) {
-        // 수평선
         ctx.beginPath();
         for (let i = -1; i <= cols; i++) {
             let px = i * step, py = j * step;
             if (mode === 'einstein') {
                 const dx = px - sunX, dy = py - sunY;
                 const dist = Math.sqrt(dx*dx + dy*dy);
-                const force = 1500 / (dist + 50);
+                const force = 3500 / (dist + 60);
                 px -= (dx / (dist + 1)) * force;
                 py -= (dy / (dist + 1)) * force;
             }
@@ -123,71 +124,86 @@ function drawEddington(ctx, W, H, mode, t) {
     drawGrid(ctx, W, H, mode, sunX, sunY);
     drawStars(ctx, W, H, t);
     
-    // 별의 실제 위치: 태양 뒤편
-    const starRealX = sunX + 18, starRealY = H * 0.12;
-    const moonX = sunX, moonY = sunY; // 일식 중심 고정
+    // 별의 실제 위치: 태양 정중앙 뒤편에 가까움 (가려짐 강조)
+    const starRealX = sunX + 5, starRealY = H * 0.08;
     
-    // 빛의 진행 애니메이션
-    const prog = (t * 0.0005) % 1;
+    // 빛의 진행 애니메이션 (포톤)
+    const prog = (t * 0.0006) % 1;
 
     if(mode === 'newton') {
-        // 1. 뉴턴/편평한 시공간: 빛이 태양에 가로막힘
+        // 1. 뉴턴: 빛의 직진 및 차단
         ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1.5;
         ctx.setLineDash([5,5]);
         ctx.beginPath(); ctx.moveTo(starRealX, starRealY); ctx.lineTo(earthX, earthY); ctx.stroke();
         ctx.setLineDash([]);
 
-        // 빛 진행 (태양까지만)
-        const hitSunY = sunY - sunR * 0.7;
-        const beamY = starRealY + (hitSunY - starRealY) * prog;
-        ctx.beginPath(); ctx.arc(starRealX, beamY, 2.5, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        // 포톤 애니메이션 (태양 표면까지만)
+        const hitSunY = sunY - sunR * 0.92;
+        const currentT = Math.min(1, prog / 0.4); 
+        const beamY = starRealY + (hitSunY - starRealY) * currentT;
         
-        ctx.fillStyle='#f87171'; ctx.font='bold 14px Noto Sans KR'; ctx.textAlign='center';
-        ctx.fillText('뉴턴: 평평한 시공간 (빛의 직진)', sunX, sunY - 100);
-        ctx.fillText('→ 태양에 빛이 차단되어 보이지 않음', sunX, sunY - 82);
+        ctx.save();
+        ctx.shadowBlur = 10; ctx.shadowColor = '#fff';
+        ctx.beginPath(); ctx.arc(starRealX, beamY, 3.5, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        ctx.restore();
+        
+        ctx.fillStyle='#f87171'; ctx.font='bold 15px Noto Sans KR'; ctx.textAlign='center';
+        ctx.fillText('뉴턴: 평평한 시공간 (빛의 직진)', sunX, sunY - 120);
+        ctx.fillText('→ 태양에 빛이 차단되어 보이지 않음', sunX, sunY - 98);
 
     } else {
-        // 2. 아인슈타인/휘어진 시공간: 빛이 우회함
-        ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 2.5; 
-        const cpX = sunX + 85, cpY = sunY; // 휘어짐 유도 제어점
+        // 2. 아인슈타인: 빛의 우회 탐구
+        ctx.strokeStyle = '#6366f1'; ctx.lineWidth = 3; 
+        const cpX = sunX + 130, cpY = sunY; // 제어점을 멀리 잡아 태양 충돌 방지
+        
         ctx.beginPath(); ctx.moveTo(starRealX, starRealY); ctx.quadraticCurveTo(cpX, cpY, earthX, earthY); ctx.stroke();
 
         // 겉보기 위치 역연장선
-        const appStarX = sunX + 160, appStarY = 50; 
-        ctx.strokeStyle = 'rgba(99,102,241,0.4)'; ctx.setLineDash([4,4]);
+        const appStarX = sunX + 220, appStarY = 40; 
+        ctx.strokeStyle = 'rgba(99,102,241,0.5)'; ctx.setLineDash([6,4]);
         ctx.beginPath(); ctx.moveTo(earthX, earthY); ctx.lineTo(appStarX, appStarY); ctx.stroke();
         ctx.setLineDash([]);
 
-        // 겉보기 별
-        ctx.save(); ctx.shadowBlur=15; ctx.shadowColor='#818cf8';
-        ctx.beginPath(); ctx.arc(appStarX, appStarY, 6, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        // 포톤 애니메이션 (베지어 곡선 따라 이동)
+        const qt = prog;
+        const px = (1-qt)*(1-qt)*starRealX + 2*(1-qt)*qt*cpX + qt*qt*earthX;
+        const py = (1-qt)*(1-qt)*starRealY + 2*(1-qt)*qt*cpY + qt*qt*earthY;
+        
+        ctx.save();
+        ctx.shadowBlur = 15; ctx.shadowColor = '#6366f1';
+        ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
         ctx.restore();
-        ctx.fillStyle='#fff'; ctx.font='bold 12px Noto Sans KR'; ctx.textAlign='left';
-        ctx.fillText('관측된 겉보기 위치', appStarX + 15, appStarY + 5);
-        ctx.fillText('(실제보다 바깥쪽으로 밀려남)', appStarX + 15, appStarY + 22);
 
-        ctx.fillStyle='#818cf8'; ctx.font='bold 14px Noto Sans KR'; ctx.textAlign='center';
+        // 겉보기 별
+        ctx.save(); ctx.shadowBlur=20; ctx.shadowColor='#818cf8';
+        ctx.beginPath(); ctx.arc(appStarX, appStarY, 7, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+        ctx.restore();
+        ctx.fillStyle='#fff'; ctx.font='bold 13px Noto Sans KR'; ctx.textAlign='left';
+        ctx.fillText('관측된 겉보기 위치', appStarX + 15, appStarY + 5);
+        ctx.fillText('(태양으로부터 멀리 편향됨)', appStarX + 15, appStarY + 24);
+
+        ctx.fillStyle='#818cf8'; ctx.font='bold 15px Noto Sans KR'; ctx.textAlign='center';
         ctx.fillText('아인슈타인: 휘어진 시공간 (빛의 우회)', sunX, sunY - 140);
-        ctx.fillText('→ 보이지 않아야 할 별이 관측됨!', sunX, sunY - 122);
+        ctx.fillText('→ 보이지 않아야 할 별이 관측됨!', sunX, sunY - 118);
     }
 
-    // 실제 별 위치 표시
-    ctx.beginPath(); ctx.arc(starRealX, starRealY, 5, 0, Math.PI*2); ctx.fillStyle='#fbbf24'; ctx.fill();
-    ctx.fillStyle='#fbbf24'; ctx.font='bold 12px Noto Sans KR'; ctx.textAlign='right';
+    // 실제 별 위치 (지각적으로 태양 뒤에 있음을 표시)
+    ctx.beginPath(); ctx.arc(starRealX, starRealY, 6, 0, Math.PI*2); ctx.fillStyle='#fbbf24'; ctx.fill();
+    ctx.fillStyle='#fbbf24'; ctx.font='bold 13px Noto Sans KR'; ctx.textAlign='right';
     ctx.fillText('실제 위치   ', starRealX - 8, starRealY + 5);
 
-    // 태양/달 (개기일식)
-    const sg = ctx.createRadialGradient(sunX, sunY, sunR*0.8, sunX, sunY, sunR*1.5);
-    sg.addColorStop(0, 'rgba(253, 224, 71, 0.4)'); sg.addColorStop(1, 'transparent');
-    ctx.beginPath(); ctx.arc(sunX, sunY, sunR*1.5, 0, Math.PI*2); ctx.fillStyle=sg; ctx.fill();
+    // 태양/달 (개기일식 비주얼)
+    const sg = ctx.createRadialGradient(sunX, sunY, sunR*0.7, sunX, sunY, sunR*1.7);
+    sg.addColorStop(0, 'rgba(253, 224, 71, 0.5)'); sg.addColorStop(0.3, 'rgba(253, 224, 71, 0.2)'); sg.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR*1.7, 0, Math.PI*2); ctx.fillStyle=sg; ctx.fill();
 
     ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
 
     // 지구
-    const eg = ctx.createRadialGradient(earthX-5, earthY-5, 2, earthX, earthY, 25);
+    const eg = ctx.createRadialGradient(earthX-6, earthY-6, 3, earthX, earthY, 28);
     eg.addColorStop(0,'#3b82f6'); eg.addColorStop(1,'#1e3a8a');
-    ctx.beginPath(); ctx.arc(earthX, earthY, 25, 0, Math.PI*2); ctx.fillStyle=eg; ctx.fill();
+    ctx.beginPath(); ctx.arc(earthX, earthY, 28, 0, Math.PI*2); ctx.fillStyle=eg; ctx.fill();
 }
 
 /* ══════════════════════════════════════════
