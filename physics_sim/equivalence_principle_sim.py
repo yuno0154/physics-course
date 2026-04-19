@@ -294,71 +294,191 @@ function drawPhase0b(ctx,W,H,accel,tL,tR){
     txt(ctx,W/2,qY+32,'가속도 슬라이더를 9.8 m/s²에 맞추면 두 상황이 물리적으로 완전히 동일해진다.','rgba(148,163,184,0.72)',11,'center','400');
 }
 
-/* ════ Phase 1: 빛의 경로 ════ */
-function drawPhase1(ctx,W,H,accel,t,running){
-    const cx1=W*0.27,cx2=W*0.73,cy=H*0.5;
-    const rw=Math.min(W*0.22,130),rh=Math.min(H*0.68,320);
-    drawStars(ctx,W,H,t);
-    dashedRect(ctx,cx1-rw/2,cy-rh/2,rw,rh,'rgba(255,255,100,0.15)');
-    drawRocketFull(ctx,cx1,cy+rh*0.06,rw*0.7,rh*0.72,0);
-    txt(ctx,cx1,cy-rh/2-18,'정지 좌표계','rgba(255,255,100,0.8)',13);
-    txt(ctx,cx1,cy-rh/2-4,'빛은 직진','rgba(255,255,100,0.5)',11);
-    const lProg=running?Math.min((t%2800)/2800,1):0;
-    const lyIn=cy-rh*0.08;
-    const lx1s=cx1-rw*0.38,lx1e=cx1+rw*0.38;
-    if(lProg>0){
-        ctx.save();
-        ctx.beginPath();ctx.rect(cx1-rw/2,cy-rh/2,rw,rh);ctx.clip();
-        ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=8;
-        ctx.strokeStyle='rgba(255,255,100,0.95)';ctx.lineWidth=2.5;
-        ctx.beginPath();ctx.moveTo(lx1s,lyIn);ctx.lineTo(lx1s+(lx1e-lx1s)*lProg,lyIn);ctx.stroke();
-        ctx.restore();
+/* ════ Phase 1: 빛의 경로 — 4가지 운동 상황 × 내부/외부 시점 ════ */
+const SIT_CFG=[
+    {name:'정지',  color:'rgba(255,255,100,0.85)',border:'rgba(255,255,100,0.3)', thrust:0,  speedDir:0,  bendFactor:0,  extSpd:0  },
+    {name:'등속',  color:'rgba(100,200,255,0.85)',border:'rgba(100,200,255,0.3)', thrust:0,  speedDir:1,  bendFactor:0,  extSpd:1  },
+    {name:'가속',  color:'rgba(248,113,113,0.85)',border:'rgba(248,113,113,0.3)', thrust:1,  speedDir:1,  bendFactor:1,  extSpd:2  },
+    {name:'감속',  color:'rgba(167,139,250,0.85)',border:'rgba(167,139,250,0.3)', thrust:0,  speedDir:-1, bendFactor:-1, extSpd:0.5},
+];
+
+function drawLightBeam(ctx,xs,xe,y,bendPx,lProg,clip){
+    if(lProg<=0) return;
+    if(clip){ctx.save();ctx.beginPath();ctx.rect(clip.x,clip.y,clip.w,clip.h);ctx.clip();}
+    ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=7;
+    ctx.strokeStyle='rgba(255,255,100,0.95)';ctx.lineWidth=2.5;
+    ctx.beginPath();
+    const steps=60;
+    for(let i=0;i<=steps*Math.min(lProg,1);i++){
+        const f=i/steps,px=xs+(xe-xs)*f;
+        const py=bendPx===0?y:y+f*f*bendPx;
+        if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
     }
-    if(running&&lProg<0.98){
-        ctx.beginPath();ctx.arc(lx1s+(lx1e-lx1s)*lProg,lyIn,5,0,Math.PI*2);
-        ctx.fillStyle='rgba(255,255,150,1)';
-        ctx.shadowColor='rgba(255,255,100,0.9)';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
-    }
-    dashedRect(ctx,cx2-rw/2,cy-rh/2,rw,rh,'rgba(248,113,113,0.2)');
-    const thrust=running?(0.88+0.24*Math.sin(t*0.02)):1;
-    drawRocketFull(ctx,cx2,cy+rh*0.06,rw*0.7,rh*0.72,running?accel:0,thrust);
-    txt(ctx,cx2,cy-rh/2-18,'가속 좌표계','rgba(248,113,113,0.8)',13);
-    txt(ctx,cx2,cy-rh/2-4,'빛이 휜다!','rgba(248,113,113,0.5)',11);
-    const lx2s=cx2-rw*0.38,lx2e=cx2+rw*0.38;
-    const bendAmt=(accel/9.8)*22;
-    if(lProg>0){
-        ctx.save();
-        ctx.beginPath();ctx.rect(cx2-rw/2,cy-rh/2,rw,rh);ctx.clip();
-        ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=8;
-        ctx.strokeStyle='rgba(255,255,100,0.95)';ctx.lineWidth=2.5;
-        ctx.beginPath();
-        for(let i=0;i<=60*lProg;i++){
-            const frac=i/60,px=lx2s+(lx2e-lx2s)*frac,py=lyIn+frac*frac*bendAmt;
-            if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
-        }
-        ctx.stroke();
+    ctx.stroke();
+    if(bendPx!==0){
         ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,100,0.18)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
-        ctx.beginPath();ctx.moveTo(lx2s,lyIn);ctx.lineTo(lx2s+(lx2e-lx2s)*lProg,lyIn);ctx.stroke();ctx.setLineDash([]);
-        if(lProg>0.8){
-            const endX=lx2e,endY=lyIn+bendAmt;
-            ctx.strokeStyle='rgba(248,113,113,0.6)';ctx.lineWidth=1;ctx.setLineDash([2,3]);
-            ctx.beginPath();ctx.moveTo(endX,lyIn);ctx.lineTo(endX,endY);ctx.stroke();ctx.setLineDash([]);
-            txt(ctx,endX+12,(lyIn+endY)/2,`Δy=${bendAmt.toFixed(0)}`,'rgba(248,113,113,0.8)',10,'left');
+        ctx.beginPath();ctx.moveTo(xs,y);ctx.lineTo(xs+(xe-xs)*Math.min(lProg,1),y);ctx.stroke();ctx.setLineDash([]);
+    }
+    ctx.shadowBlur=0;
+    if(clip)ctx.restore();
+}
+
+function drawLightParticle(ctx,xs,xe,y,bendPx,lProg){
+    if(lProg<=0||lProg>=0.98)return;
+    const f=lProg,px=xs+(xe-xs)*f,py=bendPx===0?y:y+f*f*bendPx;
+    ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,255,150,1)';
+    ctx.shadowColor='rgba(255,255,100,0.9)';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
+}
+
+function drawMotionTrail(ctx,cx,cy,rh,dir,t,spd){
+    if(dir===0||spd===0)return;
+    ctx.save();
+    for(let i=0;i<6;i++){
+        const off=((t*spd*0.05+i*28)%180);
+        const sy=dir>0?cy+rh/2+off:cy-rh/2-off;
+        const op=0.12+0.22*(i/6);
+        ctx.beginPath();ctx.arc(cx+(i%3-1)*12,sy,1.2,0,Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${op})`;ctx.fill();
+        ctx.beginPath();ctx.moveTo(cx+(i%3-1)*12,sy);ctx.lineTo(cx+(i%3-1)*12,sy+dir*7);
+        ctx.strokeStyle=`rgba(255,255,255,${op*0.5})`;ctx.lineWidth=0.5;ctx.stroke();
+    }
+    ctx.restore();
+}
+
+function drawSitPanel(ctx,cx,cy,rw,rh,cfg,viewMode,lProg,accel,t){
+    const isInside=viewMode===0;
+    const bendAmt=cfg.bendFactor*(accel/9.8)*22;
+    dashedRect(ctx,cx-rw/2-10,cy-rh/2-36,rw+20,rh+82,cfg.border);
+    lblBox(ctx,cx,cy-rh/2-44,cfg.name+' 좌표계',cfg.border.replace('0.3','0.82'),'#e2e8f0',11);
+    txt(ctx,cx,cy-rh/2-10,isInside?'내부 관찰자':'외부 관찰자','rgba(160,170,200,0.7)',10);
+
+    if(isInside){
+        drawRocketInterior(ctx,cx,cy,rw,rh);
+        const lxS=cx-rw*0.38,lxE=cx+rw*0.38,lyB=cy-rh*0.1;
+        drawLightBeam(ctx,lxS,lxE,lyB,bendAmt,lProg,{x:cx-rw/2,y:cy-rh/2,w:rw,h:rh});
+        drawLightParticle(ctx,lxS,lxE,lyB,bendAmt,lProg);
+        if(lProg>0.85&&bendAmt!==0){
+            const endY=lyB+bendAmt;
+            ctx.save();ctx.strokeStyle=bendAmt>0?'rgba(248,113,113,0.6)':'rgba(167,139,250,0.6)';
+            ctx.lineWidth=1;ctx.setLineDash([2,3]);
+            ctx.beginPath();ctx.moveTo(lxE,lyB);ctx.lineTo(lxE,endY);ctx.stroke();ctx.setLineDash([]);
+            txt(ctx,lxE+12,(lyB+endY)/2,`Δy=${Math.abs(bendAmt).toFixed(0)}`,bendAmt>0?'rgba(248,113,113,0.8)':'rgba(167,139,250,0.8)',9,'left');
+            ctx.restore();
         }
-        ctx.restore();
+        const ldesc=bendAmt===0?'빛: 직진':(bendAmt>0?'빛: 아래로 휨':'빛: 위로 휨');
+        const lclr=bendAmt===0?'rgba(255,255,100,0.75)':(bendAmt>0?'rgba(248,113,113,0.85)':'rgba(167,139,250,0.85)');
+        txt(ctx,cx,cy+rh/2+20,ldesc,lclr,11,'center','700');
+    } else {
+        const tSec=t/1000;
+        let offY=0;
+        if(cfg.name==='등속')offY=-((tSec*28)%(rh*0.5));
+        else if(cfg.name==='가속')offY=-(Math.min(0.5*(accel/9.8)*tSec*tSec*16,rh*0.55));
+        else if(cfg.name==='감속')offY=Math.min(tSec*18,rh*0.28);
+        const rCy=cy+offY;
+        if(cfg.name==='등속'||cfg.name==='가속')drawMotionTrail(ctx,cx,rCy,rh,-1,t,cfg.name==='가속'?2:1);
+        else if(cfg.name==='감속')drawMotionTrail(ctx,cx,rCy,rh,1,t,0.5);
+        const thr=cfg.name==='가속'?accel:(cfg.name==='등속'?accel*0.28:0);
+        drawRocketFull(ctx,cx,rCy,rw*0.85,rh*0.85,thr,0.88+0.22*Math.sin(t*0.02));
+        if(cfg.name==='가속'){
+            arrow(ctx,cx+rw*0.5,rCy-18,cx+rw*0.5,rCy-50,'rgba(248,113,113,0.9)',2);
+            lblBox(ctx,cx+rw*0.5+14,rCy-34,`a=${accel.toFixed(1)}`,'rgba(248,113,113,0.2)','#fca5a5',9,'left');
+        } else if(cfg.name==='등속'){
+            arrow(ctx,cx+rw*0.5,rCy-18,cx+rw*0.5,rCy-46,'rgba(100,200,255,0.9)',2);
+            lblBox(ctx,cx+rw*0.5+14,rCy-32,'v=일정','rgba(100,200,255,0.2)','#93c5fd',9,'left');
+        } else if(cfg.name==='감속'){
+            arrow(ctx,cx+rw*0.5,rCy+18,cx+rw*0.5,rCy+46,'rgba(167,139,250,0.9)',2);
+            lblBox(ctx,cx+rw*0.5+14,rCy+32,'a↓감속','rgba(167,139,250,0.2)','#c4b5fd',9,'left');
+        }
+        const absLY=cy-rh*0.1;
+        const lxS=cx-rw*0.42,lxE=cx+rw*0.42;
+        ctx.save();ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=7;
+        ctx.strokeStyle='rgba(255,255,100,0.9)';ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(lxS,absLY);ctx.lineTo(lxS+(lxE-lxS)*Math.min(lProg,1),absLY);ctx.stroke();ctx.restore();
+        if(lProg>0&&lProg<0.98){
+            const px=lxS+(lxE-lxS)*lProg;
+            ctx.beginPath();ctx.arc(px,absLY,5,0,Math.PI*2);
+            ctx.fillStyle='rgba(255,255,150,1)';
+            ctx.shadowColor='rgba(255,255,100,0.9)';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
+        }
+        txt(ctx,cx,cy+rh/2+20,'빛: 직진 (관성계)','rgba(255,255,100,0.7)',11,'center','700');
     }
-    if(running&&lProg<0.98){
-        const frac=lProg,px=lx2s+(lx2e-lx2s)*frac,py=lyIn+frac*frac*bendAmt;
-        ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);
-        ctx.fillStyle='rgba(255,255,150,1)';
-        ctx.shadowColor='rgba(255,255,100,0.9)';ctx.shadowBlur=12;ctx.fill();ctx.shadowBlur=0;
-    }
-    if(lProg>0.55){
-        ctx.save();
-        ctx.fillStyle='rgba(10,14,38,0.9)';ctx.strokeStyle='rgba(248,113,113,0.4)';ctx.lineWidth=1;
-        ctx.beginPath();ctx.roundRect(W*0.12,H-72,W*0.76,54,9);ctx.fill();ctx.stroke();ctx.restore();
-        txt(ctx,W/2,H-52,'빛이 휜다 (가속계) → 등가 원리 → 중력장에서도 빛이 휜다','rgba(248,113,113,0.9)',12,'center','700');
-        txt(ctx,W/2,H-32,'그런데 뉴턴의 중력 F=GMm/r²은 m=0인 빛에 적용 불가 → 새로운 이론이 필요하다','rgba(200,180,255,0.8)',11,'center','400');
+    const sumTbl={
+        '정지':{i:'빛 직진, 우주선 정지',o:'빛 직진, 우주선 정지'},
+        '등속':{i:'빛 직진, 관찰자 등속',o:'빛 직진, 우주선 등속'},
+        '가속':{i:'빛 아래로 휨 (관성력)',o:'빛 직진, 우주선 가속'},
+        '감속':{i:'빛 위로 휨 (관성력↑)',o:'빛 직진, 우주선 감속'},
+    };
+    const sr=sumTbl[cfg.name]||{i:'',o:''};
+    txt(ctx,cx,cy+rh/2+36,isInside?sr.i:sr.o,'rgba(148,163,184,0.7)',9,'center');
+}
+
+function drawPhase1(ctx,W,H,accel,t,running,p1Sit){
+    drawStars(ctx,W,H,t);
+    const cfg=SIT_CFG[p1Sit||0];
+    const lProg=running?Math.min((t%3000)/3000,1):0;
+    const rw=Math.min(W*0.32,180),rh=Math.min(H*0.62,300);
+    const cy=H*0.48,cx1=W*0.27,cx2=W*0.73;
+
+    drawSitPanel(ctx,cx1,cy,rw,rh,cfg,0,lProg,accel,t);
+    drawSitPanel(ctx,cx2,cy,rw,rh,cfg,1,lProg,accel,t);
+
+    const cx=W/2;
+    txt(ctx,cx,cy-22,'내부 vs 외부','rgba(148,163,184,0.5)',10,'center','700');
+    txt(ctx,cx,cy-4,'같은 빛,','rgba(167,139,250,0.7)',11,'center','700');
+    txt(ctx,cx,cy+12,'다른 관찰','rgba(167,139,250,0.7)',11,'center','700');
+
+    /* ── 하단 논리 전개 배너 ── */
+    const sit=p1Sit||0;
+    if(sit===0||sit===1){
+        /* 정지/등속: 단순 결론 */
+        if(lProg>0.5){
+            const msg=sit===0
+                ?'정지 좌표계: 내부/외부 모두 빛이 직진 → 관찰자 위치와 무관'
+                :'등속 좌표계: 내부/외부 모두 빛이 직진 → 갈릴레이 상대성 원리 확인';
+            ctx.save();
+            ctx.fillStyle='rgba(10,14,38,0.9)';ctx.strokeStyle='rgba(100,200,255,0.3)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.roundRect(W*0.1,H-52,W*0.8,36,8);ctx.fill();ctx.stroke();ctx.restore();
+            txt(ctx,W/2,H-30,msg,'rgba(100,200,255,0.85)',11,'center','600');
+        }
+    } else if(sit===2){
+        /* 가속: 3단계 논리 전개 박스 */
+        const boxH=lProg>0.85?128:lProg>0.65?86:lProg>0.45?46:0;
+        if(boxH>0){
+            const bY=H-boxH-8;
+            ctx.save();
+            ctx.fillStyle='rgba(8,12,30,0.94)';ctx.strokeStyle='rgba(248,113,113,0.45)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.roundRect(W*0.04,bY,W*0.92,boxH,9);ctx.fill();ctx.stroke();ctx.restore();
+
+            /* 질문 1 (lProg > 0.45) */
+            txt(ctx,W*0.04+14,bY+18,'Q1.','rgba(255,200,80,0.9)',11,'left','800');
+            txt(ctx,W*0.04+40,bY+18,'가속 좌표계에서 빛이 아래로 휜다 → 그렇다면 중력장에서도 빛이 아래로 휘어야 하지 않는가?','rgba(255,220,120,0.9)',11,'left','600');
+
+            if(lProg>0.65){
+                /* 질문 2 */
+                txt(ctx,W*0.04+14,bY+42,'Q2.','rgba(248,113,113,0.9)',11,'left','800');
+                txt(ctx,W*0.04+40,bY+42,'뉴턴의 중력 F = GMm/r²  →  빛의 질량 m = 0 이면 F = 0 → 빛은 힘을 받지 않아야 함','rgba(248,140,130,0.85)',11,'left','600');
+                txt(ctx,W*0.04+14,bY+58,'→ 뉴턴 역학은 빛의 휨을 설명할 수 없다!','rgba(248,113,113,0.9)',11,'left','700');
+            }
+
+            if(lProg>0.85){
+                /* 결론 */
+                ctx.save();
+                ctx.fillStyle='rgba(99,102,241,0.12)';ctx.strokeStyle='rgba(167,139,250,0.4)';ctx.lineWidth=0.5;
+                ctx.beginPath();ctx.roundRect(W*0.04+6,bY+72,W*0.92-12,48,6);ctx.fill();ctx.stroke();ctx.restore();
+                txt(ctx,W*0.04+14,bY+88,'결론.','rgba(167,139,250,0.95)',11,'left','800');
+                txt(ctx,W*0.04+50,bY+88,'중력을 "두 질량 사이의 힘"으로 보는 한, 질량 없는 빛의 휨은 설명 불가','rgba(200,190,255,0.88)',11,'left','600');
+                txt(ctx,W*0.04+50,bY+106,'→ 중력 = 질량에 의한 시공간 곡률 로 재해석해야만 빛의 휨이 자연스럽게 도출된다','rgba(167,139,250,0.9)',11,'left','700');
+            }
+        }
+    } else if(sit===3){
+        /* 감속 */
+        if(lProg>0.5){
+            ctx.save();
+            ctx.fillStyle='rgba(10,14,38,0.9)';ctx.strokeStyle='rgba(167,139,250,0.35)';ctx.lineWidth=1;
+            ctx.beginPath();ctx.roundRect(W*0.1,H-52,W*0.8,36,8);ctx.fill();ctx.stroke();ctx.restore();
+            txt(ctx,W/2,H-30,'감속 좌표계: 빛이 위로 휨 → 가속도 방향에 따라 휨 방향도 바뀐다 (등가 원리 적용)','rgba(167,139,250,0.85)',11,'center','600');
+        }
     }
 }
 
@@ -494,7 +614,7 @@ function drawPhase3(ctx,W,H,accel,t,running){
 }
 
 /* ════ 캔버스 컴포넌트 ════ */
-const SimCanvas = ({ phase, subView, accel, t, running, tL, tR }) => {
+const SimCanvas = ({ phase, subView, p1Sit, accel, t, running, tL, tR }) => {
     const ref = useRef(null);
     const draw = useCallback(()=>{
         const canvas=ref.current;if(!canvas)return;
@@ -506,10 +626,10 @@ const SimCanvas = ({ phase, subView, accel, t, running, tL, tR }) => {
             if(subView===0)drawPhase0a(ctx,W,H,accel,tL,tR);
             else           drawPhase0b(ctx,W,H,accel,tL,tR);
         }
-        else if(phase===1)drawPhase1(ctx,W,H,accel,t,running);
+        else if(phase===1)drawPhase1(ctx,W,H,accel,t,running,p1Sit);
         else if(phase===2)drawPhase2(ctx,W,H,accel,t,running);
         else if(phase===3)drawPhase3(ctx,W,H,accel,t,running);
-    },[phase,subView,accel,t,running,tL,tR]);
+    },[phase,subView,p1Sit,accel,t,running,tL,tR]);
     useEffect(()=>{
         const canvas=ref.current;if(!canvas)return;
         const ro=new ResizeObserver(()=>{canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;draw();});
@@ -627,6 +747,7 @@ const PHASES = [
 const App = () => {
     const [phase,   setPhase]   = useState(0);
     const [subView, setSubView] = useState(0);
+    const [p1Sit,   setP1Sit]   = useState(2);
     const [accel,   setAccel]   = useState(9.8);
     const [running, setRunning] = useState(false);
     const [t,       setT]       = useState(0);
@@ -721,6 +842,31 @@ const App = () => {
                         </div>
                     )}
 
+                    {phase===1&&(
+                        <div>
+                            <label>운동 상황 선택</label>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:5,marginTop:4}}>
+                                {SIT_CFG.map((s,i)=>(
+                                    <button key={i}
+                                        onClick={()=>{setP1Sit(i);resetAll();}}
+                                        style={{
+                                            padding:'7px 6px',borderRadius:8,
+                                            border:`1px solid ${p1Sit===i?s.color:'#1e293b'}`,
+                                            background:p1Sit===i?s.border.replace('0.3','0.12'):'transparent',
+                                            color:p1Sit===i?s.color:'#64748b',
+                                            cursor:'pointer',fontSize:12,fontFamily:'inherit',fontWeight:p1Sit===i?700:400,
+                                            transition:'all 0.2s'
+                                        }}>
+                                        {s.name}
+                                    </button>
+                                ))}
+                            </div>
+                            <div style={{fontSize:10,color:'#475569',marginTop:6,textAlign:'center'}}>
+                                좌: 내부 관찰자 / 우: 외부 관찰자
+                            </div>
+                        </div>
+                    )}
+
                     <div>
                         <label>{phase===0&&subView===1?'우주선 가속도 a (오른쪽)':'가속도 / 중력 크기'}</label>
                         <input type="range" min="2" max="20" step="0.2" value={accel}
@@ -799,6 +945,12 @@ const App = () => {
                                 <span style={{color:'#64748b'}}>가속도</span>
                                 <span className="result-val">{accel.toFixed(1)} m/s²</span>
                             </div>
+                            {phase===1&&(
+                            <div className="result-row">
+                                <span style={{color:'#64748b'}}>선택 상황</span>
+                                <span className="result-val" style={{color:SIT_CFG[p1Sit].color,fontSize:12}}>{SIT_CFG[p1Sit].name}</span>
+                            </div>
+                            )}
                             <div className="result-row">
                                 <span style={{color:'#64748b'}}>빛 처짐(Δy)</span>
                                 <span className="result-val" style={{color:'#f87171'}}>{(accel/9.8*22).toFixed(1)} px</span>
@@ -813,7 +965,7 @@ const App = () => {
                 </div>
 
                 <div style={{background:'#070b14',borderRadius:14,border:'1px solid #1e293b',overflow:'hidden',minHeight:520}}>
-                    <SimCanvas phase={phase} subView={subView} accel={accel}
+                    <SimCanvas phase={phase} subView={subView} p1Sit={p1Sit} accel={accel}
                         t={t} running={running} tL={tL} tR={tR}/>
                 </div>
             </div>
