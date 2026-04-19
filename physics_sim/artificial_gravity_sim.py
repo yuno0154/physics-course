@@ -93,7 +93,7 @@ cinematic_html = f"""
     function render() {{
         drawSpace();
         const cx = canvas.width/2+150, cy = canvas.height/2;
-        earthAngle += 0.0002; angle += omega * 0.016;
+        angle += omega * 0.016;
         drawEarth(cx, cy);
         drawStation(cx, cy);
         requestAnimationFrame(render);
