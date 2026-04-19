@@ -5,11 +5,13 @@ import os
 # 페이지 설정
 st.set_page_config(page_title="아인슈타인의 중력: 시공간의 마술", layout="wide")
 
-# 앱 데이터 디렉토리 이미지 경로
-base_path = "C:/Users/yuno0/.gemini/antigravity/brain/da6d5f54-b0cb-46be-81c2-79cb90d85a6d/"
-img_blackhole = base_path + "gargantua_black_hole_1776618025265.png"
-img_reunion = base_path + "cooper_reunion_1776618042841.png"
-img_logic = base_path + "rotating_disk_logic_1776618057078.png"
+# 에셋 경로 설정 (상대 경로 및 환경 호환성 확보)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+assets_dir = os.path.join(current_dir, "assets")
+
+img_blackhole = os.path.join(assets_dir, "blackhole.png")
+img_reunion = os.path.join(assets_dir, "reunion.png")
+img_logic = os.path.join(assets_dir, "disk_logic.png")
 
 # HTML/JavaScript 공통 템플릿
 HTML_TEMPLATE = """
