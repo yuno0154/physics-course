@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="빛의 경로와 등가원리", layout="wide")
-st.title("💡 빛의 경로 시뮬레이션: 가속좌표계 vs 관성계")
+st.title("💡 빛의 경로 시뮬레이션: 정지 vs 등속 vs 가속")
 
 react_code = """
 <!DOCTYPE html>
@@ -15,8 +15,8 @@ react_code = """
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #0a0a1a; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: #0a0a1a; overflow-x: hidden; }
     </style>
 </head>
 <body>
@@ -26,15 +26,13 @@ react_code = """
         const { useState, useEffect, useRef } = React;
 
         const App = () => {
-            const [accel, setAccel] = useState(5);
-            const [lightAngle, setLightAngle] = useState(30);
-            const [viewMode, setViewMode] = useState('inertial');
-            const [showGrid, setShowGrid] = useState(true);
+            const [motionState, setMotionState] = useState('rest'); // 'rest' | 'constant' | 'accelerating'
+            const [velocity, setVelocity] = useState(5);  // 속도 (m/s)
+            const [accel, setAccel] = useState(5);  // 가속도 (m/s²)
             const [time, setTime] = useState(0);
             const [isAnimating, setIsAnimating] = useState(true);
 
-            const canvasRef1 = useRef(null);
-            const canvasRef2 = useRef(null);
+            const canvasRefs = [useRef(null), useRef(null), useRef(null)];
 
             // 애니메이션
             useEffect(() => {
@@ -43,9 +41,9 @@ react_code = """
                 return () => clearInterval(interval);
             }, [isAnimating]);
 
-            // 관성계 Canvas
+            // Case 1: 정지 (v=0, a=0)
             useEffect(() => {
-                const canvas = canvasRef1.current;
+                const canvas = canvasRefs[0].current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width;
@@ -56,64 +54,75 @@ react_code = """
                 ctx.fillRect(0, 0, w, h);
 
                 // 그리드
-                if (showGrid) {
-                    ctx.strokeStyle = 'rgba(139, 92, 246, 0.1)';
-                    ctx.lineWidth = 1;
-                    for (let x = 0; x < w; x += 40) {
-                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-                    }
-                    for (let y = 0; y < h; y += 40) {
-                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-                    }
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 30) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = 0; y < h; y += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
                 }
 
                 const cx = w / 2;
                 const cy = h / 2;
-                const shipX = cx + Math.sin(time * 0.5) * 30;
-                const angleRad = (lightAngle * Math.PI) / 180;
 
-                // spacecraft
+                // 우주선 (고정)
                 ctx.fillStyle = '#1e293b';
-                ctx.strokeStyle = '#38bdf8';
+                ctx.strokeStyle = '#64748b';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.roundRect(shipX - 50, cy - 25, 100, 50, 8);
+                ctx.roundRect(cx - 120, cy - 30, 240, 60, 10);
                 ctx.fill();
                 ctx.stroke();
 
                 // 창
-                ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
-                [-30, 0, 30].forEach(offset => {
+                ctx.fillStyle = 'rgba(100, 116, 139, 0.3)';
+                [-60, 0, 60].forEach(offset => {
                     ctx.beginPath();
-                    ctx.arc(shipX + offset, cy, 8, 0, Math.PI * 2);
+                    ctx.arc(cx + offset, cy, 12, 0, Math.PI * 2);
                     ctx.fill();
                 });
 
-                // 빛 (직선)
+                // 빛 (수평 직선)
                 ctx.strokeStyle = '#f59e0b';
                 ctx.lineWidth = 3;
                 ctx.shadowColor = '#f59e0b';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 8;
+                ctx.setLineDash([]);
                 ctx.beginPath();
-                ctx.moveTo(shipX - 60, cy);
-                ctx.lineTo(shipX - 60 + 280 * Math.cos(angleRad), cy - 280 * Math.sin(angleRad));
+                ctx.moveTo(cx - 140, cy - 5);
+                ctx.lineTo(cx + 140, cy - 5);
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                // 레이블
-                ctx.font = 'bold 12px Inter';
+                // 빛 방향 화살표
                 ctx.fillStyle = '#f59e0b';
-                ctx.fillText('빛 (직선 전파)', shipX + 80, cy - 80);
+                ctx.beginPath();
+                ctx.moveTo(cx + 145, cy - 5);
+                ctx.lineTo(cx + 135, cy - 12);
+                ctx.lineTo(cx + 135, cy + 2);
+                ctx.closePath();
+                ctx.fill();
 
-                // spacecraft 레이블
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillText(' spacecraft', shipX, cy - 45);
+                // 상태 레이블
+                ctx.font = 'bold 14px Inter';
+                ctx.fillStyle = '#94a3b8';
+                ctx.textAlign = 'center';
+                ctx.fillText('우주선: 정지 (v = 0, a = 0)', cx, cy - 60);
 
-            }, [time, lightAngle, showGrid]);
+                ctx.font = '12px Inter';
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillText('빛: 직선 전파', cx, cy + 55);
 
-            // 가속좌표계 Canvas
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.fillStyle = '#10b981';
+                ctx.fillText('F = 0 (관성계)', cx, cy + 75);
+
+            }, [time, motionState]);
+
+            // Case 2: 등속 (v≠0, a=0)
             useEffect(() => {
-                const canvas = canvasRef2.current;
+                const canvas = canvasRefs[1].current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width;
@@ -123,107 +132,234 @@ react_code = """
                 ctx.fillStyle = '#0a0a1a';
                 ctx.fillRect(0, 0, w, h);
 
-                // 그리드 (회전)
-                if (showGrid) {
-                    ctx.save();
-                    ctx.translate(w / 2, h / 2);
-                    ctx.rotate(-time * 0.3);
-                    ctx.translate(-w / 2, -h / 2);
-                    ctx.strokeStyle = 'rgba(139, 92, 246, 0.1)';
-                    ctx.lineWidth = 1;
-                    for (let x = 0; x < w; x += 40) {
-                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-                    }
-                    for (let y = 0; y < h; y += 40) {
-                        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-                    }
-                    ctx.restore();
+                // 그리드
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 30) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = 0; y < h; y += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
                 }
 
                 const cx = w / 2;
                 const cy = h / 2;
-                const angleRad = (lightAngle * Math.PI) / 180;
-                const bend = (accel / 10) * 0.015;
+                const offset = Math.sin(time * 0.3) * 20;  // 미세한 좌우 이동
 
-                // spacecraft (고정)
+                // 우주선 (등속 - 미세한 움직임)
                 ctx.fillStyle = '#1e293b';
-                ctx.strokeStyle = '#a78bfa';
+                ctx.strokeStyle = '#38bdf8';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.roundRect(cx - 50, cy - 25, 100, 50, 8);
+                ctx.roundRect(cx - 120 + offset, cy - 30, 240, 60, 10);
                 ctx.fill();
                 ctx.stroke();
 
                 // 창
-                ctx.fillStyle = 'rgba(167, 139, 250, 0.4)';
-                [-30, 0, 30].forEach(offset => {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+                [-60, 0, 60].forEach(dx => {
                     ctx.beginPath();
-                    ctx.arc(cx + offset, cy, 8, 0, Math.PI * 2);
+                    ctx.arc(cx + dx + offset, cy, 12, 0, Math.PI * 2);
                     ctx.fill();
                 });
 
-                // 빛 (곡선)
-                ctx.strokeStyle = '#a78bfa';
+                // 빛 (수평 직선 - 도플러 효과示意)
+                ctx.strokeStyle = '#f59e0b';
                 ctx.lineWidth = 3;
-                ctx.shadowColor = '#a78bfa';
-                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 8;
+                ctx.setLineDash([5, 5]);  // 파선으로 도플러 효과示意
                 ctx.beginPath();
-                ctx.moveTo(cx - 60, cy);
-                const segs = 40;
+                ctx.moveTo(cx - 140 + offset, cy - 5);
+                ctx.lineTo(cx + 140 + offset, cy - 5);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.shadowBlur = 0;
+
+                // 빛 방향 화살표
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                ctx.moveTo(cx + 145 + offset, cy - 5);
+                ctx.lineTo(cx + 135 + offset, cy - 12);
+                ctx.lineTo(cx + 135 + offset, cy + 2);
+                ctx.closePath();
+                ctx.fill();
+
+                // 상태 레이블
+                ctx.font = 'bold 14px Inter';
+                ctx.fillStyle = '#38bdf8';
+                ctx.textAlign = 'center';
+                ctx.fillText('우주선: 등속 이동 (v = ' + velocity.toFixed(1) + ' m/s, a = 0)', cx, cy - 60);
+
+                ctx.font = '12px Inter';
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillText('빛: 여전히 직선 전파', cx, cy + 55);
+
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.fillStyle = '#10b981';
+                ctx.fillText('F = 0 (관성계)', cx, cy + 75);
+
+            }, [time, velocity, motionState]);
+
+            // Case 3: 가속 (a≠0)
+            useEffect(() => {
+                const canvas = canvasRefs[2].current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width;
+                const h = canvas.height;
+
+                ctx.clearRect(0, 0, w, h);
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fillRect(0, 0, w, h);
+
+                // 그리드 (왼쪽 하단 기준점)
+                ctx.strokeStyle = 'rgba(139, 92, 246, 0.08)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x < w; x += 30) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+                }
+                for (let y = 0; y < h; y += 30) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+                }
+
+                const cx = w / 2;
+                const cy = h / 2;
+                const bend = (accel / 10) * 40;  // 곡률
+
+                // 우주선 (상단 고정)
+                ctx.fillStyle = '#1e293b';
+                ctx.strokeStyle = '#a78bfa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(cx - 120, cy - 60, 240, 60, 10);
+                ctx.fill();
+                ctx.stroke();
+
+                // 창
+                ctx.fillStyle = 'rgba(167, 139, 250, 0.3)';
+                [-60, 0, 60].forEach(offset => {
+                    ctx.beginPath();
+                    ctx.arc(cx + offset, cy - 30, 12, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // 바닥 (隆起 효과)
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(cx - 150, cy + 20);
+                ctx.quadraticCurveTo(cx, cy + 20 + bend, cx + 150, cy + 20);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 빛 (곡선 - 아래로 휘어짐)
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#f59e0b';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.moveTo(cx - 140, cy - 30);
+                const segs = 30;
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
-                    const x = cx - 60 + t * 250 * Math.cos(angleRad);
-                    const y = cy - t * 250 * Math.sin(angleRad) + bend * 250 * t * t * Math.sin(angleRad * 2);
+                    const x = cx - 140 + t * 280;
+                    const y = cy - 30 + bend * t * t * 1.5;
                     ctx.lineTo(x, y);
                 }
                 ctx.stroke();
                 ctx.shadowBlur = 0;
 
-                // 관성력 화살표
-                const arrowLen = accel * 6;
+                // 빛 방향 화살표
+                ctx.fillStyle = '#f59e0b';
+                ctx.beginPath();
+                const arrowX = cx - 140 + 280;
+                const arrowY = cy - 30 + bend * 1.5;
+                ctx.moveTo(arrowX + 10, arrowY);
+                ctx.lineTo(arrowX, arrowY - 8);
+                ctx.lineTo(arrowX, arrowY + 8);
+                ctx.closePath();
+                ctx.fill();
+
+                // 관성력 화살표 (우주선 안에서)
+                const arrowLen = accel * 4;
                 ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(cx, cy + 40);
-                ctx.lineTo(cx + arrowLen, cy + 40);
-                ctx.lineTo(cx + arrowLen - 6, cy + 35);
-                ctx.moveTo(cx + arrowLen, cy + 40);
-                ctx.lineTo(cx + arrowLen - 6, cy + 45);
+                ctx.moveTo(cx, cy - 10);
+                ctx.lineTo(cx, cy - 10 + arrowLen);
+                ctx.lineTo(cx - 6, cy - 10 + arrowLen - 8);
+                ctx.moveTo(cx, cy - 10 + arrowLen);
+                ctx.lineTo(cx + 6, cy - 10 + arrowLen - 8);
                 ctx.stroke();
 
-                // 레이블
-                ctx.font = 'bold 12px Inter';
+                // 상태 레이블
+                ctx.font = 'bold 14px Inter';
                 ctx.fillStyle = '#a78bfa';
-                ctx.fillText('빛 (곡선으로 휘어보임)', cx + 50, cy - 80);
-                ctx.fillStyle = '#ef4444';
-                ctx.fillText('f = -ma', cx + arrowLen + 10, cy + 45);
-                ctx.fillStyle = '#a78bfa';
-                ctx.fillText('가속 좌표계', cx, cy - 45);
+                ctx.textAlign = 'center';
+                ctx.fillText('우주선: 가속 중 (a = ' + accel.toFixed(1) + ' m/s²)', cx, cy - 90);
 
-            }, [time, accel, lightAngle, showGrid]);
+                ctx.font = '12px Inter';
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillText('빛: 아래로 휘어짐 (겉보기)', cx, cy + 65);
+
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.fillStyle = '#ef4444';
+                ctx.fillText('f = -ma (관성력)', cx, cy + 82);
+
+            }, [time, accel, motionState]);
 
             return (
                 <div className="p-6 max-w-full mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                        {/* 사이드바 */}
-                        <div className="lg:col-span-3 space-y-4">
-                            <div className="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">좌표계 선택</div>
-                                <div className="flex bg-slate-700 p-1 rounded-xl text-xs font-bold">
-                                    <button onClick={() => setViewMode('inertial')}
-                                        className={`flex-1 py-2 rounded-lg transition-all ${viewMode === 'inertial' ? 'bg-purple-500 text-white' : 'text-slate-400'}`}>
-                                        관성계
-                                    </button>
-                                    <button onClick={() => setViewMode('accelerating')}
-                                        className={`flex-1 py-2 rounded-lg transition-all ${viewMode === 'accelerating' ? 'bg-purple-500 text-white' : 'text-slate-400'}`}>
-                                        가속좌표계
-                                    </button>
-                                </div>
-                            </div>
+                    {/* 설명 헤더 */}
+                    <div className="mb-6 bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
+                        <h2 className="text-lg font-bold text-slate-200 mb-2">등가원리: 가속좌표계에서 빛의 경로</h2>
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            <span className="text-emerald-400 font-bold">관성계</span>에서 빛은 항상 직선으로 전파됩니다.
+                            그러나 <span className="text-purple-400 font-bold">가속 좌표계</span>에서는 빛이 곡선으로 휘어보입니다.
+                            이것이 아인슈타인의 등가원리: 가속도 = 중력장 (a = g)
+                        </p>
+                    </div>
 
-                            <div className="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">파라미터</div>
-                                <div className="space-y-4">
+                    {/* 컨트롤 패널 */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+                        <div className="lg:col-span-3 bg-slate-800/80 backdrop-blur rounded-2xl p-4 border border-slate-700/50">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">운동 상태 선택</div>
+                            <div className="space-y-2">
+                                <button onClick={() => setMotionState('rest')}
+                                    className={`w-full py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                                        motionState === 'rest' ? 'bg-slate-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    1. 우주선: 정지
+                                </button>
+                                <button onClick={() => setMotionState('constant')}
+                                    className={`w-full py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                                        motionState === 'constant' ? 'bg-sky-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    2. 우주선: 등속 이동
+                                </button>
+                                <button onClick={() => setMotionState('accelerating')}
+                                    className={`w-full py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                                        motionState === 'accelerating' ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}>
+                                    3. 우주선: 가속 중
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="lg:col-span-3 bg-slate-800/80 backdrop-blur rounded-2xl p-4 border border-slate-700/50">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">파라미터 조절</div>
+                            <div className="space-y-4">
+                                {motionState === 'constant' && (
+                                    <div>
+                                        <div className="flex justify-between text-xs mb-1">
+                                            <span className="text-slate-300">속도 (v)</span>
+                                            <span className="text-sky-400 font-mono">{velocity.toFixed(1)} m/s</span>
+                                        </div>
+                                        <input type="range" min="0" max="20" step="0.5" value={velocity}
+                                            onChange={e => setVelocity(parseFloat(e.target.value))}
+                                            className="w-full h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-sky-500" />
+                                    </div>
+                                )}
+                                {motionState === 'accelerating' && (
                                     <div>
                                         <div className="flex justify-between text-xs mb-1">
                                             <span className="text-slate-300">가속도 (a)</span>
@@ -233,100 +369,92 @@ react_code = """
                                             onChange={e => setAccel(parseFloat(e.target.value))}
                                             className="w-full h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-purple-500" />
                                     </div>
-                                    <div>
-                                        <div className="flex justify-between text-xs mb-1">
-                                            <span className="text-slate-300">빛의 각도 (θ)</span>
-                                            <span className="text-purple-400 font-mono">{lightAngle}°</span>
-                                        </div>
-                                        <input type="range" min="0" max="60" step="5" value={lightAngle}
-                                            onChange={e => setLightAngle(parseInt(e.target.value))}
-                                            className="w-full h-1.5 bg-slate-600 rounded-lg appearance-none cursor-pointer accent-purple-500" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">표시 옵션</div>
-                                <label className="flex items-center gap-2 text-xs text-slate-300 mb-2 cursor-pointer">
-                                    <input type="checkbox" checked={showGrid} onChange={e => setShowGrid(e.target.checked)}
-                                        className="w-4 h-4 accent-purple-500" />
-                                    그리드 표시
-                                </label>
+                                )}
                                 <button onClick={() => setIsAnimating(!isAnimating)}
-                                    className="w-full mt-2 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-slate-300 transition">
+                                    className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold text-slate-300 transition">
                                     {isAnimating ? '⏸ 정지' : '▶ 재생'}
                                 </button>
                             </div>
+                        </div>
 
-                            <div className="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">물리 데이터</div>
-                                <div className="space-y-2 text-xs">
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-400">광속</span>
-                                        <span className="text-slate-200 font-mono">c = 3×10⁸ m/s</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-400">가속도</span>
-                                        <span className="text-slate-200 font-mono">a = {accel.toFixed(1)} m/s²</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-slate-400">환산 g</span>
-                                        <span className="text-emerald-400 font-mono">{(accel/9.8).toFixed(2)} g</span>
-                                    </div>
+                        <div className="lg:col-span-6 bg-slate-800/80 backdrop-blur rounded-2xl p-4 border border-slate-700/50">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">핵심 결론</div>
+                            <div className="grid grid-cols-3 gap-3 text-center">
+                                <div className="bg-slate-900/50 rounded-xl p-3">
+                                    <div className="text-lg font-bold text-slate-400 mb-1">정지</div>
+                                    <div className="text-xs text-slate-500">a = 0</div>
+                                    <div className="text-xs text-emerald-400 mt-1">빛: 직선</div>
+                                </div>
+                                <div className="bg-slate-900/50 rounded-xl p-3">
+                                    <div className="text-lg font-bold text-sky-400 mb-1">등속</div>
+                                    <div className="text-xs text-slate-500">a = 0</div>
+                                    <div className="text-xs text-emerald-400 mt-1">빛: 직선</div>
+                                </div>
+                                <div className="bg-slate-900/50 rounded-xl p-3">
+                                    <div className="text-lg font-bold text-purple-400 mb-1">가속</div>
+                                    <div className="text-xs text-slate-500">a ≠ 0</div>
+                                    <div className="text-xs text-amber-400 mt-1">빛: 곡선!</div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="bg-purple-900/30 backdrop-blur rounded-2xl p-5 border border-purple-500/30 text-center">
-                                <div className="text-2xl font-bold text-purple-400 mb-1">a = g</div>
-                                <div className="text-xs text-slate-400">등가원리</div>
+                    {/* 시각화 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Case 1: 정지 */}
+                        <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700/50 overflow-hidden">
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50">
+                                <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                                <span className="text-sm font-bold text-slate-300">Case 1: 정지</span>
+                                <span className="text-xs text-slate-500 ml-auto">v=0, a=0</span>
+                            </div>
+                            <div className="p-4">
+                                <canvas ref={canvasRefs[0]} width={380} height={220} className="w-full rounded-lg"></canvas>
                             </div>
                         </div>
 
-                        {/* 시각화 영역 */}
-                        <div className="lg:col-span-9 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* 관성계 */}
-                                <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700/50 overflow-hidden">
-                                    <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                        <span className="text-sm font-bold text-emerald-400">관성계 (External)</span>
-                                        <span className="text-xs text-slate-500 ml-auto">바깥에서 관찰</span>
-                                    </div>
-                                    <div className="p-4">
-                                        <canvas ref={canvasRef1} width={400} height={300} className="w-full rounded-lg"></canvas>
-                                    </div>
-                                    <div className="px-4 py-3 bg-slate-900/50 flex items-center gap-4 text-xs">
-                                        <span className="text-amber-400">● 빛: 직선 전파</span>
-                                        <span className="text-slate-400">F = 0</span>
-                                    </div>
-                                </div>
-
-                                {/* 가속좌표계 */}
-                                <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700/50 overflow-hidden">
-                                    <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50">
-                                        <span className="w-2 h-2 rounded-full bg-purple-400"></span>
-                                        <span className="text-sm font-bold text-purple-400">가속좌표계 (Internal)</span>
-                                        <span className="text-xs text-slate-500 ml-auto">안에서 관찰</span>
-                                    </div>
-                                    <div className="p-4">
-                                        <canvas ref={canvasRef2} width={400} height={300} className="w-full rounded-lg"></canvas>
-                                    </div>
-                                    <div className="px-4 py-3 bg-slate-900/50 flex items-center gap-4 text-xs">
-                                        <span className="text-purple-400">● 빛: 곡선으로 휘어보임</span>
-                                        <span className="text-red-400">f = -ma</span>
-                                    </div>
-                                </div>
+                        {/* Case 2: 등속 */}
+                        <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-slate-700/50 overflow-hidden">
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-700/50">
+                                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                                <span className="text-sm font-bold text-sky-400">Case 2: 등속</span>
+                                <span className="text-xs text-slate-500 ml-auto">v≠0, a=0</span>
                             </div>
+                            <div className="p-4">
+                                <canvas ref={canvasRefs[1]} width={380} height={220} className="w-full rounded-lg"></canvas>
+                            </div>
+                        </div>
 
-                            {/* 설명 */}
-                            <div className="bg-slate-800/60 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
-                                <h3 className="text-sm font-bold text-slate-200 mb-2">등가원리 (Equivalence Principle)</h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
-                                    가속하는 좌표계에서는 중력장과 등가적인 관성력이 발생합니다.
-                                    이 좌표계 안에서는 빛이 곡선으로 휘어보이는 것처럼 관찰됩니다.
-                                    그러나 외부 관성계에서 보면 빛은 여전히 직선으로 전파됩니다.
-                                    이것이 아인슈타인의 등가원리: <span className="text-purple-400 font-bold">가속도 = 중력장 (a = g)</span>
-                                </p>
+                        {/* Case 3: 가속 */}
+                        <div className="bg-slate-800/60 backdrop-blur rounded-2xl border border-purple-500/30 overflow-hidden">
+                            <div className="flex items-center gap-2 px-4 py-3 border-b border-purple-500/30">
+                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                                <span className="text-sm font-bold text-purple-400">Case 3: 가속</span>
+                                <span className="text-xs text-slate-500 ml-auto">a≠0</span>
+                            </div>
+                            <div className="p-4">
+                                <canvas ref={canvasRefs[2]} width={380} height={220} className="w-full rounded-lg"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 공식 표시 */}
+                    <div className="mt-6 bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700/50">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                            <div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest mb-1">관성계 (정지/등속)</div>
+                                <div className="text-xl font-bold text-emerald-400 font-mono">F = 0</div>
+                                <div className="text-xs text-slate-500 mt-1">빛은 직선으로 전파</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest mb-1">가속좌표계</div>
+                                <div className="text-xl font-bold text-purple-400 font-mono">f = -ma</div>
+                                <div className="text-xs text-slate-500 mt-1">빛은 곡선으로 휘어보임</div>
+                            </div>
+                            <div>
+                                <div className="text-xs text-slate-500 uppercase tracking-widest mb-1">등가원리</div>
+                                <div className="text-xl font-bold text-amber-400 font-mono">a = g</div>
+                                <div className="text-xs text-slate-500 mt-1">가속 ≡ 중력장</div>
                             </div>
                         </div>
                     </div>
@@ -340,4 +468,4 @@ react_code = """
 </html>
 """
 
-components.html(react_code, height=750, scrolling=False)
+components.html(react_code, height=850, scrolling=False)
