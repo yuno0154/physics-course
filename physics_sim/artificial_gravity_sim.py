@@ -5,29 +5,40 @@ import os
 # 페이지 설정
 st.set_page_config(page_title="인공중력 통합 탐구 시스템", layout="wide")
 
-# ── 사이드바 통합 제어판 ──
-st.sidebar.title("🧬 MISSION CONTROL")
-st.sidebar.markdown("---")
-# 슬라이더 - 물리량 제어 (모든 시뮬레이션 공유)
-radius_val = st.sidebar.slider("정거장 반지름 (r) [m]", 100, 1000, 500, step=50)
-omega_val = st.sidebar.slider("회전 각속도 (ω) [rad/s]", 0.05, 0.40, 0.15, step=0.01)
+# ── 1. 메인 타이틀 및 소개 ──
+st.title("🛰️ 인공중력 우주 정거장: 통합 탐구 시스템")
+st.markdown("정거장의 반지름과 각속도를 조절하여 인공중력이 어떻게 형성되는지 탐구해 보세요.")
 
+st.markdown("---")
+
+# ── 2. 물리량 정밀 제어판 (Main Logic) ──
+st.subheader("⚙️ STATION PARAMETERS (정밀 제어)")
+ctrl_col1, ctrl_col2 = st.columns(2)
+
+with ctrl_col1:
+    st.write("**반지름 (r) [m]**")
+    # 슬라이더와 넘버 인풋 연동을 위해 세션 상태를 활용하거나 간단히 순차 정의
+    radius_val = st.slider("r_slider", 100, 1000, 500, step=50, label_visibility="collapsed")
+    radius_val = st.number_input("정확한 반지름 입력", 100, 1000, radius_val, step=10)
+
+with ctrl_col2:
+    st.write("**각속도 (ω) [rad/s]**")
+    omega_val = st.slider("w_slider", 0.01, 1.00, 0.15, step=0.01, label_visibility="collapsed")
+    omega_val = st.number_input("정확한 각속도 입력", 0.01, 1.00, omega_val, step=0.01)
+
+# 물리 계산 로직
 accel = radius_val * (omega_val ** 2)
 g_force = accel / 9.8
 
-st.sidebar.info(f"""
-**[실시간 시스템 데이터]**
-- 반 지 름: {radius_val} m
-- 각 속 도: {omega_val:.2f} rad/s
-- 모사중력: {accel:.2f} m/s²
-- 중력세기: {g_force:.2f} G
-""")
+# 실시간 물리 데이터 대시보드 (Metric)
+m1, m2, m3 = st.columns(3)
+m1.metric("가속도 (a = rω²)", f"{accel:.2f} m/s²")
+m2.metric("체감 중력 (G-force)", f"{g_force:.2f} G", delta=f"{(g_force-1.0):.2f} G" if abs(g_force-1.0)>0.01 else "Earth Normal")
+m3.info(f"💡 현재 설정은 지구 중력의 {g_force*100:.1f}% 입니다.")
 
-# ── 메인 타이틀 ──
-st.title("🛰️ 인공중력 우주 정거장: 통합 탐구 시스템")
-st.markdown("상단의 시네마틱 뷰로 현상을 관찰하고, 하단의 듀얼 시ミュ레이션으로 물리 법칙을 분석해 보세요.")
+st.markdown("---")
 
-# ── 1. 상단: 시네마틱 오리지널 뷰 (복원) ──
+# ── 3. 상단: 시네마틱 오리지널 뷰 ──
 st.subheader("🎬 Cinematic Overview")
 cinematic_html = f"""
 <!DOCTYPE html>
@@ -50,7 +61,7 @@ cinematic_html = f"""
     function resize() {{ canvas.width = window.innerWidth; canvas.height = 350; }}
     window.onresize = resize; resize();
 
-    function drawSpace(cx, cy) {{
+    function drawSpace() {{
         ctx.fillStyle = "#010409"; ctx.fillRect(0,0,canvas.width, canvas.height);
         for(let i=0; i<150; i++) {{
             let x = (Math.sin(i*77.7)*0.5+0.5)*canvas.width;
@@ -69,15 +80,12 @@ cinematic_html = f"""
 
     function drawStation(cx, cy) {{
         ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle);
-        // Spokes
         ctx.strokeStyle = '#334155'; ctx.lineWidth = 6;
         for(let i=0; i<6; i++) {{
             let a = i*Math.PI/3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(Math.cos(a)*120, Math.sin(a)*120); ctx.stroke();
         }}
-        // Ring
         ctx.strokeStyle = '#475569'; ctx.lineWidth = 20;
         ctx.beginPath(); ctx.arc(0,0, 120, 0, Math.PI*2); ctx.stroke();
-        // Hub
         ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(0,0, 30, 0, Math.PI*2); ctx.fill();
         ctx.restore();
     }}
@@ -99,7 +107,8 @@ components.html(cinematic_html, height=350)
 
 st.markdown("---")
 
-# ── 2. 중단: 듀얼 프레임 시뮬레이션 창 (관성계 vs 비관성계) ──
+# ── 4. 중단: 듀얼 프레임 시뮬레이션 창 (관성계 vs 비관성계) ──
+st.subheader("🔭 차원별 프레임 분석 (Inertial vs Rotating)")
 col1, col2 = st.columns(2)
 
 with col1:
@@ -110,11 +119,11 @@ with col1:
     <head>
         <style>
             body {{ margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }}
-            #label {{ position: absolute; top: 10px; left: 10px; color: white; font-size: 12px; font-weight: 800; background: rgba(0,0,0,0.5); padding: 5px; }}
+            #label {{ position: absolute; top: 10px; left: 10px; color: white; font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.5); padding: 5px; border: 1px solid white; }}
         </style>
     </head>
     <body>
-        <div id="label">관성계: 정거장 회전 | 배경 고정</div>
+        <div id="label">관성계: 배경 고정 | 정거장 회전</div>
         <canvas id="inertialCanvas"></canvas>
     <script>
         const canvas = document.getElementById('inertialCanvas');
@@ -123,7 +132,7 @@ with col1:
         const accelVal = {accel};
         let angle = 0;
 
-        function resize() {{ canvas.width = window.innerWidth; canvas.height = 400; }}
+        function resize() {{ canvas.width = window.innerWidth; canvas.height = 380; }}
         resize();
 
         function drawInertial() {{
@@ -131,19 +140,13 @@ with col1:
             const cx = canvas.width/2, cy = canvas.height/2;
             angle += omega * 0.016;
 
-            // 1. 별 배경 (고정)
-            ctx.fillStyle="white"; for(let i=0; i<50; i++) ctx.fillRect(Math.sin(i)*canvas.width, Math.cos(i*i)*canvas.height, 1, 1);
+            ctx.fillStyle="white"; for(let i=0; i<30; i++) ctx.fillRect(Math.sin(i)*canvas.width, Math.cos(i*i)*canvas.height, 1, 1);
+            ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 25; ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI*2); ctx.stroke();
 
-            // 2. 정거장 링
-            ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 30; ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+            const ax = cx + Math.cos(angle)*125; const ay = cy + Math.sin(angle)*125;
+            ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle-Math.PI/2); ctx.fillRect(-6,-9, 12, 16); ctx.restore();
 
-            // 3. 우주인 (회전)
-            const ax = cx + Math.cos(angle)*135;
-            const ay = cy + Math.sin(angle)*135;
-            ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle-Math.PI/2); ctx.fillRect(-7,-10, 14, 18); ctx.restore();
-
-            // 4. 수직항력 (N) - 중심 방향
-            const len = Math.max(30, accelVal*1.8);
+            const len = Math.max(30, accelVal * 1.5);
             ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle + Math.PI);
             ctx.strokeStyle = "#ef4444"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
             ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.moveTo(len, 0); ctx.lineTo(len-10, -5); ctx.lineTo(len-10, 5); ctx.fill();
@@ -157,7 +160,7 @@ with col1:
     </body>
     </html>
     """
-    components.html(inertial_html, height=400)
+    components.html(inertial_html, height=380)
 
 with col2:
     st.markdown("#### 👩‍🚀 내부 우주인 시점 (Non-Inertial Frame)")
@@ -167,7 +170,7 @@ with col2:
     <head>
         <style>
             body {{ margin: 0; background: #000; overflow: hidden; font-family: sans-serif; }}
-            #label {{ position: absolute; top: 10px; left: 10px; color: #10b981; font-size: 12px; font-weight: 800; background: rgba(0,0,0,0.5); padding: 5px; }}
+            #label {{ position: absolute; top: 10px; left: 10px; color: #10b981; font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.5); padding: 5px; border: 1px solid #10b981; }}
         </style>
     </head>
     <body>
@@ -180,7 +183,7 @@ with col2:
         const accelVal = {accel};
         let angle = 0;
 
-        function resize() {{ canvas.width = window.innerWidth; canvas.height = 400; }}
+        function resize() {{ canvas.width = window.innerWidth; canvas.height = 380; }}
         resize();
 
         function drawRotating() {{
@@ -188,26 +191,20 @@ with col2:
             const cx = canvas.width/2, cy = canvas.height/2;
             angle += omega * 0.016;
 
-            // 1. 별 배경 (거꾸로 회전)
             ctx.save(); ctx.translate(cx, cy); ctx.rotate(-angle); ctx.fillStyle="white"; 
-            for(let i=0; i<50; i++) ctx.fillRect((Math.sin(i)*1.5)*cx, (Math.cos(i*i)*1.5)*cy, 1, 1);
+            for(let i=0; i<30; i++) ctx.fillRect((Math.sin(i)*1.5)*cx, (Math.cos(i*i)*1.5)*cy, 1, 1);
             ctx.restore();
 
-            // 2. 정거장 링 (고정)
-            ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 30; ctx.beginPath(); ctx.arc(cx, cy, 140, 0, Math.PI*2); ctx.stroke();
+            ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 25; ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI*2); ctx.stroke();
 
-            // 3. 우주인 (고정 - 3시 방향)
-            const ax = cx + 135, ay = cy;
-            ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(-Math.PI/2); ctx.fillRect(-7,-10, 14, 18); ctx.restore();
+            const ax = cx + 125, ay = cy;
+            ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(-Math.PI/2); ctx.fillRect(-6,-9, 12, 16); ctx.restore();
 
-            // 4. 원심력 & 수직항력 평형
-            const len = Math.max(30, accelVal*1.8);
-            // 원심력 (바깥)
+            const len = Math.max(30, accelVal * 1.5);
             ctx.strokeStyle = "#10b981"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax+len, ay); ctx.stroke();
             ctx.fillStyle="#10b981"; ctx.beginPath(); ctx.moveTo(ax+len, ay); ctx.lineTo(ax+len-10, ay-5); ctx.lineTo(ax+len-10, ay+5); ctx.fill();
             ctx.fillText("원심력", ax+20, ay+20);
             
-            // 수직항력 (안쪽)
             ctx.strokeStyle = "#ef4444"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax-len, ay); ctx.stroke();
             ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.moveTo(ax-len, ay); ctx.lineTo(ax-len+10, ay-5); ctx.lineTo(ax-len+10, ay+5); ctx.fill();
             ctx.fillText("수직항력 (N)", ax-len, ay-15);
@@ -219,65 +216,45 @@ with col2:
     </body>
     </html>
     """
-    components.html(rotating_html, height=400)
+    components.html(rotating_html, height=380)
 
-# ── 3. 하단: 비교 분석표 및 리퍼런스 (복원) ──
+# ── 5. 하단: 비교 분석표 및 자료 ──
 st.markdown("---")
-st.markdown("### 🔍 프레임별 물리 현상 분석")
-
+st.markdown("### 📊 관성계 vs 비관성계 심층 비교")
 st.markdown("""
-<style>
-    .physics-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .physics-table th { background: #0f172a; color: white; padding: 12px; border: 1px solid #334155; }
-    .physics-table td { background: white; padding: 12px; border: 1px solid #e2e8f0; text-align: center; }
-</style>
-<table class="physics-table">
-    <thead>
-        <tr>
-            <th>구분</th>
-            <th>🌍 외부 관찰자 (관성계)</th>
-            <th>👩‍🚀 내부 우주인 (비관성계)</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td style="font-weight:bold;">운동의 기술</td>
-            <td>정거장과 함께 원운동</td>
-            <td>정거장 내 정지 상태</td>
-        </tr>
-        <tr>
-            <td style="font-weight:bold;">발생하는 힘</td>
-            <td><b>수직항력(N)</b> 하나만 존재</td>
-            <td><b>수직항력(N)</b> + <b>원심력(가성력)</b></td>
-        </tr>
-        <tr>
-            <td style="font-weight:bold;">물리적 평형</td>
-            <td>수직항력이 <b>구심력</b> 역할</td>
-            <td>두 힘의 합력이 0 (평형)</td>
-        </tr>
-    </tbody>
+<table style="width:100%; border-collapse: collapse; background: white; color: black; border: 1px solid #ddd;">
+    <tr style="background: #0f172a; color: white;">
+        <th style="padding: 10px; border: 1px solid #444;">분석 항목</th>
+        <th style="padding: 10px; border: 1px solid #444;">외부 관찰자 (관성계)</th>
+        <th style="padding: 10px; border: 1px solid #444;">내부 우주인 (비관성계)</th>
+    </tr>
+    <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">해석되는 운동</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">정거장과 함께 원운동 중</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">정거장 내부에서 정지 중</td>
+    </tr>
+    <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">작용하는 힘</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">수직항력 (중심 방향)</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">수직항력(N) + 원심력(Inertial)</td>
+    </tr>
+    <tr>
+        <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">물리 법칙 적용</td>
+        <td style="padding: 10px; border: 1px solid #ddd;"><b>구심력(N) = mrω²</b></td>
+        <td style="padding: 10px; border: 1px solid #ddd;"><b>N = 원심력</b> (힘의 평형)</td>
+    </tr>
 </table>
 """, unsafe_allow_html=True)
 
-# 쿠퍼 스테이션 이미지 데이터
-st.markdown("#### 🪐 인공중력의 실제 모델")
-base_img_path = "physics_sim/" if os.path.exists("physics_sim/cooper_exterior.png") else ""
+# 리퍼런스 이미지
+st.markdown("#### 🪐 쿠퍼 스테이션 데이터 시각화")
+base_path = "physics_sim/"
 col_a, col_b = st.columns(2)
 with col_a:
-    ext_img = base_img_path + "cooper_exterior.png"
-    if os.path.exists(ext_img): st.image(ext_img, caption="Cooper Station Exterior View", use_container_width=True)
+    ext_img = base_path + "cooper_exterior.png"
+    if os.path.exists(ext_img): st.image(ext_img, caption="영화 인터스텔라: 쿠퍼 스테이션 외부 원경", use_container_width=True)
 with col_b:
-    int_img = base_img_path + "cooper_interior.png"
-    if os.path.exists(int_img): st.image(int_img, caption="Cooper Station Interior View", use_container_width=True)
+    int_img = base_path + "cooper_interior.png"
+    if os.path.exists(int_img): st.image(int_img, caption="영화 인터스텔라: 쿠퍼 스테이션 내부 주거 구역", use_container_width=True)
 
-st.markdown("""
-> [!NOTE]
-> **탐구 가이드**: 상단의 고화질 뷰에서 정거장이 회전하는 모습 전체를 감상한 후, 
-> 중단의 시뮬레이션을 통해 외부 관찰자(관성계)와 내부 우주인(비관성계)이 왜 서로 다르게 운동을 해석하는지 비교해 보세요.
-""")
-
-def run():
-    pass
-
-if __name__ == "__main__":
-    run()
+st.info("💡 팁: 반지름을 키우고 각속도를 높일수록 내부 우주인이 받는 인공중력(수직항력)의 세기가 강해지는 것을 실시간으로 관찰할 수 있습니다.")
