@@ -9,40 +9,37 @@ st.set_page_config(page_title="아인슈타인의 중력 실험실", layout="wid
 current_dir = os.path.dirname(os.path.abspath(__file__))
 assets_dir = os.path.join(current_dir, "assets")
 
+# 생성된 이미지 경로 (절대 경로) - 사용자 환경에 맞춰 자동 매칭
+img_cross = r"C:\Users\yuno0\.gemini\antigravity\brain\da6d5f54-b0cb-46be-81c2-79cb90d85a6d\einstein_cross_ref_1776624530390.png"
+img_3d_curve = r"C:\Users\yuno0\.gemini\antigravity\brain\da6d5f54-b0cb-46be-81c2-79cb90d85a6d\spacetime_3d_curvature_1776624545920.png"
 img_blackhole = os.path.join(assets_dir, "blackhole.png")
 img_reunion = os.path.join(assets_dir, "reunion.png")
 
 # 상단 관측 사례 카드 UI
 def render_header_cards():
-    st.markdown("#### 🔭 현대 우주론의 결정적 관측 사례")
+    st.markdown("#### 🔭 현대 우주론의 결정적 관측 및 이론적 모델")
     c1, c2, c3 = st.columns(3)
     with c1:
+        st.image(img_cross, use_container_width=True, caption="아인슈타인의 십자가 (관측 모델)")
         st.markdown("""
-        <div style="background: rgba(30, 41, 59, 0.7); padding: 15px; border-radius: 12px; border-left: 5px solid #fbbf24; height: 160px;">
-            <strong style="color: #fbbf24;">아인슈타인의 십자가</strong><br/>
-            <small style="color: #94a3b8;">Einstein Cross (Huchra's Lens)</small>
-            <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 8px;">
-                중심 은하의 강력한 중력이 뒤쪽 퀘이사의 빛을 굴절시켜 4개의 똑같은 상을 만드는 현상입니다.
-            </p>
+        <div style="background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 8px;">
+            <p style="font-size: 0.8rem; color: #cbd5e1; margin: 0;">중심 은하의 중력으로 뒤쪽 퀘이사의 상이 4개로 분리된 모습입니다.</p>
         </div>
         """, unsafe_allow_html=True)
     with c2:
+        st.image(img_3d_curve, use_container_width=True, caption="3D 시공간 곡률과 빛의 경로")
         st.markdown("""
-        <div style="background: rgba(30, 41, 59, 0.7); padding: 15px; border-radius: 12px; border-left: 5px solid #818cf8; height: 160px;">
-            <strong style="color: #818cf8;">아벨 1689 은하단</strong><br/>
-            <small style="color: #94a3b8;">Galaxy Cluster Abell 1689</small>
-            <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 8px;">
-                거대한 은하단 질량이 배경 은하들의 빛을 길게 늘어뜨려 아크(Arc) 모양의 왜곡을 일으킵니다.
-            </p>
+        <div style="background: rgba(30, 41, 59, 0.4); padding: 10px; border-radius: 8px;">
+            <p style="font-size: 0.8rem; color: #cbd5e1; margin: 0;">질량이 시공간을 함몰시키면, 빛은 그 골짜기를 따라 입체적으로 굴절됩니다.</p>
         </div>
         """, unsafe_allow_html=True)
     with c3:
         st.markdown("""
-        <div style="background: rgba(30, 41, 59, 0.7); padding: 15px; border-radius: 12px; border-left: 5px solid #10b981; height: 160px;">
-            <strong style="color: #10b981;">허블 딥 필드</strong><br/>
-            <small style="color: #94a3b8;">Hubble Ultra Deep Field</small>
+        <div style="background: rgba(30, 41, 59, 0.7); padding: 15px; border-radius: 12px; border-left: 5px solid #10b981; height: 100%;">
+            <strong style="color: #10b981;">허블 딥 필드 (HDF)</strong><br/>
             <p style="font-size: 0.85rem; color: #cbd5e1; margin-top: 8px;">
-                중력 렌즈 효과 덕분에 우리는 원래라면 볼 수 없었을 우주 초기(백억 년 전)의 은하들을 관찰할 수 있습니다.
+                중력 렌즈는 '우주의 돋보기' 역할을 하여 인류가 관측할 수 있는 한계를 수십 배 이상 확장해 줍니다. 
+                현재 시뮬레이션의 3D 모드로 이 원리를 직접 탐구해 보세요.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -62,94 +59,131 @@ const STARS = Array.from({length:120},(_,i)=>{
     return { x:s(i*1.1), y:s(i*2.3), r:s(i*3.2)*1.2+0.1, ph:s(i*5)*Math.PI*2 };
 });
 
-const drawStars = (ctx, W, H, t) => {
-    STARS.forEach(st=>{
-        const op = 0.1 + 0.4*Math.sin(st.ph+t*0.001);
-        ctx.beginPath(); ctx.arc(st.x*W, st.y*H, st.r, 0, Math.PI*2);
-        ctx.fillStyle=`rgba(255,255,255,${op})`; ctx.fill();
-    });
+/* ── 3D 투영 엔진 ── */
+const project3D = (x, y, z, W, H) => {
+    const angle = 0.45; // 기울기
+    const scale = 0.85; 
+    const sx = (x - W/2) * scale;
+    const sy = (y - H/2) * scale * Math.sin(angle) - z * 0.5; // Z-depth 적용
+    return { x: sx + W/2, y: sy + H*0.48 };
 };
 
-/* ── 시공간 격자 ── */
 function drawGrid(ctx, W, H, sunX, sunY, mass, isLensing) {
     if(!isLensing) return;
-    ctx.save(); ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)'; ctx.lineWidth = 1.0;
-    const step = 45;
+    ctx.save(); ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)'; ctx.lineWidth = 0.8;
+    const step = 40;
+    const getZ = (x, y) => {
+        const dx = x - sunX, dy = y - sunY;
+        const d = Math.sqrt(dx*dx + dy*dy);
+        return -(mass * 800) / (d/2 + 60); // 질량에 의한 시공간 함몰
+    };
+
     for (let i = -1; i <= W/step+1; i++) {
         ctx.beginPath();
         for (let j = -1; j <= H/step+1; j++) {
-            let px = i * step, py = j * step;
-            const dx = px - sunX, dy = py - sunY;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            const force = (mass * 700) / (d + 50); 
-            px -= (dx / (d + 1)) * force; py -= (dy / (d + 1)) * force;
-            if (j === -1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            const px = i * step, py = j * step;
+            const p = project3D(px, py, getZ(px, py), W, H);
+            if (j === -1) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
         }
         ctx.stroke();
     }
     for (let j = -1; j <= H/step+1; j++) {
         ctx.beginPath();
         for (let i = -1; i <= W/step+1; i++) {
-            let px = i * step, py = j * step;
-            const dx = px - sunX, dy = py - sunY;
-            const d = Math.sqrt(dx*dx + dy*dy);
-            const force = (mass * 700) / (d + 50);
-            px -= (dx / (d + 1)) * force; py -= (dy / (d + 1)) * force;
-            if (i === -1) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            const px = i * step, py = j * step;
+            const p = project3D(px, py, getZ(px, py), W, H);
+            if (i === -1) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
         }
         ctx.stroke();
     }
     ctx.restore();
 }
 
-/* ── 중력 렌즈 시뮬레이터 (교과서 모델) ── */
+/* ── 중력 렌즈 시뮬레이터 (3D 고도화) ── */
 function drawLensing(ctx, W, H, caseMode, mass, t) {
-    const cx = W * 0.5, cy = H * 0.4, rLen = 50 + mass*5;
-    const earthX = W * 0.5, earthY = H * 0.8;
-    const starRealX = cx, starRealY = H * 0.08;
-    const prog = (t * 0.0007) % 1;
-
-    drawGrid(ctx, W, H, cx, cy, mass, true);
+    const cx = W * 0.5, cy = H * 0.5;
+    const rLen = 30 + mass * 4;
+    const earthPos = { x: W * 0.5, y: H * 0.85, z: 0 };
+    const starRealPos = { x: W * 0.5, y: H * 0.1, z: 0 };
+    
     drawStars(ctx, W, H, t);
+    drawGrid(ctx, W, H, cx, cy, mass, true);
+
+    // 3D 좌표 보정
+    const pE = project3D(earthPos.x, earthPos.y, earthPos.z, W, H);
+    const pS = project3D(starRealPos.x, starRealPos.y, starRealPos.z, W, H);
+    const pC = project3D(cx, cy, -(mass * 12), W, H); // 은하중심도 살짝 가라앉음
 
     // 렌즈 천체 (은하단)
-    const gradSun = ctx.createRadialGradient(cx, cy, 0, cx, cy, rLen);
-    gradSun.addColorStop(0, 'rgba(99, 102, 241, 0.4)'); gradSun.addColorStop(1, 'transparent');
-    ctx.beginPath(); ctx.arc(cx, cy, rLen, 0, Math.PI*2); ctx.fillStyle = gradSun; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill(); 
-    ctx.fillStyle='#6366f1'; ctx.font='bold 12px Inter'; ctx.textAlign='center';
-    ctx.fillText('은하단 (Lens)', cx, cy + 45);
+    const gradSun = ctx.createRadialGradient(pC.x, pC.y, 0, pC.x, pC.y, rLen * 2);
+    gradSun.addColorStop(0, 'rgba(99, 102, 241, 0.5)'); 
+    gradSun.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(pC.x, pC.y, rLen * 2, 0, Math.PI*2); ctx.fillStyle = gradSun; ctx.fill();
+    ctx.beginPath(); ctx.arc(pC.x, pC.y, rLen, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill(); 
+    ctx.fillStyle='#a5b4fc'; ctx.font='bold 11px Inter'; ctx.textAlign='center';
+    ctx.fillText('중심 은하단 (Gravity Well)', pC.x, pC.y + rLen + 15);
 
     if (caseMode === 'shift') {
-        const deflection = mass * 30;
-        // 별의 겉보기 위치 A (질량 클 때), B (질량 작을 때)를 암시하는 연장 가이드
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.setLineDash([5,5]);
-        ctx.beginPath(); ctx.moveTo(earthX, earthY); ctx.lineTo(cx + deflection*2, 40); ctx.stroke();
+        const deflection = mass * 45;
+        // 3D 입체 광선 궤적 (좌우 대칭)
+        ctx.strokeStyle='#fbbf24'; ctx.lineWidth=3;
+        ctx.shadowColor='#fbbf24'; ctx.shadowBlur=12;
+
+        const drawCurvedPath = (side) => {
+            ctx.beginPath();
+            ctx.moveTo(pS.x, pS.y);
+            const midX = cx + side * deflection;
+            const midY = cy;
+            const midZ = -(mass * 25); // 중간 지점이 골짜기 아래로 휘어짐
+            const pMid = project3D(midX, midY, midZ, W, H);
+            ctx.quadraticCurveTo(pMid.x, pMid.y, pE.x, pE.y);
+            ctx.stroke();
+        };
+
+        drawCurvedPath(1);
+        drawCurvedPath(-1);
+
+        // Apparent Positions (가이드라인 포함)
+        ctx.shadowBlur=0;
+        ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.setLineDash([5,5]);
+        const appX = cx + deflection * 1.8;
+        const appP = project3D(appX, H * 0.1, 0, W, H);
+        ctx.beginPath(); ctx.moveTo(pE.x, pE.y); ctx.lineTo(appP.x, appP.y); ctx.stroke();
         ctx.setLineDash([]);
         
-        // 굴절된 빛 (대칭 2줄)
-        ctx.strokeStyle='#fbbf24'; ctx.lineWidth=3;
-        ctx.beginPath(); ctx.moveTo(starRealX, starRealY); ctx.quadraticCurveTo(cx + deflection, cy, earthX, earthY); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(starRealX, starRealY); ctx.quadraticCurveTo(cx - deflection, cy, earthX, earthY); ctx.stroke();
-        
-        // Apparent position marker
-        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(cx + deflection*2, 40, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillText(mass > 6 ? '위치 A (질량 대)' : '위치 B (질량 소)', cx + deflection*2, 30);
+        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 6, 0, Math.PI*2); ctx.fill();
+        ctx.fillText(mass > 6 ? '겉보기 위치 A (질량 대)' : '겉보기 위치 B (질량 소)', appP.x, appP.y - 12);
+
     } else if (caseMode === 'cross') {
-        // 아인슈타인의 십자가 (4개 상)
-        const d = 60 + mass*4;
-        const positions = [[d,0], [-d,0], [0,d], [0,-d]];
-        ctx.strokeStyle='rgba(251, 191, 36, 0.6)'; ctx.lineWidth=2;
-        positions.forEach(([dx, dy]) => {
-            ctx.beginPath(); ctx.moveTo(starRealX, starRealY); ctx.quadraticCurveTo(cx+dx, cy+dy, earthX, earthY); ctx.stroke();
-            ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(cx+dx*1.2, cy+dy*1.2, 5, 0, Math.PI*2); ctx.fill();
+        const d = 45 + mass * 3;
+        const subPositions = [
+            {x:cx+d, y:cy, z:-mass*15}, {x:cx-d, y:cy, z:-mass*15},
+            {x:cx, y:cy+d, z:-mass*15}, {x:cx, y:cy-d, z:-mass*15}
+        ];
+        
+        ctx.strokeStyle='rgba(251, 191, 36, 0.7)'; ctx.lineWidth=2;
+        ctx.shadowColor='#fbbf24'; ctx.shadowBlur=10;
+        
+        subPositions.forEach(pos => {
+            const pSub = project3D(pos.x, pos.y, pos.z, W, H);
+            ctx.beginPath(); ctx.moveTo(pS.x, pS.y); 
+            ctx.quadraticCurveTo(pSub.x, pSub.y, pE.x, pE.y);
+            ctx.stroke();
+            
+            // 상 (Image)
+            const pImg = project3D(cx + (pos.x-cx)*1.4, cy + (pos.y-cy)*1.4, 0, W, H);
+            ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(pImg.x, pImg.y, 5, 0, Math.PI*2); ctx.fill();
         });
-        ctx.fillStyle='#fbbf24'; ctx.fillText('퀘이사의 4개 상 (Einstein Cross)', cx, cy - rLen - 20);
+        ctx.shadowBlur=0;
+        ctx.fillStyle='#fbbf24'; ctx.fillText('아인슈타인의 십자가 (Isometric View)', pC.x, pC.y - rLen - 35);
     }
 
     // 지구
-    ctx.beginPath(); ctx.arc(earthX, earthY, 25, 0, Math.PI*2); ctx.fillStyle='#3b82f6'; ctx.fill();
-    ctx.fillStyle='#fff'; ctx.fillText('지구 (관측자)', earthX, earthY + 45);
+    ctx.beginPath(); ctx.arc(pE.x, pE.y, 22, 0, Math.PI*2); 
+    const gradEarth = ctx.createRadialGradient(pE.x-5, pE.y-5, 2, pE.x, pE.y, 22);
+    gradEarth.addColorStop(0, '#60a5fa'); gradEarth.addColorStop(1, '#1e40af');
+    ctx.fillStyle=gradEarth; ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillText('지구 (관측자)', pE.x, pE.y + 35);
 }
 
 /* ── 회전 원판 (등가 원리) ── */
