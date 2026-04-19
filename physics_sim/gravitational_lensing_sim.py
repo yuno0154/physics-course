@@ -9,9 +9,9 @@ st.set_page_config(page_title="아인슈타인의 중력 실험실", layout="wid
 current_dir = os.path.dirname(os.path.abspath(__file__))
 assets_dir = os.path.join(current_dir, "assets")
 
-# 생성된 이미지 경로 (절대 경로) - 사용자 환경에 맞춰 자동 매칭
-img_cross = r"C:\Users\yuno0\.gemini\antigravity\brain\da6d5f54-b0cb-46be-81c2-79cb90d85a6d\einstein_cross_ref_1776624530390.png"
-img_3d_curve = r"C:\Users\yuno0\.gemini\antigravity\brain\da6d5f54-b0cb-46be-81c2-79cb90d85a6d\spacetime_3d_curvature_1776624545920.png"
+# 생성된 이미지 경로 (에셋 폴더 내 파일 사용)
+img_cross = os.path.join(assets_dir, "einstein_cross.png")
+img_3d_curve = os.path.join(assets_dir, "spacetime_curvature.png")
 img_blackhole = os.path.join(assets_dir, "blackhole.png")
 img_reunion = os.path.join(assets_dir, "reunion.png")
 
