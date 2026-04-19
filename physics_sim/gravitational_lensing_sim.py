@@ -59,6 +59,14 @@ const STARS = Array.from({length:120},(_,i)=>{
     return { x:s(i*1.1), y:s(i*2.3), r:s(i*3.2)*1.2+0.1, ph:s(i*5)*Math.PI*2 };
 });
 
+const drawStars = (ctx, W, H, t) => {
+    STARS.forEach(st=>{
+        const op = 0.15 + 0.35*Math.sin(st.ph+t*0.001);
+        ctx.beginPath(); ctx.arc(st.x*W, st.y*H, st.r, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(255,255,255,${op})`; ctx.fill();
+    });
+};
+
 /* ── 3D 투영 엔진 ── */
 const project3D = (x, y, z, W, H) => {
     const angle = 0.45; // 기울기
