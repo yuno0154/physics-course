@@ -641,75 +641,154 @@ function render() {
 }
 
 // ══════════════════════════════════════════════
-//  [1] 외부 원경 (Cinematic)
+//  [1] 외부 원경 (Cinematic) — 정면 원형 링 뷰
 // ══════════════════════════════════════════════
 function renderExternal(cx, cy) {
-    const scale   = Math.min(canvas.width, canvas.height) / 860;
-    const visualR = r * scale;
+    // 화면 크기의 약 절반을 링 반지름으로 사용 — 크게 표시
+    const scale   = Math.min(canvas.width, canvas.height) / 560;
+    const visualR = Math.min(canvas.width, canvas.height) * 0.36;
 
     drawSpace(cx, cy, 0);
-    drawEarth(cx, cy, scale, earthAngle);
+    drawEarth(cx, cy, scale * 0.5, earthAngle);
 
     ctx.save();
     ctx.translate(cx, cy);
 
-    // 느린 전체 기울기 애니메이션
+    // ── 허브 연결 지주 (회전) ──
+    ctx.save();
     ctx.rotate(angle * 0.05);
-
-    // 허브 연결 지주
+    const spokeCount = 6;
     ctx.strokeStyle = '#334155';
-    ctx.lineWidth   = 18 * scale;
-    ctx.beginPath(); ctx.moveTo(0, -visualR * 1.25); ctx.lineTo(0, visualR * 1.25); ctx.stroke();
-    ctx.lineWidth   = 12 * scale;
-    ctx.beginPath(); ctx.moveTo(-visualR * 1.25, 0); ctx.lineTo(visualR * 1.25, 0); ctx.stroke();
+    ctx.lineWidth   = 14 * scale;
+    for (let i = 0; i < spokeCount; i++) {
+        const a = (i / spokeCount) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * visualR * 0.85, Math.sin(a) * visualR * 0.85);
+        ctx.stroke();
+    }
+    ctx.restore();
 
-    // 허브 (중심부)
-    const hubR = 28 * scale;
-    const hubGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, hubR);
-    hubGrad.addColorStop(0, '#64748b');
+    // ── 태양광 패널 (허브 위아래) ──
+    ctx.save();
+    ctx.rotate(angle * 0.05);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(-visualR * 0.06, -visualR * 1.18, visualR * 0.12, visualR * 0.3);
+    ctx.fillRect(-visualR * 0.06,  visualR * 0.88, visualR * 0.12, visualR * 0.3);
+    ctx.fillStyle = 'rgba(56,189,248,0.35)';
+    for (let s of [-1, 1]) {
+        for (let k = 0; k < 4; k++) {
+            ctx.fillRect(
+                -visualR * 0.25 + k * visualR * 0.13,
+                s > 0 ? visualR * 0.9 : -visualR * 1.12,
+                visualR * 0.11, visualR * 0.22
+            );
+        }
+    }
+    ctx.restore();
+
+    // ── 허브 (중심부) ──
+    const hubR = 34 * scale;
+    const hubGrad = ctx.createRadialGradient(-hubR*0.3, -hubR*0.3, 0, 0, 0, hubR);
+    hubGrad.addColorStop(0, '#94a3b8');
+    hubGrad.addColorStop(0.6, '#334155');
     hubGrad.addColorStop(1, '#0f172a');
     ctx.fillStyle = hubGrad;
     ctx.beginPath(); ctx.arc(0, 0, hubR, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 2 * scale;
+    ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2.5 * scale;
     ctx.stroke();
+    // 허브 내부 작은 원
+    ctx.strokeStyle = 'rgba(56,189,248,0.4)'; ctx.lineWidth = 1.5 * scale;
+    ctx.beginPath(); ctx.arc(0, 0, hubR * 0.55, 0, Math.PI * 2); ctx.stroke();
 
     ctx.restore();
 
-    // 토러스 링 (우주정거장 거주 구역) — 독립 회전각
+    // ── 토러스 링 본체 — 정면 완전 원형 (독립 회전) ──
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
 
-    const torusR   = visualR;
-    const tubeW    = 32 * scale;
+    const tubeW    = 38 * scale;
 
-    // 링 몸체 (타원으로 원근감)
+    // 링 그림자 (외곽)
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth   = tubeW * 2.4;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
+
+    // 링 기본 몸체
     ctx.strokeStyle = '#1e293b';
-    ctx.lineWidth   = tubeW * 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, torusR * 1.3, torusR * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth   = tubeW * 2.0;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
 
+    // 링 중간 레이어
     ctx.strokeStyle = '#334155';
     ctx.lineWidth   = tubeW * 1.4;
-    ctx.beginPath(); ctx.ellipse(0, 0, torusR * 1.3, torusR * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
 
+    // 링 표면
     ctx.strokeStyle = '#475569';
-    ctx.lineWidth   = tubeW * 0.6;
-    ctx.beginPath(); ctx.ellipse(0, 0, torusR * 1.3, torusR * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth   = tubeW * 0.7;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
 
-    // 하이라이트
-    ctx.strokeStyle = 'rgba(148,163,184,0.3)';
+    // 하이라이트 (상단)
+    const hlGrad = ctx.createLinearGradient(0, -visualR - tubeW, 0, -visualR + tubeW);
+    hlGrad.addColorStop(0, 'rgba(148,163,184,0.6)');
+    hlGrad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = hlGrad;
+    ctx.lineWidth   = tubeW * 0.35;
+    ctx.beginPath(); ctx.arc(0, 0, visualR, Math.PI * 1.15, Math.PI * 1.85); ctx.stroke();
+
+    // 링 내벽 어두운 선
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.lineWidth   = 1.5 * scale;
+    ctx.beginPath(); ctx.arc(0, 0, visualR - tubeW * 0.6, 0, Math.PI * 2); ctx.stroke();
+
+    // 창문 / 격벽 표시 (8개 섹션)
+    ctx.strokeStyle = 'rgba(56,189,248,0.25)';
     ctx.lineWidth   = 2 * scale;
-    ctx.beginPath(); ctx.ellipse(0, 0, torusR * 1.32, torusR * 0.39, 0, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+    const segCount = 16;
+    for (let i = 0; i < segCount; i++) {
+        const a0 = (i / segCount) * Math.PI * 2;
+        const a1 = ((i + 0.05) / segCount) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, visualR - tubeW * 0.2, a0, a1);
+        ctx.stroke();
+    }
 
-    // 태양광 패널
-    ctx.fillStyle = '#334155';
-    ctx.fillRect(-torusR * 0.08, -torusR * 1.55, torusR * 0.16, torusR * 0.5);
-    ctx.fillRect(-torusR * 0.08,  torusR * 1.05, torusR * 0.16, torusR * 0.5);
+    ctx.restore();
 
-    ctx.fillStyle = 'rgba(56,189,248,0.25)';
-    ctx.fillRect(-torusR * 0.22, -torusR * 1.52, torusR * 0.44, torusR * 0.1);
-    ctx.fillRect(-torusR * 0.22,  torusR * 1.42, torusR * 0.44, torusR * 0.1);
+    // ── 회전 방향 화살표 ──
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.strokeStyle = 'rgba(56,189,248,0.6)';
+    ctx.fillStyle   = 'rgba(56,189,248,0.6)';
+    ctx.lineWidth   = 2.5 * scale;
+    // 호 화살표 (오른쪽 위)
+    const arrowAng = angle % (Math.PI * 2);
+    ctx.beginPath();
+    ctx.arc(0, 0, visualR + tubeW * 1.6, arrowAng + 0.1, arrowAng + 0.55);
+    ctx.stroke();
+    // 화살표 머리
+    const aEnd = arrowAng + 0.55;
+    const aHeadX = Math.cos(aEnd) * (visualR + tubeW * 1.6);
+    const aHeadY = Math.sin(aEnd) * (visualR + tubeW * 1.6);
+    ctx.save();
+    ctx.translate(aHeadX, aHeadY);
+    ctx.rotate(aEnd + Math.PI / 2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-7 * scale, -14 * scale); ctx.lineTo(7 * scale, -14 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    ctx.restore();
 
+    // ── 레이블 ──
+    ctx.save();
+    ctx.font = `bold ${13 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(56,189,248,0.8)';
+    ctx.fillText('EXTERNAL INERTIAL FRAME', 14, 28);
+    ctx.font = `${11 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(148,163,184,0.6)';
+    ctx.fillText('우주정거장이 실제로 회전 중', 14, 46);
     ctx.restore();
 }
 
@@ -782,15 +861,50 @@ function renderInertial(cx, cy, accel, force) {
 //  [3] 비관성계 (Internal — Rotating Frame)
 //  ★ 핵심: 선체와 비행사는 완전 고정
 //         배경(별·지구)만 -angle 회전
+//         관성력(원심력) 명확히 표시
 // ══════════════════════════════════════════════
 function renderRotating(cx, cy, accel, force) {
     // 확대된 스케일 — 현장감 있는 내부 시점
     const scale   = Math.min(canvas.width, canvas.height) / 260;
     const visualR = r * scale;
 
-    // ── 배경만 역방향 회전 ──
+    // ── 배경(별·지구)만 역방향 회전 (선체 내부에서 바라보면 별이 돌아감) ──
     drawSpace(cx, cy, -angle);
     drawEarth(cx, cy, scale * 0.18, -angle + earthAngle);
+
+    // ── 별 회전 방향 화살표 (창문 밖 별들이 돌고 있음을 시각화) ──
+    ctx.save();
+    ctx.translate(cx, cy);
+    const starArrowR = visualR * 1.15;
+    const starAngNow = (-angle) % (Math.PI * 2);
+    // 곡선 화살표 (별 회전 방향)
+    ctx.strokeStyle = 'rgba(148,163,184,0.5)';
+    ctx.lineWidth   = 2.5 * scale;
+    ctx.setLineDash([6 * scale, 4 * scale]);
+    ctx.beginPath();
+    ctx.arc(0, 0, starArrowR, starAngNow - 0.6, starAngNow);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // 화살표 머리
+    const sAEnd = starAngNow;
+    const sAX = Math.cos(sAEnd) * starArrowR;
+    const sAY = Math.sin(sAEnd) * starArrowR;
+    ctx.fillStyle = 'rgba(148,163,184,0.5)';
+    ctx.save();
+    ctx.translate(sAX, sAY);
+    ctx.rotate(sAEnd - Math.PI / 2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-6 * scale, -12 * scale); ctx.lineTo(6 * scale, -12 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // 별 회전 레이블
+    ctx.font = `bold ${10 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(148,163,184,0.7)';
+    const lblAng = starAngNow - 0.3;
+    const lblX = Math.cos(lblAng) * (starArrowR + 18 * scale);
+    const lblY = Math.sin(lblAng) * (starArrowR + 18 * scale);
+    ctx.fillText('별 회전 (겉보기)', lblX - 40 * scale, lblY);
+    ctx.restore();
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -876,26 +990,68 @@ function renderRotating(cx, cy, accel, force) {
     }
 
     // ── 비행사: 오른쪽(바깥)이 "바닥", 왼쪽(안쪽)이 "천장" ──
-    // 비행사 기본 자세: 머리=y-(위), 발=y+(아래)
-    // 발이 +x(바깥) 방향이 되려면 rot = -π/2
     const personX  = visualR - floorT / 2;
     const personY  = 0;
     drawAstronaut(personX, personY, -Math.PI / 2, scale, true);
 
-    // 원심력 화살표: 바깥쪽(+x)으로
-    const arrowLen = Math.min(200, accel * 8) * scale;
-    drawArrow(personX, personY, arrowLen * 0.9, 0, '#10b981', '원심력(F_cf)');
+    // ── 관성력(원심력) 화살표 — 바깥쪽(+x)으로, 크고 명확하게 ──
+    const arrowLen = Math.max(30 * scale, Math.min(180 * scale, accel * 8 * scale));
 
-    // 수직항력 화살표: 안쪽(-x)으로
-    drawArrow(personX - 30 * scale, personY, -arrowLen * 0.9, 0, '#ef4444', '수직항력(N)');
+    // 원심력(관성력) — 초록색, 두꺼운 화살표
+    ctx.save();
+    ctx.translate(personX, personY);
+    ctx.strokeStyle = '#10b981';
+    ctx.fillStyle   = '#10b981';
+    ctx.lineWidth   = 5 * scale;
+    ctx.shadowColor = '#10b981';
+    ctx.shadowBlur  = 16;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(arrowLen, 0); ctx.stroke();
+    // 화살표 머리
+    ctx.beginPath();
+    ctx.moveTo(arrowLen, 0);
+    ctx.lineTo(arrowLen - 14 * scale, -7 * scale);
+    ctx.lineTo(arrowLen - 14 * scale,  7 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    // 레이블 (두 줄)
+    ctx.font = `bold ${12 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = '#10b981';
+    ctx.fillText('관성력(원심력)', arrowLen * 0.3, -16 * scale);
+    ctx.font = `${10 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(110,231,183,0.85)';
+    ctx.fillText('F = mω²r = ' + force.toFixed(1) + ' N', arrowLen * 0.3, -4 * scale);
+    ctx.restore();
+
+    // 수직항력 화살표 — 안쪽(-x)으로, 빨간색
+    ctx.save();
+    ctx.translate(personX - 28 * scale, personY);
+    ctx.strokeStyle = '#ef4444';
+    ctx.fillStyle   = '#ef4444';
+    ctx.lineWidth   = 4 * scale;
+    ctx.shadowColor = '#ef4444';
+    ctx.shadowBlur  = 12;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-arrowLen * 0.9, 0); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-arrowLen * 0.9, 0);
+    ctx.lineTo(-arrowLen * 0.9 + 12 * scale, -6 * scale);
+    ctx.lineTo(-arrowLen * 0.9 + 12 * scale,  6 * scale);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.font = `bold ${11 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('수직항력(N)', -arrowLen * 0.7, 18 * scale);
+    ctx.restore();
 
     ctx.restore();
 
-    // 내부 시점 라벨
+    // ── 내부 시점 정보 레이블 ──
     ctx.save();
-    ctx.font = '700 11px JetBrains Mono, monospace';
-    ctx.fillStyle = 'rgba(16,185,129,0.7)';
-    ctx.fillText('NON-INERTIAL FRAME — 선체 고정, 우주 회전', 14, 28);
+    ctx.font = `bold ${12 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(16,185,129,0.85)';
+    ctx.fillText('NON-INERTIAL FRAME — 비관성계', 14, 28);
+    ctx.font = `${10 * scale}px JetBrains Mono, monospace`;
+    ctx.fillStyle = 'rgba(148,163,184,0.7)';
+    ctx.fillText('선체 고정 | 별·배경이 회전하는 것처럼 보임', 14, 46);
     ctx.restore();
 }
 
@@ -984,6 +1140,87 @@ render();
                 <div style="color:#64748b; font-size:0.72rem; margin-top:6px;">환산 G-Force</div>
             </div>
         </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── 참고 영상 섹션 ──
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="background:linear-gradient(135deg,#0d0a00,#1a1200);
+                border:1px solid rgba(245,158,11,0.3);
+                border-left:4px solid #f59e0b;
+                border-radius:14px; padding:20px; margin-top:4px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+            <span style="font-size:1.3rem;">🎬</span>
+            <span style="color:#f59e0b; font-weight:800; font-size:0.95rem;">탐구 참고 영상</span>
+            <span style="background:rgba(245,158,11,0.15); color:#fbbf24;
+                         font-size:0.65rem; font-weight:700; padding:2px 10px;
+                         border-radius:999px; border:1px solid rgba(245,158,11,0.3);">
+                YouTube
+            </span>
+        </div>
+        <p style="color:#94a3b8; font-size:0.82rem; margin:0 0 14px 0; line-height:1.6;">
+            영화 <strong style="color:#fbbf24">인터스텔라</strong>에 등장하는 <strong style="color:#fbbf24">쿠퍼 스테이션(Cooper Station)</strong>은
+            회전하는 원통형 우주 식민지로, 원심력으로 인공중력을 구현한 대표적인 SF 사례입니다.
+            아래 영상에서 실제 물리 원리와 함께 탐구해 보세요.
+        </p>
+        <a href="https://youtu.be/TzKvVb6j2Zo" target="_blank"
+           style="display:inline-flex; align-items:center; gap:8px;
+                  background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4);
+                  color:#fca5a5; font-size:0.8rem; font-weight:700;
+                  padding:8px 18px; border-radius:8px; text-decoration:none;
+                  transition:all 0.2s;">
+            ▶ 우주에 도시를 세우는 게 정말로 가능할까? — 인터스텔라의 쿠퍼스테이션
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── 대표 장면 이미지 2장 ──
+    import os
+    img_dir = os.path.dirname(__file__)
+    ext_img = os.path.join(img_dir, "cooper_exterior.png")
+    int_img = os.path.join(img_dir, "cooper_interior.png")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    img_col1, img_col2 = st.columns(2)
+
+    with img_col1:
+        st.markdown("""
+        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08);
+                    border-radius:12px; padding:12px 14px 8px 14px; margin-bottom:4px;">
+            <div style="color:#38bdf8; font-size:0.72rem; font-weight:800;
+                        text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
+                🛸 장면 ① — 외부에서 본 회전 우주정거장
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if os.path.exists(ext_img):
+            st.image(ext_img, use_container_width=True,
+                     caption="거대한 링형(토러스) 우주정거장이 천천히 자전하며 내부에 인공중력을 만든다.")
+
+    with img_col2:
+        st.markdown("""
+        <div style="background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08);
+                    border-radius:12px; padding:12px 14px 8px 14px; margin-bottom:4px;">
+            <div style="color:#10b981; font-size:0.72rem; font-weight:800;
+                        text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">
+                🧑‍🚀 장면 ② — 내부 거주 공간 (비관성계 시점)
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        if os.path.exists(int_img):
+            st.image(int_img, use_container_width=True,
+                     caption="우주정거장 내부: 원통 안쪽 '바닥'에 서 있는 사람들. 원심력이 중력처럼 작용한다.")
+
+    st.markdown("""
+    <div style="margin-top:12px; padding:12px 16px;
+                background:rgba(16,185,129,0.05);
+                border:1px solid rgba(16,185,129,0.15);
+                border-radius:10px; font-size:0.78rem; color:#6ee7b7; line-height:1.7;">
+        💡 <strong>탐구 포인트:</strong>
+        쿠퍼 스테이션의 지름은 약 <strong>2km</strong>로 추정됩니다.
+        위 시뮬레이터에서 반지름을 1000m로 설정하고, 지구 중력(1G)이 되려면 각속도를 얼마로 맞춰야 하는지 계산해 보세요.
+        (<em>힌트: g = rω²  →  ω = √(g/r)</em>)
     </div>
     """, unsafe_allow_html=True)
 
