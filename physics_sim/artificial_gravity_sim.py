@@ -722,8 +722,9 @@ function renderInertial(cx, cy, accel, force) {
     const scale   = Math.min(canvas.width, canvas.height) / 860;
     const visualR = r * scale;
 
-    drawSpace(cx, cy, 0);             // 배경 고정
-    drawEarth(cx, cy, scale, earthAngle);
+    // ★ 관성계: 우주선 링은 고정, 배경(별·지구)만 angle 방향으로 회전
+    drawSpace(cx, cy, angle);
+    drawEarth(cx, cy, scale, angle + earthAngle);
 
     ctx.save();
     ctx.translate(cx, cy);
@@ -731,7 +732,7 @@ function renderInertial(cx, cy, accel, force) {
     const cabinH   = 52 * scale;
     const hullT    = 16 * scale;
 
-    // 선체 (가장 바깥 원)
+    // 선체 (가장 바깥 원) — 고정
     ctx.strokeStyle = '#0f172a';
     ctx.lineWidth   = hullT;
     ctx.beginPath(); ctx.arc(0, 0, visualR, 0, Math.PI * 2); ctx.stroke();
@@ -752,7 +753,7 @@ function renderInertial(cx, cy, accel, force) {
     ctx.lineWidth   = 2 * scale;
     ctx.beginPath(); ctx.arc(0, 0, Math.max(1, visualR - cabinH), 0, Math.PI * 2); ctx.stroke();
 
-    // 분리 격벽 (8칸)
+    // 분리 격벽 (8칸) — 고정
     ctx.strokeStyle = 'rgba(71,85,105,0.3)'; ctx.lineWidth = 1.5 * scale;
     for (let i = 0; i < 8; i++) {
         const a = (i / 8) * Math.PI * 2;
@@ -763,12 +764,14 @@ function renderInertial(cx, cy, accel, force) {
         ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
     }
 
-    // ── 우주인 (실제로 angle 위치에서 원운동) ──
+    // ── 우주인: angle 위치에서 원운동 ──
+    // 비행사 기본 자세: 머리=y-(위), 발=y+(아래)
+    // 발이 바깥(angle 방향) = rot: angle - π/2
     const ax = Math.cos(angle) * (visualR - hullT / 2);
     const ay = Math.sin(angle) * (visualR - hullT / 2);
-    drawAstronaut(ax, ay, angle + Math.PI / 2, scale, true);
+    drawAstronaut(ax, ay, angle - Math.PI / 2, scale, true);
 
-    // 수직항력 (중심 방향으로)
+    // 수직항력 (안쪽, 중심 방향으로)
     const nLen = Math.min(120, accel * 6) * scale;
     drawArrow(ax, ay, nLen, angle + Math.PI, '#ef4444', '수직항력(N)');
 
@@ -872,11 +875,12 @@ function renderRotating(cx, cy, accel, force) {
         ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
     }
 
-    // ── 비행사: 오른쪽(바깥) 방향이 "아래"이므로 angle=0 위치 (x축 방향) ──
+    // ── 비행사: 오른쪽(바깥)이 "바닥", 왼쪽(안쪽)이 "천장" ──
+    // 비행사 기본 자세: 머리=y-(위), 발=y+(아래)
+    // 발이 +x(바깥) 방향이 되려면 rot = -π/2
     const personX  = visualR - floorT / 2;
     const personY  = 0;
-    // rot = 0 → 비행사의 "발"이 +x 방향(바깥)
-    drawAstronaut(personX, personY, Math.PI / 2, scale, true);
+    drawAstronaut(personX, personY, -Math.PI / 2, scale, true);
 
     // 원심력 화살표: 바깥쪽(+x)으로
     const arrowLen = Math.min(200, accel * 8) * scale;
