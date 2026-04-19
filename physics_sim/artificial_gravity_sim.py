@@ -151,7 +151,7 @@ with col1:
             ctx.restore();
 
             requestAnimationFrame(drawInertial);
-        }
+        }}
         drawInertial();
     </script>
     </body>
@@ -213,7 +213,7 @@ with col2:
             ctx.fillText("수직항력 (N)", ax-len, ay-15);
 
             requestAnimationFrame(drawRotating);
-        }
+        }}
         drawRotating();
     </script>
     </body>
@@ -267,7 +267,7 @@ with col_a:
     ext_img = base_img_path + "cooper_exterior.png"
     if os.path.exists(ext_img): st.image(ext_img, caption="Cooper Station Exterior View", use_container_width=True)
 with col_b:
-    int_img = base_path + "cooper_interior.png"
+    int_img = base_img_path + "cooper_interior.png"
     if os.path.exists(int_img): st.image(int_img, caption="Cooper Station Interior View", use_container_width=True)
 
 st.markdown("""
