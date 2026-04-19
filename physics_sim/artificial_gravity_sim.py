@@ -255,7 +255,7 @@ html_content = f"""
 
     canvas.addEventListener('mousemove', e => {{
         const r = canvas.getBoundingClientRect();
-        coordDisp.textContent = `X: ${(e.clientX - r.left).toFixed(0)}  Y: ${(e.clientY - r.top).toFixed(0)}`;
+        coordDisp.textContent = `X: ${{(e.clientX - r.left).toFixed(0)}}  Y: ${{(e.clientY - r.top).toFixed(0)}}`;
     }});
 
     render();
