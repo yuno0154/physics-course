@@ -46,6 +46,7 @@ circular_relativity_page = st.Page("physics_sim/circular_motion_relativity.py", 
 artificial_gravity_page = st.Page("physics_sim/artificial_gravity_sim.py", title="🌌 [탐구] 우주정거장과 인공중력")
 light_path_sim_page = st.Page("physics_sim/equivalence_principle_sim.py", title="🌓 [탐구] 등가 원리와 시공간 곡률")
 einstein_gravity_page = st.Page("physics_sim/einstein_gravity_sim.py", title="🌌 [분석] 아인슈타인의 중력과 시간")
+gravitational_lensing_page = st.Page("physics_sim/gravitational_lensing_sim.py", title="🔭 [탐구] 중력 렌즈와 시공간 곡률")
 
 # 7. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📑 [기록] 수행평가 제출")
@@ -85,7 +86,8 @@ pg = st.navigation({
         circular_relativity_page,
         artificial_gravity_page,
         light_path_sim_page,
-        einstein_gravity_page
+        einstein_gravity_page,
+        gravitational_lensing_page
     ],
     "📑 수행평가 지원": [
         video_analysis_eval_page
