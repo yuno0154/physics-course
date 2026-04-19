@@ -221,27 +221,40 @@ with col2:
 # ── 5. 하단: 비교 분석표 및 자료 ──
 st.markdown("---")
 st.markdown("### 📊 관성계 vs 비관성계 심층 비교")
-st.markdown("""
+
+# 답변 숨기기 기능 추가 (페다고지컬 기능)
+show_answers = st.toggle("🔍 분석 결과 확인하기", value=False, help="먼저 관성계와 비관성계에서 힘의 평형이 어떻게 다를지 생각해 본 뒤 버튼을 눌러보세요.")
+
+# 표 내용 동적 할당
+q_move = "정거장과 함께 원운동 중" if show_answers else "💬 스스로 추론해 보세요..."
+q_force = "수직항력 (중심 방향)" if show_answers else "💬 어떤 힘들이 작용할까요?"
+q_law = "<b>구심력(N) = mrω²</b>" if show_answers else "💬 알짜힘의 관계는?"
+
+r_move = "정거장 내부에서 정지 중" if show_answers else "💬 스스로 추론해 보세요..."
+r_force = "수직항력(N) + 원심력(Inertial)" if show_answers else "💬 이곳에만 존재하는 가상의 힘은?"
+r_law = "<b>N = 원심력</b> (힘의 평형)" if show_answers else "💬 무엇과 무엇이 평형일까요?"
+
+st.markdown(f"""
 <table style="width:100%; border-collapse: collapse; background: white; color: black; border: 1px solid #ddd;">
     <tr style="background: #0f172a; color: white;">
         <th style="padding: 10px; border: 1px solid #444;">분석 항목</th>
-        <th style="padding: 10px; border: 1px solid #444;">외부 관찰자 (관성계)</th>
-        <th style="padding: 10px; border: 1px solid #444;">내부 우주인 (비관성계)</th>
+        <th style="padding: 10px; border: 1px solid #444;">🌍 외부 관찰자 (관성계)</th>
+        <th style="padding: 10px; border: 1px solid #444;">👩‍🚀 내부 우주인 (비관성계)</th>
     </tr>
     <tr>
         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">해석되는 운동</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">정거장과 함께 원운동 중</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">정거장 내부에서 정지 중</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{q_move}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{r_move}</td>
     </tr>
     <tr>
         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">작용하는 힘</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">수직항력 (중심 방향)</td>
-        <td style="padding: 10px; border: 1px solid #ddd;">수직항력(N) + 원심력(Inertial)</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{q_force}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{r_force}</td>
     </tr>
     <tr>
         <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">물리 법칙 적용</td>
-        <td style="padding: 10px; border: 1px solid #ddd;"><b>구심력(N) = mrω²</b></td>
-        <td style="padding: 10px; border: 1px solid #ddd;"><b>N = 원심력</b> (힘의 평형)</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{q_law}</td>
+        <td style="padding: 10px; border: 1px solid #ddd;">{r_law}</td>
     </tr>
 </table>
 """, unsafe_allow_html=True)
