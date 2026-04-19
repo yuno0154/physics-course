@@ -9,7 +9,7 @@ def run_sim():
     st.title("🌓 학습주제 5. 관성력과 중력 등가 원리 탐구")
     st.markdown("가속 좌표계에서의 현상을 내부와 외부 시점으로 분석하며 등가 원리의 본질과 시공간 곡률을 탐구합니다.")
 
-    # React 기반 통합 시뮬레이션 코드 (내부/외부 시점 추가 버전)
+    # React 기반 통합 시뮬레이션 코드 (복원된 우주선 디자인 버전)
     react_code = r"""
 <!DOCTYPE html>
 <html lang="ko">
@@ -86,7 +86,7 @@ const QnA = ({ items }) => {
                         <span style={{color:'#cbd5e1',fontSize:14,lineHeight:1.65,flex:1}}>{item.q}</span>
                         <span style={{color:'#475569',fontSize:18,transition:'transform 0.25s',transform:open===i?'rotate(180deg)':'rotate(0deg)',flexShrink:0}}>▾</span>
                     </button>
-                    <div style={{maxHeight:open===i?'240px':'0px',overflow:'hidden',transition:'max-height(0.35s) ease'}}>
+                    <div style={{maxHeight:open===i?'240px':'0px',overflow:'hidden',transition:'max-height 0.35s ease'}}>
                         <div style={{padding:'0 18px 14px 46px',display:'flex',gap:10}}>
                             <span style={{color:'#10b981',fontWeight:800,fontSize:13,flexShrink:0,marginTop:1}}>A.</span>
                             <span style={{color:'#6ee7b7',fontSize:13,lineHeight:1.75}}>{item.a}</span>
@@ -225,19 +225,44 @@ const SimCanvas = ({ phase, accel, running, t }) => {
     return <canvas ref={ref} style={{width:'100%',height:'100%',display:'block'}}/>;
 };
 
-/* ── 헬퍼: 우주선 그리기 ── */
-function drawRocket(ctx, cx, cy, w, h, accel, thrustFlicker=1) {
-    if(accel > 0) {
-        const fH = (20 + accel*1.5)*thrustFlicker;
-        const fg = ctx.createLinearGradient(cx, cy+h/2, cx, cy+h/2+fH);
-        fg.addColorStop(0,'#fbbf24'); fg.addColorStop(1,'transparent');
-        ctx.beginPath(); ctx.moveTo(cx-8,cy+h/2); ctx.lineTo(cx,cy+h/2+fH); ctx.lineTo(cx+8,cy+h/2);
+/* ── 헬퍼: 원래 우주선 디자인 복원 ── */
+function drawRocket(ctx, cx, cy, w, h, accel, thrustFlicker=1, isInside=false) {
+    const thr = accel > 0 ? (20 + accel * 2) * thrustFlicker : 0;
+    if(thr > 0) {
+        const fg = ctx.createLinearGradient(cx, cy+h/2, cx, cy+h/2+thr);
+        fg.addColorStop(0,'rgba(255,200,50,0.9)'); fg.addColorStop(1,'transparent');
+        ctx.beginPath(); ctx.moveTo(cx-12, cy+h/2); ctx.quadraticCurveTo(cx, cy+h/2+thr, cx+12, cy+h/2);
         ctx.fillStyle=fg; ctx.fill();
     }
-    const bg=ctx.createLinearGradient(cx-w/2,0,cx+w/2,0);
+    // 몸체 (X-ray 효과를 위해 내부 시뮬레이션 시 약간의 투명도 부여)
+    const bg = ctx.createLinearGradient(cx-w/2, 0, cx+w/2, 0);
     bg.addColorStop(0,'#475569'); bg.addColorStop(0.5,'#94a3b8'); bg.addColorStop(1,'#475569');
-    ctx.beginPath(); ctx.roundRect(cx-w/2,cy-h/2,w,h,10); ctx.fillStyle=bg; ctx.fill();
-    ctx.beginPath(); ctx.arc(cx,cy-h/4,w/4,0,Math.PI*2); ctx.fillStyle='#1e293b'; ctx.fill();
+    ctx.save();
+    if(isInside) ctx.globalAlpha = 0.35; // 내부 관찰용 투명 몸체
+    ctx.beginPath(); ctx.roundRect(cx-w/2, cy-h/2, w, h, w/4);
+    ctx.fillStyle=bg; ctx.fill();
+    ctx.strokeStyle='rgba(200,220,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+    // 창문 + 실루엣
+    ctx.beginPath(); ctx.arc(cx, cy-h/8, w/4.5, 0, Math.PI*2);
+    ctx.fillStyle='rgba(15,23,42,0.85)'; ctx.fill();
+    ctx.strokeStyle='rgba(100,200,255,0.6)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy-h/8, w/10, 0, Math.PI*2);
+    ctx.fillStyle='rgba(100,180,255,0.6)'; ctx.fill();
+    // 상단 캡
+    ctx.beginPath(); ctx.moveTo(cx-w/2, cy-h/2); ctx.quadraticCurveTo(cx, cy-h/2-30, cx+w/2, cy-h/2);
+    ctx.fillStyle='#334155'; ctx.fill();
+    // 핀
+    [[-1],[1]].forEach(([d])=>{
+        ctx.beginPath(); ctx.moveTo(cx+d*w/2, cy+h/4); ctx.lineTo(cx+d*w/2+d*25, cy+h/2+10); ctx.lineTo(cx+d*w/2, cy+h/3);
+        ctx.fillStyle='#475569'; ctx.fill();
+    });
+    ctx.restore();
+
+    // 우주선의 바닥과 천장 선 (내부 공간임을 표시)
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(cx-w/2, cy+h*0.35); ctx.lineTo(cx+w/2, cy+h*0.35); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-w/2, cy-h*0.35); ctx.lineTo(cx+w/2, cy-h*0.35); ctx.stroke();
+    ctx.restore();
 }
 
 function arrow(ctx,x1,y1,x2,y2,color='rgba(100,200,255,0.9)',lw=2){
@@ -256,120 +281,121 @@ function txt(ctx,x,y,s,color='#e2e8f0',size=12,align='center',weight='400'){
     ctx.textAlign=align; ctx.fillText(s,x,y); ctx.restore();
 }
 
-function dashedRect(ctx,x,y,w,h,color,r=10){
-    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=1; ctx.setLineDash([5,5]);
-    ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.stroke(); ctx.restore();
-}
-
-/* ════ Phase 0: 중력 vs 관찰자(가속) ════ */
+/* ════ Phase 0: 중력 vs 가속 ════ */
 function drawPhase0(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=120, rh=H*0.7;
-    dashedRect(ctx,cx1-rw/2,cy-rh/2,rw,rh,'#fbbf2444');
-    drawRocket(ctx,cx1,cy+30,80,220,0);
-    arrow(ctx,cx1+rw,cy,cx1+rw,cy+60,'#fbbf24'); txt(ctx,cx1+rw+15,cy+35,'g', '#fbbf24', 12, 'left');
-    txt(ctx,cx1,cy-rh/2-15,'중력장(지구)','white',13);
+    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
+    const prog = running ? ((t%2500)/2500) : 0;
+    const bStart=cy-rh*0.28, bEnd=cy+rh*0.35;
+    const bY = bStart + (bEnd-bStart)*Math.min(prog*1.3, 1);
 
-    dashedRect(ctx,cx2-rw/2,cy-rh/2,rw,rh,'#4ade8044');
-    drawRocket(ctx,cx2,cy+30,80,220,running?accel:0,running?0.8+0.2*Math.sin(t*0.01):1);
-    arrow(ctx,cx2+rw,cy+30,cx2+rw,cy-30,'#4ade80'); txt(ctx,cx2+rw+15,cy,'a', '#4ade80', 12, 'left');
-    txt(ctx,cx2,cy-rh/2-15,'가속 중인 우주선','white',13);
+    // 중력 우주선
+    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true);
+    arrow(ctx,cx1+rw,cy,cx1+rw,cy+60,'#fbbf24'); txt(ctx,cx1+rw+15,cy+35,'g', '#fbbf24',12,'left');
+    txt(ctx,cx1,cy-rh/2-25,'중력장(지구)','white',13);
 
-    const bStart=cy-rh*0.3, bEnd=cy+rh*0.3;
-    const bY = running? bStart+(bEnd-bStart)*Math.min(((t%2500)/2500)*1.3, 1) : bStart;
+    // 가속 우주선
+    drawRocket(ctx,cx2,cy+30,rw,rh,running?accel:0,running?0.8+0.2*Math.sin(t*0.01):1,true);
+    arrow(ctx,cx2+rw,cy+30,cx2+rw,cy-30,'#4ade80'); txt(ctx,cx2+rw+15,cy,'a', '#4ade80',12,'left');
+    txt(ctx,cx2,cy-rh/2-25,'가속 중인 우주선','white',13);
+
+    // 공 그리기 (우주선 내부)
     [cx1,cx2].forEach(bx=>{
-       ctx.beginPath(); ctx.arc(bx,bY,10,0,Math.PI*2); ctx.fillStyle='#facc15'; ctx.fill();
+       const grad=ctx.createRadialGradient(bx-3,bY-3,2,bx,bY,10);
+       grad.addColorStop(0,'#fff8dc'); grad.addColorStop(1,'#cc8800');
+       ctx.beginPath(); ctx.arc(bx,bY,10,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
     });
-    if(running) txt(ctx,W/2,H-30,'내부 관찰자는 두 상황을 구별할 수 없다!','#a78bfa',14,'center','700');
 }
 
-/* ════ Phase 1: 내부 vs 외부 시점 (New) ════ */
+/* ════ Phase 1: 내부 vs 외부 시점 ════ */
 function drawPhase1(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=130, rh=H*0.7;
+    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
     const loopTime=3000;
     const prog=running? (t%loopTime)/loopTime : 0;
 
-    // LEFT: 내부 시점 (비관성계)
-    dashedRect(ctx,cx1-rw/2,cy-rh/2,rw,rh,'#ec489944');
-    txt(ctx,cx1,cy-rh/2-15,'내부 관찰자 시점','white',13);
-    drawRocket(ctx,cx1,cy+30,80,220,0); // 우주선 고정
-    const bY1 = cy-rh*0.3 + (rh*0.6)*Math.min(prog*1.2, 1);
-    ctx.beginPath(); ctx.arc(cx1,bY1,10,0,Math.PI*2); ctx.fillStyle='#facc15'; ctx.fill();
-    arrow(ctx,cx1+40,bY1-20,cx1+40,bY1+10,'#ec4899',2); txt(ctx,cx1+65,bY1,'관성력','#ec4899',11,'left');
+    // LEFT: 내부 시점 (우주선 내부에 갇힘)
+    txt(ctx,cx1,cy-rh/2-25,'내부 관찰자 시점','white',13);
+    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true); 
+    const bY1 = cy-rh*0.28 + (rh*0.63)*Math.min(prog*1.2, 1);
+    const g1=ctx.createRadialGradient(cx1-3,bY1-3,2,cx1,bY1,10);
+    g1.addColorStop(0,'#fff8dc'); g1.addColorStop(1,'#cc8800');
+    ctx.beginPath(); ctx.arc(cx1,bY1,10,0,Math.PI*2); ctx.fillStyle=g1; ctx.fill();
+    arrow(ctx,cx1+55,bY1-10,cx1+55,bY1+20,'#ec4899',2); txt(ctx,cx1+65,bY1+10,'관성력','#ec4899',11,'left');
 
-    // RIGHT: 외부 시점 (관성계)
-    dashedRect(ctx,cx2-rw/2,cy-rh/2,rw,rh,'#3b82f644');
-    txt(ctx,cx2,cy-rh/2-15,'외부 관찰자 시점','white',13);
-    const rockAccDist = (accel/10)*80 * (prog**2);
+    // RIGHT: 외부 시점 (관성 효과)
+    txt(ctx,cx2,cy-rh/2-25,'외부 관찰자 시점','white',13);
+    const rockAccDist = (accel/10)*90 * (prog**2);
     const rockY = cy+30 - rockAccDist;
-    drawRocket(ctx,cx2,rockY,80,220,running?accel:0); // 우주선 가속 상승
-    const bY2 = cy-rh*0.3; // 공은 제자리에 (관성)
-    ctx.beginPath(); ctx.arc(cx2,bY2,10,0,Math.PI*2); ctx.fillStyle='#facc15'; ctx.fill();
-    arrow(ctx,cx2+rw/2+10, rockY+100, cx2+rw/2+10, rockY+40, '#3b82f6');
-    txt(ctx,cx2+rw/2+25, rockY+70, '가속(a)', '#3b82f6', 11, 'left');
+    const bY2 = cy-rh*0.28; // 공은 우주 공간 한 점에 고정 (전역 좌표)
+    
+    // 우주선을 먼저 그리고 공을 나중에 그려야 '투시' 효과가 남
+    drawRocket(ctx,cx2,rockY,rw,rh,running?accel:0,1,true); 
+    const g2=ctx.createRadialGradient(cx2-3,bY2-3,2,cx2,bY2,10);
+    g2.addColorStop(0,'#fff8dc'); g2.addColorStop(1,'#cc8800');
+    ctx.beginPath(); ctx.arc(cx2,bY2,10,0,Math.PI*2); ctx.fillStyle=g2; ctx.fill();
     
     if(running){
-        txt(ctx,W/2,H-30,'외부에서 보면 공은 멈춰있고 우주선 바닥이 올라옵니다!','#a78bfa',14,'center','700');
+        arrow(ctx,cx2+rw/2+15,rockY+60,cx2+rw/2+15,rockY-20,'#3b82f6');
+        txt(ctx,cx2+rw/2+28,rockY+20,'가속(a)','#3b82f6',11,'left');
+        txt(ctx,W/2,H-30,'외부 시점: 공은 정지해 있고, 우주선 바닥이 올라옵니다!','#a78bfa',14,'center','700');
     }
 }
 
 /* ════ Phase 2: 빛의 경로 ════ */
 function drawPhase2(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=120, rh=H*0.7;
+    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
     const lProg = running? (t%2500)/2500 : 0;
-    const lyIn=cy-30, lxIn_dist=rw*0.4;
+    const lyIn=cy-20, lxIn_dist=rw*0.42;
 
-    dashedRect(ctx,cx1-rw/2,cy-rh/2,rw,rh,'#fff4');
-    drawRocket(ctx,cx1,cy+30,80,220,0);
-    ctx.strokeStyle='#fde047'; ctx.lineWidth=2; ctx.beginPath();
-    ctx.moveTo(cx1-lxIn_dist, lyIn); ctx.lineTo(cx1-lxIn_dist+rw*0.8*Math.min(lProg*1.5,1), lyIn); ctx.stroke();
-    txt(ctx,cx1,cy-rh/2-15,'정지 좌표계 (빛 직진)','white',12);
+    txt(ctx,cx1,cy-rh/2-25,'정지 좌표계 (빛 직진)','white',12);
+    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true);
+    ctx.strokeStyle='#fde047'; ctx.lineWidth=2.5; ctx.beginPath();
+    ctx.moveTo(cx1-lxIn_dist, lyIn); ctx.lineTo(cx1-lxIn_dist+rw*0.84*Math.min(lProg*1.5,1), lyIn); ctx.stroke();
 
-    dashedRect(ctx,cx2-rw/2,cy-rh/2,rw,rh,'#f8717144');
-    drawRocket(ctx,cx2,cy+30,80,220,running?accel:0);
+    txt(ctx,cx2,cy-rh/2-25,'가속 좌표계 (빛 휨)','white',12);
+    drawRocket(ctx,cx2,cy+30,rw,rh,running?accel:0,1,true);
     ctx.strokeStyle='#fde047'; ctx.beginPath();
-    const steps=40; const bend= (accel/9.8)*25;
+    const steps=60; const bend= (accel/9.8)*28;
     for(let i=0;i<steps*lProg*1.3;i++){
-        let fr=i/steps; let px=cx2-lxIn_dist+rw*0.8*fr; let py=lyIn+fr*fr*bend;
+        let fr=i/steps; let px=cx2-lxIn_dist+rw*0.84*fr; let py=lyIn+fr*fr*bend;
         if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
     }
     ctx.stroke();
-    txt(ctx,cx2,cy-rh/2-15,'가속 좌표계 (빛 휨)','white',12);
 }
 
 /* ════ Phase 3: 등가 원리 ════ */
 function drawPhase3(ctx,W,H,accel,t,running){
     const cx=W/2, cy=H*0.5;
-    txt(ctx,cx,cy-100,'등가 원리 (Equivalence Principle)', '#a78bfa', 22, 'center', '800');
-    txt(ctx,cx-180, cy, '가속(a)에 의한 관성력', '#ec4899', 16);
-    txt(ctx,cx+180, cy, '질량(M)에 의한 중력', '#fbbf24', 16);
-    txt(ctx,cx, cy, '≡', 'white', 40);
-    txt(ctx,cx, cy+60, '둘을 구별할 물리적 방법은 없다.', '#94a3b8', 14);
+    txt(ctx,cx,cy-100,'등가 원리 (Equivalence Principle)', '#a78bfa', 24, 'center', '800');
+    txt(ctx,cx-200, cy, '가속(a)에 의한 관성력', '#ec4899', 16, 'center', '700');
+    txt(ctx,cx+200, cy, '질량(M)에 의한 중력', '#fbbf24', 16, 'center', '700');
+    txt(ctx,cx, cy+5, '≡', 'white', 50);
+    txt(ctx,cx, cy+75, '물리적으로 두 상황을 구별할 방법은 없다.', '#94a3b8', 14);
 }
 
 /* ════ Phase 4: 시공간 곡률 ════ */
 function drawPhase4(ctx,W,H,accel,t,running){
     const cx=W/2, cy=H*0.5;
-    const massR=40+(accel/9.8)*10;
-    const grid=40;
-    ctx.strokeStyle='#3b82f622';
+    const massR=45+(accel/9.8)*12;
+    const grid=44;
+    ctx.strokeStyle='#3b82f618'; ctx.lineWidth=1;
     for(let r=0;r<H;r+=grid){
         ctx.beginPath();
         for(let c=0;c<W;c+=5){
             let dx=c-cx, dy=r-cy; let dist=Math.sqrt(dx*dx+dy*dy);
-            let warp= (accel/9.8)*1500/(dist+50);
-            ctx.lineTo(c-dx*warp/(dist+50), r-dy*warp/(dist+50));
+            let warp= (accel/9.8)*1800/(dist+55);
+            ctx.lineTo(c-dx*warp/(dist+55), r-dy*warp/(dist+55));
         }
         ctx.stroke();
     }
-    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,massR);
+    const grad=ctx.createRadialGradient(cx-10,cy-10,0,cx,cy,massR);
     grad.addColorStop(0,'#fbbf24'); grad.addColorStop(1,'#92400e');
     ctx.beginPath(); ctx.arc(cx,cy,massR,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
-    txt(ctx,cx,cy+massR+25,'질량에 의해 휘어진 시공간','white',14);
+    txt(ctx,cx,cy+massR+30,'질량에 의해 휘어진 시공간 (Geodesic)','white',15, 'center', '600');
 }
 
 const PHASES = [
     { label:'① 관성력 vs 중력',  desc:'우주선 내부 실험' },
-    { label:'② 내부 vs 외부 시점', desc:'관찰자 위치의 차이' },
+    { label:'② 내부 vs 외부 시점', desc:'관측자 위치의 차이' },
     { label:'③ 빛의 경로',       desc:'가속 좌표계에서 빛 휨' },
     { label:'④ 등가 원리',       desc:'물리적 동등성' },
     { label:'⑤ 시공간 곡률',     desc:'중력의 기하학적 본질' },
@@ -400,21 +426,26 @@ const App = () => {
             <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:16}}>
                 <div className="panel" style={{display:'flex',flexDirection:'column',gap:16}}>
                     <label>탐구 단계 선택</label>
-                    <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    <div style={{display:'flex',flexDirection:'column',gap:6,marginTop:5}}>
                         {PHASES.map((p,i)=>(
                             <button key={i} className={`phase-btn${phase===i?' active':''}`} onClick={()=>{setPhase(i);setT(0);setRunning(false);}}>
-                                <div>{p.label}</div>
+                                <div style={{fontWeight:phase===i?700:400}}>{p.label}</div>
                                 <div style={{fontSize:11,opacity:0.6}}>{p.desc}</div>
                             </button>
                         ))}
                     </div>
-                    <label>가속도 크기 (a)</label>
+                    <label style={{marginTop:10}}>가속도 크기 (a)</label>
                     <input type="range" min="2" max="20" step="0.5" value={accel} onChange={e=>setAccel(parseFloat(e.target.value))}/>
-                    <div style={{textAlign:'center',fontFamily:'Space Mono'}}>{accel.toFixed(1)} m/s²</div>
-                    <button onClick={()=>setRunning(!running)} style={{padding:12,borderRadius:10,background:running?'#ef444422':'#3b82f622',color:running?'#f87171':'#60a5fa',border:`1px solid ${running?'#ef444466':'#3b82f666'}`,fontWeight:700}}>
-                        {running ? '⏸ 일시 정지' : '▶ 시뮬레이션 실행'}
+                    <div style={{textAlign:'center',fontFamily:'Space Mono',color:'#60a5fa'}}>{accel.toFixed(1)} m/s²</div>
+                    <button onClick={()=>setRunning(!running)} style={{padding:12,borderRadius:10,background:running?'rgba(239,68,68,0.1)':'rgba(59,130,246,0.1)',color:running?'#f87171':'#60a5fa',border:`1px solid ${running?'rgba(239,68,68,0.4)':'rgba(59,130,246,0.4)'}`,fontWeight:700,cursor:'pointer'}}>
+                        {running ? '⏸ 일시 정지' : '▶ 시나리오 실행'}
                     </button>
-                    <button onClick={()=>{setRunning(false);setT(0);}} style={{padding:8,borderRadius:10,background:'transparent',border:'1px solid #1e293b',color:'#64748b'}}>↺ 초기화</button>
+                    <button onClick={()=>{setRunning(false);setT(0);}} style={{padding:8,borderRadius:10,background:'transparent',border:'1px solid #1e293b',color:'#64748b',cursor:'pointer'}}>↺ 초기화</button>
+                    
+                    <div style={{fontSize:11,color:'#334155',lineHeight:1.8,borderTop:'1px solid #1e293b',paddingTop:10}}>
+                        <p>* 내부 시점은 비관성계의 관성력을 설명합니다.</p>
+                        <p>* 외부 시점은 관성계의 가속 운동을 설명합니다.</p>
+                    </div>
                 </div>
                 <div style={{background:'#070b14',borderRadius:14,border:'1px solid #1e293b',overflow:'hidden',minHeight:500}}>
                     <SimCanvas phase={phase} accel={accel} running={running} t={t}/>
