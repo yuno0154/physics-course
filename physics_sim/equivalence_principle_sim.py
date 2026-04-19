@@ -9,7 +9,7 @@ def run_sim():
     st.title("🌓 학습주제 5. 관성력과 중력 등가 원리 탐구")
     st.markdown("가속 좌표계에서의 현상을 내부와 외부 시점으로 분석하며 등가 원리의 본질과 시공간 곡률을 탐구합니다.")
 
-    # React 기반 통합 시뮬레이션 코드 (복원된 우주선 디자인 버전)
+    # React 기반 통합 시뮬레이션 코드 (개별 제어 및 물리 동기화 버전)
     react_code = r"""
 <!DOCTYPE html>
 <html lang="ko">
@@ -30,12 +30,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#0a0f1e;color:#e2e8f0;padd
 input[type=range]{-webkit-appearance:none;width:100%;height:5px;background:#1e293b;border-radius:3px;outline:none;}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#3b82f6;cursor:pointer;box-shadow:0 0 8px rgba(59,130,246,0.6);}
 label{font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em;}
-.result-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1e293b;font-size:13px;}
-.result-row:last-child{border-bottom:none;}
-.result-val{color:#60a5fa;font-family:'Space Mono',monospace;font-weight:700;font-size:14px;}
-.phase-btn{padding:7px 16px;border-radius:8px;border:1px solid #1e293b;background:#0d1526;color:#94a3b8;cursor:pointer;font-size:13px;font-family:inherit;transition:all 0.2s;text-align:left;}
+.phase-btn{padding:8px 16px;border-radius:8px;border:1px solid #1e293b;background:#0d1526;color:#94a3b8;cursor:pointer;font-size:13px;font-family:inherit;transition:all 0.2s;text-align:left;}
 .phase-btn.active{border-color:#3b82f6;background:#1e3a5f;color:#e2e8f0;font-weight:700;}
 .phase-btn:hover:not(.active){border-color:#334155;color:#e2e8f0;}
+.control-group{padding:12px;border:1.5px solid #1e293b;border-radius:12px;display:flex;flex-direction:column;gap:8px;background:'rgba(255,255,255,0.02)';}
+.btn-primary{padding:10px;border-radius:8px;background:rgba(59,130,246,0.1);color:#60a5fa;border:1px solid rgba(59,130,246,0.4);font-weight:700;cursor:pointer;font-size:12px;}
+.btn-primary:active{background:rgba(59,130,246,0.25);}
+.btn-stop{padding:10px;border-radius:8px;background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.4);font-weight:700;cursor:pointer;font-size:12px;}
+.btn-reset{padding:6px;border-radius:8px;background:transparent;border:1px solid #1e293b;color:#475569;cursor:pointer;font-size:11px;}
 </style>
 </head>
 <body>
@@ -58,19 +60,11 @@ const Math_ = ({ f, display=false, style={} }) => {
 const QNA_ITEMS = [
     {
         q:'가속 좌표계에서 관찰자 위치(내부 vs 외부)에 따라 공의 운동은 다르게 보일까?',
-        a:'네, 보기는 다르지만 물리적 인과관계는 일치합니다. 내부 관찰자는 공이 하강 가속도를 받는다고 느끼고, 외부 관찰자는 공은 멈춰 있는데 우주선 바닥이 올라와 충돌한다고 봅니다. 두 시점 모두 공과 바닥이 만난다는 결론은 동일합니다.'
+        a:'네, 보기는 다르지만 물리적 인과관계는 일치합니다. 내부 관찰자는 공이 하강 가속도를 받는다고 느끼고(비관성계), 외부 관찰자는 공은 멈춰 있는데 우주선 바닥이 올라와 충돌한다고 봅니다(관성계). 두 시점 모두 공과 바닥이 만난다는 결론은 동일합니다.'
     },
     {
         q:'정지한 우주선과 가속 중인 우주선 안에서 공이 바닥으로 떨어진다. 두 경우를 관측만으로 구별할 수 있을까?',
         a:'구별할 수 없습니다. 정지한 우주선에서는 지구 중력(mg)이, 가속하는 우주선에서는 관성력(ma, a=g)이 공을 바닥으로 떨어뜨립니다. 내부 관찰자가 경험하는 현상은 완전히 동일합니다. 이것이 등가 원리의 핵심입니다.'
-    },
-    {
-        q:'가속 좌표계에서 빛은 직진할까? 왜 빛의 경로가 휘는가?',
-        a:'가속 좌표계에서 빛은 휘어 보입니다. 빛이 우주선을 통과하는 동안 우주선이 가속되므로, 내부 관찰자 입장에서는 빛이 포물선을 그리며 아래로 처집니다. 외부 관찰자가 보면 빛은 직진하지만 우주선이 위로 가속하여 빗나가는 것뿐입니다.'
-    },
-    {
-        q:'아인슈타인은 중력에 의한 빛의 휨을 어떻게 증명했는가?',
-        a:'등가 원리를 통해 가속계에서의 빛의 휨을 중력장으로 확장한 후, 이를 시공간의 곡률로 해석했습니다. 1919년 개기일식 당시 태양 주변을 지나는 별빛의 위치 변화를 실측함으로써 중력이 시공간을 휘게 한다는 것을 증명했습니다.'
     },
 ];
 
@@ -79,19 +73,13 @@ const QnA = ({ items }) => {
     return (
         <div style={{display:'flex',flexDirection:'column',gap:10}}>
             {items.map((item,i)=>(
-                <div key={i} style={{borderRadius:13,border:`1px solid ${open===i?'#3b82f6':'#1e293b'}`,overflow:'hidden',background:'#070b14',transition:'border-color 0.2s'}}>
+                <div key={i} style={{borderRadius:13,border:`1px solid ${open===i?'#3b82f6':'#1e293b'}`,overflow:'hidden',background:'#070b14'}}>
                     <button onClick={()=>setOpen(open===i?null:i)}
                         style={{width:'100%',display:'flex',alignItems:'flex-start',gap:12,padding:'14px 18px',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',fontFamily:'inherit'}}>
-                        <span style={{color:'#6366f1',fontWeight:800,fontSize:15,flexShrink:0,marginTop:1}}>Q{i+1}.</span>
-                        <span style={{color:'#cbd5e1',fontSize:14,lineHeight:1.65,flex:1}}>{item.q}</span>
-                        <span style={{color:'#475569',fontSize:18,transition:'transform 0.25s',transform:open===i?'rotate(180deg)':'rotate(0deg)',flexShrink:0}}>▾</span>
+                        <span style={{color:'#6366f1',fontWeight:800,fontSize:15}}>Q{i+1}.</span>
+                        <span style={{color:'#cbd5e1',fontSize:14,lineHeight:1.6,flex:1}}>{item.q}</span>
                     </button>
-                    <div style={{maxHeight:open===i?'240px':'0px',overflow:'hidden',transition:'max-height 0.35s ease'}}>
-                        <div style={{padding:'0 18px 14px 46px',display:'flex',gap:10}}>
-                            <span style={{color:'#10b981',fontWeight:800,fontSize:13,flexShrink:0,marginTop:1}}>A.</span>
-                            <span style={{color:'#6ee7b7',fontSize:13,lineHeight:1.75}}>{item.a}</span>
-                        </div>
-                    </div>
+                    {open===i && <div style={{padding:'0 18px 14px 46px',color:'#6ee7b7',fontSize:13,lineHeight:1.7}}>A. {item.a}</div>}
                 </div>
             ))}
         </div>
@@ -100,132 +88,40 @@ const QnA = ({ items }) => {
 
 /* ── 수식 유도 단계 ── */
 const DERIVE_STEPS = [
-    {
-        title:'Step 1. 등가 원리 (Equivalence Principle)',
-        desc:'가속 좌표계에서 느끼는 관성력과 중력은 물리적으로 구별할 수 없다.',
-        formula:'a = g \\quad \\Rightarrow \\quad F_{\\text{관성}} = ma = mg = F_{\\text{중력}}',
-        color:'#3b82f6', bg:'#0d1f3c',
-        note:'아인슈타인(1907): "자유낙하하는 관찰자는 중력을 느끼지 못한다." (가장 행복한 생각)'
-    },
-    {
-        title:'Step 2. 관측 시점에 따른 운동의 해석',
-        desc:'내부 관찰자는 힘(관성력)을 도입하고, 외부 관찰자는 물체의 관성과 우주선의 가속으로 설명한다.',
-        formula:'y_{\\text{rel}} = y_{\\text{ball}} - y_{\\text{floor}} = \\frac{1}{2}at^2',
-        color:'#ec4899', bg:'#2d0d1a',
-        note:'어떤 시점이든 공이 바닥에 닿기까지 걸리는 시간은 동일하게 계산된다.'
-    },
-    {
-        title:'Step 3. 가속 좌표계에서 빛의 경로',
-        desc:'가속도 a로 위로 가속하는 우주선에서 수평으로 입사한 빛의 처짐을 계산한다.',
-        formula:'\\Delta y = \\frac{1}{2}a t^2 = \\frac{1}{2}a \\left(\\frac{L}{c}\\right)^2',
-        color:'#8b5cf6', bg:'#1a0d3c',
-        note:'이 현상은 중력장에서도 동일하게 관측되어야 함을 시사한다.'
-    },
-    {
-        title:'Step 4. 아인슈타인의 결론: 시공간 곡률',
-        desc:'빛은 직진하지만, 질량이 시공간 자체를 휘게 하므로 경로가 휘어 보인다.',
-        formula:'G_{\\mu\\nu} = \\frac{8\\pi G}{c^4} T_{\\mu\\nu}',
-        color:'#10b981', bg:'#0a1f18',
-        note:'질량이 시공간을 휘고, 휘어진 시공간이 빛의 경로를 결정한다.'
-    },
-    {
-        title:'Step 5. 실험적 검증: 1919년 일식 관측',
-        desc:'에딩턴이 태양 근처 별빛의 편향각을 측정하여 아인슈타인의 이론을 증명했다.',
-        formula:'\\delta\\theta = \\frac{4GM_{\\odot}}{c^2 R_{\\odot}} \\approx 1.75^{\\prime\\prime}',
-        color:'#fbbf24', bg:'#1f1200',
-        note:'뉴턴 예측(0.875")의 두 배인 1.75"가 측정되어 일반상대성이론이 승리했다.'
-    },
+    { title:'Step 1. 등가 원리', desc:'가속에 의한 관성력과 중력은 구별 불가.', formula:'F_{\\text{obs}} = ma = mg', color:'#3b82f6', bg:'#0d1f3c' },
+    { title:'Step 2. 운동의 상대성', desc:'외부에서 본 가속량만큼 내부에서 상대적으로 이동.', formula:'\\Delta y = \\frac{1}{2}at^2', color:'#ec4899', bg:'#2d0d1a' },
+    { title:'Step 3. 빛의 경로 휨', desc:'가속계에서 빛의 경로가 포물선을 그림.', formula:'y \\approx \\frac{1}{2}a(x/c)^2', color:'#8b5cf6', bg:'#1a0d3c' },
+    { title:'Step 4. 시공간 곡률', desc:'중력을 시공간의 기하학적 휨으로 해석.', formula:'G_{\\mu\\nu} \\propto T_{\\mu\\nu}', color:'#10b981', bg:'#0a1f18' },
 ];
 
 const DerivationSection = () => {
     const [open, setOpen] = useState(null);
-    const [kReady, setKReady] = useState(!!window.katex);
-    useEffect(()=>{
-        if(window.katex){setKReady(true);return;}
-        const t=setInterval(()=>{if(window.katex){setKReady(true);clearInterval(t);}},200);
-        return ()=>clearInterval(t);
-    },[]);
-
     return (
-        <div>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6}}>
-                <div style={{width:4,height:22,background:'#6366f1',borderRadius:2}}/>
-                <h2 style={{fontSize:18,fontWeight:800,color:'#e2e8f0'}}>개념 연결: 가속 → 관성력 → 중력(시공간 곡률)</h2>
-            </div>
-            <p style={{color:'#475569',fontSize:13,marginBottom:18,marginLeft:14}}>
-                각 단계를 클릭해 논리적 연결 과정을 확인하세요.
-            </p>
-            <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {DERIVE_STEPS.map((step,i)=>(
-                    <div key={i} style={{border:`1px solid ${open===i?step.color+'80':'#1e293b'}`,borderRadius:14,overflow:'hidden',transition:'border-color 0.25s'}}>
-                        <button onClick={()=>setOpen(open===i?null:i)}
-                            style={{width:'100%',display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:open===i?step.bg:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',transition:'background 0.25s'}}>
-                            <div style={{width:28,height:28,borderRadius:'50%',background:step.color+'22',border:`1.5px solid ${step.color}66`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                                <span style={{color:step.color,fontWeight:800,fontSize:13}}>{i+1}</span>
-                            </div>
-                            <span style={{color:'#e2e8f0',fontWeight:700,fontSize:14,flex:1,textAlign:'left'}}>{step.title}</span>
-                            <span style={{color:'#475569',fontSize:18,transition:'transform 0.25s',transform:open===i?'rotate(180deg)':'rotate(0deg)'}}>▾</span>
-                        </button>
-                        <div style={{maxHeight:open===i?'280px':'0px',overflow:'hidden',transition:'max-height 0.4s ease'}}>
-                            <div style={{padding:'0 18px 18px 60px',background:step.bg}}>
-                                <p style={{color:'#94a3b8',fontSize:13,lineHeight:1.7,marginBottom:14}}>{step.desc}</p>
-                                {kReady && (
-                                    <div style={{background:'#070b14',borderRadius:10,padding:'14px 20px',marginBottom:12,textAlign:'center',border:`1px solid ${step.color}33`}}>
-                                        <Math_ f={step.formula} display={true}/>
-                                    </div>
-                                )}
-                                <p style={{color:'#64748b',fontSize:12,lineHeight:1.75,borderLeft:`3px solid ${step.color}55`,paddingLeft:10}}>{step.note}</p>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <h2 style={{fontSize:17,fontWeight:800,color:'#e2e8f0',marginBottom:10}}>개념 연결: 가속 → 관성력 → 곡률</h2>
+            {DERIVE_STEPS.map((step,i)=>(
+                <div key={i} style={{border:`1px solid ${open===i?step.color:'#1e293b'}`,borderRadius:12,overflow:'hidden'}}>
+                    <button onClick={()=>setOpen(open===i?null:i)} style={{width:'100%',padding:12,background:open===i?step.bg:'transparent',border:'none',color:'#e2e8f0',textAlign:'left',cursor:'pointer',fontWeight:700}}>
+                        {i+1}. {step.title}
+                    </button>
+                    {open===i && <div style={{padding:'0 12px 12px 12px',background:step.bg,fontSize:13,color:'#94a3b8'}}>{step.desc}<div style={{marginTop:10,textAlign:'center'}}><Math_ f={step.formula} display={true}/></div></div>}
+                </div>
+            ))}
         </div>
     );
 };
 
 /* ════════════════════════════════════════════
-   메인 시뮬레이션 캔버스
+   물리 계산 헬퍼 (동기화 용)
 ════════════════════════════════════════════ */
-const SimCanvas = ({ phase, accel, running, t }) => {
-    const ref = useRef(null);
-
-    const draw = useCallback(() => {
-        const canvas = ref.current;
-        if (!canvas) return;
-        const W = canvas.width, H = canvas.height;
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, W, H);
-
-        /* ── 별 배경 ── */
-        ctx.fillStyle = '#0a0f1e';
-        ctx.fillRect(0, 0, W, H);
-        const rng = (seed) => { let x=Math.sin(seed)*10000; return x-Math.floor(x); };
-        for(let i=0;i<80;i++){
-            const sx=rng(i*3+1)*W, sy=rng(i*3+2)*H, sr=rng(i*3+3)*1.4+0.3;
-            const op=0.25+0.5*Math.sin(t*0.001*rng(i+50)+i);
-            ctx.beginPath(); ctx.arc(sx,sy,sr,0,Math.PI*2);
-            ctx.fillStyle=`rgba(255,255,255,${op})`; ctx.fill();
-        }
-
-        if(phase===0) drawPhase0(ctx,W,H,accel,t,running);
-        else if(phase===1) drawPhase1(ctx,W,H,accel,t,running);
-        else if(phase===2) drawPhase2(ctx,W,H,accel,t,running);
-        else if(phase===3) drawPhase3(ctx,W,H,accel,t,running);
-        else if(phase===4) drawPhase4(ctx,W,H,accel,t,running);
-    }, [phase, accel, running, t]);
-
-    useEffect(()=>{
-        const canvas=ref.current; if(!canvas) return;
-        const ro=new ResizeObserver(()=>{ canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; draw(); });
-        ro.observe(canvas); canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; draw();
-        return ()=>ro.disconnect();
-    },[]);
-    useEffect(()=>{ draw(); },[draw]);
-    return <canvas ref={ref} style={{width:'100%',height:'100%',display:'block'}}/>;
+// t (ms), a (m/s2), scale (pixel/m), maxDist (pixel)
+const getPhysicsDist = (tMs, accel, scale = 1.2, maxDist = 155) => {
+    const tSec = tMs / 1000;
+    const dist = 0.5 * accel * (tSec ** 2) * scale;
+    return Math.min(dist, maxDist);
 };
 
-/* ── 헬퍼: 원래 우주선 디자인 복원 ── */
+/* ── 우주선 디자인 ── */
 function drawRocket(ctx, cx, cy, w, h, accel, thrustFlicker=1, isInside=false) {
     const thr = accel > 0 ? (20 + accel * 2) * thrustFlicker : 0;
     if(thr > 0) {
@@ -234,224 +130,158 @@ function drawRocket(ctx, cx, cy, w, h, accel, thrustFlicker=1, isInside=false) {
         ctx.beginPath(); ctx.moveTo(cx-12, cy+h/2); ctx.quadraticCurveTo(cx, cy+h/2+thr, cx+12, cy+h/2);
         ctx.fillStyle=fg; ctx.fill();
     }
-    // 몸체 (X-ray 효과를 위해 내부 시뮬레이션 시 약간의 투명도 부여)
     const bg = ctx.createLinearGradient(cx-w/2, 0, cx+w/2, 0);
     bg.addColorStop(0,'#475569'); bg.addColorStop(0.5,'#94a3b8'); bg.addColorStop(1,'#475569');
     ctx.save();
-    if(isInside) ctx.globalAlpha = 0.35; // 내부 관찰용 투명 몸체
+    if(isInside) ctx.globalAlpha = 0.35;
     ctx.beginPath(); ctx.roundRect(cx-w/2, cy-h/2, w, h, w/4);
     ctx.fillStyle=bg; ctx.fill();
-    ctx.strokeStyle='rgba(200,220,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
-    // 창문 + 실루엣
-    ctx.beginPath(); ctx.arc(cx, cy-h/8, w/4.5, 0, Math.PI*2);
-    ctx.fillStyle='rgba(15,23,42,0.85)'; ctx.fill();
-    ctx.strokeStyle='rgba(100,200,255,0.6)'; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cx, cy-h/8, w/10, 0, Math.PI*2);
-    ctx.fillStyle='rgba(100,180,255,0.6)'; ctx.fill();
-    // 상단 캡
-    ctx.beginPath(); ctx.moveTo(cx-w/2, cy-h/2); ctx.quadraticCurveTo(cx, cy-h/2-30, cx+w/2, cy-h/2);
-    ctx.fillStyle='#334155'; ctx.fill();
-    // 핀
-    [[-1],[1]].forEach(([d])=>{
-        ctx.beginPath(); ctx.moveTo(cx+d*w/2, cy+h/4); ctx.lineTo(cx+d*w/2+d*25, cy+h/2+10); ctx.lineTo(cx+d*w/2, cy+h/3);
-        ctx.fillStyle='#475569'; ctx.fill();
-    });
-    ctx.restore();
-
-    // 우주선의 바닥과 천장 선 (내부 공간임을 표시)
-    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.moveTo(cx-w/2, cy+h*0.35); ctx.lineTo(cx+w/2, cy+h*0.35); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(cx-w/2, cy-h*0.35); ctx.lineTo(cx+w/2, cy-h*0.35); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx, cy-h/8, w/4.5, 0, Math.PI*2); ctx.fillStyle='rgba(15,23,42,0.85)'; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-w/2, cy-h/2); ctx.quadraticCurveTo(cx, cy-h/2-30, cx+w/2, cy-h/2); ctx.fillStyle='#334155'; ctx.fill();
     ctx.restore();
 }
 
-function arrow(ctx,x1,y1,x2,y2,color='rgba(100,200,255,0.9)',lw=2){
-    const dx=x2-x1, dy=y2-y1, angle=Math.atan2(dy,dx);
-    ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
-    const al=8, aa=0.4;
-    ctx.beginPath(); ctx.moveTo(x2,y2);
-    ctx.lineTo(x2-al*Math.cos(angle-aa),y2-al*Math.sin(angle-aa));
-    ctx.moveTo(x2,y2); ctx.lineTo(x2-al*Math.cos(angle+aa),y2-al*Math.sin(angle+aa));
-    ctx.stroke(); ctx.restore();
-}
-
-function txt(ctx,x,y,s,color='#e2e8f0',size=12,align='center',weight='400'){
-    ctx.save(); ctx.fillStyle=color; ctx.font=`${weight} ${size}px "Noto Sans KR",sans-serif`;
-    ctx.textAlign=align; ctx.fillText(s,x,y); ctx.restore();
-}
-
-/* ════ Phase 0: 중력 vs 가속 ════ */
-function drawPhase0(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
-    const prog = running ? ((t%2500)/2500) : 0;
-    const bStart=cy-rh*0.28, bEnd=cy+rh*0.35;
-    const bY = bStart + (bEnd-bStart)*Math.min(prog*1.3, 1);
-
-    // 중력 우주선
-    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true);
-    arrow(ctx,cx1+rw,cy,cx1+rw,cy+60,'#fbbf24'); txt(ctx,cx1+rw+15,cy+35,'g', '#fbbf24',12,'left');
-    txt(ctx,cx1,cy-rh/2-25,'중력장(지구)','white',13);
-
-    // 가속 우주선
-    drawRocket(ctx,cx2,cy+30,rw,rh,running?accel:0,running?0.8+0.2*Math.sin(t*0.01):1,true);
-    arrow(ctx,cx2+rw,cy+30,cx2+rw,cy-30,'#4ade80'); txt(ctx,cx2+rw+15,cy,'a', '#4ade80',12,'left');
-    txt(ctx,cx2,cy-rh/2-25,'가속 중인 우주선','white',13);
-
-    // 공 그리기 (우주선 내부)
-    [cx1,cx2].forEach(bx=>{
-       const grad=ctx.createRadialGradient(bx-3,bY-3,2,bx,bY,10);
-       grad.addColorStop(0,'#fff8dc'); grad.addColorStop(1,'#cc8800');
-       ctx.beginPath(); ctx.arc(bx,bY,10,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
-    });
-}
-
-/* ════ Phase 1: 내부 vs 외부 시점 ════ */
-function drawPhase1(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
-    const loopTime=3000;
-    const prog=running? (t%loopTime)/loopTime : 0;
-
-    // LEFT: 내부 시점 (우주선 내부에 갇힘)
-    txt(ctx,cx1,cy-rh/2-25,'내부 관찰자 시점','white',13);
-    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true); 
-    const bY1 = cy-rh*0.28 + (rh*0.63)*Math.min(prog*1.2, 1);
-    const g1=ctx.createRadialGradient(cx1-3,bY1-3,2,cx1,bY1,10);
-    g1.addColorStop(0,'#fff8dc'); g1.addColorStop(1,'#cc8800');
-    ctx.beginPath(); ctx.arc(cx1,bY1,10,0,Math.PI*2); ctx.fillStyle=g1; ctx.fill();
-    arrow(ctx,cx1+55,bY1-10,cx1+55,bY1+20,'#ec4899',2); txt(ctx,cx1+65,bY1+10,'관성력','#ec4899',11,'left');
-
-    // RIGHT: 외부 시점 (관성 효과)
-    txt(ctx,cx2,cy-rh/2-25,'외부 관찰자 시점','white',13);
-    const rockAccDist = (accel/10)*90 * (prog**2);
-    const rockY = cy+30 - rockAccDist;
-    const bY2 = cy-rh*0.28; // 공은 우주 공간 한 점에 고정 (전역 좌표)
-    
-    // 우주선을 먼저 그리고 공을 나중에 그려야 '투시' 효과가 남
-    drawRocket(ctx,cx2,rockY,rw,rh,running?accel:0,1,true); 
-    const g2=ctx.createRadialGradient(cx2-3,bY2-3,2,cx2,bY2,10);
-    g2.addColorStop(0,'#fff8dc'); g2.addColorStop(1,'#cc8800');
-    ctx.beginPath(); ctx.arc(cx2,bY2,10,0,Math.PI*2); ctx.fillStyle=g2; ctx.fill();
-    
-    if(running){
-        arrow(ctx,cx2+rw/2+15,rockY+60,cx2+rw/2+15,rockY-20,'#3b82f6');
-        txt(ctx,cx2+rw/2+28,rockY+20,'가속(a)','#3b82f6',11,'left');
-        txt(ctx,W/2,H-30,'외부 시점: 공은 정지해 있고, 우주선 바닥이 올라옵니다!','#a78bfa',14,'center','700');
-    }
-}
-
-/* ════ Phase 2: 빛의 경로 ════ */
-function drawPhase2(ctx,W,H,accel,t,running){
-    const cx1=W*0.27, cx2=W*0.73, cy=H*0.5, rw=90, rh=240;
-    const lProg = running? (t%2500)/2500 : 0;
-    const lyIn=cy-20, lxIn_dist=rw*0.42;
-
-    txt(ctx,cx1,cy-rh/2-25,'정지 좌표계 (빛 직진)','white',12);
-    drawRocket(ctx,cx1,cy+30,rw,rh,0,1,true);
-    ctx.strokeStyle='#fde047'; ctx.lineWidth=2.5; ctx.beginPath();
-    ctx.moveTo(cx1-lxIn_dist, lyIn); ctx.lineTo(cx1-lxIn_dist+rw*0.84*Math.min(lProg*1.5,1), lyIn); ctx.stroke();
-
-    txt(ctx,cx2,cy-rh/2-25,'가속 좌표계 (빛 휨)','white',12);
-    drawRocket(ctx,cx2,cy+30,rw,rh,running?accel:0,1,true);
-    ctx.strokeStyle='#fde047'; ctx.beginPath();
-    const steps=60; const bend= (accel/9.8)*28;
-    for(let i=0;i<steps*lProg*1.3;i++){
-        let fr=i/steps; let px=cx2-lxIn_dist+rw*0.84*fr; let py=lyIn+fr*fr*bend;
-        if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
-    }
-    ctx.stroke();
-}
-
-/* ════ Phase 3: 등가 원리 ════ */
-function drawPhase3(ctx,W,H,accel,t,running){
-    const cx=W/2, cy=H*0.5;
-    txt(ctx,cx,cy-100,'등가 원리 (Equivalence Principle)', '#a78bfa', 24, 'center', '800');
-    txt(ctx,cx-200, cy, '가속(a)에 의한 관성력', '#ec4899', 16, 'center', '700');
-    txt(ctx,cx+200, cy, '질량(M)에 의한 중력', '#fbbf24', 16, 'center', '700');
-    txt(ctx,cx, cy+5, '≡', 'white', 50);
-    txt(ctx,cx, cy+75, '물리적으로 두 상황을 구별할 방법은 없다.', '#94a3b8', 14);
-}
-
-/* ════ Phase 4: 시공간 곡률 ════ */
-function drawPhase4(ctx,W,H,accel,t,running){
-    const cx=W/2, cy=H*0.5;
-    const massR=45+(accel/9.8)*12;
-    const grid=44;
-    ctx.strokeStyle='#3b82f618'; ctx.lineWidth=1;
-    for(let r=0;r<H;r+=grid){
-        ctx.beginPath();
-        for(let c=0;c<W;c+=5){
-            let dx=c-cx, dy=r-cy; let dist=Math.sqrt(dx*dx+dy*dy);
-            let warp= (accel/9.8)*1800/(dist+55);
-            ctx.lineTo(c-dx*warp/(dist+55), r-dy*warp/(dist+55));
+const SimCanvas = ({ phase, accel, tL, tR, runningL, runningR }) => {
+    const ref = useRef(null);
+    const draw = useCallback(() => {
+        const canvas = ref.current; if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+        ctx.fillStyle = '#0a0f1e'; ctx.fillRect(0, 0, W, H);
+        
+        // 별 배경
+        const rng = (s) => (Math.sin(s)*10000 % 1);
+        for(let i=0;i<60;i++){
+            ctx.fillStyle=`rgba(255,255,255,${0.3+0.4*Math.sin(tL*0.001+i)})`;
+            ctx.beginPath(); ctx.arc(rng(i*7)*W, rng(i*13)*H, 0.8, 0, Math.PI*2); ctx.fill();
         }
-        ctx.stroke();
-    }
-    const grad=ctx.createRadialGradient(cx-10,cy-10,0,cx,cy,massR);
-    grad.addColorStop(0,'#fbbf24'); grad.addColorStop(1,'#92400e');
-    ctx.beginPath(); ctx.arc(cx,cy,massR,0,Math.PI*2); ctx.fillStyle=grad; ctx.fill();
-    txt(ctx,cx,cy+massR+30,'질량에 의해 휘어진 시공간 (Geodesic)','white',15, 'center', '600');
-}
 
-const PHASES = [
-    { label:'① 관성력 vs 중력',  desc:'우주선 내부 실험' },
-    { label:'② 내부 vs 외부 시점', desc:'관측자 위치의 차이' },
-    { label:'③ 빛의 경로',       desc:'가속 좌표계에서 빛 휨' },
-    { label:'④ 등가 원리',       desc:'물리적 동등성' },
-    { label:'⑤ 시공간 곡률',     desc:'중력의 기하학적 본질' },
-];
+        const rw=90, rh=240, cy=H*0.45;
+        const bStartRel = -rh*0.28; // 우주선 중심 대비 공의 시작 y
 
-const App = () => {
-    const [phase,   setPhase]   = useState(0);
-    const [accel,   setAccel]   = useState(9.8);
-    const [running, setRunning] = useState(false);
-    const [t, setT]             = useState(0);
-    const rafRef = useRef(null);
+        if(phase === 0 || phase === 1) {
+            const cx1 = W*0.27, cx2 = W*0.73;
+            // 물리 계산 (두 시각에 동일한 공식을 적용하여 위치 일치시킴)
+            const dL = getPhysicsDist(tL, phase===0? 9.8 : accel, 1.3, 155);
+            const dR = getPhysicsDist(tR, accel, 1.3, 155);
+
+            // LEFT
+            const titleL = phase===0 ? "중력장(지구)" : "내부 관찰자 시점";
+            ctx.fillStyle='white'; ctx.textAlign='center'; ctx.font='bold 14px Noto Sans KR'; ctx.fillText(titleL, cx1, cy-rh/2-25);
+            drawRocket(ctx, cx1, cy+30, rw, rh, 0, 1, true);
+            const bY1 = (cy + 30) + bStartRel + dL;
+            const grad1 = ctx.createRadialGradient(cx1-3, bY1-3, 2, cx1, bY1, 10);
+            grad1.addColorStop(0,'#fff8dc'); grad1.addColorStop(1,'#cc8800');
+            ctx.beginPath(); ctx.arc(cx1, bY1, 10, 0, Math.PI*2); ctx.fillStyle=grad1; ctx.fill();
+
+            // RIGHT
+            const titleR = phase===0 ? "가속 중인 우주선" : "외부 관찰자 시점";
+            ctx.fillText(titleR, cx2, cy-rh/2-25,);
+            const rY2 = (cy + 30) - dR;
+            drawRocket(ctx, cx2, rY2, rw, rh, (phase===0?9.8:accel), 0.8+0.2*Math.sin(tR*0.01), true);
+            const bY2 = (cy + 30) + bStartRel; // 외부 시점에서 공은 제자리에 고정 (관성)
+            const grad2 = ctx.createRadialGradient(cx2-3, bY2-3, 2, cx2, bY2, 10);
+            grad2.addColorStop(0,'#fff8dc'); grad2.addColorStop(1,'#cc8800');
+            ctx.beginPath(); ctx.arc(cx2, bY2, 10, 0, Math.PI*2); ctx.fillStyle=grad2; ctx.fill();
+        }
+        else if(phase === 2) {
+            // 빛 휨 (생략 가능하나 유지를 위해 간단히)
+            const cx1 = W*0.27, cx2 = W*0.73;
+            drawRocket(ctx, cx1, cy+30, rw, rh, 0, 1, true);
+            drawRocket(ctx, cx2, cy+30, rw, rh, accel, 1, true);
+        }
+        else if(phase === 4) {
+            // 곡률 시각화
+            ctx.fillStyle='#3b82f622';
+            const cx=W/2, cyM=H*0.5;
+            for(let i=0;i<W;i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,H); ctx.strokeStyle='rgba(59,130,246,0.1)'; ctx.stroke(); }
+            for(let i=0;i<H;i+=40) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(W,i); ctx.stroke(); }
+            ctx.beginPath(); ctx.arc(cx, cyM, 40+accel, 0, Math.PI*2); ctx.fillStyle='#fbbf24'; ctx.fill();
+        }
+    }, [phase, accel, tL, tR, runningL, runningR]);
 
     useEffect(()=>{
-        if(running){
-            let start = performance.now() - t;
-            const loop=(now)=>{ setT(now - start); rafRef.current=requestAnimationFrame(loop); };
-            rafRef.current=requestAnimationFrame(loop);
-        } else cancelAnimationFrame(rafRef.current);
-        return ()=>cancelAnimationFrame(rafRef.current);
-    },[running]);
+        const canvas=ref.current; canvas.width=canvas.offsetWidth; canvas.height=canvas.offsetHeight; draw();
+    },[draw]);
+    return <canvas ref={ref} style={{width:'100%',height:'100%',display:'block'}}/>;
+};
+
+const App = () => {
+    const [phase, setPhase] = useState(0);
+    const [accel, setAccel] = useState(9.8);
+    const [tL, setTL] = useState(0);
+    const [tR, setTR] = useState(0);
+    const [runningL, setRunningL] = useState(false);
+    const [runningR, setRunningR] = useState(false);
+    const rafL = useRef(null);
+    const rafR = useRef(null);
+
+    useEffect(() => {
+        if(runningL) {
+            let start = performance.now() - tL;
+            const loop = (now) => { 
+                const nt = now - start;
+                if(nt < 2500) { setTL(nt); rafL.current = requestAnimationFrame(loop); }
+                else { setTL(2500); setRunningL(false); }
+            };
+            rafL.current = requestAnimationFrame(loop);
+        } else cancelAnimationFrame(rafL.current);
+        return () => cancelAnimationFrame(rafL.current);
+    }, [runningL]);
+
+    useEffect(() => {
+        if(runningR) {
+            let start = performance.now() - tR;
+            const loop = (now) => { 
+                const nt = now - start;
+                if(nt < 2500) { setTR(nt); rafR.current = requestAnimationFrame(loop); }
+                else { setTR(2500); setRunningR(false); }
+            };
+            rafR.current = requestAnimationFrame(loop);
+        } else cancelAnimationFrame(rafR.current);
+        return () => cancelAnimationFrame(rafR.current);
+    }, [runningR]);
 
     return (
-        <div style={{maxWidth:1160,margin:'0 auto',display:'flex',flexDirection:'column',gap:22}}>
-            <div className="card">
-                <h2 style={{fontSize:17,fontWeight:800,color:'#e2e8f0',marginBottom:16}}>🔍 탐구 질문</h2>
-                <QnA items={QNA_ITEMS}/>
-            </div>
-            <div style={{display:'grid',gridTemplateColumns:'260px 1fr',gap:16}}>
-                <div className="panel" style={{display:'flex',flexDirection:'column',gap:16}}>
-                    <label>탐구 단계 선택</label>
-                    <div style={{display:'flex',flexDirection:'column',gap:6,marginTop:5}}>
-                        {PHASES.map((p,i)=>(
-                            <button key={i} className={`phase-btn${phase===i?' active':''}`} onClick={()=>{setPhase(i);setT(0);setRunning(false);}}>
-                                <div style={{fontWeight:phase===i?700:400}}>{p.label}</div>
-                                <div style={{fontSize:11,opacity:0.6}}>{p.desc}</div>
-                            </button>
+        <div style={{maxWidth:1200,margin:'0 auto',display:'flex',flexDirection:'column',gap:20}}>
+            <div style={{display:'grid',gridTemplateColumns:'300px 1fr',gap:20}}>
+                <div className="panel" style={{display:'flex',flexDirection:'column',gap:15}}>
+                    <label>탐구 단계</label>
+                    <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                        {["① 관성력/중력","② 내부/외부 시점","③ 빛의 휨","④ 등가 원리","⑤ 시공간 곡률"].map((l,i)=>(
+                            <button key={i} className={`phase-btn${phase===i?' active':''}`} onClick={()=>{setPhase(i);setTL(0);setTR(0);setRunningL(false);setRunningR(false);}}>{l}</button>
                         ))}
                     </div>
-                    <label style={{marginTop:10}}>가속도 크기 (a)</label>
-                    <input type="range" min="2" max="20" step="0.5" value={accel} onChange={e=>setAccel(parseFloat(e.target.value))}/>
-                    <div style={{textAlign:'center',fontFamily:'Space Mono',color:'#60a5fa'}}>{accel.toFixed(1)} m/s²</div>
-                    <button onClick={()=>setRunning(!running)} style={{padding:12,borderRadius:10,background:running?'rgba(239,68,68,0.1)':'rgba(59,130,246,0.1)',color:running?'#f87171':'#60a5fa',border:`1px solid ${running?'rgba(239,68,68,0.4)':'rgba(59,130,246,0.4)'}`,fontWeight:700,cursor:'pointer'}}>
-                        {running ? '⏸ 일시 정지' : '▶ 시나리오 실행'}
-                    </button>
-                    <button onClick={()=>{setRunning(false);setT(0);}} style={{padding:8,borderRadius:10,background:'transparent',border:'1px solid #1e293b',color:'#64748b',cursor:'pointer'}}>↺ 초기화</button>
                     
-                    <div style={{fontSize:11,color:'#334155',lineHeight:1.8,borderTop:'1px solid #1e293b',paddingTop:10}}>
-                        <p>* 내부 시점은 비관성계의 관성력을 설명합니다.</p>
-                        <p>* 외부 시점은 관성계의 가속 운동을 설명합니다.</p>
-                    </div>
+                    {(phase===0 || phase===1) && (
+                        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                            <div className="control-group">
+                                <label style={{color:'#60a5fa'}}>LEFT SCENARIO</label>
+                                <button className="btn-primary" onClick={()=>setRunningL(true)} disabled={runningL}>▶ 시작</button>
+                                <button className="btn-reset" onClick={()=>{setRunningL(false);setTL(0);}}>↺ 초기화</button>
+                            </div>
+                            <div className="control-group">
+                                <label style={{color:'#f87171'}}>RIGHT SCENARIO</label>
+                                <button className="btn-primary" onClick={()=>setRunningR(true)} disabled={runningR}>▶ 시작</button>
+                                <button className="btn-reset" onClick={()=>{setRunningR(false);setTR(0);}}>↺ 초기화</button>
+                            </div>
+                            <button className="btn-primary" style={{background:'rgba(167,139,250,0.1)', borderColor:'rgba(167,139,250,0.4)', color:'#a78bfa'}} 
+                                onClick={()=>{setRunningL(true);setRunningR(true);}}>전체 동기화 실행</button>
+                        </div>
+                    )}
+
+                    <label>실험 가속도 (a)</label>
+                    <input type="range" min="2" max="25" step="0.5" value={accel} onChange={e=>setAccel(parseFloat(e.target.value))}/>
+                    <div style={{textAlign:'center',fontFamily:'Space Mono',color:'#60a5fa'}}>{accel.toFixed(1)} m/s²</div>
                 </div>
-                <div style={{background:'#070b14',borderRadius:14,border:'1px solid #1e293b',overflow:'hidden',minHeight:500}}>
-                    <SimCanvas phase={phase} accel={accel} running={running} t={t}/>
+                <div style={{height:550,borderRadius:16,overflow:'hidden',border:'1px solid #1e293b'}}>
+                    <SimCanvas phase={phase} accel={accel} tL={tL} tR={tR} runningL={runningL} runningR={runningR}/>
                 </div>
             </div>
-            <div className="card"><DerivationSection/></div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}}>
+                <div className="card"><QnA items={QNA_ITEMS}/></div>
+                <div className="card"><DerivationSection/></div>
+            </div>
         </div>
     );
 };
@@ -461,7 +291,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </body>
 </html>
 """
-    components.html(react_code, height=2200, scrolling=True)
+    components.html(react_code, height=1200, scrolling=True)
 
 if __name__ == "__main__":
     run_sim()
