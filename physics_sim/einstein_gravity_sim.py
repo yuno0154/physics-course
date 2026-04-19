@@ -51,10 +51,10 @@ function drawGrid(ctx, W, H, mode, sunX, sunY) {
             let px = i * step, py = j * step;
             if (mode === 'einstein') {
                 const dx = px - sunX, dy = py - sunY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const force = 3500 / (dist + 60); 
-                px -= (dx / (dist + 1)) * force;
-                py -= (dy / (dist + 1)) * force;
+                const distDist = Math.sqrt(dx*dx + dy*dy);
+                const force = 3500 / (distDist + 60); 
+                px -= (dx / (distDist + 1)) * force;
+                py -= (dy / (distDist + 1)) * force;
             }
             if (j === -1) ctx.moveTo(px, py);
             else ctx.lineTo(px, py);
@@ -67,10 +67,10 @@ function drawGrid(ctx, W, H, mode, sunX, sunY) {
             let px = i * step, py = j * step;
             if (mode === 'einstein') {
                 const dx = px - sunX, dy = py - sunY;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const force = 3500 / (dist + 60);
-                px -= (dx / (dist + 1)) * force;
-                py -= (dy / (dist + 1)) * force;
+                const distDist = Math.sqrt(dx*dx + dy*dy);
+                const force = 3500 / (distDist + 60);
+                px -= (dx / (distDist + 1)) * force;
+                py -= (dy / (distDist + 1)) * force;
             }
             if (i === -1) ctx.moveTo(px, py);
             else ctx.lineTo(px, py);
@@ -82,11 +82,12 @@ function drawGrid(ctx, W, H, mode, sunX, sunY) {
 
 /* ── 에딩턴의 일식 ── */
 function drawEddington(ctx, W, H, mode, t) {
-    const sunX = W * 0.5, sunY = H * 0.45, sunR = 60;
-    const earthX = W * 0.5, earthY = H * 0.92;
+    const sunX = W * 0.5, sunY = H * 0.4, sunR = 60;
+    const earthX = W * 0.5, earthY = H * 0.82; // 지구가 잘리지 않도록 위치 상향 조정
     drawGrid(ctx, W, H, mode, sunX, sunY);
     drawStars(ctx, W, H, t);
     
+    // 별의 실제 위치
     const starRealX = sunX + 5, starRealY = H * 0.08;
     const prog = (t * 0.0006) % 1;
 
@@ -108,36 +109,42 @@ function drawEddington(ctx, W, H, mode, t) {
         const appStarX = sunX + 220, appStarY = 40; 
         ctx.strokeStyle = 'rgba(99,102,241,0.5)'; ctx.setLineDash([6,4]);
         ctx.beginPath(); ctx.moveTo(earthX, earthY); ctx.lineTo(appStarX, appStarY); ctx.stroke(); ctx.setLineDash([]);
-        const px = (1-prog)*(1-prog)*starRealX + 2*(1-prog)*prog*cpX + prog*prog*earthX;
-        const py = (1-prog)*(1-prog)*starRealY + 2*(1-prog)*prog*cpY + prog*prog*earthY;
+        const qt = prog;
+        const px = (1-qt)*(1-qt)*starRealX + 2*(1-qt)*qt*cpX + qt*qt*earthX;
+        const py = (1-qt)*(1-qt)*starRealY + 2*(1-qt)*qt*cpY + qt*qt*earthY;
         ctx.save(); ctx.shadowBlur = 15; ctx.shadowColor = '#6366f1';
         ctx.beginPath(); ctx.arc(px, py, 4.5, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.restore();
         ctx.save(); ctx.shadowBlur=20; ctx.shadowColor='#818cf8';
         ctx.beginPath(); ctx.arc(appStarX, appStarY, 7, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); ctx.restore();
-        ctx.fillStyle='#fff'; ctx.font='bold 13px Noto Sans KR'; ctx.textAlign='left';
+        ctx.fillStyle='#fff'; ctx.font='bold 14px Noto Sans KR'; ctx.textAlign='left';
         ctx.fillText('관측된 겉보기 위치', appStarX + 15, appStarY + 5);
-        ctx.fillStyle='#818cf8'; ctx.font='bold 15px Noto Sans KR'; ctx.textAlign='center';
+        ctx.fillStyle='#818cf8'; ctx.font='bold 16px Noto Sans KR'; ctx.textAlign='center';
         ctx.fillText('아인슈타인: 휘어진 시공간 (빛의 우회)', sunX, sunY - 140);
     }
     ctx.beginPath(); ctx.arc(starRealX, starRealY, 6, 0, Math.PI*2); ctx.fillStyle='#fbbf24'; ctx.fill();
     ctx.fillStyle='#fbbf24'; ctx.font='bold 13px Noto Sans KR'; ctx.textAlign='right';
     ctx.fillText('실제 위치   ', starRealX - 8, starRealY + 5);
+    
+    // 태양/달
     const sg = ctx.createRadialGradient(sunX, sunY, sunR*0.7, sunX, sunY, sunR*1.7);
     sg.addColorStop(0, 'rgba(253, 224, 71, 0.5)'); sg.addColorStop(1, 'transparent');
     ctx.beginPath(); ctx.arc(sunX, sunY, sunR*1.7, 0, Math.PI*2); ctx.fillStyle=sg; ctx.fill();
     ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, Math.PI*2); ctx.fillStyle='#000'; ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // 지구 (위치 및 크기 최적화)
     const eg = ctx.createRadialGradient(earthX-6, earthY-6, 3, earthX, earthY, 28);
     eg.addColorStop(0,'#3b82f6'); eg.addColorStop(1,'#1e3a8a');
     ctx.beginPath(); ctx.arc(earthX, earthY, 28, 0, Math.PI*2); ctx.fillStyle=eg; ctx.fill();
 }
 
-/* ── 회전 원판 ── */
-function drawRotatingDisk(ctx, W, H, vel, t, clocks, discStep) {
-    const cx = W*0.5, cy = H*0.5, r = 240;
+/* ── 회전 원판 (관찰자 POV 강화) ── */
+function drawRotatingDisk(ctx, W, H, vel, t, clocks, discStep, pov) {
+    const cx = W*0.5, cy = H*0.5, r = 220;
     const ang = t * 0.001 * vel;
 
-    if (discStep === 2 || discStep === 3) {
+    // 배경 처리 (B나 C의 시점에서는 우주가 회전함)
+    if (pov === 'B' || pov === 'C') {
         ctx.save(); ctx.translate(cx, cy); ctx.rotate(-ang); ctx.translate(-cx, -cy);
         drawStars(ctx, W, H, t); ctx.restore();
     } else {
@@ -145,50 +152,71 @@ function drawRotatingDisk(ctx, W, H, vel, t, clocks, discStep) {
     }
 
     ctx.save();
-    if (discStep === 2 || discStep === 3) ctx.translate(cx, cy);
-    else { ctx.translate(cx, cy); ctx.rotate(ang); }
+    // 시점(POV)에 따른 캔버스 변환
+    if (pov === 'B') {
+        ctx.translate(cx, cy); // 중심에 고정
+    } else if (pov === 'C') {
+        ctx.translate(cx, cy); ctx.rotate(-ang); // 자신(C)이 정지한 것처럼 보이기 위해 원판 회전 상쇄
+        ctx.translate(-r * 0.85, 0); // 자신이 12시 혹은 3시 방향에 있다고 가정하고 중심으로 이동
+        ctx.translate(cx, cy); // 다시 화면 중심으로
+    } else {
+        ctx.translate(cx, cy); ctx.rotate(ang); // 지면(A)에서 볼 때 원판이 회전함
+    }
     
     const grad = ctx.createRadialGradient(0,0, r*0.8, 0,0, r);
     grad.addColorStop(0, 'rgba(30, 41, 59, 0.9)'); grad.addColorStop(1, 'rgba(71, 85, 105, 0.4)');
     ctx.beginPath(); ctx.arc(0,0, r, 0, Math.PI*2); ctx.fillStyle=grad; ctx.fill();
     ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=2; ctx.stroke();
     
+    // 격자 및 눈금
     for(let i=0; i<360; i+=30) {
         const rad = i*Math.PI/180;
         ctx.beginPath(); ctx.moveTo(r*0.85*Math.cos(rad), r*0.85*Math.sin(rad));
         ctx.lineTo(r*Math.cos(rad), r*Math.sin(rad)); ctx.stroke();
     }
     
+    // 관찰자 B (중심)
     ctx.beginPath(); ctx.arc(0,0, 10, 0, Math.PI*2); ctx.fillStyle='#10b981'; ctx.fill();
-    drawLabel(ctx, 0, -20, 'B (중심)');
+    drawLabel(ctx, 0, -20, 'Observer B');
     drawSmallClock(ctx, 0, 15, clocks.B, '#10b981');
 
+    // 관찰자 C (가장자리)
     const cx_off = r * 0.85, cy_off = 0;
     ctx.beginPath(); ctx.arc(cx_off, cy_off, 10, 0, Math.PI*2); ctx.fillStyle='#f59e0b'; ctx.fill();
-    drawLabel(ctx, cx_off, -20, 'C (가장자리)');
+    drawLabel(ctx, cx_off, -20, 'Observer C');
     drawSmallClock(ctx, cx_off, 15, clocks.C, '#f59e0b');
     
-    if (discStep === 3) {
+    // 가속도/관성력 벡터 (C의 시점에서 특히 강조)
+    if (pov === 'C' || discStep >= 3) {
         ctx.strokeStyle='#ef4444'; ctx.lineWidth=4;
-        ctx.beginPath(); ctx.moveTo(cx_off, cy_off); ctx.lineTo(cx_off + 60, 0); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx_off+60, 0); ctx.lineTo(cx_off+50, -5); ctx.lineTo(cx_off+50, 5); ctx.closePath(); ctx.fillStyle='#ef4444'; ctx.fill();
-        ctx.fillStyle='#ef4444'; ctx.font='bold 14px Noto Sans KR'; ctx.fillText('강력한 관성력', cx_off+10, 40);
+        ctx.beginPath(); ctx.moveTo(cx_off, cy_off); ctx.lineTo(cx_off + 50, 0); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx_off+50, 0); ctx.lineTo(cx_off+42, -6); ctx.lineTo(cx_off+42, 6); ctx.closePath(); ctx.fillStyle='#ef4444'; ctx.fill();
+        ctx.fillStyle='#ef4444'; ctx.font='bold 14px Noto Sans KR'; ctx.fillText('강력한 가속도(중력)', cx_off+10, 40);
     }
     ctx.restore();
 
-    if (discStep === 1 || discStep === 4) {
+    // 관찰자 A (지면 - POV가 A일 때만 정적 위치에 표시)
+    if (pov === 'A') {
         const ax = cx - r - 80, ay = cy;
         ctx.beginPath(); ctx.arc(ax, ay, 10, 0, Math.PI*2); ctx.fillStyle='#3b82f6'; ctx.fill();
-        drawLabel(ctx, ax, -20, 'A (지면)');
+        drawLabel(ctx, ax, -20, 'Observer A (Ground)');
         drawSmallClock(ctx, ax, 15, clocks.A, '#3b82f6');
+    } else {
+        // B나 C의 시점에서는 지면(A)이 외부에서 회전함
+        ctx.save();
+        ctx.translate(cx, cy); ctx.rotate(-ang);
+        const ax = -r - 80, ay = 0;
+        ctx.beginPath(); ctx.arc(ax, ay, 10, 0, Math.PI*2); ctx.fillStyle='#3b82f6'; ctx.fill();
+        drawLabel(ctx, ax, -20, 'A (Moving)');
+        drawSmallClock(ctx, ax, 15, clocks.A, '#3b82f6');
+        ctx.restore();
     }
 
     ctx.fillStyle = '#fff'; ctx.font = '16px Noto Sans KR'; ctx.textAlign = 'center';
-    let msg = discStep === 1 ? "Step 1: 지면 관찰자 A가 볼 때, C는 매우 빠르게 회전 운동을 합니다." :
-              discStep === 2 ? "Step 2: 중심 관찰자 B가 볼 때, 원판은 정지해 있고 외부 우주가 회전합니다." :
-              discStep === 3 ? "Step 3: 가장자리 관찰자 C는 강력한 관성력(가속도)을 직접 느낍니다." :
-                               "Step 4 (결론): 가속도 = 중력(등가 원리). 따라서 가속되는 C의 시간이 가장 느립니다.";
-    ctx.fillText(msg, W*0.5, H - 40);
+    let msg = pov === 'A' ? "관찰자 A의 시점: 지면에서 원판의 회전을 바라보고 있습니다." :
+              pov === 'B' ? "관찰자 B의 시점: 회전 중심에서 가속도 없이 외부를 바라봅니다." :
+                            "관찰자 C의 시점: 회전하는 가속 계 내부에서 중력(원심력)을 느낍니다.";
+    ctx.fillText(msg, W*0.5, H - 30);
 }
 
 function drawLabel(ctx, x, y, txt) {
@@ -216,7 +244,7 @@ const Main = () => {
             setClocks(prev => {
                 const speed = (window.stParams?.speed || 1);
                 const discVel = (window.stParams?.discVel || 1);
-                const factorC = Math.max(0.2, 1 - (discVel * 0.08)); 
+                const factorC = Math.max(0.1, 1 - (discVel * 0.08)); 
                 return { A: prev.A + 0.1 * speed, B: prev.B + 0.1 * speed, C: prev.C + 0.1 * speed * factorC };
             });
             frame = requestAnimationFrame(loop);
@@ -230,13 +258,14 @@ const Main = () => {
         const { width: W, height: H } = canvasRef.current;
         const mode = window.stParams?.mode || 'eddington';
         const discStep = window.stParams?.discStep || 1;
+        const pov = window.stParams?.pov || 'A';
         ctx.clearRect(0, 0, W, H);
         if (mode === 'eddington') {
             const theory = window.stParams?.theory || 'newton';
             drawEddington(ctx, W, H, theory, t);
         } else {
             const discVel = window.stParams?.discVel || 1;
-            drawRotatingDisk(ctx, W, H, discVel, t, clocks, discStep);
+            drawRotatingDisk(ctx, W, H, discVel, t, clocks, discStep, pov);
         }
     }, [t, clocks]);
 
@@ -252,9 +281,9 @@ body { font-family: 'Noto Sans KR', sans-serif; background: transparent; margin:
 """
 
 def render_ui():
-    st.markdown("### 🌌 아인슈타인의 중력: 시공간의 탐구")
+    st.markdown("### 🌌 아인슈타인의 중력: 시공간과 시간의 비밀")
     
-    tab1, tab2, tab3 = st.tabs(["🔭 에딩턴의 일식", "🎡 회전 원판 탐구", "🎬 인터스텔라 스토리"])
+    tab1, tab2 = st.tabs(["🔭 에딩턴의 일식", "🎡 회전 원판 심층 탐구"])
     
     with tab1:
         col1, col2 = st.columns([1, 2])
@@ -273,32 +302,52 @@ def render_ui():
     with tab2:
         col_c, col_v = st.columns([1, 2])
         with col_c:
-            st.success("**회전 원판과 등가 원리**")
-            disc_step = st.select_slider("탐구 단계", options=[1, 2, 3, 4], format_func=lambda x: f"Step {x}")
-            disc_vel = st.slider("회전 속도 (ω)", 0.5, 10.0, 3.0)
+            st.success("**회전 원판: 3대 관찰자 관점**")
+            pov = st.radio("관찰 시점(POV) 선택", ["A", "B", "C"], 
+                           format_func=lambda x: f"관찰자 {x} (지면)" if x=="A" else (f"관찰자 {x} (중심)" if x=="B" else f"관찰자 {x} (가장자리)"))
+            
+            disc_vel = st.slider("회전 속도 (ω)", 0.5, 10.0, 4.0)
             st.write("---")
-            steps_desc = [
-                "**Step 1**: 외부 관찰자 A의 시점. C는 고속 이동 중이므로 특상 이론에 의해 시간이 느려집니다.",
-                "**Step 2**: 중심 관찰자 B의 시점. 자신은 정지해 있고 외부 우주가 회전하는 것처럼 보입니다.",
-                "**Step 3**: 가장자리 관찰자 C의 시점. 밖으로 튕겨나려는 관성력을 느끼며, 이는 곧 중력과 같습니다.",
-                "**Step 4**: 결론. 등가 원리에 의해 가속(관성력)은 중력과 같으며, 중력이 강할수록 시간은 느려집니다."
-            ]
-            st.markdown(steps_desc[disc_step-1])
-        with col_v:
-            components.html(f"<script>window.stParams = {{ mode: 'disk', discStep: {disc_step}, discVel: {disc_vel}, speed: 1.0 }};</script>" + HTML_TEMPLATE, height=620)
-
-    with tab3:
-        st.markdown("#### 🎬 인터스텔라: 중력 시간 지연의 증거")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.image(img_blackhole, caption="블랙홀 '가르강튀아' 주변의 극심한 시공간 왜곡")
-            st.markdown("**밀러 행성에서의 1시간 = 지구의 7년**\n블랙홀의 엄청난 질량으로 인해 시공간이 극도로 휘어져 시간이 매우 천천히 흐릅니다.")
-        with c2:
-            st.image(img_reunion, caption="시간의 차이를 극복한 쿠퍼와 머피의 재회")
-            st.markdown("**늙은 딸과 젊은 아버지**\n중력의 차이가 만들어낸 수십 년의 시차는 상대성 이론이 실제 우주의 법칙임을 보여줍니다.")
+            if pov == "A":
+                st.markdown("**POV A (지면)**: 정지된 상태에서 회전하는 원판을 봅니다. 움직이는 C의 시계가 가장 느리게 가는 것을 확인할 수 있습니다.")
+            elif pov == "B":
+                st.markdown("**POV B (중심)**: 회전하는 축에 서서 봅니다. 우주 전체가 회전하는 것처럼 보이며, C와 자신의 거리는 일정합니다.")
+            else:
+                st.markdown("**POV C (가장자리)**: 자신이 정지해 있다고 느끼지만, 강력한 **원심력(가속도)**을 받습니다. 등가 원리에 의해 이는 중력을 받는 것과 같으며, 시간이 가장 느리게 흐릅니다.")
         
-        st.image(img_logic, caption="관찰자 관점에 따른 시간 지연의 논리적 구조")
-        st.info("💡 GPS 위성도 매일 0.00004초의 시간 차이를 상대성 이론으로 보정하고 있습니다.")
+        with col_v:
+            components.html(f"<script>window.stParams = {{ mode: 'disk', pov: '{pov}', discVel: {disc_vel}, speed: 1.0 }};</script>" + HTML_TEMPLATE, height=620)
+
+    # 인터스텔라 스토리 섹션 (하단에 별도로 크게 배치)
+    st.write("---")
+    st.markdown("#### 🎬 영화 '인터스텔라'로 배우는 일반 상대성 이론")
+    
+    col_img1, col_txt1 = st.columns([1, 1.2])
+    with col_img1:
+        st.image(img_blackhole, use_container_width=True)
+    with col_txt1:
+        st.markdown("""
+        ##### 1. 블랙홀 '가르강튀아'와 밀러 행성
+        밀러 행성은 거대 블랙홀 Gargantua와 매우 가깝습니다. 블랙홀의 엄청난 질량은 주변 시공간을 극도로 휘게 만들며, 이 '기하학적 왜곡'은 곧 시간의 흐름을 늦춥니다.
+        
+        - **현상**: 밀러 행성에서의 1시간은 지구에서의 약 7년과 같습니다.
+        - **이유**: 중력이 강할수록 시공간의 곡률이 커지며, 시간의 밀도가 높아지기 때문입니다.
+        """)
+
+    st.write("")
+    col_txt2, col_img2 = st.columns([1.2, 1])
+    with col_txt2:
+        st.markdown("""
+        ##### 2. 시간의 강을 건너온 재회
+        쿠퍼 대장이 우주를 여행하고 돌아왔을 때, 그는 여전히 젊지만 그의 딸 머피는 임종을 앞둔 노인이 되어 있습니다.
+        
+        - **의미**: 시간은 우주 어디에서나 일정하게 흐르는 것이 아니라, 관찰자의 위치(중력)와 운동 상태에 따라 달라지는 **상대적인 양**입니다.
+        - **교훈**: 아인슈타인은 중력을 힘이 아닌 '시공간의 기하학적 형태'로 정의함으로써 현대 우주론의 기초를 닦았습니다.
+        """)
+    with col_img2:
+        st.image(img_reunion, use_container_width=True)
+
+    st.info("💡 **실생활 팁**: 우리가 매일 쓰는 스마트폰의 GPS도 일반 상대성 이론(중력에 의한 시간 지연)과 특수 상대성 이론(속도에 의한 시간 지연)을 모두 계산하여 보정하고 있습니다. 만약 이를 무시한다면 하루에 약 10km의 위치 오차가 발생하게 됩니다.")
 
 if __name__ == "__main__":
     render_ui()
