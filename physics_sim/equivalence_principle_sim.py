@@ -485,132 +485,236 @@ function drawPhase1(ctx,W,H,accel,t,running,p1Sit){
 /* ════ Phase 2: 등가 원리 다이어그램 ════ */
 function drawPhase2(ctx,W,H,accel,t,running){
     drawStars(ctx,W,H,t);
-    const cx=W/2,cy=H*0.47;
-    const bw=W*0.72,bh=H*0.72;
+    const cx=W/2,cy=H*0.42;
+    const bw=W*0.72,bh=H*0.58;
     ctx.save();
     ctx.strokeStyle='rgba(167,139,250,0.35)';ctx.lineWidth=1.5;ctx.setLineDash([7,5]);
     ctx.beginPath();ctx.roundRect(cx-bw/2,cy-bh/2,bw,bh,14);ctx.stroke();
     ctx.setLineDash([]);ctx.restore();
     txt(ctx,cx,cy-bh/2-20,'등가 원리 (Equivalence Principle)','rgba(167,139,250,0.9)',15,'center','800');
-    const lx=cx-bw*0.26,rx=cx+bw*0.26,iw=bw*0.36,ih=bh*0.76;
-    ctx.save();
-    ctx.fillStyle='rgba(255,179,71,0.06)';ctx.strokeStyle='rgba(255,179,71,0.3)';ctx.lineWidth=1;
+    const lx=cx-bw*0.26,rx=cx+bw*0.26,iw=bw*0.36,ih=bh*0.74;
+    /* 왼쪽 박스 */
+    ctx.save();ctx.fillStyle='rgba(255,179,71,0.06)';ctx.strokeStyle='rgba(255,179,71,0.3)';ctx.lineWidth=1;
     ctx.beginPath();ctx.roundRect(lx-iw/2,cy-ih/2,iw,ih,10);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,lx,cy-ih*0.35,'중력장 (g)','rgba(255,179,71,0.9)',14,'center','700');
-    txt(ctx,lx,cy-ih*0.18,'공이 바닥으로 낙하','rgba(200,180,120,0.8)',12);
-    txt(ctx,lx,cy-ih*0.06,'빛이 아래로 휜다','rgba(200,180,120,0.8)',12);
-    const bY2l=cy+ih*0.1;
-    ctx.beginPath();ctx.arc(lx,bY2l,8,0,Math.PI*2);
-    const g1=ctx.createRadialGradient(lx-2,bY2l-2,1,lx,bY2l,8);
-    g1.addColorStop(0,'#fff8dc');g1.addColorStop(1,'#cc8800');
-    ctx.fillStyle=g1;ctx.fill();
-    arrow(ctx,lx,bY2l+10,lx,bY2l+26,'rgba(255,179,71,0.8)',1.5);
-    txt(ctx,lx,cy+ih*0.35,'F = mg','rgba(255,179,71,0.6)',13,'center','700');
+    txt(ctx,lx,cy-ih*0.34,'중력장 (g)','rgba(255,179,71,0.9)',13,'center','700');
+    txt(ctx,lx,cy-ih*0.2,'공이 바닥으로 낙하','rgba(200,180,120,0.8)',11);
+    /* 빛 휨 시각화 — 중력장 */
+    const lyBeam=cy-ih*0.06;
+    const lxS=lx-iw/2+14,lxE=lx+iw/2-14;
+    const bendAmt=(accel/9.8)*11;
     ctx.save();
-    ctx.fillStyle='rgba(74,222,128,0.06)';ctx.strokeStyle='rgba(74,222,128,0.3)';ctx.lineWidth=1;
+    ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=6;
+    ctx.strokeStyle='rgba(255,255,100,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=40;i++){const f=i/40,px=lxS+(lxE-lxS)*f,py=lyBeam+f*f*bendAmt;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
+    ctx.stroke();
+    ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,100,0.18)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(lxS,lyBeam);ctx.lineTo(lxE,lyBeam);ctx.stroke();ctx.setLineDash([]);
+    ctx.restore();
+    txt(ctx,lx,lyBeam+bendAmt+13,'빛 아래로 휨','rgba(255,255,100,0.75)',10,'center','600');
+    /* 공 */
+    const bYl=cy+ih*0.14;
+    ctx.beginPath();ctx.arc(lx,bYl,7,0,Math.PI*2);
+    const g1=ctx.createRadialGradient(lx-2,bYl-2,1,lx,bYl,7);g1.addColorStop(0,'#fff8dc');g1.addColorStop(1,'#cc8800');ctx.fillStyle=g1;ctx.fill();
+    arrow(ctx,lx,bYl+9,lx,bYl+23,'rgba(255,179,71,0.8)',1.5);
+    txt(ctx,lx,cy+ih*0.33,'F = mg','rgba(255,179,71,0.6)',12,'center','700');
+    /* 오른쪽 박스 */
+    ctx.save();ctx.fillStyle='rgba(74,222,128,0.06)';ctx.strokeStyle='rgba(74,222,128,0.3)';ctx.lineWidth=1;
     ctx.beginPath();ctx.roundRect(rx-iw/2,cy-ih/2,iw,ih,10);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,rx,cy-ih*0.35,'가속 좌표계 (a=g)','rgba(74,222,128,0.9)',14,'center','700');
-    txt(ctx,rx,cy-ih*0.18,'공이 바닥으로 낙하','rgba(140,200,160,0.8)',12);
-    txt(ctx,rx,cy-ih*0.06,'빛이 아래로 휜다','rgba(140,200,160,0.8)',12);
-    ctx.beginPath();ctx.arc(rx,bY2l,8,0,Math.PI*2);
-    const g2=ctx.createRadialGradient(rx-2,bY2l-2,1,rx,bY2l,8);
-    g2.addColorStop(0,'#f0fff4');g2.addColorStop(1,'#16a34a');
-    ctx.fillStyle=g2;ctx.fill();
-    arrow(ctx,rx,bY2l+10,rx,bY2l+26,'rgba(74,222,128,0.8)',1.5);
-    txt(ctx,rx,cy+ih*0.35,'F = ma','rgba(74,222,128,0.6)',13,'center','700');
+    txt(ctx,rx,cy-ih*0.34,'가속 좌표계 (a=g)','rgba(74,222,128,0.9)',13,'center','700');
+    txt(ctx,rx,cy-ih*0.2,'공이 바닥으로 낙하','rgba(140,200,160,0.8)',11);
+    /* 빛 휨 시각화 — 가속계 */
+    const rxS=rx-iw/2+14,rxE=rx+iw/2-14;
+    ctx.save();
+    ctx.shadowColor='rgba(255,255,100,0.7)';ctx.shadowBlur=6;
+    ctx.strokeStyle='rgba(255,255,100,0.9)';ctx.lineWidth=2;
+    ctx.beginPath();
+    for(let i=0;i<=40;i++){const f=i/40,px=rxS+(rxE-rxS)*f,py=lyBeam+f*f*bendAmt;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}
+    ctx.stroke();
+    ctx.shadowBlur=0;ctx.strokeStyle='rgba(255,255,100,0.18)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.moveTo(rxS,lyBeam);ctx.lineTo(rxE,lyBeam);ctx.stroke();ctx.setLineDash([]);
+    ctx.restore();
+    txt(ctx,rx,lyBeam+bendAmt+13,'빛 아래로 휨','rgba(255,255,100,0.75)',10,'center','600');
+    /* 공 */
+    ctx.beginPath();ctx.arc(rx,bYl,7,0,Math.PI*2);
+    const g2=ctx.createRadialGradient(rx-2,bYl-2,1,rx,bYl,7);g2.addColorStop(0,'#f0fff4');g2.addColorStop(1,'#16a34a');ctx.fillStyle=g2;ctx.fill();
+    arrow(ctx,rx,bYl+9,rx,bYl+23,'rgba(74,222,128,0.8)',1.5);
+    txt(ctx,rx,cy+ih*0.33,'F = ma','rgba(74,222,128,0.6)',12,'center','700');
+    /* 중앙 ≡ */
     const pulse=0.7+0.3*Math.sin(t*0.005);
     ctx.save();ctx.globalAlpha=pulse;
-    txt(ctx,cx,cy+ih*0.08,'≡','rgba(167,139,250,0.9)',38,'center','800');
-    txt(ctx,cx,cy+ih*0.24,'물리적으로 동등','rgba(167,139,250,0.75)',12);
+    txt(ctx,cx,cy+ih*0.04,'≡','rgba(167,139,250,0.9)',34,'center','800');
+    txt(ctx,cx,cy+ih*0.2,'물리적으로 동등','rgba(167,139,250,0.75)',11);
     ctx.restore();
+    /* 결론 */
+    ctx.save();ctx.fillStyle='rgba(167,139,250,0.08)';ctx.strokeStyle='rgba(167,139,250,0.25)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.roundRect(cx-bw*0.44,cy+bh/2-30,bw*0.88,24,5);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,cx,cy+bh/2-14,'내부 관측만으로 구별 불가 → 중력의 본질을 재해석해야 한다','rgba(200,190,255,0.88)',11,'center','600');
+
+    /* ── 하단 탐구 질문 & 논리 전개 박스 ── */
+    const qY=cy+bh/2+14;
     ctx.save();
-    ctx.fillStyle='rgba(167,139,250,0.08)';ctx.strokeStyle='rgba(167,139,250,0.25)';ctx.lineWidth=0.5;
-    ctx.beginPath();ctx.roundRect(cx-bw*0.44,cy+bh/2-44,bw*0.88,38,7);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,cx,cy+bh/2-21,'관측만으로 구별 불가 → 중력을 힘이 아닌 시공간의 기하학으로 재해석해야 한다','rgba(200,190,255,0.9)',12,'center','600');
+    ctx.fillStyle='rgba(8,12,30,0.94)';ctx.strokeStyle='rgba(255,200,80,0.42)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(W*0.04,qY,W*0.92,90,9);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,W*0.04+14,qY+17,'Q.','rgba(255,200,80,0.95)',12,'left','800');
+    txt(ctx,W*0.04+38,qY+17,'두 경우 모두 빛이 아래로 휜다 → 그렇다면 중력장에서도 빛이 반드시 휘어야 하지 않는가?','rgba(255,220,120,0.92)',11,'left','700');
+    txt(ctx,W*0.04+14,qY+39,'→','rgba(248,113,113,0.85)',11,'left','700');
+    txt(ctx,W*0.04+28,qY+39,'뉴턴의 중력 F = GMm/r²  :  빛의 질량 m = 0  →  F = 0  →  뉴턴 역학은 빛의 휨을 설명할 수 없다','rgba(248,130,120,0.85)',11,'left','600');
+    ctx.save();ctx.fillStyle='rgba(99,102,241,0.1)';ctx.strokeStyle='rgba(167,139,250,0.35)';ctx.lineWidth=0.5;
+    ctx.beginPath();ctx.roundRect(W*0.04+6,qY+52,W*0.92-12,32,5);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,W*0.04+14,qY+66,'결론.','rgba(167,139,250,0.95)',11,'left','800');
+    txt(ctx,W*0.04+52,qY+66,'중력 = "두 질량 사이의 힘" 이 아닌 "질량에 의한 시공간 곡률" 로 재해석해야만 빛의 휨이 설명된다','rgba(200,190,255,0.9)',11,'left','700');
+    txt(ctx,W*0.04+52,qY+80,'→ ④ 시공간 곡률 시뮬레이션에서 확인','rgba(100,180,255,0.6)',10,'left');
 }
 
 /* ════ Phase 3: 시공간 곡률 ════ */
 function drawPhase3(ctx,W,H,accel,t,running){
-    const cx=W/2,cy=H*0.46;
     drawStars(ctx,W,H,t);
-    const massR=34+(accel/9.8)*8;
-    const massStr=160*(accel/9.8);
-    const step=46,cols=Math.ceil(W/step)+2,rows=Math.ceil(H*0.82/step)+2;
-    ctx.save();ctx.strokeStyle='rgba(100,160,255,0.14)';ctx.lineWidth=0.8;
-    const gOY=H*0.07;
+
+    /* 빛 경로는 화면 위쪽 1/3 지점, 질량은 경로 아래 중앙 */
+    const cx=W/2;
+    const ly0=H*0.28;        /* 빛의 기준 y (위쪽) */
+    const massY=H*0.52;      /* 질량 중심 y (빛 아래) */
+
+    const massR=36+(accel/9.8)*10;
+    const massStr=220*(accel/9.8);   /* 편향 강도 증가 */
+
+    /* ── 시공간 격자 ── */
+    const step=44,cols=Math.ceil(W/step)+2,rows=Math.ceil(H*0.85/step)+2;
+    ctx.save();ctx.strokeStyle='rgba(100,160,255,0.13)';ctx.lineWidth=0.8;
+    const gOY=H*0.05;
     for(let r=0;r<rows;r++){
         ctx.beginPath();
         for(let c=0;c<=cols;c++){
-            const gx=c*step-step,gy=r*step+gOY,dx=gx-cx,dy=gy-cy,dist=Math.sqrt(dx*dx+dy*dy);
-            const w2=massStr/(dist+55);
-            if(c===0)ctx.moveTo(gx-dx*w2/(dist+55),gy-dy*w2/(dist+55));
-            else ctx.lineTo(gx-dx*w2/(dist+55),gy-dy*w2/(dist+55));
+            const gx=c*step-step,gy=r*step+gOY,dx=gx-cx,dy=gy-massY;
+            const dist=Math.sqrt(dx*dx+dy*dy);
+            const w2=massStr/(dist+50);
+            if(c===0)ctx.moveTo(gx-dx*w2/(dist+50),gy-dy*w2/(dist+50));
+            else ctx.lineTo(gx-dx*w2/(dist+50),gy-dy*w2/(dist+50));
         }
         ctx.stroke();
     }
     for(let c=0;c<cols;c++){
         ctx.beginPath();
         for(let r=0;r<=rows;r++){
-            const gx=c*step-step,gy=r*step+gOY,dx=gx-cx,dy=gy-cy,dist=Math.sqrt(dx*dx+dy*dy);
-            const w2=massStr/(dist+55);
-            if(r===0)ctx.moveTo(gx-dx*w2/(dist+55),gy-dy*w2/(dist+55));
-            else ctx.lineTo(gx-dx*w2/(dist+55),gy-dy*w2/(dist+55));
+            const gx=c*step-step,gy=r*step+gOY,dx=gx-cx,dy=gy-massY;
+            const dist=Math.sqrt(dx*dx+dy*dy);
+            const w2=massStr/(dist+50);
+            if(r===0)ctx.moveTo(gx-dx*w2/(dist+50),gy-dy*w2/(dist+50));
+            else ctx.lineTo(gx-dx*w2/(dist+50),gy-dy*w2/(dist+50));
         }
         ctx.stroke();
     }
     ctx.restore();
-    const mg=ctx.createRadialGradient(cx-8,cy-8,4,cx,cy,massR);
-    mg.addColorStop(0,'rgba(200,180,80,0.95)');mg.addColorStop(0.5,'rgba(140,100,40,0.85)');mg.addColorStop(1,'rgba(60,40,10,0.7)');
-    ctx.beginPath();ctx.arc(cx,cy,massR,0,Math.PI*2);ctx.fillStyle=mg;ctx.fill();
-    ctx.strokeStyle='rgba(255,200,80,0.35)';ctx.lineWidth=1.5;ctx.stroke();
-    txt(ctx,cx,cy+6,'M','rgba(255,220,100,0.9)',18,'center','700');
-    txt(ctx,cx,cy+massR+17,`질량 M (중력: ${accel.toFixed(1)}×)`,'rgba(200,180,100,0.65)',11);
-    const lProg=running?((t%5000)/5000):0.85;
-    const lx1=W*0.04,lx2=W*0.96,ly0=cy-H*0.27;
+
+    /* ── 질량 천체 ── */
+    const mg=ctx.createRadialGradient(cx-8,massY-8,4,cx,massY,massR);
+    mg.addColorStop(0,'rgba(220,195,80,0.98)');mg.addColorStop(0.5,'rgba(150,110,35,0.88)');mg.addColorStop(1,'rgba(60,38,8,0.75)');
+    ctx.beginPath();ctx.arc(cx,massY,massR,0,Math.PI*2);ctx.fillStyle=mg;ctx.fill();
+    ctx.strokeStyle='rgba(255,210,80,0.45)';ctx.lineWidth=2;ctx.stroke();
+    /* 후광 */
+    ctx.save();ctx.globalAlpha=0.12+0.06*Math.sin(t*0.003);
+    ctx.beginPath();ctx.arc(cx,massY,massR+18,0,Math.PI*2);
+    ctx.fillStyle='rgba(255,210,80,0.4)';ctx.fill();ctx.restore();
+    txt(ctx,cx,massY+6,'M','rgba(255,230,110,0.95)',20,'center','700');
+    txt(ctx,cx,massY+massR+18,`질량 M  (중력: ${accel.toFixed(1)}×)`,'rgba(210,185,100,0.7)',11);
+
+    /* ── 기준 직선 (점선) ── */
+    ctx.save();ctx.strokeStyle='rgba(255,255,100,0.2)';ctx.lineWidth=1.2;ctx.setLineDash([6,6]);
+    ctx.beginPath();ctx.moveTo(W*0.03,ly0);ctx.lineTo(W*0.97,ly0);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+
+    /* ── 실제 빛 경로 (아래로 휘어짐) ── */
+    /* 편향 공식: 질량에 가까울수록 더 많이 당겨져 아래로 처짐 */
+    const lProg=running?((t%5000)/5000):0.78;
+    const lx1=W*0.03,lx2=W*0.97;
+
+    function lightY(lx){
+        const dx=lx-cx;
+        const dy_to_mass=massY-ly0;   /* 질량이 빛 아래에 있음 → 양수 */
+        const horiz_dist=Math.abs(dx);
+        /* 거리 기반 편향: 가까울수록 강하게 당김, 멀어지면 급감 */
+        const dist3d=Math.sqrt(dx*dx+dy_to_mass*dy_to_mass);
+        const pull=massStr*1.4/(dist3d+40);
+        /* 빛이 지나간 후에는 원래 직진으로 수렴 */
+        const taper=1-Math.min(horiz_dist/((lx2-lx1)*0.5),1)*0.5;
+        return ly0+pull*taper*(dy_to_mass/(dy_to_mass+60));
+    }
+
     ctx.save();
-    ctx.strokeStyle='rgba(255,255,100,0.92)';ctx.lineWidth=2.5;
-    ctx.shadowColor='rgba(255,255,100,0.55)';ctx.shadowBlur=6;
+    ctx.strokeStyle='rgba(255,255,80,0.95)';ctx.lineWidth=3;
+    ctx.shadowColor='rgba(255,255,60,0.8)';ctx.shadowBlur=10;
     ctx.beginPath();
-    for(let i=0;i<=200*lProg;i++){
-        const frac=i/200,lx=lx1+(lx2-lx1)*frac;
-        const dx=lx-cx,dy=ly0-cy,dist=Math.sqrt(dx*dx+dy*dy);
-        const defl=(massStr*0.65)/(dist+48);
-        const ly=ly0+defl*(1-Math.abs(lx-cx)/(lx2-lx1)*0.75);
+    const totalSteps=300;
+    for(let i=0;i<=totalSteps*lProg;i++){
+        const frac=i/totalSteps;
+        const lx=lx1+(lx2-lx1)*frac;
+        const ly=lightY(lx);
         if(i===0)ctx.moveTo(lx,ly);else ctx.lineTo(lx,ly);
     }
     ctx.stroke();ctx.restore();
-    ctx.save();ctx.strokeStyle='rgba(255,255,100,0.17)';ctx.lineWidth=1;ctx.setLineDash([5,5]);
-    ctx.beginPath();ctx.moveTo(lx1,ly0);ctx.lineTo(lx2,ly0);ctx.stroke();ctx.setLineDash([]);ctx.restore();
+
+    /* 빛 입자 */
     if(running&&lProg<0.98){
-        const frac=lProg,lx=lx1+(lx2-lx1)*frac;
-        const dx=lx-cx,dy=ly0-cy,dist=Math.sqrt(dx*dx+dy*dy);
-        const defl=(massStr*0.65)/(dist+48);
-        const ly=ly0+defl*(1-Math.abs(lx-cx)/(lx2-lx1)*0.75);
-        ctx.beginPath();ctx.arc(lx,ly,5,0,Math.PI*2);
-        ctx.fillStyle='rgba(255,255,150,1)';
-        ctx.shadowColor='rgba(255,255,100,0.9)';ctx.shadowBlur=14;ctx.fill();ctx.shadowBlur=0;
+        const lx=lx1+(lx2-lx1)*lProg;
+        const ly=lightY(lx);
+        ctx.beginPath();ctx.arc(lx,ly,6,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,255,180,1)';
+        ctx.shadowColor='rgba(255,255,80,1)';ctx.shadowBlur=18;ctx.fill();ctx.shadowBlur=0;
+        /* 꼬리 효과 */
+        ctx.save();
+        for(let i=1;i<=5;i++){
+            const tlx=lx-(lx2-lx1)*i*0.012;
+            const tly=lightY(tlx);
+            ctx.beginPath();ctx.arc(tlx,tly,5-i*0.7,0,Math.PI*2);
+            ctx.fillStyle=`rgba(255,255,120,${0.35-i*0.06})`;ctx.fill();
+        }
+        ctx.restore();
     }
-    txt(ctx,lx1+40,ly0-14,'빛 (기준 직선)','rgba(255,255,100,0.28)',11,'left');
-    txt(ctx,lx1+40,ly0+32,'실제 빛 경로 (시공간이 휘어짐)','rgba(255,255,100,0.9)',11,'left');
+
+    /* 편향 표시 화살표 */
+    if(lProg>0.4){
+        const peakX=cx;
+        const peakY=lightY(peakX);
+        const deflect=peakY-ly0;
+        if(deflect>3){
+            ctx.save();ctx.strokeStyle='rgba(100,220,255,0.7)';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+            ctx.beginPath();ctx.moveTo(peakX+massR+20,ly0);ctx.lineTo(peakX+massR+20,peakY);ctx.stroke();ctx.setLineDash([]);
+            arrow(ctx,peakX+massR+20,ly0,peakX+massR+20,peakY,'rgba(100,220,255,0.8)',1.5);
+            txt(ctx,peakX+massR+36,(ly0+peakY)/2,`Δ=${deflect.toFixed(0)}px`,'rgba(100,220,255,0.8)',10,'left');
+            ctx.restore();
+        }
+    }
+
+    /* 경로 설명 레이블 */
+    txt(ctx,lx1+50,ly0-14,'기준 직선 (빛이 직진한다면)','rgba(255,255,100,0.35)',11,'left');
+    txt(ctx,lx1+50,ly0+34,'실제 빛 경로 — 시공간이 휘어져 빛이 당겨진다','rgba(255,255,80,0.9)',11,'left','600');
+
+    /* ── 하단 설명 박스들 ── */
+    const boxY=H*0.67;
+    /* 뉴턴 한계 */
     ctx.save();
-    ctx.fillStyle='rgba(10,14,38,0.9)';ctx.strokeStyle='rgba(248,113,113,0.4)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect(W*0.03,H*0.68,W*0.43,80,9);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,W*0.03+12,H*0.68+18,'뉴턴 역학의 한계:','rgba(248,113,113,0.9)',12,'left','700');
-    txt(ctx,W*0.03+12,H*0.68+36,'F = GMm/r²  →  m=0 이면 F=0','rgba(248,113,113,0.75)',11,'left');
-    txt(ctx,W*0.03+12,H*0.68+52,'빛은 질량이 없으므로 중력을 받지 않아야 함','rgba(248,113,113,0.7)',11,'left');
-    txt(ctx,W*0.03+12,H*0.68+68,'→ 뉴턴으로 빛의 휨을 설명 불가!','rgba(248,113,113,0.55)',10,'left');
+    ctx.fillStyle='rgba(10,14,38,0.92)';ctx.strokeStyle='rgba(248,113,113,0.45)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(W*0.03,boxY,W*0.44,86,9);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,W*0.03+12,boxY+18,'뉴턴 역학의 한계:','rgba(248,113,113,0.95)',12,'left','700');
+    txt(ctx,W*0.03+12,boxY+36,'F = GMm/r²  →  m=0 이면 F=0','rgba(248,130,120,0.85)',11,'left');
+    txt(ctx,W*0.03+12,boxY+52,'빛은 질량이 없으므로 중력을 받지 않아야 함','rgba(248,130,120,0.78)',11,'left');
+    txt(ctx,W*0.03+12,boxY+70,'→ 뉴턴으로 빛의 휨을 설명 불가!','rgba(248,113,113,0.65)',10,'left','600');
+
+    /* 아인슈타인 해결 */
     ctx.save();
-    ctx.fillStyle='rgba(10,14,38,0.9)';ctx.strokeStyle='rgba(167,139,250,0.4)';ctx.lineWidth=1;
-    ctx.beginPath();ctx.roundRect(W*0.55,H*0.68,W*0.42,80,9);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,W*0.55+12,H*0.68+18,'아인슈타인의 해결:','rgba(167,139,250,0.9)',12,'left','700');
-    txt(ctx,W*0.55+12,H*0.68+36,'빛은 직진 — 공간 자체가 휘어짐','rgba(200,190,255,0.8)',11,'left');
-    txt(ctx,W*0.55+12,H*0.68+52,'질량이 시공간 기하를 변형시킴','rgba(200,190,255,0.8)',11,'left');
-    txt(ctx,W*0.55+12,H*0.68+68,'G_μν = (8πG/c⁴) T_μν','rgba(167,139,250,0.65)',11,'left');
+    ctx.fillStyle='rgba(10,14,38,0.92)';ctx.strokeStyle='rgba(167,139,250,0.45)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.roundRect(W*0.53,boxY,W*0.44,86,9);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,W*0.53+12,boxY+18,'아인슈타인의 해결:','rgba(167,139,250,0.95)',12,'left','700');
+    txt(ctx,W*0.53+12,boxY+36,'빛은 직진 — 공간 자체가 질량에 의해 휘어짐','rgba(200,190,255,0.85)',11,'left');
+    txt(ctx,W*0.53+12,boxY+52,'빛은 휘어진 시공간 위의 최단경로를 따라 진행','rgba(200,190,255,0.78)',11,'left');
+    txt(ctx,W*0.53+12,boxY+70,'G_μν = (8πG/c⁴) T_μν','rgba(167,139,250,0.7)',11,'left');
+
+    /* 에딩턴 검증 */
     ctx.save();
-    ctx.fillStyle='rgba(10,14,38,0.85)';ctx.strokeStyle='rgba(255,200,80,0.3)';ctx.lineWidth=0.8;
-    ctx.beginPath();ctx.roundRect(W*0.2,H*0.88,W*0.6,40,8);ctx.fill();ctx.stroke();ctx.restore();
-    txt(ctx,W/2,H*0.88+14,'1919년 에딩턴 일식 관측: 태양 근처 별빛 편향 1.75″ 검증','rgba(255,200,80,0.88)',11,'center','700');
-    txt(ctx,W/2,H*0.88+28,'뉴턴 예측 0.875″  vs  아인슈타인 예측 1.75″  →  실측 = 1.75″ (아인슈타인 승리)','rgba(220,200,160,0.65)',10,'center');
+    ctx.fillStyle='rgba(10,14,38,0.88)';ctx.strokeStyle='rgba(255,200,80,0.35)';ctx.lineWidth=0.8;
+    ctx.beginPath();ctx.roundRect(W*0.18,H*0.88,W*0.64,40,8);ctx.fill();ctx.stroke();ctx.restore();
+    txt(ctx,W/2,H*0.88+14,'1919년 에딩턴 일식 관측: 태양 근처 별빛 편향 1.75″ 검증','rgba(255,200,80,0.9)',11,'center','700');
+    txt(ctx,W/2,H*0.88+28,'뉴턴 예측 0.875″  vs  아인슈타인 예측 1.75″  →  실측 ≈ 1.75″ (아인슈타인 승리)','rgba(220,200,160,0.7)',10,'center');
 }
 
 /* ════ 캔버스 컴포넌트 ════ */
