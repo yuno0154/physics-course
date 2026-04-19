@@ -69,21 +69,27 @@ const drawStars = (ctx, W, H, t) => {
 
 /* ── 3D 투영 엔진 ── */
 const project3D = (x, y, z, W, H) => {
-    const angle = 0.45; // 기울기
-    const scale = 0.85; 
+    const angle = 0.5; // 약간 더 높인 각도
+    const scale = 1.0; 
     const sx = (x - W/2) * scale;
-    const sy = (y - H/2) * scale * Math.sin(angle) - z * 0.5; // Z-depth 적용
-    return { x: sx + W/2, y: sy + H*0.48 };
+    const sy = (y - H/2) * scale * Math.sin(angle) - z * 0.6; // depth 강조
+    return { x: sx + W/2, y: sy + H*0.5 };
 };
+
+/* ── 베지에 포인트 추출 ── */
+const getBezier = (p0, p1, p2, t) => ({
+    x: (1-t)**2 * p0.x + 2*(1-t)*t * p1.x + t**2 * p2.x,
+    y: (1-t)**2 * p0.y + 2*(1-t)*t * p1.y + t**2 * p2.y
+});
 
 function drawGrid(ctx, W, H, sunX, sunY, mass, isLensing) {
     if(!isLensing) return;
-    ctx.save(); ctx.strokeStyle = 'rgba(99, 102, 241, 0.3)'; ctx.lineWidth = 0.8;
+    ctx.save(); ctx.strokeStyle = 'rgba(99, 102, 241, 0.2)'; ctx.lineWidth = 0.6;
     const step = 40;
     const getZ = (x, y) => {
         const dx = x - sunX, dy = y - sunY;
         const d = Math.sqrt(dx*dx + dy*dy);
-        return -(mass * 800) / (d/2 + 60); // 질량에 의한 시공간 함몰
+        return -(mass * 600) / (d/2.5 + 50); 
     };
 
     for (let i = -1; i <= W/step+1; i++) {
@@ -107,94 +113,102 @@ function drawGrid(ctx, W, H, sunX, sunY, mass, isLensing) {
     ctx.restore();
 }
 
-/* ── 중력 렌즈 시뮬레이터 (3D 고도화) ── */
-function drawLensing(ctx, W, H, caseMode, mass, t) {
+/* ── 중력 렌즈 시뮬레이터 (Horizontal + Animation) ── */
+function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
     const cx = W * 0.5, cy = H * 0.5;
-    const rLen = 30 + mass * 4;
-    const earthPos = { x: W * 0.5, y: H * 0.85, z: 0 };
-    const starRealPos = { x: W * 0.5, y: H * 0.1, z: 0 };
+    const rLen = 35 + mass * 3;
+    const observerPos = { x: W * 0.88, y: H * 0.5, z: 0 };
+    const sourcePos = { x: W * 0.12, y: H * 0.5, z: 0 };
     
     drawStars(ctx, W, H, t);
     drawGrid(ctx, W, H, cx, cy, mass, true);
 
-    // 3D 좌표 보정
-    const pE = project3D(earthPos.x, earthPos.y, earthPos.z, W, H);
-    const pS = project3D(starRealPos.x, starRealPos.y, starRealPos.z, W, H);
-    const pC = project3D(cx, cy, -(mass * 12), W, H); // 은하중심도 살짝 가라앉음
+    const pObs = project3D(observerPos.x, observerPos.y, observerPos.z, W, H);
+    const pSrc = project3D(sourcePos.x, sourcePos.y, sourcePos.z, W, H);
+    const pCenter = project3D(cx, cy, -(mass * 10), W, H);
 
-    // 렌즈 천체 (은하단)
-    const gradSun = ctx.createRadialGradient(pC.x, pC.y, 0, pC.x, pC.y, rLen * 2);
-    gradSun.addColorStop(0, 'rgba(99, 102, 241, 0.5)'); 
-    gradSun.addColorStop(1, 'transparent');
-    ctx.beginPath(); ctx.arc(pC.x, pC.y, rLen * 2, 0, Math.PI*2); ctx.fillStyle = gradSun; ctx.fill();
-    ctx.beginPath(); ctx.arc(pC.x, pC.y, rLen, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill(); 
-    ctx.fillStyle='#a5b4fc'; ctx.font='bold 11px Inter'; ctx.textAlign='center';
-    ctx.fillText('중심 은하단 (Gravity Well)', pC.x, pC.y + rLen + 15);
+    // 은하단 (Gravity Well Lens)
+    const gradSun = ctx.createRadialGradient(pCenter.x, pCenter.y, 0, pCenter.x, pCenter.y, rLen * 2.2);
+    gradSun.addColorStop(0, 'rgba(129, 140, 248, 0.4)'); gradSun.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(pCenter.x, pCenter.y, rLen * 2.2, 0, Math.PI*2); ctx.fillStyle = gradSun; ctx.fill();
+    ctx.beginPath(); ctx.arc(pCenter.x, pCenter.y, rLen, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill(); 
+    ctx.fillStyle='#a5b4fc'; ctx.font='bold 11px Noto Sans KR'; ctx.textAlign='center';
+    ctx.fillText('중력 렌즈 (중심 은하단)', pCenter.x, pCenter.y + rLen + 20);
+
+    // 광원 (Source Star)
+    ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(pSrc.x, pSrc.y, 8, 0, Math.PI*2); ctx.fill();
+    ctx.shadowColor='#fbbf24'; ctx.shadowBlur=15; ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillText('실제 광원 (퀘이사)', pSrc.x, pSrc.y - 15);
+
+    const drawAnimatedPath = (midX, midY, midZ, color, isApparent=false) => {
+        const pMid = project3D(midX, midY, midZ, W, H);
+        
+        // 경로 그리기 (애니메이션 반영)
+        ctx.save();
+        ctx.strokeStyle = color; ctx.lineWidth = isApparent? 1.5 : 3;
+        if(isApparent) ctx.setLineDash([5,5]);
+        
+        ctx.beginPath();
+        const steps = 40;
+        ctx.moveTo(pSrc.x, pSrc.y);
+        for(let i=1; i<=steps*progress; i++){
+            const pt = getBezier(pSrc, pMid, pObs, i/steps);
+            ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+
+        // 광자 (Photon) 그리기
+        if (progress > 0 && progress < 1) {
+            const photon = getBezier(pSrc, pMid, pObs, progress);
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(photon.x, photon.y, 4, 0, Math.PI*2); ctx.fill();
+            ctx.shadowColor='#fff'; ctx.shadowBlur=10; ctx.stroke();
+        }
+        ctx.restore();
+    };
 
     if (caseMode === 'shift') {
-        const deflection = mass * 45;
-        // 3D 입체 광선 궤적 (좌우 대칭)
-        ctx.strokeStyle='#fbbf24'; ctx.lineWidth=3;
-        ctx.shadowColor='#fbbf24'; ctx.shadowBlur=12;
+        const d = mass * 40;
+        // 상/하 대칭 경로
+        drawAnimatedPath(cx, cy + d, -mass*20, '#fbbf24');
+        drawAnimatedPath(cx, cy - d, -mass*20, '#fbbf24');
 
-        const drawCurvedPath = (side) => {
-            ctx.beginPath();
-            ctx.moveTo(pS.x, pS.y);
-            const midX = cx + side * deflection;
-            const midY = cy;
-            const midZ = -(mass * 25); // 중간 지점이 골짜기 아래로 휘어짐
-            const pMid = project3D(midX, midY, midZ, W, H);
-            ctx.quadraticCurveTo(pMid.x, pMid.y, pE.x, pE.y);
-            ctx.stroke();
-        };
-
-        drawCurvedPath(1);
-        drawCurvedPath(-1);
-
-        // Apparent Positions (가이드라인 포함)
-        ctx.shadowBlur=0;
-        ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.setLineDash([5,5]);
-        const appX = cx + deflection * 1.8;
-        const appP = project3D(appX, H * 0.1, 0, W, H);
-        ctx.beginPath(); ctx.moveTo(pE.x, pE.y); ctx.lineTo(appP.x, appP.y); ctx.stroke();
-        ctx.setLineDash([]);
-        
-        ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillText(mass > 6 ? '겉보기 위치 A (질량 대)' : '겉보기 위치 B (질량 소)', appP.x, appP.y - 12);
-
-    } else if (caseMode === 'cross') {
-        const d = 45 + mass * 3;
-        const subPositions = [
-            {x:cx+d, y:cy, z:-mass*15}, {x:cx-d, y:cy, z:-mass*15},
-            {x:cx, y:cy+d, z:-mass*15}, {x:cx, y:cy-d, z:-mass*15}
+        // 겉보기 위치 (Apparent Position) 표시
+        if (progress >= 1) {
+            const appP = project3D(sourcePos.x, sourcePos.y - d*1.5, 0, W, H);
+            ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.setLineDash([4,4]);
+            ctx.beginPath(); ctx.moveTo(pObs.x, pObs.y); ctx.lineTo(appP.x, appP.y); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.fillText(mass > 6 ? '겉보기 위치 A' : '겉보기 위치 B', appP.x, appP.y - 15);
+        }
+    } else {
+        // 아인슈타인의 십자가 (4개 경로)
+        const d = 45 + mass * 4;
+        const paths = [
+            {mx:cx, my:cy+d, mz:-mass*20}, {mx:cx, my:cy-d, mz:-mass*20},
+            {mx:cx, my:cy, mz:-mass*20+d*1.2}, {mx:cx, my:cy, mz:-mass*20-d*1.2}
         ];
-        
-        ctx.strokeStyle='rgba(251, 191, 36, 0.7)'; ctx.lineWidth=2;
-        ctx.shadowColor='#fbbf24'; ctx.shadowBlur=10;
-        
-        subPositions.forEach(pos => {
-            const pSub = project3D(pos.x, pos.y, pos.z, W, H);
-            ctx.beginPath(); ctx.moveTo(pS.x, pS.y); 
-            ctx.quadraticCurveTo(pSub.x, pSub.y, pE.x, pE.y);
-            ctx.stroke();
-            
-            // 상 (Image)
-            const pImg = project3D(cx + (pos.x-cx)*1.4, cy + (pos.y-cy)*1.4, 0, W, H);
-            ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(pImg.x, pImg.y, 5, 0, Math.PI*2); ctx.fill();
-        });
-        ctx.shadowBlur=0;
-        ctx.fillStyle='#fbbf24'; ctx.fillText('아인슈타인의 십자가 (Isometric View)', pC.x, pC.y - rLen - 35);
+        paths.forEach(p => drawAnimatedPath(p.mx, p.my, p.mz, 'rgba(251, 191, 36, 0.8)'));
+
+        if (progress >= 1) {
+            paths.forEach((p, idx) => {
+                const appP = project3D(p.mx - (cx-sourcePos.x), p.my + (p.my-cy)*0.6, p.mz*0.5, W, H);
+                ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 5, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.fillStyle='#fbbf24'; ctx.font='bold 14px Inter';
+            ctx.fillText('아인슈타인의 십자가 (관측된 4개 이미지)', cx, H * 0.15);
+        }
     }
 
-    // 지구
-    ctx.beginPath(); ctx.arc(pE.x, pE.y, 22, 0, Math.PI*2); 
-    const gradEarth = ctx.createRadialGradient(pE.x-5, pE.y-5, 2, pE.x, pE.y, 22);
+    // 관측자 (지구)
+    ctx.beginPath(); ctx.arc(pObs.x, pObs.y, 22, 0, Math.PI*2); 
+    const gradEarth = ctx.createRadialGradient(pObs.x-5, pObs.y-5, 2, pObs.x, pObs.y, 22);
     gradEarth.addColorStop(0, '#60a5fa'); gradEarth.addColorStop(1, '#1e40af');
     ctx.fillStyle=gradEarth; ctx.fill();
-    ctx.fillStyle='#fff'; ctx.fillText('지구 (관측자)', pE.x, pE.y + 35);
+    ctx.fillStyle='#fff'; ctx.font='bold 12px Noto Sans KR';
+    ctx.fillText('지구 (관측자)', pObs.x, pObs.y + 35);
 }
 
-/* ── 회전 원판 (등가 원리) ── */
 function drawDashboard(ctx, clocks) {
     const sX = 20, sY = 20, bW = 180, bH = 160;
     ctx.fillStyle = 'rgba(15, 23, 42, 0.9)'; ctx.strokeStyle = 'rgba(99, 102, 241, 0.6)';
@@ -238,6 +252,8 @@ function drawRotatingDisk(ctx, W, H, vel, t, clocks, pov) {
 const Main = () => {
     const canvasRef = React.useRef(null);
     const [t, setT] = React.useState(0);
+    const [progress, setProgress] = React.useState(0);
+    const [isAnimating, setIsAnimating] = React.useState(false);
     const [clocks, setClocks] = React.useState({ A: 0, B: 0, C: 0 });
 
     React.useEffect(() => {
@@ -250,11 +266,18 @@ const Main = () => {
                 const fac = Math.max(0.1, 1 - (discVel * 0.08)); 
                 return { A: prev.A + 0.1 * speed, B: prev.B + 0.1 * speed, C: prev.C + 0.1 * speed * fac };
             });
+            if (isAnimating) {
+                setProgress(p => {
+                    const next = p + 0.012;
+                    if (next >= 1) { setIsAnimating(false); return 1; }
+                    return next;
+                });
+            }
             frame = requestAnimationFrame(loop);
         };
         frame = requestAnimationFrame(loop);
         return () => cancelAnimationFrame(frame);
-    }, []);
+    }, [isAnimating]);
 
     React.useEffect(() => {
         const ctx = canvasRef.current.getContext('2d');
@@ -262,13 +285,35 @@ const Main = () => {
         const mode = window.stParams?.mode || 'lensing';
         ctx.clearRect(0, 0, W, H);
         if (mode === 'lensing') {
-            drawLensing(ctx, W, H, window.stParams.case, window.stParams.mass, t);
+            drawLensing(ctx, W, H, window.stParams.case, window.stParams.mass, t, progress);
         } else {
             drawRotatingDisk(ctx, W, H, window.stParams.discVel, t, clocks, window.stParams.pov);
         }
-    }, [t, clocks]);
+    }, [t, clocks, progress]);
 
-    return <canvas ref={canvasRef} width={800} height={500} style={{ width: '100%', height: '500px', borderRadius: '12px', background: '#05070a' }} />;
+    const handleStart = () => { setProgress(0); setIsAnimating(true); };
+
+    return (
+        <div style={{ position: 'relative', width: '100%', height: '500px' }}>
+            <canvas ref={canvasRef} width={800} height={500} style={{ width: '100%', height: '500px', borderRadius: '12px', background: '#05070a' }} />
+            {window.stParams?.mode === 'lensing' && (
+                <button 
+                    onClick={handleStart}
+                    style={{
+                        position: 'absolute', bottom: '20px', left: '50%', transform: 'translateX(-50%)',
+                        padding: '10px 24px', background: 'rgba(59, 130, 246, 0.8)', color: '#fff',
+                        border: 'none', borderRadius: '30px', cursor: 'pointer', fontWeight: 'bold',
+                        backdropFilter: 'blur(4px)', boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                        transition: 'all 0.2s', fontSize: '14px'
+                    }}
+                    onMouseOver={e => e.target.style.background='rgba(59, 130, 246, 1)'}
+                    onMouseOut={e => e.target.style.background='rgba(59, 130, 246, 0.8)'}
+                >
+                    {progress === 0 ? '▶ 빛의 이동 관찰 시작' : progress === 1 ? '🔄 다시 보기' : '📡 관측 중...'}
+                </button>
+            )}
+        </div>
+    );
 };
 
 ReactDOM.render(<Main />, document.getElementById('root'));

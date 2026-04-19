@@ -776,6 +776,37 @@ const QnA = ({ items }) => {
     );
 };
 
+/* ════ Einstein's Spacetime Curvature Explanation ════ */
+const EINSTEIN_EXPLANATION = [
+    {title:'빛은 시공간의 최단 경로(측지선)를 직진한다', detail:'빛은 항상 두 점 사이의 가장 짧은 경로를 따라 진행합니다. 질량이 없으면 이 경로는 직선입니다.'},
+    {title:'Gμν = 8πGTμν/c⁴ (아인슈타인의 장방정식)', detail:'시공간의 곡률(좌변)은 물질과 에너지의 분포(우변)에 의해 결정됩니다. 중력은 힘이 아니라 시공간의 기하학적 성질입니다.'},
+    {title:'중력은 힘이 아니라 시공간의 기하학적 성질이다', detail:'뉴턴의 중력(F=GMm/r²)과 달리, 아인슈타인의 중력은 시공간 자체가 휘어지는 현상입니다.'},
+    {title:'빛도 질량-에너지 등가(E=mc²)에 의해 시공간 곡률의 영향을 받는다', detail:'빛에는 질량이 없지만, 빛의 에너지가 시공간 곡률에 영향을 줍니다. 따라서 빛도 휘어진 시공간의 영향을 받아 경로가 휘어집니다.'},
+];
+
+const SpacetimeExplanation = ({ items }) => {
+    const [open, setOpen] = useState(null);
+    return (
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            {items.map((item,i)=>(
+                <div key={i} style={{borderRadius:13,border:`1px solid ${open===i?'#10b981':'#1e293b'}`,overflow:'hidden',background:'#070b14',transition:'border-color 0.2s'}}>
+                    <button onClick={()=>setOpen(open===i?null:i)}
+                        style={{width:'100%',display:'flex',alignItems:'flex-start',gap:12,padding:'14px 18px',background:'transparent',border:'none',cursor:'pointer',textAlign:'left',fontFamily:'inherit'}}>
+                        <span style={{color:'#10b981',fontWeight:800,fontSize:15,flexShrink:0,marginTop:1}}>💡</span>
+                        <span style={{color:'#cbd5e1',fontSize:14,lineHeight:1.65,flex:1}}>{item.title}</span>
+                        <span style={{color:'#475569',fontSize:18,transition:'transform 0.25s',transform:open===i?'rotate(180deg)':'rotate(0deg)',flexShrink:0}}>▾</span>
+                    </button>
+                    <div style={{maxHeight:open===i?'200px':'0px',overflow:'hidden',transition:'max-height 0.35s ease'}}>
+                        <div style={{padding:'0 18px 14px 46px',display:'flex',gap:10}}>
+                            <span style={{color:'#6ee7b7',fontSize:13,lineHeight:1.75}}>{item.detail}</span>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
 /* ════ 개념 연결 수식 ════ */
 const DERIVE_STEPS = [
     {title:'Step 1. 관성력과 운동의 상대성',desc:'가속 좌표계에서 공은 관성력(F=−ma)에 의해 낙하한다. 내부/외부 두 기술 모두 s=½at²로 일치한다.',
@@ -1074,6 +1105,16 @@ const App = () => {
                         t={t} running={running} tL={tL} tR={tR}/>
                 </div>
             </div>
+
+            {phase===3&&(
+                <div className="card">
+                    <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+                        <div style={{width:4,height:22,background:'#10b981',borderRadius:2}}/>
+                        <h2 style={{fontSize:17,fontWeight:800,color:'#e2e8f0'}}>🌌 Einstein의 시공간 곡률 해석</h2>
+                    </div>
+                    <SpacetimeExplanation items={EINSTEIN_EXPLANATION}/>
+                </div>
+            )}
 
             <div className="card">
                 <DerivationSection/>
