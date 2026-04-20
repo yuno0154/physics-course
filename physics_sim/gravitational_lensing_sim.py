@@ -145,7 +145,7 @@ function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
         
         // 경로 그리기 (Bezier 곡선 활용)
         ctx.save();
-        ctx.strokeStyle = color; ctx.lineWidth = 3;
+        ctx.strokeStyle = color; ctx.lineWidth = progress >= 1 ? 1.5 : 3;
         ctx.beginPath();
         const steps = 40;
         ctx.moveTo(pSrc.x, pSrc.y);
@@ -155,67 +155,103 @@ function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
         }
         ctx.stroke();
 
-        // 광자 (Photon) 그리기
-        if (progress > 0 && progress < 1) {
-            const photon = getBezier(pSrc, pMid, pObs, progress);
+        // 연속적인 광자 (Looping Photons) 애니메이션
+        // 경로가 다 그려진 후(progress=1)에도 계속 흐르도록 개선
+        if (progress > 0) {
+            const pFlow = (progress < 1) ? progress : (t * 0.001) % 1;
+            const photon = getBezier(pSrc, pMid, pObs, pFlow);
             ctx.save();
             ctx.shadowColor='#fff'; ctx.shadowBlur=15;
             ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(photon.x, photon.y, 4, 0, Math.PI*2); ctx.fill();
             ctx.restore();
+            
+            // 추가 광자 (꼬리 효과)
+            if (progress === 1) {
+                const photon2 = getBezier(pSrc, pMid, pObs, (pFlow + 0.5) % 1);
+                ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(photon2.x, photon2.y, 3, 0, Math.PI*2); ctx.fill();
+            }
         }
 
-        // 겉보기 위치 (Apparent Position): 관측자에서의 접선 방향으로 연장
+        // 겉보기 위치 및 시선 방향
         if (progress >= 1) {
-            // 수학적 보정: 베지에 곡선의 t=1에서의 접선은 pMid와 pObs를 잇는 직선임
-            const tParam = (sourcePos.x - observerPos.x) / (midX - observerPos.x); // X축 기준 연장 비율
+            const tParam = (sourcePos.x - observerPos.x) / (midX - observerPos.x);
             const appX = observerPos.x + tParam * (midX - observerPos.x);
             const appY = observerPos.y + tParam * (midY - observerPos.y);
             const appZ = observerPos.z + tParam * (midZ - observerPos.z);
             const pApp = project3D(appX, appY, appZ, W, H);
 
-            // 시선 방향 가이드라인 (Dashed Line)
             ctx.save();
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-            ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
             ctx.beginPath(); ctx.moveTo(pObs.x, pObs.y); ctx.lineTo(pApp.x, pApp.y); ctx.stroke();
             ctx.restore();
 
-            // 관측된 상 (Apparent Image)
             ctx.save();
             ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 10;
-            ctx.beginPath(); ctx.arc(pApp.x, pApp.y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(pApp.x, pApp.y, 5, 0, Math.PI*2); ctx.fill();
             ctx.restore();
+
+            return { appX, appY, appZ }; // 관측자 보기용 좌표 반환
         }
-        ctx.restore();
     };
 
+    let appPoints = [];
     if (caseMode === 'shift') {
         const d = mass * 35;
-        // 3D 공간상에 4개의 경로를 배치하여 입체감 부여 (Conical view)
         const angles = [Math.PI/6, 5*Math.PI/6, 7*Math.PI/6, 11*Math.PI/6];
         angles.forEach(ang => {
             const my_val = cy + d * Math.sin(ang);
             const mz_val = -mass * 15 + d * Math.cos(ang) * 0.4;
-            drawAnimatedPath(cx, my_val, mz_val, '#fbbf24');
+            const pt = drawAnimatedPath(cx, my_val, mz_val, '#fbbf24');
+            if(pt) appPoints.push(pt);
         });
-        
-        if (progress >= 1) {
-            ctx.fillStyle='#fff'; ctx.font='bold 14px Noto Sans KR'; ctx.textAlign='center';
-            ctx.fillText('중력에 의해 휘어진 시선 방향으로 상이 맺힘', cx, H * 0.15);
-        }
     } else {
-        // 아인슈타인의 십자가 (더 명확한 4개 대칭 경로)
         const d = 40 + mass * 4;
         const paths = [
             {mx:cx, my:cy+d, mz:-mass*20}, {mx:cx, my:cy-d, mz:-mass*20},
             {mx:cx, my:cy, mz:-mass*20+d*1.2}, {mx:cx, my:cy, mz:-mass*20-d*1.2}
         ];
-        paths.forEach(p => drawAnimatedPath(p.mx, p.my, p.mz, '#facc15'));
+        paths.forEach(p => {
+            const pt = drawAnimatedPath(p.mx, p.my, p.mz, '#facc15');
+            if(pt) appPoints.push(pt);
+        });
+    }
 
-        if (progress >= 1) {
-            ctx.fillStyle='#facc15'; ctx.font='bold 15px Inter'; ctx.textAlign='center';
-            ctx.fillText('Einstein Cross (Four split images observerd)', cx, H * 0.12);
-        }
+    // 관측자 시점 인셋 (Observer's Perspective)
+    if (progress >= 1) {
+        ctx.save();
+        const iw = 140, ih = 140;
+        const ix = W - iw - 20, iy = 40;
+        
+        // 배경 박스
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.roundRect(ix, iy, iw, ih, 12); ctx.fill(); ctx.stroke();
+        
+        ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 10px Inter'; ctx.textAlign = 'center';
+        ctx.fillText("EARTH'S VIEW (TELESCOPE)", ix + iw/2, iy + 20);
+        
+        // 망원경 시야 원
+        ctx.beginPath(); ctx.arc(ix + iw/2, iy + ih/2 + 5, 45, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.5)'; ctx.stroke();
+        
+        // 렌즈 은하 (중심)
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.beginPath(); ctx.arc(ix + iw/2, iy + ih/2 + 5, 8, 0, Math.PI*2); ctx.fill();
+
+        // 관측된 십자가 별들 (Apparent Images)
+        appPoints.forEach(p => {
+            // Earth View 투영: 상대적인 Y, Z 좌표를 평면에 매핑
+            const vx = (ix + iw/2) + (p.appZ - (-mass*20)) * 0.8;
+            const vy = (iy + ih/2 + 5) + (p.appY - cy) * 0.8;
+            
+            ctx.save();
+            ctx.shadowBlur = 10; ctx.shadowColor = '#facc15';
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(vx, vy, 3, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        });
+        
+        ctx.restore();
     }
 
     // 관측자 (지구)
@@ -223,7 +259,7 @@ function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
     const gradEarth = ctx.createRadialGradient(pObs.x-5, pObs.y-5, 2, pObs.x, pObs.y, 22);
     gradEarth.addColorStop(0, '#60a5fa'); gradEarth.addColorStop(1, '#1e40af');
     ctx.fillStyle=gradEarth; ctx.fill();
-    ctx.fillStyle='#fff'; ctx.font='bold 12px Noto Sans KR';
+    ctx.fillStyle='#fff'; ctx.font='bold 12px Noto Sans KR'; ctx.textAlign = 'center';
     ctx.fillText('지구 (관측자)', pObs.x, pObs.y + 35);
 }
 
