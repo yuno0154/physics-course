@@ -204,17 +204,31 @@ function SimTab() {
       let done = false, escaped = false;
 
       for (let i = 0; i < STEPS; i++) {
-        /* 적응형 dt: r이 클수록 큰 dt → 화면 속도 균일 */
-        const dt = DT_BASE * Math.pow(Math.max(s.r, PLANET_R) / PLANET_R, 1.5);
-        /* 에너지 보존으로 속도 계산 (수치 드리프트 없음) */
-        const v2 = 2 * (s.E0 + GM_NORM / s.r);
-        if (v2 <= 0 && !s.returning) s.returning = true;
-        const spd = Math.sqrt(Math.max(0, v2));
-        s.v = s.returning ? -spd : spd;
-        s.r = Math.max(PLANET_R * 0.99, s.r + s.v * dt);
+        /* 적응형 dt: r 클수록 빠르게 이동 (화면 속도 균일) */
+        const rRatio = Math.max(s.r, PLANET_R) / PLANET_R;
+        const dt = DT_BASE * Math.pow(rRatio, 1.3);
+
+        if (!s.returning) {
+          /* ── 탈출 방향 ── 에너지 보존으로 속도 계산 */
+          const v2 = 2 * (s.E0 + GM_NORM / s.r);
+          if (v2 <= 0) {
+            /* 전환점 도달: rMax에 정확히 고정 후 방향 전환 */
+            s.r = isFinite(s.rMax) ? s.rMax : s.r;
+            s.returning = true;
+            /* returning 시작: rMax에서 살짝 안쪽으로 이동 */
+            s.r = Math.max(PLANET_R + 1, s.r - 0.5);
+          } else {
+            s.r = s.r + Math.sqrt(v2) * dt;
+          }
+        } else {
+          /* ── 귀환 방향 ── 에너지 보존 (속도는 항상 양수, r 감소) */
+          const v2r = 2 * (s.E0 + GM_NORM / s.r);
+          const spd = Math.sqrt(Math.max(1e-6, v2r));
+          s.r = Math.max(PLANET_R * 0.99, s.r - spd * dt);
+        }
 
         if (!s.returning && s.r >= R_INF) { escaped = true; done = true; break; }
-        if (s.returning && s.r <= PLANET_R) { s.r = PLANET_R; s.v = 0; done = true; break; }
+        if (s.returning && s.r <= PLANET_R) { s.r = PLANET_R; done = true; break; }
       }
 
       const objSX = Math.min(toSX(s.r), INF_X - 5);
@@ -269,17 +283,31 @@ function SimTab() {
 
       /* ── r_max 마커 (E<0일 때 최대 도달 거리 표시) ── */
       if (s.E0 < -1e-9 && isFinite(s.rMax) && s.rMax < R_INF) {
-        const rmSX=toSX(s.rMax);
-        if(rmSX>SURF_X+10 && rmSX<INF_X-10){
+        const rmSX = toSX(s.rMax);
+        if (rmSX > SURF_X + 10 && rmSX < INF_X - 10) {
+          /* 벽 배경 강조 */
+          const wallG = ctx.createLinearGradient(rmSX-16,0,rmSX+16,0);
+          wallG.addColorStop(0,'rgba(239,68,68,0)');
+          wallG.addColorStop(0.5,'rgba(239,68,68,0.12)');
+          wallG.addColorStop(1,'rgba(239,68,68,0)');
+          ctx.fillStyle=wallG; ctx.fillRect(rmSX-16,CY-DISP_R-30,32,DISP_R*2+82);
+          /* 점선 */
           ctx.save(); ctx.setLineDash([3,4]);
-          ctx.strokeStyle='rgba(239,68,68,0.55)'; ctx.lineWidth=1.4;
-          ctx.beginPath(); ctx.moveTo(rmSX,CY-DISP_R-22); ctx.lineTo(rmSX,CY+DISP_R+52); ctx.stroke();
+          ctx.strokeStyle='rgba(239,68,68,0.7)'; ctx.lineWidth=1.8;
+          ctx.beginPath(); ctx.moveTo(rmSX,CY-DISP_R-28); ctx.lineTo(rmSX,CY+DISP_R+55); ctx.stroke();
           ctx.restore();
           const rR=(s.rMax/PLANET_R).toFixed(1);
-          ctx.fillStyle='rgba(239,68,68,0.85)'; ctx.font='bold 10px Noto Sans KR'; ctx.textAlign='center';
-          ctx.fillText('최대 도달',rmSX,CY-DISP_R-24);
-          ctx.fillStyle='rgba(239,68,68,0.65)'; ctx.font='10px Space Mono';
-          ctx.fillText(`r = ${rR} R`,rmSX,CY-DISP_R-12);
+          ctx.fillStyle='rgba(252,165,165,0.95)'; ctx.font='bold 11px Noto Sans KR'; ctx.textAlign='center';
+          ctx.fillText('↓ 최대 도달',rmSX,CY-DISP_R-30);
+          ctx.fillStyle='rgba(239,68,68,0.8)'; ctx.font='10px Space Mono';
+          ctx.fillText(`r = ${rR} R`,rmSX,CY-DISP_R-17);
+          /* 전환점 도달 시 반짝임 */
+          if (s.returning && Math.abs(toSX(s.r) - rmSX) < 20) {
+            const glow=ctx.createRadialGradient(rmSX,CY,0,rmSX,CY,30);
+            glow.addColorStop(0,'rgba(239,68,68,0.35)');
+            glow.addColorStop(1,'rgba(239,68,68,0)');
+            ctx.beginPath(); ctx.arc(rmSX,CY,30,0,Math.PI*2); ctx.fillStyle=glow; ctx.fill();
+          }
         }
       }
 
