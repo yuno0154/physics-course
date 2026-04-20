@@ -275,13 +275,55 @@ def render_ui():
                            format_func=lambda x: f"POV {x}" + (" (지면)" if x=='A' else " (중심)" if x=="B" else " (가장자리)"))
             disc_vel = st.slider("원판 회전 속도 (ω)", 0.5, 10.0, 5.0)
             
-            st.markdown("**📊 분석 데이터**")
-            inquiry_data = [
-                {"관측": "A (정지)", "C의 운동": "원운동", "원인": "속도 (SR)"},
-                {"관측": "B (중심)", "C의 운동": "정지", "원인": "가속계 시차 (GR)"},
-                {"관측": "C (가중)", "C의 운동": "정지", "원인": "관성력 (Equiv)"}
-            ]
-            st.table(inquiry_data)
+            st.markdown("**📊 분석 데이터: 관찰자에 따른 시간 해석**")
+            
+            # 인지 부하 이론을 적용한 스토리텔링형 표 구성
+            st.markdown("""
+            <div style="overflow-x: auto;">
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr style="background-color: #0f172a; color: white; text-align: center;">
+                        <th style="padding: 12px; border: 1px solid #1e293b;">관찰자 (누가)</th>
+                        <th style="padding: 12px; border: 1px solid #1e293b;">대상(C)의 상태</th>
+                        <th style="padding: 12px; border: 1px solid #1e293b;">시간 지연의 원인 (왜?)</th>
+                        <th style="padding: 12px; border: 1px solid #1e293b;">결론 (C의 시간)</th>
+                    </tr>
+                </thead>
+                <tbody style="text-align: center;">
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><b>A</b> (지면) 🌀 <span style="color:#3b82f6">$v$</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">빠른 속도로 회전 중</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><span title="Special Relativity: 속도가 빠를수록 시간이 느려짐">빠른 속도 때문 (<b>SR</b>)</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; color: #ef4444; font-weight: 800;">느려짐</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><b>B</b> (중심) ⚖️ <span style="color:#10b981">$a$</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">나랑 같이 서 있음 (정지)</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><span title="General Relativity: 가속도(중력)가 강할수록 시간이 느려짐">강한 원심력 때문 (<b>GR</b>)</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; color: #ef4444; font-weight: 800;">느려짐</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc;"><b>C</b> (끝단) ⏬ <span style="color:#f59e0b">$g_{in}$</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;">내가 힘을 받는 중 (정지)</td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0;"><span title="Equivalence Principle: 내가 느끼는 관성력은 중력과 똑같은 효과를 냄">받는 관성력 때문 (<b>Equiv</b>)</span></td>
+                        <td style="padding: 10px; border: 1px solid #e2e8f0; color: #ef4444; font-weight: 800;">느려짐</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.info("""
+            💡 **핵심 요약**:
+            "관찰자에 따라 속도 때문이라고 할 수도, 가속도(관성력) 때문이라고 할 수도 있지만, **가장자리에 있는 C의 시간이 느려진다는 사실**은 변하지 않습니다. 이것이 바로 가속과 중력이 시공간을 변화시키는 방식입니다."
+            """)
+            
+            with st.expander("📍 용어 사전 (Relativity Terms)"):
+                st.markdown("""
+                - **SR (Special Relativity)**: 특수 상대성 이론. 속도가 빠를수록 시간이 상대적으로 느리게 흐릅니다.
+                - **GR (General Relativity)**: 일반 상대성 이론. 가속도(중력)가 강할수록 시공간이 휘어 시간이 느리게 흐릅니다.
+                - **Equiv (Equivalence Principle)**: 등가 원리. 내가 가속하며 느끼는 관성력은 중력과 물리적으로 똑같은 효과를 냅니다.
+                """)
         with col_v:
             components.html(f"<script>window.stParams = {{ mode: 'disk', pov: '{pov}', discVel: {disc_vel}, speed: 1.0 }};</script>" + HTML_TEMPLATE, height=520)
 
