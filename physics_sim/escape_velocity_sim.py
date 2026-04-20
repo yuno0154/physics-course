@@ -150,7 +150,11 @@ function SimTab() {
     cancelAnimationFrame(animRef.current);
     const v0norm = vFrac * V_ESC_NORM;
     const E0 = 0.5 * v0norm * v0norm - GM_NORM / PLANET_R;
-    simRef.current = { r: PLANET_R, v: v0norm, trail: [], willEscape: E0 >= 0, vFrac0: vFrac };
+    // r_max: E<0일 때 최대 도달 거리 (에너지 보존)
+    const rMax = E0 < -1e-9
+      ? GM_NORM / (GM_NORM / PLANET_R - 0.5 * v0norm * v0norm)
+      : Infinity;
+    simRef.current = { r: PLANET_R, v: v0norm, trail: [], E0, vFrac0: vFrac, returning: false, rMax };
     statusRef.current = 'running';
     setStatus('running');
   };
@@ -179,134 +183,191 @@ function SimTab() {
     if (status !== 'running') return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const W = 820, H = 400;
-    const CX = W * 0.26, CY = H * 0.5;
-    const DT = 0.18, STEPS = 6;
-    const color = isCustom ? '#8b5cf6' : PRESETS[presetIdx].color;
+    const W = 820, H = 420;
+    /* 압축 좌표계: 행성은 왼쪽에 작게, 오른쪽 끝 = ∞ */
+    const PX = 74, CY = H * 0.50;    // 행성 중심
+    const DISP_R = 44;                // 행성 표시 반지름(px)
+    const SURF_X = PX + DISP_R;      // 표면 화면 X = 118
+    const INF_X  = W - 28;           // ∞ 마커 화면 X = 792
+    const DT_BASE = 0.18;
+    const STEPS   = 6;
+    const R_INF   = 90 * PLANET_R;   // '무한대 도달' 임계 (화면 끝 ≈ ∞)
+    const color   = isCustom ? '#8b5cf6' : PRESETS[presetIdx].color;
+
+    /* 압축 좌표 변환: 물리 r → 화면 X
+       r = PLANET_R → SURF_X,  r → ∞ → INF_X */
+    const toSX = r => SURF_X + (INF_X - SURF_X) * (1 - PLANET_R / Math.max(r, PLANET_R));
 
     const drawFrame = () => {
       if (statusRef.current !== 'running') return;
       const s = simRef.current;
-      let done = false, escaped = false, infinityStop = false;
+      let done = false, escaped = false;
 
       for (let i = 0; i < STEPS; i++) {
-        const a = -GM_NORM / (s.r * s.r);
-        s.v += a * DT;
-        s.r += s.v * DT;
-        /* 화면 끝 탈출 */
-        if (s.r > W - CX + 50) { escaped = true; done = true; break; }
-        /* 에너지 기반 탈출: 총 에너지≥0 → 물리적으로 반드시 탈출 */
-        if (s.willEscape && s.r > W - CX + 50) {
-          escaped = true; done = true; break;
-        }
-        /* 표면 귀환: 총 에너지 < 0 일 때만 (수치 오류 방지) */
-        if (s.r <= PLANET_R) { s.r = PLANET_R; s.v = 0; done = true; break; }
+        /* 적응형 dt: r이 클수록 큰 dt → 화면 속도 균일 */
+        const dt = DT_BASE * Math.pow(Math.max(s.r, PLANET_R) / PLANET_R, 1.5);
+        /* 에너지 보존으로 속도 계산 (수치 드리프트 없음) */
+        const v2 = 2 * (s.E0 + GM_NORM / s.r);
+        if (v2 <= 0 && !s.returning) s.returning = true;
+        const spd = Math.sqrt(Math.max(0, v2));
+        s.v = s.returning ? -spd : spd;
+        s.r = Math.max(PLANET_R * 0.99, s.r + s.v * dt);
+
+        if (!s.returning && s.r >= R_INF) { escaped = true; done = true; break; }
+        if (s.returning && s.r <= PLANET_R) { s.r = PLANET_R; s.v = 0; done = true; break; }
       }
 
-      const objX = CX + s.r;          // r=PLANET_R → 행성 표면(우측 끝)
-      const Ek   = Math.max(0, 0.5 * s.v * s.v);
-      const Ep   = -GM_NORM / s.r;
+      const objSX = Math.min(toSX(s.r), INF_X - 5);
+      const Ek = Math.max(0, 0.5 * s.v * s.v);
+      const Ep = -GM_NORM / s.r;
 
-      /* 궤적 기록 (탈출·귀환 경로 모두 포함) */
+      /* 궤적 (탈출=노랑, 귀환=빨강) */
       if (!done) {
-        s.trail.push({ x: Math.min(objX, W - 15), y: CY });
-        if (s.trail.length > 700) s.trail.shift();
+        s.trail.push({ sx: objSX, y: CY, ret: s.returning });
+        if (s.trail.length > 900) s.trail.shift();
       }
 
-      /* 배경 */
+      /* ── 배경 ── */
       ctx.fillStyle = '#05070a'; ctx.fillRect(0, 0, W, H);
-      for (let i = 0; i < 120; i++) {
-        const sx = (i*137.5)%W, sy = (i*97+i*11)%H;
-        ctx.beginPath(); ctx.arc(sx, sy, 0.4+(i%3)*0.3, 0, Math.PI*2);
-        ctx.fillStyle = `rgba(210,225,255,${0.07+(i%5)*0.05})`; ctx.fill();
+      for (let i = 0; i < 130; i++) {
+        const sx = (i*137.5+8)%W, sy = (i*97+i*11)%H;
+        ctx.beginPath(); ctx.arc(sx,sy,0.38+(i%3)*0.28,0,Math.PI*2);
+        ctx.fillStyle=`rgba(210,225,255,${0.06+(i%5)*0.04})`; ctx.fill();
       }
 
-      /* 탈출속도 기준선 */
-      ctx.save(); ctx.setLineDash([6,5]);
-      ctx.strokeStyle = 'rgba(34,197,94,0.35)'; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(CX+PLANET_R+4, CY-26); ctx.lineTo(W-25, CY-26); ctx.stroke();
+      /* ── 거리 축 ── */
+      ctx.beginPath(); ctx.moveTo(SURF_X, CY+DISP_R+16); ctx.lineTo(INF_X, CY+DISP_R+16);
+      ctx.strokeStyle='rgba(51,65,85,0.5)'; ctx.lineWidth=1; ctx.stroke();
+      [2,3,5,10,20,50].forEach(n=>{
+        const sx=toSX(n*PLANET_R);
+        if(sx<SURF_X+14||sx>INF_X-14) return;
+        ctx.beginPath(); ctx.moveTo(sx,CY+DISP_R+12); ctx.lineTo(sx,CY+DISP_R+20);
+        ctx.strokeStyle='rgba(71,85,105,0.55)'; ctx.lineWidth=1; ctx.stroke();
+        ctx.fillStyle='rgba(100,116,139,0.72)'; ctx.font='10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(`${n}R`,sx,CY+DISP_R+30);
+      });
+      ctx.fillStyle='rgba(71,85,105,0.5)'; ctx.font='10px Noto Sans KR'; ctx.textAlign='center';
+      ctx.fillText('← 표면으로부터의 거리 (압축 로그 축)', SURF_X+(INF_X-SURF_X)*0.38, CY+DISP_R+42);
+
+      /* ── 무한대 마커 ── */
+      ctx.save(); ctx.setLineDash([4,5]);
+      ctx.strokeStyle='rgba(148,163,184,0.35)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(INF_X,10); ctx.lineTo(INF_X,H-10); ctx.stroke();
       ctx.restore();
-      ctx.fillStyle = 'rgba(34,197,94,0.6)'; ctx.font = '11px Noto Sans KR'; ctx.textAlign='left';
-      ctx.fillText('← 탈출 경로', CX+PLANET_R+8, CY-11);
+      ctx.fillStyle='rgba(203,213,225,0.85)'; ctx.font='bold 18px Space Mono'; ctx.textAlign='center';
+      ctx.fillText('∞',INF_X,20);
+      ctx.fillStyle='rgba(100,116,139,0.7)'; ctx.font='9px Noto Sans KR';
+      ctx.fillText('무한대',INF_X,32);
 
-      /* 행성 */
-      const pg = ctx.createRadialGradient(CX-22, CY-22, 8, CX, CY, PLANET_R);
-      pg.addColorStop(0, lighten(color)); pg.addColorStop(0.45, color); pg.addColorStop(1, darken(color));
-      ctx.beginPath(); ctx.arc(CX, CY, PLANET_R, 0, Math.PI*2); ctx.fillStyle=pg; ctx.fill();
-      const ag = ctx.createRadialGradient(CX,CY,PLANET_R,CX,CY,PLANET_R*1.28);
-      ag.addColorStop(0,hexA(color,0.3)); ag.addColorStop(1,hexA(color,0));
-      ctx.beginPath(); ctx.arc(CX,CY,PLANET_R*1.28,0,Math.PI*2); ctx.fillStyle=ag; ctx.fill();
-      ctx.fillStyle='rgba(200,220,255,0.75)'; ctx.font='bold 12px Noto Sans KR'; ctx.textAlign='center';
-      ctx.fillText(isCustom ? '사용자 천체' : PRESETS[presetIdx].name, CX, CY+PLANET_R+18);
+      /* ── 탈출 경로 점선 ── */
+      ctx.save(); ctx.setLineDash([6,5]);
+      ctx.strokeStyle='rgba(34,197,94,0.28)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(SURF_X+4,CY-24); ctx.lineTo(INF_X-6,CY-24); ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle='rgba(34,197,94,0.6)'; ctx.font='11px Noto Sans KR'; ctx.textAlign='left';
+      ctx.fillText('← 탈출 경로',SURF_X+8,CY-11);
 
-      /* 궤적 */
-      s.trail.forEach((pt, i) => {
-        const a = 0.08 + (i/s.trail.length)*0.75;
-        ctx.beginPath(); ctx.arc(pt.x, pt.y, 2.4, 0, Math.PI*2);
-        ctx.fillStyle=`rgba(251,191,36,${a})`; ctx.fill();
+      /* ── r_max 마커 (E<0일 때 최대 도달 거리 표시) ── */
+      if (s.E0 < -1e-9 && isFinite(s.rMax) && s.rMax < R_INF) {
+        const rmSX=toSX(s.rMax);
+        if(rmSX>SURF_X+10 && rmSX<INF_X-10){
+          ctx.save(); ctx.setLineDash([3,4]);
+          ctx.strokeStyle='rgba(239,68,68,0.55)'; ctx.lineWidth=1.4;
+          ctx.beginPath(); ctx.moveTo(rmSX,CY-DISP_R-22); ctx.lineTo(rmSX,CY+DISP_R+52); ctx.stroke();
+          ctx.restore();
+          const rR=(s.rMax/PLANET_R).toFixed(1);
+          ctx.fillStyle='rgba(239,68,68,0.85)'; ctx.font='bold 10px Noto Sans KR'; ctx.textAlign='center';
+          ctx.fillText('최대 도달',rmSX,CY-DISP_R-24);
+          ctx.fillStyle='rgba(239,68,68,0.65)'; ctx.font='10px Space Mono';
+          ctx.fillText(`r = ${rR} R`,rmSX,CY-DISP_R-12);
+        }
+      }
+
+      /* ── 행성 ── */
+      const pg=ctx.createRadialGradient(PX-10,CY-10,5,PX,CY,DISP_R);
+      pg.addColorStop(0,lighten(color)); pg.addColorStop(0.45,color); pg.addColorStop(1,darken(color));
+      ctx.beginPath(); ctx.arc(PX,CY,DISP_R,0,Math.PI*2); ctx.fillStyle=pg; ctx.fill();
+      const ag=ctx.createRadialGradient(PX,CY,DISP_R,PX,CY,DISP_R*1.3);
+      ag.addColorStop(0,hexA(color,0.22)); ag.addColorStop(1,hexA(color,0));
+      ctx.beginPath(); ctx.arc(PX,CY,DISP_R*1.3,0,Math.PI*2); ctx.fillStyle=ag; ctx.fill();
+      ctx.fillStyle='rgba(200,220,255,0.7)'; ctx.font='bold 11px Noto Sans KR'; ctx.textAlign='center';
+      ctx.fillText(isCustom?'사용자 천체':PRESETS[presetIdx].name, PX, CY+DISP_R+10);
+
+      /* ── 궤적 ── */
+      s.trail.forEach((pt,i)=>{
+        const a=0.07+(i/s.trail.length)*0.78;
+        const c=pt.ret?`rgba(239,68,68,${a})`:`rgba(251,191,36,${a})`;
+        ctx.beginPath(); ctx.arc(pt.sx,pt.y,2.2,0,Math.PI*2); ctx.fillStyle=c; ctx.fill();
       });
 
-      /* 물체 */
-      if (!done || escaped) {
-        const ox = Math.min(CX + s.r, W-20);
-        const og = ctx.createRadialGradient(ox-3,CY-3,1,ox,CY,10);
+      /* ── 물체 ── */
+      if(!done||escaped){
+        const og=ctx.createRadialGradient(objSX-2,CY-2,1,objSX,CY,9);
         og.addColorStop(0,'#fef3c7'); og.addColorStop(1,'#f59e0b');
-        ctx.beginPath(); ctx.arc(ox, CY, 10, 0, Math.PI*2); ctx.fillStyle=og; ctx.fill();
-        ctx.beginPath(); ctx.arc(ox, CY, 15, 0, Math.PI*2);
-        ctx.strokeStyle='rgba(251,191,36,0.4)'; ctx.lineWidth=2; ctx.stroke();
+        ctx.beginPath(); ctx.arc(objSX,CY,9,0,Math.PI*2); ctx.fillStyle=og; ctx.fill();
+        ctx.beginPath(); ctx.arc(objSX,CY,14,0,Math.PI*2);
+        ctx.strokeStyle='rgba(251,191,36,0.35)'; ctx.lineWidth=2; ctx.stroke();
       }
 
-      /* 에너지 막대 */
-      const E0 = GM_NORM / PLANET_R;
-      const bX=W*0.72, bY=H*0.08, bW=28, bH=H*0.72;
+      /* ── 에너지 막대 ── */
+      const E_REF=GM_NORM/PLANET_R;
+      const bX=W*0.73,bY=H*0.06,bW=26,bH=H*0.70;
       ctx.fillStyle='rgba(15,23,42,0.92)'; ctx.strokeStyle='rgba(51,65,85,0.8)'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.roundRect(bX-18,bY-36,bW*4+36,bH+56,10); ctx.fill(); ctx.stroke();
-      ctx.fillStyle='#cbd5e1'; ctx.font='bold 12px Noto Sans KR'; ctx.textAlign='center';
-      ctx.fillText('에너지 변화', bX+bW*1.5+18, bY-16);
-      const midY = bY + bH*0.45;
-      const sc = bH*0.4/E0;
-      const Et = Ek + Ep;
+      ctx.beginPath(); ctx.roundRect(bX-18,bY-34,bW*4+36,bH+52,10); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#cbd5e1'; ctx.font='bold 11px Noto Sans KR'; ctx.textAlign='center';
+      ctx.fillText('에너지 변화',bX+bW*1.5+18,bY-14);
+      const midY=bY+bH*0.45, sc=bH*0.4/E_REF, Et=Ek+Ep;
       [[0,'#22c55e','Eₖ',Ek],[1,'#ef4444','Eₚ',Ep],[2,'#a78bfa','합계',Et]].forEach(([idx,cl,lb,val])=>{
         const x=bX+idx*(bW+10);
         const bh=Math.min(Math.abs(val)*sc,bH*0.44);
         ctx.fillStyle=cl+'33'; ctx.strokeStyle=cl; ctx.lineWidth=1;
-        if(val>=0){ ctx.beginPath(); ctx.roundRect(x,midY-bh,bW,bh,4); }
-        else       { ctx.beginPath(); ctx.roundRect(x,midY,bW,bh,4); }
+        if(val>=0){ctx.beginPath();ctx.roundRect(x,midY-bh,bW,bh,4);}
+        else{ctx.beginPath();ctx.roundRect(x,midY,bW,bh,4);}
         ctx.fill(); ctx.stroke();
-        ctx.fillStyle=cl; ctx.font='bold 11px Space Mono'; ctx.textAlign='center';
-        ctx.fillText(lb, x+bW/2, bY+bH+18);
+        ctx.fillStyle=cl; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
+        ctx.fillText(lb,x+bW/2,bY+bH+16);
         ctx.fillStyle='#94a3b8'; ctx.font='9px Space Mono';
-        ctx.fillText(val.toFixed(0), x+bW/2, val>=0?midY-bh-5:midY+bh+14);
+        ctx.fillText(val.toFixed(0),x+bW/2,val>=0?midY-bh-4:midY+bh+13);
       });
-      ctx.strokeStyle='rgba(148,163,184,0.5)'; ctx.lineWidth=1;
+      ctx.strokeStyle='rgba(148,163,184,0.45)'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(bX-14,midY); ctx.lineTo(bX+bW*3+22,midY); ctx.stroke();
       ctx.fillStyle='#475569'; ctx.font='10px sans-serif'; ctx.textAlign='left';
-      ctx.fillText('E=0', bX-14, midY-4);
+      ctx.fillText('E=0',bX-14,midY-4);
 
-      /* 결과 */
-      if (done) {
-        const isInfinity = escaped && s.willEscape && Math.abs(s.vFrac0 - 1.0) < 0.03;
-        const msg = escaped
-          ? (isInfinity ? '∞  v → 0 : 무한대에서 정지 (E = 0)' : '🚀 탈출 성공!')
-          : '↩ 탈출 실패 — 낙하';
-        const col2 = escaped ? (isInfinity ? '#fbbf24' : '#22c55e') : '#ef4444';
-        ctx.fillStyle=col2; ctx.font='bold 22px Noto Sans KR'; ctx.textAlign='center';
-        ctx.fillText(msg, W*0.42, H*0.13);
-        if (isInfinity) {
-          ctx.fillStyle='rgba(251,191,36,0.7)'; ctx.font='13px Noto Sans KR';
-          ctx.fillText('총 에너지 = 0 → 무한대에서 속도가 0으로 수렴', W*0.42, H*0.13+26);
+      /* ── 결과 메시지 ── */
+      if(done){
+        const isZeroE = escaped && Math.abs(s.E0/(GM_NORM/PLANET_R)) < 0.05;
+        let msg, col2, sub='';
+        if(escaped && isZeroE){
+          msg='∞  무한대에서 정지 — E = 0';
+          col2='#fbbf24';
+          sub='총 에너지 = 0 → v가 0으로 점근 (탈출하지만 속도 없음)';
+        } else if(escaped){
+          const vInfReal=(Math.sqrt(2*Math.max(0,s.E0))/V_ESC_NORM*vEsc).toFixed(2);
+          msg=`🚀 탈출 성공!  무한대 잔여속도 = ${vInfReal} km/s`;
+          col2='#22c55e';
+          sub='총 에너지 > 0 → 무한히 날아감';
+        } else {
+          const rR=(s.rMax/PLANET_R).toFixed(1);
+          msg=`↩ 탈출 실패 — 최대 ${rR} R 에서 낙하`;
+          col2='#ef4444';
+          sub='총 에너지 < 0 → 중력에 묶여 귀환';
         }
+        ctx.fillStyle=col2; ctx.font='bold 20px Noto Sans KR'; ctx.textAlign='center';
+        ctx.fillText(msg,W*0.38,H*0.11);
+        ctx.fillStyle=col2+'99'; ctx.font='12px Noto Sans KR';
+        ctx.fillText(sub,W*0.38,H*0.11+22);
         ctx.textAlign='left';
-        statusRef.current = escaped ? 'escaped' : 'returned';
-        setStatus(escaped ? 'escaped' : 'returned');
+        statusRef.current=escaped?'escaped':'returned';
+        setStatus(escaped?'escaped':'returned');
         return;
       }
       ctx.textAlign='left';
-      animRef.current = requestAnimationFrame(drawFrame);
+      animRef.current=requestAnimationFrame(drawFrame);
     };
 
-    animRef.current = requestAnimationFrame(drawFrame);
-    return () => cancelAnimationFrame(animRef.current);
+    animRef.current=requestAnimationFrame(drawFrame);
+    return ()=>cancelAnimationFrame(animRef.current);
   }, [status]);
 
   /* ── 색상 헬퍼 ── */
@@ -484,8 +545,8 @@ function SimTab() {
 
       {/* ─── 캔버스 + 컨트롤 ─── */}
       <div style={{position:'relative',marginBottom:14}}>
-        <canvas ref={canvasRef} width={820} height={400}
-          style={{width:'100%',height:'400px',borderRadius:'12px',background:'#05070a',display:'block'}}/>
+        <canvas ref={canvasRef} width={820} height={420}
+          style={{width:'100%',height:'420px',borderRadius:'12px',background:'#05070a',display:'block'}}/>
 
         {/* 오버레이: ready/stopped 상태일 때 안내 */}
         {(status==='ready'||status==='stopped') && (

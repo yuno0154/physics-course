@@ -220,13 +220,38 @@ function SpacetimeCanvas() {
       /* ── 사건 지평선 수직 글로우 선 ── */
       [-RS, RS].forEach(dx => {
         const ehX = CX + dx;
-        const gEH = ctx.createLinearGradient(ehX - 12, 0, ehX + 12, 0);
-        gEH.addColorStop(0, 'rgba(139,92,246,0)');
-        gEH.addColorStop(0.5, 'rgba(167,139,250,0.5)');
-        gEH.addColorStop(1, 'rgba(139,92,246,0)');
-        ctx.fillStyle = gEH; ctx.fillRect(ehX - 12, FY - 36, 24, MAX_D * 0.82);
-        ctx.beginPath(); ctx.moveTo(ehX, FY - 36); ctx.lineTo(ehX, FY + MAX_D * 0.80);
-        ctx.strokeStyle = 'rgba(167,139,250,0.98)'; ctx.lineWidth = 2.2; ctx.stroke();
+        const ehTop = FY - 44, ehBot = FY + MAX_D * 0.82;
+        const ehLen = ehBot - ehTop;
+
+        /* 넓은 소프트 글로우 (바깥쪽) */
+        const gWide = ctx.createLinearGradient(ehX - 28, 0, ehX + 28, 0);
+        gWide.addColorStop(0,   'rgba(139,92,246,0)');
+        gWide.addColorStop(0.35,'rgba(167,139,250,0.18)');
+        gWide.addColorStop(0.5, 'rgba(200,180,255,0.32)');
+        gWide.addColorStop(0.65,'rgba(167,139,250,0.18)');
+        gWide.addColorStop(1,   'rgba(139,92,246,0)');
+        ctx.fillStyle = gWide; ctx.fillRect(ehX - 28, ehTop, 56, ehLen);
+
+        /* 중간 글로우 */
+        const gMid = ctx.createLinearGradient(ehX - 10, 0, ehX + 10, 0);
+        gMid.addColorStop(0,   'rgba(167,139,250,0)');
+        gMid.addColorStop(0.5, 'rgba(200,180,255,0.55)');
+        gMid.addColorStop(1,   'rgba(167,139,250,0)');
+        ctx.fillStyle = gMid; ctx.fillRect(ehX - 10, ehTop, 20, ehLen);
+
+        /* 밝은 코어 선 (두 겹) */
+        ctx.beginPath(); ctx.moveTo(ehX, ehTop); ctx.lineTo(ehX, ehBot);
+        ctx.strokeStyle = 'rgba(220,200,255,0.55)'; ctx.lineWidth = 5; ctx.stroke();
+
+        ctx.beginPath(); ctx.moveTo(ehX, ehTop); ctx.lineTo(ehX, ehBot);
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 1.8; ctx.stroke();
+
+        /* 상단 캡 원형 글로우 */
+        const capG = ctx.createRadialGradient(ehX, ehTop, 0, ehX, ehTop, 16);
+        capG.addColorStop(0, 'rgba(220,200,255,0.6)');
+        capG.addColorStop(1, 'rgba(139,92,246,0)');
+        ctx.beginPath(); ctx.arc(ehX, ehTop, 16, 0, Math.PI * 2);
+        ctx.fillStyle = capG; ctx.fill();
       });
 
       /* ── 평평한 시공간 기준선 ── */
@@ -331,24 +356,26 @@ function SpacetimeCanvas() {
       ctx.beginPath(); ctx.moveTo(CX + 13, SING_Y - 4); ctx.lineTo(CX + 7, SING_Y); ctx.stroke();
 
       /* 사건 지평선 왼쪽 */
-      ctx.textAlign = 'right'; ctx.fillStyle = '#a78bfa';
-      ctx.font = 'bold 12px Noto Sans KR';
-      ctx.fillText('사건 지평선', CX - RS - 14, FY + 46);
-      ctx.font = '10px Noto Sans KR'; ctx.fillStyle = 'rgba(167,139,250,0.72)';
-      ctx.fillText('(Event Horizon)', CX - RS - 14, FY + 60);
-      ctx.fillText('← 포획되는 빛', CX - RS - 14, FY + 74);
-      ctx.strokeStyle = 'rgba(167,139,250,0.45)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(CX - RS - 12, FY + 52); ctx.lineTo(CX - RS - 2, FY + 52); ctx.stroke();
+      ctx.textAlign = 'right'; ctx.fillStyle = '#ddd6fe';
+      ctx.font = 'bold 13px Noto Sans KR';
+      ctx.fillText('사건 지평선', CX - RS - 16, FY + 46);
+      ctx.font = '11px Noto Sans KR'; ctx.fillStyle = 'rgba(196,181,253,0.85)';
+      ctx.fillText('(Event Horizon)', CX - RS - 16, FY + 61);
+      ctx.font = '10px Noto Sans KR'; ctx.fillStyle = 'rgba(252,110,20,0.8)';
+      ctx.fillText('← 포획되는 빛', CX - RS - 16, FY + 76);
+      ctx.strokeStyle = 'rgba(220,200,255,0.7)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(CX - RS - 14, FY + 52); ctx.lineTo(CX - RS - 2, FY + 52); ctx.stroke();
 
       /* 사건 지평선 오른쪽 */
-      ctx.textAlign = 'left'; ctx.fillStyle = '#a78bfa';
-      ctx.font = 'bold 12px Noto Sans KR';
-      ctx.fillText('사건 지평선', CX + RS + 14, FY + 46);
-      ctx.font = '10px Noto Sans KR'; ctx.fillStyle = 'rgba(167,139,250,0.72)';
-      ctx.fillText('(Event Horizon = Rₛ)', CX + RS + 14, FY + 60);
-      ctx.fillText('빛도 탈출 불가 경계', CX + RS + 14, FY + 74);
-      ctx.strokeStyle = 'rgba(167,139,250,0.45)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(CX + RS + 12, FY + 52); ctx.lineTo(CX + RS + 2, FY + 52); ctx.stroke();
+      ctx.textAlign = 'left'; ctx.fillStyle = '#ddd6fe';
+      ctx.font = 'bold 13px Noto Sans KR';
+      ctx.fillText('사건 지평선', CX + RS + 16, FY + 46);
+      ctx.font = '11px Noto Sans KR'; ctx.fillStyle = 'rgba(196,181,253,0.85)';
+      ctx.fillText('(Event Horizon = Rₛ)', CX + RS + 16, FY + 61);
+      ctx.font = '10px Noto Sans KR'; ctx.fillStyle = 'rgba(196,181,253,0.7)';
+      ctx.fillText('빛도 탈출 불가 경계', CX + RS + 16, FY + 76);
+      ctx.strokeStyle = 'rgba(220,200,255,0.7)'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(CX + RS + 14, FY + 52); ctx.lineTo(CX + RS + 2, FY + 52); ctx.stroke();
 
       /* 광자 구 */
       ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(251,191,36,0.95)';
