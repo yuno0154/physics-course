@@ -1,8 +1,20 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64, os
 
 st.sidebar.title("🌑 블랙홀 탐구")
 st.sidebar.markdown("탈출속도가 빛의 속도를 넘는 천체를 탐구합니다.")
+
+# 블랙홀 구조 이미지 (bh_structure.png 우선, 없으면 blackhole.png 사용)
+_assets = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+_struct_path = os.path.join(_assets, "bh_structure.png")
+_fallback_path = os.path.join(_assets, "blackhole.png")
+_img_path = _struct_path if os.path.exists(_struct_path) else _fallback_path
+_img_b64 = ""
+if os.path.exists(_img_path):
+    with open(_img_path, "rb") as _f:
+        _img_b64 = base64.b64encode(_f.read()).decode("utf-8")
+    _img_mime = "image/png"
 
 REACT_HTML = r"""
 <!DOCTYPE html>
@@ -547,6 +559,53 @@ function ConceptTab() {
         </div>
       </div>
 
+      {/* ── 블랙홀 구조 이미지 + 설명 ── */}
+      <div className="card" style={{marginBottom:16}}>
+        <p style={{fontWeight:800,color:'#e2e8f0',fontSize:15,marginBottom:14}}>
+          🖼️ 블랙홀의 구조 — 단면도
+        </p>
+        <div style={{display:'grid',gridTemplateColumns:'220px 1fr',gap:20,alignItems:'flex-start'}}>
+          {/* 이미지 */}
+          <div style={{borderRadius:12,overflow:'hidden',border:'1px solid #3b1e7c',
+            background:'#000',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            {"__BH_IMG_B64__" !== "" ? (
+              <img src={"data:image/png;base64,__BH_IMG_B64__"}
+                style={{width:'100%',display:'block',borderRadius:11}}
+                alt="블랙홀 구조 단면도"/>
+            ) : (
+              <div style={{padding:24,color:'#475569',fontSize:12,textAlign:'center'}}>
+                이미지를 assets/bh_structure.png로 저장해 주세요.
+              </div>
+            )}
+          </div>
+          {/* 구조 설명 */}
+          <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <p style={{color:'#94a3b8',fontSize:13,lineHeight:1.8,marginBottom:6}}>
+              블랙홀을 수직으로 잘라 본 단면도입니다. 시공간의 곡률이 심할수록 "깊이"가 깊어집니다.
+            </p>
+            {[
+              ['#a78bfa','사건 지평선 (Event Horizon)',
+                `반지름 Rₛ = 2GM/c²인 구면. 이 경계 안쪽에서는 탈출속도 > c 이므로 빛도 탈출 불가. 외부 관측자는 이 경계 너머를 볼 수 없습니다.`],
+              ['#fbbf24','특이점 (Singularity)',
+                `블랙홀의 중심. 밀도 → ∞, 부피 → 0. 현재 물리학(일반 상대성 이론)이 적용되지 않는 지점으로, 양자 중력 이론이 필요합니다.`],
+              ['rgba(251,191,36,0.8)','광자 구 (Photon Sphere)',
+                `r = 1.5 Rₛ인 구면. 빛이 원형 궤도를 그릴 수 있는 경계이지만, 불안정합니다. 약간의 교란만 있어도 빛은 탈출하거나 포획됩니다.`],
+              ['rgba(34,197,94,0.8)','ISCO (최내각 안정 원형 궤도)',
+                `r = 3 Rₛ. 물질이 안정적으로 원 궤도를 유지할 수 있는 가장 안쪽 경계. 이보다 안쪽의 물질은 빠르게 블랙홀로 나선형으로 떨어집니다.`],
+            ].map(([col,title,desc],i)=>(
+              <div key={i} style={{display:'flex',gap:10,padding:'8px 0',
+                borderBottom:'1px solid #1e293b'}}>
+                <div style={{width:4,flexShrink:0,borderRadius:2,background:col,marginTop:3,alignSelf:'stretch'}}/>
+                <div>
+                  <p style={{color:col,fontWeight:700,fontSize:13,marginBottom:3}}>{title}</p>
+                  <p style={{color:'#64748b',fontSize:12,lineHeight:1.7}}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <SpacetimeCanvas/>
 
       <div style={{background:'linear-gradient(135deg,#2e0a4e,#1a0030)',borderRadius:16,padding:'20px 28px',border:'1px solid #8b5cf6'}}>
@@ -1000,4 +1059,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 </html>
 """
 
-components.html(REACT_HTML, height=1200, scrolling=True)
+REACT_HTML_FINAL = REACT_HTML.replace("__BH_IMG_B64__", _img_b64)
+components.html(REACT_HTML_FINAL, height=1380, scrolling=True)
