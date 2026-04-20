@@ -140,14 +140,12 @@ function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
     ctx.shadowColor='#fbbf24'; ctx.shadowBlur=15; ctx.fill(); ctx.shadowBlur=0;
     ctx.fillText('실제 광원 (퀘이사)', pSrc.x, pSrc.y - 15);
 
-    const drawAnimatedPath = (midX, midY, midZ, color, isApparent=false) => {
+    const drawAnimatedPath = (midX, midY, midZ, color) => {
         const pMid = project3D(midX, midY, midZ, W, H);
         
-        // 경로 그리기 (애니메이션 반영)
+        // 경로 그리기 (Bezier 곡선 활용)
         ctx.save();
-        ctx.strokeStyle = color; ctx.lineWidth = isApparent? 1.5 : 3;
-        if(isApparent) ctx.setLineDash([5,5]);
-        
+        ctx.strokeStyle = color; ctx.lineWidth = 3;
         ctx.beginPath();
         const steps = 40;
         ctx.moveTo(pSrc.x, pSrc.y);
@@ -160,43 +158,63 @@ function drawLensing(ctx, W, H, caseMode, mass, t, progress) {
         // 광자 (Photon) 그리기
         if (progress > 0 && progress < 1) {
             const photon = getBezier(pSrc, pMid, pObs, progress);
+            ctx.save();
+            ctx.shadowColor='#fff'; ctx.shadowBlur=15;
             ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(photon.x, photon.y, 4, 0, Math.PI*2); ctx.fill();
-            ctx.shadowColor='#fff'; ctx.shadowBlur=10; ctx.stroke();
+            ctx.restore();
+        }
+
+        // 겉보기 위치 (Apparent Position): 관측자에서의 접선 방향으로 연장
+        if (progress >= 1) {
+            // 수학적 보정: 베지에 곡선의 t=1에서의 접선은 pMid와 pObs를 잇는 직선임
+            const tParam = (sourcePos.x - observerPos.x) / (midX - observerPos.x); // X축 기준 연장 비율
+            const appX = observerPos.x + tParam * (midX - observerPos.x);
+            const appY = observerPos.y + tParam * (midY - observerPos.y);
+            const appZ = observerPos.z + tParam * (midZ - observerPos.z);
+            const pApp = project3D(appX, appY, appZ, W, H);
+
+            // 시선 방향 가이드라인 (Dashed Line)
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(pObs.x, pObs.y); ctx.lineTo(pApp.x, pApp.y); ctx.stroke();
+            ctx.restore();
+
+            // 관측된 상 (Apparent Image)
+            ctx.save();
+            ctx.fillStyle = color; ctx.shadowColor = color; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(pApp.x, pApp.y, 6, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
         }
         ctx.restore();
     };
 
     if (caseMode === 'shift') {
-        const d = mass * 40;
-        // 상/하 대칭 경로
-        drawAnimatedPath(cx, cy + d, -mass*20, '#fbbf24');
-        drawAnimatedPath(cx, cy - d, -mass*20, '#fbbf24');
-
-        // 겉보기 위치 (Apparent Position) 표시
+        const d = mass * 35;
+        // 3D 공간상에 4개의 경로를 배치하여 입체감 부여 (Conical view)
+        const angles = [Math.PI/6, 5*Math.PI/6, 7*Math.PI/6, 11*Math.PI/6];
+        angles.forEach(ang => {
+            const my_val = cy + d * Math.sin(ang);
+            const mz_val = -mass * 15 + d * Math.cos(ang) * 0.4;
+            drawAnimatedPath(cx, my_val, mz_val, '#fbbf24');
+        });
+        
         if (progress >= 1) {
-            const appP = project3D(sourcePos.x, sourcePos.y - d*1.5, 0, W, H);
-            ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.setLineDash([4,4]);
-            ctx.beginPath(); ctx.moveTo(pObs.x, pObs.y); ctx.lineTo(appP.x, appP.y); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 6, 0, Math.PI*2); ctx.fill();
-            ctx.fillText(mass > 6 ? '겉보기 위치 A' : '겉보기 위치 B', appP.x, appP.y - 15);
+            ctx.fillStyle='#fff'; ctx.font='bold 14px Noto Sans KR'; ctx.textAlign='center';
+            ctx.fillText('중력에 의해 휘어진 시선 방향으로 상이 맺힘', cx, H * 0.15);
         }
     } else {
-        // 아인슈타인의 십자가 (4개 경로)
-        const d = 45 + mass * 4;
+        // 아인슈타인의 십자가 (더 명확한 4개 대칭 경로)
+        const d = 40 + mass * 4;
         const paths = [
             {mx:cx, my:cy+d, mz:-mass*20}, {mx:cx, my:cy-d, mz:-mass*20},
             {mx:cx, my:cy, mz:-mass*20+d*1.2}, {mx:cx, my:cy, mz:-mass*20-d*1.2}
         ];
-        paths.forEach(p => drawAnimatedPath(p.mx, p.my, p.mz, 'rgba(251, 191, 36, 0.8)'));
+        paths.forEach(p => drawAnimatedPath(p.mx, p.my, p.mz, '#facc15'));
 
         if (progress >= 1) {
-            paths.forEach((p, idx) => {
-                const appP = project3D(p.mx - (cx-sourcePos.x), p.my + (p.my-cy)*0.6, p.mz*0.5, W, H);
-                ctx.fillStyle='#fbbf24'; ctx.beginPath(); ctx.arc(appP.x, appP.y, 5, 0, Math.PI*2); ctx.fill();
-            });
-            ctx.fillStyle='#fbbf24'; ctx.font='bold 14px Inter';
-            ctx.fillText('아인슈타인의 십자가 (관측된 4개 이미지)', cx, H * 0.15);
+            ctx.fillStyle='#facc15'; ctx.font='bold 15px Inter'; ctx.textAlign='center';
+            ctx.fillText('Einstein Cross (Four split images observerd)', cx, H * 0.12);
         }
     }
 
