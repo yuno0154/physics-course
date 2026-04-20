@@ -143,7 +143,7 @@ with col1:
             ctx.fillStyle="white"; for(let i=0; i<30; i++) ctx.fillRect(Math.sin(i)*canvas.width, Math.cos(i*i)*canvas.height, 1, 1);
             ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 25; ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI*2); ctx.stroke();
 
-            const ax = cx + Math.cos(angle)*125; const ay = cy + Math.sin(angle)*125;
+            const ax = cx + Math.cos(angle)*110.5; const ay = cy + Math.sin(angle)*110.5;
             ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(angle-Math.PI/2); ctx.fillRect(-6,-9, 12, 16); ctx.restore();
 
             const len = Math.max(30, accelVal * 1.5);
@@ -197,7 +197,7 @@ with col2:
 
             ctx.strokeStyle = "#2c3e50"; ctx.lineWidth = 25; ctx.beginPath(); ctx.arc(cx, cy, 130, 0, Math.PI*2); ctx.stroke();
 
-            const ax = cx + 125, ay = cy;
+            const ax = cx + 110.5, ay = cy;
             ctx.fillStyle = "white"; ctx.save(); ctx.translate(ax, ay); ctx.rotate(-Math.PI/2); ctx.fillRect(-6,-9, 12, 16); ctx.restore();
 
             const len = Math.max(30, accelVal * 1.5);
