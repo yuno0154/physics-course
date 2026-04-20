@@ -149,7 +149,8 @@ function SimTab() {
   const launch = () => {
     cancelAnimationFrame(animRef.current);
     const v0norm = vFrac * V_ESC_NORM;
-    simRef.current = { r: PLANET_R, v: v0norm, trail: [] };
+    const E0 = 0.5 * v0norm * v0norm - GM_NORM / PLANET_R;
+    simRef.current = { r: PLANET_R, v: v0norm, trail: [], willEscape: E0 >= 0, vFrac0: vFrac };
     statusRef.current = 'running';
     setStatus('running');
   };
@@ -186,23 +187,30 @@ function SimTab() {
     const drawFrame = () => {
       if (statusRef.current !== 'running') return;
       const s = simRef.current;
-      let done = false, escaped = false;
+      let done = false, escaped = false, infinityStop = false;
 
       for (let i = 0; i < STEPS; i++) {
         const a = -GM_NORM / (s.r * s.r);
         s.v += a * DT;
         s.r += s.v * DT;
-        if (s.r > W * 1.35) { escaped = true; done = true; break; }
-        if (s.r <= PLANET_R) { s.r = PLANET_R; done = true; break; }
+        /* 화면 끝 탈출 */
+        if (s.r > W - CX + 50) { escaped = true; done = true; break; }
+        /* 에너지 기반 탈출: 총 에너지≥0 → 물리적으로 반드시 탈출 */
+        if (s.willEscape && s.r > W - CX + 50) {
+          escaped = true; done = true; break;
+        }
+        /* 표면 귀환: 총 에너지 < 0 일 때만 (수치 오류 방지) */
+        if (s.r <= PLANET_R) { s.r = PLANET_R; s.v = 0; done = true; break; }
       }
 
-      const objX = CX + (s.r - PLANET_R);
+      const objX = CX + s.r;          // r=PLANET_R → 행성 표면(우측 끝)
       const Ek   = Math.max(0, 0.5 * s.v * s.v);
       const Ep   = -GM_NORM / s.r;
 
-      if (!done && (objX < W - 15)) {
+      /* 궤적 기록 (탈출·귀환 경로 모두 포함) */
+      if (!done) {
         s.trail.push({ x: Math.min(objX, W - 15), y: CY });
-        if (s.trail.length > 500) s.trail.shift();
+        if (s.trail.length > 700) s.trail.shift();
       }
 
       /* 배경 */
@@ -240,7 +248,7 @@ function SimTab() {
 
       /* 물체 */
       if (!done || escaped) {
-        const ox = Math.min(CX+(s.r-PLANET_R), W-20);
+        const ox = Math.min(CX + s.r, W-20);
         const og = ctx.createRadialGradient(ox-3,CY-3,1,ox,CY,10);
         og.addColorStop(0,'#fef3c7'); og.addColorStop(1,'#f59e0b');
         ctx.beginPath(); ctx.arc(ox, CY, 10, 0, Math.PI*2); ctx.fillStyle=og; ctx.fill();
@@ -277,10 +285,17 @@ function SimTab() {
 
       /* 결과 */
       if (done) {
-        const msg = escaped ? '🚀 탈출 성공!' : '↩ 탈출 실패 — 낙하';
-        const col2 = escaped ? '#22c55e' : '#ef4444';
+        const isInfinity = escaped && s.willEscape && Math.abs(s.vFrac0 - 1.0) < 0.03;
+        const msg = escaped
+          ? (isInfinity ? '∞  v → 0 : 무한대에서 정지 (E = 0)' : '🚀 탈출 성공!')
+          : '↩ 탈출 실패 — 낙하';
+        const col2 = escaped ? (isInfinity ? '#fbbf24' : '#22c55e') : '#ef4444';
         ctx.fillStyle=col2; ctx.font='bold 22px Noto Sans KR'; ctx.textAlign='center';
         ctx.fillText(msg, W*0.42, H*0.13);
+        if (isInfinity) {
+          ctx.fillStyle='rgba(251,191,36,0.7)'; ctx.font='13px Noto Sans KR';
+          ctx.fillText('총 에너지 = 0 → 무한대에서 속도가 0으로 수렴', W*0.42, H*0.13+26);
+        }
         ctx.textAlign='left';
         statusRef.current = escaped ? 'escaped' : 'returned';
         setStatus(escaped ? 'escaped' : 'returned');
