@@ -48,6 +48,10 @@ light_path_sim_page = st.Page("physics_sim/equivalence_principle_sim.py", title=
 einstein_gravity_page = st.Page("physics_sim/einstein_gravity_sim.py", title="🌌 [분석] 아인슈타인의 중력과 시간")
 gravitational_lensing_page = st.Page("physics_sim/gravitational_lensing_sim.py", title="🔭 [탐구] 중력 렌즈와 시공간 곡률")
 
+# 6. 탈출속도와 블랙홀 섹션
+escape_velocity_page = st.Page("physics_sim/escape_velocity_sim.py", title="🚀 [탐구1] 탈출속도 탐구")
+black_hole_page = st.Page("physics_sim/black_hole_sim.py", title="🌑 [탐구2] 블랙홀 탐구")
+
 # 7. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📑 [기록] 수행평가 제출")
 
@@ -88,6 +92,10 @@ pg = st.navigation({
         light_path_sim_page,
         einstein_gravity_page,
         gravitational_lensing_page
+    ],
+    "🌑 학습주제 6: 탈출속도와 블랙홀": [
+        escape_velocity_page,
+        black_hole_page
     ],
     "📑 수행평가 지원": [
         video_analysis_eval_page
