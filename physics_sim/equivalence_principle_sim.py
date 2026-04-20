@@ -416,7 +416,7 @@ function drawSitPanel(ctx,cx,cy,rw,rh,cfg,viewMode,lProg,accel,t){
 function drawPhase1(ctx,W,H,accel,t,running,p1Sit){
     drawStars(ctx,W,H,t);
     const cfg=SIT_CFG[p1Sit||0];
-    const lProg=running?Math.min((t%3000)/3000,1):0;
+    const lProg=running?Math.min(t/3000,1):0;
     const rw=Math.min(W*0.32,180),rh=Math.min(H*0.62,300);
     const cy=H*0.48,cx1=W*0.27,cx2=W*0.73;
 
@@ -625,7 +625,7 @@ function drawPhase3(ctx,W,H,accel,t,running){
 
     /* ── 실제 빛 경로 (아래로 휘어짐) ── */
     /* 편향 공식: 질량에 가까울수록 더 많이 당겨져 아래로 처짐 */
-    const lProg=running?((t%5000)/5000):0.78;
+    const lProg=running?Math.min(t/5000, 1):0.78;
     const lx1=W*0.03,lx2=W*0.97;
 
     function lightY(lx){
@@ -898,8 +898,18 @@ const App = () => {
 
     useEffect(()=>{
         if(running){
-            startRef.current=performance.now()-t;
-            const loop=(now)=>{setT(now-startRef.current);rafRef.current=requestAnimationFrame(loop);};
+            startRef.current = performance.now() - t;
+            const loop=(now)=>{
+                const elapsed = now-startRef.current;
+                const limit = (phase===3) ? 5000 : 3000;
+                if(elapsed >= limit) {
+                    setT(limit);
+                    setRunning(false);
+                } else {
+                    setT(elapsed);
+                    rafRef.current=requestAnimationFrame(loop);
+                }
+            };
             rafRef.current=requestAnimationFrame(loop);
         } else cancelAnimationFrame(rafRef.current);
         return()=>cancelAnimationFrame(rafRef.current);
