@@ -89,6 +89,300 @@ const CONCEPT_STEPS = [
     note:'이 반지름 안쪽에서는 탈출속도 > c이므로 빛도 탈출할 수 없습니다. 이 경계를 사건 지평선(Event Horizon)이라 합니다.' },
 ];
 
+/* ──────────────────────────────────────────────
+   시공간 구조 캔버스 (Flamm's Paraboloid)
+────────────────────────────────────────────── */
+function SpacetimeCanvas() {
+  const ref    = useRef(null);
+  const animRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = ref.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = 820, H = 430;
+    let t = 0;
+
+    /* 레이아웃 상수 */
+    const CX    = W / 2;      // 중심 X
+    const FY    = 132;        // 평평한 시공간 Y
+    const RS    = 62;         // 1Rs = 62px (사건 지평선 반지름)
+    const K     = 44;         // 퍼널 깊이 계수
+    const SING_Y = 385;       // 특이점 Y
+    const MAX_D  = SING_Y - FY;
+    const R_MAX  = 6.3;
+
+    const fX    = r => CX + r * RS;
+    const fYat  = r => Math.min(MAX_D, K / Math.sqrt(r - 1 + 4e-4));
+
+    const loop = () => {
+      t += 0.012;
+      ctx.fillStyle = '#05070a'; ctx.fillRect(0, 0, W, H);
+
+      /* 별 (평평한 시공간 위쪽만) */
+      for (let i = 0; i < 110; i++) {
+        const sx = (i*137.5+60)%W, sy = (i*83+i*13)%(FY-18)+6;
+        ctx.beginPath(); ctx.arc(sx, sy, 0.35+(i%3)*0.22, 0, Math.PI*2);
+        ctx.fillStyle=`rgba(200,215,255,${0.07+(i%5)*0.04})`; ctx.fill();
+      }
+
+      /* 수평 그리드 */
+      for (let row=1; row<=5; row++){
+        const gy = 14+(FY-22)*row/5;
+        ctx.beginPath(); ctx.moveTo(14,gy); ctx.lineTo(W-14,gy);
+        ctx.strokeStyle='rgba(80,105,185,0.13)'; ctx.lineWidth=0.8; ctx.stroke();
+      }
+
+      /* 수직 그리드 (평평한 시공간 → 퍼널) */
+      for (let col=0; col<=17; col++){
+        const gx = 14+(W-28)*col/17;
+        const dist = Math.abs(gx-CX), r = dist/RS;
+        ctx.beginPath(); ctx.moveTo(gx,14); ctx.lineTo(gx,FY);
+        ctx.strokeStyle='rgba(80,105,185,0.12)'; ctx.lineWidth=0.8; ctx.stroke();
+        if (r > 1.04){
+          const yb = FY+Math.min(fYat(r), MAX_D*0.9);
+          ctx.beginPath(); ctx.moveTo(gx,FY); ctx.lineTo(gx,yb);
+          ctx.strokeStyle='rgba(80,105,185,0.08)'; ctx.stroke();
+        }
+      }
+
+      /* 퍼널 프로파일 계산 */
+      const N=240, profile=[];
+      for (let i=0;i<=N;i++){
+        const r=1+(R_MAX-1)*i/N, x=fX(r), y=FY+fYat(r);
+        if (x < W-10) profile.push({x,y});
+      }
+      const mirX = p => CX-(p.x-CX);
+
+      /* 퍼널 내부 검정 */
+      ctx.fillStyle='#000';
+      ctx.fillRect(CX-RS, FY, RS*2, MAX_D+12);
+
+      /* 내부 보라 빛 그라디언트 */
+      const innerG = ctx.createRadialGradient(CX,SING_Y,0,CX,SING_Y,RS*2.5);
+      innerG.addColorStop(0,'rgba(120,0,220,0.18)'); innerG.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(CX,SING_Y,RS*2.5,0,Math.PI*2);
+      ctx.fillStyle=innerG; ctx.fill();
+
+      /* 퍼널 면 채우기 */
+      const fillSide = (flip) => {
+        if (!profile.length) return;
+        ctx.beginPath();
+        ctx.moveTo(CX+(flip?-RS:RS), FY);
+        profile.forEach(p => ctx.lineTo(flip?mirX(p):p.x, p.y));
+        const last=profile[profile.length-1];
+        ctx.lineTo(flip?mirX(last):last.x, FY);
+        ctx.closePath();
+        const g=ctx.createLinearGradient(CX,FY,CX,FY+MAX_D);
+        g.addColorStop(0,'rgba(139,92,246,0.09)');
+        g.addColorStop(0.55,'rgba(139,92,246,0.04)');
+        g.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=g; ctx.fill();
+      };
+      fillSide(false); fillSide(true);
+
+      /* 퍼널 수평 그리드선 */
+      [1.5,2,2.5,3,4,5].forEach(r=>{
+        const x=fX(r), y=FY+fYat(r), mx=CX-(x-CX);
+        ctx.strokeStyle='rgba(80,105,185,0.1)'; ctx.lineWidth=0.7;
+        ctx.beginPath(); ctx.moveTo(mx,y); ctx.lineTo(x,y); ctx.stroke();
+      });
+
+      /* 퍼널 프로파일 선 */
+      const drawProfile = (flip) => {
+        if (!profile.length) return;
+        ctx.beginPath();
+        ctx.moveTo(CX+(flip?-RS:RS),FY);
+        profile.forEach(p => ctx.lineTo(flip?mirX(p):p.x, p.y));
+        ctx.strokeStyle='rgba(139,92,246,0.6)'; ctx.lineWidth=2.2; ctx.stroke();
+      };
+      drawProfile(false); drawProfile(true);
+
+      /* 사건 지평선 글로우 수직선 */
+      [-RS, RS].forEach(dx=>{
+        const ehX=CX+dx;
+        const g=ctx.createLinearGradient(ehX-10,0,ehX+10,0);
+        g.addColorStop(0,'rgba(139,92,246,0)');
+        g.addColorStop(0.5,'rgba(139,92,246,0.42)');
+        g.addColorStop(1,'rgba(139,92,246,0)');
+        ctx.fillStyle=g; ctx.fillRect(ehX-10,FY-28,20,MAX_D*0.79);
+        ctx.beginPath(); ctx.moveTo(ehX,FY-28); ctx.lineTo(ehX,FY+MAX_D*0.77);
+        ctx.strokeStyle='rgba(167,139,250,0.95)'; ctx.lineWidth=2; ctx.stroke();
+      });
+
+      /* 광자 구 점선 (r=1.5Rs) */
+      const psXr=fX(1.5), psY=FY+fYat(1.5), psXl=CX-(psXr-CX);
+      ctx.save(); ctx.setLineDash([5,5]);
+      ctx.strokeStyle='rgba(251,191,36,0.55)'; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(psXl,psY); ctx.lineTo(psXr,psY); ctx.stroke();
+      ctx.restore();
+
+      /* ISCO 점선 (r=3Rs) */
+      const iscoXr=fX(3), iscoY=FY+fYat(3), iscoXl=CX-(iscoXr-CX);
+      ctx.save(); ctx.setLineDash([3,7]);
+      ctx.strokeStyle='rgba(34,197,94,0.35)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(iscoXl,iscoY); ctx.lineTo(iscoXr,iscoY); ctx.stroke();
+      ctx.restore();
+
+      /* 평평한 시공간 기준선 */
+      ctx.beginPath(); ctx.moveTo(14,FY); ctx.lineTo(W-14,FY);
+      ctx.strokeStyle='rgba(80,105,185,0.32)'; ctx.lineWidth=1; ctx.stroke();
+
+      /* 특이점 */
+      const sg=ctx.createRadialGradient(CX,SING_Y,0,CX,SING_Y,24);
+      sg.addColorStop(0,'#fff');
+      sg.addColorStop(0.22,'#fef3c7');
+      sg.addColorStop(0.6,'rgba(252,90,10,0.45)');
+      sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath(); ctx.arc(CX,SING_Y,24,0,Math.PI*2); ctx.fillStyle=sg; ctx.fill();
+      ctx.beginPath(); ctx.arc(CX,SING_Y,5.5,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+
+      /* ── 광자 애니메이션 ── */
+      /* 1. 외부를 지나는 빛: 약간 구부러짐 */
+      const paX=((t*52)%(W+100))-50;
+      const paBaseY=FY-45;
+      if (paX>14 && paX<W-14){
+        ctx.beginPath();
+        for(let i=-30;i<=0;i++){
+          const px=paX+i*3.2;
+          const d=Math.abs(px-CX)/RS;
+          const bend=d<4.5 ? 14*Math.exp(-d*d*0.18) : 0;
+          const py=paBaseY+bend;
+          i===-30?ctx.moveTo(px,py):ctx.lineTo(px,py);
+        }
+        ctx.strokeStyle='rgba(253,224,71,0.38)'; ctx.lineWidth=1.6; ctx.stroke();
+        const d0=Math.abs(paX-CX)/RS;
+        const bend0=d0<4.5?14*Math.exp(-d0*d0*0.18):0;
+        ctx.beginPath(); ctx.arc(paX,paBaseY+bend0,4,0,Math.PI*2);
+        ctx.fillStyle='#fde047'; ctx.fill();
+        ctx.beginPath(); ctx.arc(paX,paBaseY+bend0,8,0,Math.PI*2);
+        ctx.strokeStyle='rgba(253,224,71,0.25)'; ctx.lineWidth=1; ctx.stroke();
+      }
+
+      /* 2. 광자 구 궤도 광자 (왕복 표시) */
+      const psOrb=psXl+(psXr-psXl)*((Math.cos(t*1.1)+1)/2);
+      ctx.beginPath(); ctx.arc(psOrb,psY,3.8,0,Math.PI*2);
+      ctx.fillStyle='rgba(251,191,36,0.8)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(psOrb,psY,7.5,0,Math.PI*2);
+      ctx.strokeStyle='rgba(251,191,36,0.22)'; ctx.lineWidth=1; ctx.stroke();
+
+      /* 3. 사건 지평선 근처 포획되는 광자 (나선형) */
+      const captAngle=t*1.6;
+      const captR_norm=(1.1+(Math.sin(t*0.4)+1)*0.15);
+      const captR_px=captR_norm*RS;
+      const capX=CX+captR_px*Math.cos(captAngle);
+      const capY_on_funnel=FY+fYat(captR_norm);
+      const capY=FY+(capY_on_funnel-FY)*0.35*Math.cos(captAngle*0.5+Math.PI*0.25);
+      if (captR_px >= RS+2) {
+        ctx.beginPath(); ctx.arc(capX,capY,3.2,0,Math.PI*2);
+        ctx.fillStyle='rgba(252,100,20,0.85)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(capX,capY,6.5,0,Math.PI*2);
+        ctx.strokeStyle='rgba(252,100,20,0.22)'; ctx.lineWidth=1; ctx.stroke();
+      }
+
+      /* ── 레이블 ── */
+      /* 특이점 */
+      ctx.textAlign='left'; ctx.font='bold 13px Noto Sans KR'; ctx.fillStyle='#fbbf24';
+      ctx.fillText('특이점', CX+14, SING_Y-12);
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(251,191,36,0.6)';
+      ctx.fillText('(Singularity)', CX+14, SING_Y+2);
+      ctx.fillText('밀도 → ∞, 물리법칙의 한계', CX+14, SING_Y+15);
+      ctx.strokeStyle='rgba(251,191,36,0.5)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(CX+12,SING_Y-3); ctx.lineTo(CX+6,SING_Y); ctx.stroke();
+
+      /* 사건 지평선 오른쪽 */
+      ctx.textAlign='left'; ctx.font='bold 12px Noto Sans KR'; ctx.fillStyle='#a78bfa';
+      ctx.fillText('사건 지평선', CX+RS+12, FY+50);
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(167,139,250,0.7)';
+      ctx.fillText('(Event Horizon = Rₛ)', CX+RS+12, FY+64);
+      ctx.fillText('빛도 탈출 불가 경계', CX+RS+12, FY+78);
+      ctx.strokeStyle='rgba(167,139,250,0.45)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(CX+RS+10,FY+57); ctx.lineTo(CX+RS+2,FY+57); ctx.stroke();
+
+      /* 사건 지평선 왼쪽 */
+      ctx.textAlign='right'; ctx.font='bold 12px Noto Sans KR'; ctx.fillStyle='#a78bfa';
+      ctx.fillText('사건 지평선', CX-RS-12, FY+50);
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(167,139,250,0.7)';
+      ctx.fillText('(Event Horizon)', CX-RS-12, FY+64);
+      ctx.strokeStyle='rgba(167,139,250,0.45)'; ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(CX-RS-10,FY+57); ctx.lineTo(CX-RS-2,FY+57); ctx.stroke();
+
+      /* 광자 구 */
+      ctx.textAlign='left'; ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='rgba(251,191,36,0.9)';
+      ctx.fillText('광자 구 (r = 1.5 Rₛ)', psXr+10, psY+4);
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(251,191,36,0.55)';
+      ctx.fillText('불안정한 빛의 원형 궤도', psXr+10, psY+17);
+      ctx.strokeStyle='rgba(251,191,36,0.35)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(psXr+8,psY+1); ctx.lineTo(psXr+2,psY+1); ctx.stroke();
+
+      /* ISCO */
+      ctx.textAlign='left'; ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='rgba(34,197,94,0.75)';
+      ctx.fillText('ISCO (r = 3 Rₛ)', iscoXr+10, iscoY+4);
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(34,197,94,0.5)';
+      ctx.fillText('최내각 안정 원형 궤도', iscoXr+10, iscoY+17);
+
+      /* 평평한 시공간 */
+      ctx.textAlign='center'; ctx.font='11px Noto Sans KR'; ctx.fillStyle='rgba(80,105,185,0.7)';
+      ctx.fillText('평평한 시공간 — 사건 지평선 외부 (탈출 가능)', CX, FY-14);
+      ctx.textAlign='left';
+
+      /* 내부 안내 */
+      ctx.textAlign='center'; ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='rgba(139,92,246,0.4)';
+      ctx.fillText('내부 — 탈출 불가', CX, FY+MAX_D*0.35);
+      ctx.textAlign='left';
+
+      /* 포획 광자 설명 */
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(252,100,20,0.65)';
+      ctx.textAlign='right';
+      ctx.fillText('← 포획되는 빛', CX-RS-16, FY+70);
+      ctx.textAlign='left';
+
+      /* 외부 통과 광자 */
+      ctx.font='10px Noto Sans KR'; ctx.fillStyle='rgba(253,224,71,0.6)';
+      ctx.textAlign='center';
+      ctx.fillText('중력에 의해 휘어진 빛', CX, FY-55);
+      ctx.textAlign='left';
+
+      animRef.current = requestAnimationFrame(loop);
+    };
+
+    animRef.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animRef.current);
+  }, []);
+
+  return (
+    <div style={{marginBottom:16}}>
+      <div style={{background:'linear-gradient(135deg,#0a0520,#160930)',borderRadius:'14px 14px 0 0',
+        padding:'12px 20px',border:'1px solid #3b1e7c',borderBottom:'none',
+        display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <p style={{color:'#c4b5fd',fontWeight:800,fontSize:14}}>
+            🌀 블랙홀 주변 시공간 구조 — 플람 파라볼로이드 (Flamm's Paraboloid)
+          </p>
+          <p style={{color:'#6d28d9',fontSize:12,marginTop:3}}>
+            시공간의 공간적 곡률을 단면(Cross-section)으로 표현합니다. 깊이는 시공간 곡률의 세기를 나타냅니다.
+          </p>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:5,fontSize:11,flexShrink:0,marginLeft:20}}>
+          {[['─── ','rgba(139,92,246,0.7)','사건 지평선'],
+            ['─ ─ ','rgba(251,191,36,0.7)','광자 구'],
+            ['─ · ·','rgba(34,197,94,0.7)','ISCO'],
+            ['●','#fbbf24','특이점'],
+            ['●','rgba(252,100,20,0.8)','포획되는 빛'],
+          ].map(([sym,col,lbl],i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:6}}>
+              <span style={{color:col,fontFamily:'monospace',fontWeight:700,width:24}}>{sym}</span>
+              <span style={{color:'#64748b'}}>{lbl}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <canvas ref={ref} width={820} height={430}
+        style={{width:'100%',height:'430px',borderRadius:'0 0 14px 14px',
+          background:'#05070a',display:'block',border:'1px solid #3b1e7c',borderTop:'none'}}/>
+    </div>
+  );
+}
+
 function ConceptTab() {
   const [open, setOpen] = useState(null);
   const [animT, setAnimT] = useState(0);
@@ -252,6 +546,8 @@ function ConceptTab() {
           ))}
         </div>
       </div>
+
+      <SpacetimeCanvas/>
 
       <div style={{background:'linear-gradient(135deg,#2e0a4e,#1a0030)',borderRadius:16,padding:'20px 28px',border:'1px solid #8b5cf6'}}>
         <p style={{color:'#c4b5fd',fontWeight:800,fontSize:15,marginBottom:8}}>✅ 결론</p>
