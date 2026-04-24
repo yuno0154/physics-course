@@ -32,7 +32,7 @@ R = vx0 * t_R # 수평 도달 거리
 
 t_steps = np.linspace(0, t_R, 100) # 더 세밀한 분석을 위해 100단계로 증가
 
-# 프레임별 데이터 생성 함수
+# 프레임별 데이터 및 텍스트 데이터 생성 함수
 def get_oblique_frame_data(t_curr):
     t_path = np.linspace(0, t_curr, 40)
     path_x = vx0 * t_path
@@ -41,6 +41,7 @@ def get_oblique_frame_data(t_curr):
     curr_y = max(vy0 * t_curr - 0.5 * g * t_curr**2, 0)
     curr_vx = vx0
     curr_vy = vy0 - g * t_curr
+    v_total = np.sqrt(curr_vx**2 + curr_vy**2)
     
     trace_path = go.Scatter(x=path_x, y=path_y, mode='lines', line=dict(color='blue', width=2), name="궤적")
     trace_ball = go.Scatter(x=[curr_x], y=[curr_y], mode='markers', 
@@ -55,56 +56,97 @@ def get_oblique_frame_data(t_curr):
                           mode='lines+markers', line=dict(color='red', width=3), 
                           marker=dict(symbol="arrow-up" if curr_vy > 0 else "arrow-down", size=10), name="vy")
     
-    return [trace_path, trace_ball, trace_vx, trace_vy]
+    # --- 실시간 수치 데이터 어노테이션 (차트 내 표시용) ---
+    telemetry_text = (
+        f"<b>📊 실시간 데이터</b><br>"
+        f"시간 (t): {t_curr:.2f} s<br>"
+        f"수평 거리 (x): {curr_x:.2f} m<br>"
+        f"높이 (y): {curr_y:.2f} m<br>"
+        f"수평 속도 (vx): {curr_vx:.2f} m/s<br>"
+        f"연직 속도 (vy): {curr_vy:.2f} m/s<br>"
+        f"합성 속도 (v): {v_total:.2f} m/s"
+    )
+    
+    return [trace_path, trace_ball, trace_vx, trace_vy], telemetry_text
 
-# --- [실시간 시뮬레이션 제어 및 데이터] ---
-st.divider()
-c_play1, c_play2 = st.columns([3, 1])
+# --- Plotly 애니메이션 구성 (재생/정지/슬라이더 복구) ---
+# 초기 데이터 및 텔레메트리
+initial_traces, initial_text = get_oblique_frame_data(0)
+initial_traces.append(go.Scatter(x=[vx0 * t_H], y=[H], mode='markers', marker=dict(size=12, color='red', symbol='star'), name='최고점'))
 
-with c_play1:
-    t_curr = st.slider("⏱️ 시뮬레이션 시간 조절 (t)", min_value=0.0, max_value=float(t_R), value=0.0, step=0.01, help="슬라이더를 움직여 특정 시점의 물리량을 확인하세요.")
-with c_play2:
-    st.write("") # 간격 맞춤
-    if st.button("🔄 처음으로 (Reset)", use_container_width=True):
-        st.rerun()
+# 프레임 생성 (데이터 + 어노테이션 텍스트 포함)
+frames = []
+for i, t in enumerate(t_steps):
+    f_traces, f_text = get_oblique_frame_data(t)
+    frames.append(go.Frame(
+        data=f_traces, 
+        name=f"frame_{i}",
+        layout=go.Layout(annotations=[
+            dict(x=0.02, y=0.98, xref="paper", yref="paper", text=f_text, showarrow=False, align="left", 
+                 bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1, font=dict(family="Courier New, monospace", size=13))
+        ])
+    ))
 
-# 실시간 데이터 계산
-curr_x = vx0 * t_curr
-curr_y = max(vy0 * t_curr - 0.5 * g * t_curr**2, 0)
-curr_vx = vx0
-curr_vy = vy0 - g * t_curr
-v_total = np.sqrt(curr_vx**2 + curr_vy**2)
+# 슬라이더 설정
+sliders_dict = {
+    "active": 0,
+    "yanchor": "top",
+    "xanchor": "left",
+    "currentvalue": {"font": {"size": 14}, "prefix": "시간: ", "visible": True, "xanchor": "right"},
+    "transition": {"duration": 30, "easing": "cubic-in-out"},
+    "pad": {"b": 10, "t": 50},
+    "len": 0.9, "x": 0.05, "y": 0,
+    "steps": []
+}
 
-# --- 실시간 데이터 대시보드 ---
-with st.container(border=True):
-    d_col1, d_col2, d_col3, d_col4 = st.columns(4)
-    d_col1.metric("수평 거리 (x)", f"{curr_x:.2f} m")
-    d_col2.metric("높이 (y)", f"{curr_y:.2f} m")
-    d_col3.metric("현재 속도 (v)", f"{v_total:.2f} m/s")
-    d_col4.metric("연직 속도 (vy)", f"{curr_vy:.2f} m/s", delta=f"{-g:.1f} m/s²", delta_color="inverse")
-
-# --- Plotly 시각화 (정적 프레임 업데이트) ---
-data_traces = get_oblique_frame_data(t_curr)
-data_traces.append(go.Scatter(x=[vx0 * t_H], y=[H], mode='markers', marker=dict(size=12, color='red', symbol='star'), name='최고점'))
+for i, t in enumerate(t_steps):
+    sliders_dict["steps"].append({
+        "args": [[f"frame_{i}"], {"frame": {"duration": 30, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}],
+        "label": f"{t:.2f}s", "method": "animate"
+    })
 
 fig = go.Figure(
-    data=data_traces,
+    data=initial_traces,
     layout=go.Layout(
         xaxis=dict(range=[-2, R * 1.2], title="수평 거리 x (m)", gridcolor='LightGray'),
         yaxis=dict(range=[-2, H * 1.5], title="높이 y (m)", gridcolor='LightGray'),
-        height=550,
+        updatemenus=[dict(
+            type="buttons", direction="left", showactive=False, x=0.05, y=1.2,
+            buttons=[
+                dict(label="▶️ 재생 (Play)", method="animate", args=[None, {"frame": {"duration": 30, "redraw": False}, "fromcurrent": True}]),
+                dict(label="⏸️ 정지 (Pause)", method="animate", args=[[None], {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}])
+            ]
+        )],
+        sliders=[sliders_dict],
+        height=680,
         plot_bgcolor='white',
-        showlegend=True,
-        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
-        margin=dict(l=20, r=20, t=20, b=20)
-    )
+        margin=dict(l=20, r=20, t=100, b=100),
+        annotations=[
+            dict(x=0.02, y=0.98, xref="paper", yref="paper", text=initial_text, showarrow=False, align="left", 
+                 bgcolor="rgba(255,255,255,0.7)", bordercolor="black", borderwidth=1, font=dict(family="Courier New, monospace", size=13))
+        ]
+    ),
+    frames=frames
 )
 
-# 주요 수치 표시(어노테이션)
+# 최고점/도달거리 어노테이션 추가
 fig.add_annotation(x=vx0 * t_H, y=H, text=f"최고점 H={H:.2f}m", showarrow=True, arrowhead=1)
 fig.add_annotation(x=R, y=0, text=f"도달 거리 R={R:.2f}m", showarrow=True, arrowhead=1)
 
 st.plotly_chart(fig, use_container_width=True)
+
+# --- [결과 데이터 요약] ---
+# 사용자 요청: 슬라이더 아래에 t, x, y, vx, vy, tH, R 등 표시
+st.markdown("### 📊 주요 시뮬레이션 결과 요약")
+st.info("💡 위 슬라이더를 조작하여 실시간 데이터를 확인하고, 아래에서 전체 요약 수치를 참고하세요.")
+
+col_res1, col_res2, col_res3 = st.columns(3)
+with col_res1:
+    st.metric("최고점 도달 시간 ($t_H$)", f"{t_H:.3f} s")
+with col_res2:
+    st.metric("최고점 높이 ($H$)", f"{H:.2f} m")
+with col_res3:
+    st.metric("최대 수평 도달 거리 ($R$)", f"{R:.2f} m")
 
 # --- [데이터 분석 및 상세 결과] ---
 st.divider()
