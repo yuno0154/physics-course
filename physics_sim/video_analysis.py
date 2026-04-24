@@ -62,7 +62,28 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 상단 헤더 섹션 (제목 및 작업 버튼 한 줄 배치) ---
+# --- [상단 고정] 학생 정보 및 탐구 답변 입력부 ---
+# (보고서 생성 버튼이 상단에 있으므로 변수를 먼저 정의해야 함)
+student_info_placeholder = st.empty()
+with student_info_placeholder.container():
+    st.markdown("### 👤 학생 정보")
+    info_c1, info_c2, info_c3 = st.columns(3)
+    with info_c1:
+        class_num = st.text_input("반 (Class)", placeholder="예: 3-1", key="class_num")
+    with info_c2:
+        student_num = st.text_input("번호 (Number)", placeholder="예: 01", key="student_num")
+    with info_c3:
+        student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
+
+# 답변 변수 사전 정의 (하단 위젯에서 입력받은 값을 session_state를 통해 가져옴)
+qa_a1 = st.session_state.get('a1', '')
+qa_a2 = st.session_state.get('a2', '')
+qa_a3 = st.session_state.get('a3', '')
+qa_a4 = st.session_state.get('a4', '')
+
+st.divider()
+
+# --- 상단 헤더 섹션 (제목 및 작업 버튼) ---
 header_col1, header_col2, header_col3, header_col4 = st.columns([3.5, 0.8, 0.8, 0.8])
 
 with header_col1:
@@ -101,13 +122,13 @@ with header_col4:
         doc.add_paragraph(f"반: {class_num}  번호: {student_num}  이름: {student_name}")
         
         doc.add_heading('🤔 탐구 결과 및 답변', level=1)
-        qa = [
-            ("가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?", a1),
-            ("나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?", a2),
-            ("다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?", a3),
-            ("라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?", a4)
+        qa_list = [
+            ("가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?", qa_a1),
+            ("나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?", qa_a2),
+            ("다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?", qa_a3),
+            ("라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?", qa_a4)
         ]
-        for q, a in qa:
+        for q, a in qa_list:
             p_q = doc.add_paragraph(q, style='List Bullet')
             for run in p_q.runs:
                 run.font.bold = True
@@ -130,18 +151,6 @@ with header_col4:
         key="docx_btn",
         use_container_width=True
     )
-
-st.divider()
-
-# --- 학생 정보 입력부 ---
-st.markdown("### 👤 학생 정보")
-info_c1, info_c2, info_c3 = st.columns(3)
-with info_c1:
-    class_num = st.text_input("반 (Class)", placeholder="예: 3-1", key="class_num")
-with info_c2:
-    student_num = st.text_input("번호 (Number)", placeholder="예: 01", key="student_num")
-with info_c3:
-    student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
 
 st.divider()
 
