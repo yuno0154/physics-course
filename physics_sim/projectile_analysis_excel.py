@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn # 한글 폰트 설정을 위한 qn 임포트 추가
 import io
 
 # 페이지 설정
@@ -153,12 +154,19 @@ if is_print_mode:
     # --- Word 보고서 생성 함수 ---
     def create_docx():
         doc = Document()
+        # 기본 폰트 설정 (한글 깨짐 방지)
+        doc.styles['Normal'].font.name = '맑은 고딕'
+        doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+        
         title = doc.add_heading('포물선 운동 실험 결과 보고서', 0)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in title.runs:
+            run.font.name = '맑은 고딕'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
         
         # 기본 정보
-        doc.add_paragraph(' 학년: ____   반: ____   번호: ____   이름: __________')
-        doc.add_paragraph(f'실험 조건: 발사각 {theta_deg}°, 초기속도 {v0}m/s, 중력가속도 {g}m/s²')
+        p_info = doc.add_paragraph(' 학년: ____   반: ____   번호: ____   이름: __________')
+        p_cond = doc.add_paragraph(f'실험 조건: 발사각 {theta_deg}°, 초기속도 {v0}m/s, 중력가속도 {g}m/s²')
         
         # 탐구 질문 및 답변
         doc.add_heading('📝 탐구 질문 및 답변', level=1)
@@ -169,17 +177,33 @@ if is_print_mode:
             "4. 수평 도달 거리 R과 최고점 높이 H 사이에는 어떤 정량적 관계가 성립하는가?"
         ]
         for q in questions:
-            doc.add_paragraph(q)
+            p_q = doc.add_paragraph(q)
+            # 폰트 강제 적용 (각 파라그래프마다)
+            for run in p_q.runs:
+                run.font.name = '맑은 고딕'
+                run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+            
             doc.add_paragraph("\n" * 3) # 답변 공간
             doc.add_paragraph("_" * 50)
             
         # 결과 요약
-        doc.add_heading('📊 실험 결과 요약', level=1)
+        head_res = doc.add_heading('📊 실험 결과 요약', level=1)
+        for run in head_res.runs:
+            run.font.name = '맑은 고딕'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+
         table = doc.add_table(rows=1, cols=2)
         table.style = 'Table Grid'
         hdr_cells = table.rows[0].cells
         hdr_cells[0].text = '구분'
         hdr_cells[1].text = '결괏값'
+        # 표 내부 폰트 설정
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.font.name = '맑은 고딕'
+                        run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
         
         results = [
             ("최고점 도달 시간", f"{t_H:.2f} s"),
