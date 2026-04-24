@@ -10,23 +10,40 @@ st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout
 # CSS를 활용한 엑셀 스타일 및 인쇄 최적화
 st.markdown("""
     <style>
+    /* 엑셀 스타일 디자인 */
     .excel-header { background-color: #3b82f6; color: white; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
-    .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; }
+    .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; color: black; }
     .result-header { background-color: #fecaca; color: black; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
-    .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; }
+    .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; color: black; }
     
-    /* 인쇄 시 설정 */
+    /* 인쇄 시 흰색 배경 & 검은 글씨 강제 설정 */
     @media print {
-        @page { margin: 10mm; }
-        .stApp { height: auto !important; overflow: visible !important; }
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton { display: none !important; }
-        .main .block-container { padding: 0 !important; }
-        .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
-        h1 { font-size: 1.5rem !important; } /* 인쇄 시 제목 크기 축소 */
+        @page { margin: 15mm; size: A4; }
+        .stApp { background-color: white !important; color: black !important; }
+        [data-testid="stAppViewContainer"] { background-color: white !important; }
+        .main .block-container { padding: 0 !important; color: black !important; }
+        
+        /* 다크모드 무시하고 흰 배경에 검은 글자 강제 */
+        span, p, div, h1, h2, h3, h4, h5, h6, table, tr, td, th {
+            color: black !important;
+            background-color: transparent !important;
+        }
+        
+        /* 필요 없는 요소 숨기기 */
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, footer { display: none !important; }
+        
+        /* 그래프 및 표 줄바꿈 방지 */
+        .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; border: 1px solid #eee; margin-bottom: 20px !important; }
+        
+        /* 엑셀 스타일 인쇄 시에도 유지 (고대비) */
+        .excel-header { background-color: #eee !important; color: black !important; border: 1px solid #000 !important; }
+        .excel-value { background-color: #fff !important; color: black !important; border: 1px solid #000 !important; }
+        .result-header { background-color: #ddd !important; color: black !important; border: 1px solid #000 !important; }
+        .result-value { background-color: #fff !important; color: black !important; border: 1px solid #000 !important; }
     }
     
-    .print-header { font-size: 1.0rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid black; padding-bottom: 8px; }
-    .answer-space { border-bottom: 1px solid #ccc; height: 30px; margin-bottom: 10px; width: 100%; }
+    .print-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid black; padding-bottom: 8px; color: inherit; }
+    .answer-space { border-bottom: 1px solid #ccc; height: 35px; margin-bottom: 10px; width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -36,11 +53,15 @@ st.title("📊 포물선 운동 정밀 데이터 분석")
 is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
-    # 실시간 인쇄 버튼 (JS 활용 - 부모창 제어)
-    if st.button("🖨️ 바로 인쇄 / PDF 저장"):
-        st.components.v1.html("<script>parent.window.print()</script>", height=0)
+    col_p1, col_p2 = st.columns([1, 1])
+    with col_p1:
+        if st.button("🖨️ 바로 인쇄 (검정색 글씨/흰배경 자동 전환)"):
+            st.components.v1.html("<script>parent.window.print()</script>", height=0)
+    with col_p2:
+        # 데이터 엑셀 다운로드 (docx 대용으로 데이터 활용 가능)
+        csv = df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📂 실험 데이터 다운로드 (CSV/Excel용)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv')
     
-    # 학번/성함 헤더 (출력용)
     st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
 
 # 탐구 질문 추가
@@ -139,7 +160,17 @@ with col_graphs:
     # Graph 4: vy-t
     fig.add_trace(go.Scatter(x=t_steps, y=vy_vals, mode='lines+markers', name='vy(t)', line=dict(color='orange')), row=2, col=2)
 
-    fig.update_layout(height=600, showlegend=False, margin=dict(l=20, r=20, t=40, b=20))
+    # 그래프 스타일 설정 (인쇄 모드일 때 흰 배경 템플릿 사용)
+    p_template = "plotly_white" if is_print_mode else "plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white"
+    
+    fig.update_layout(
+        height=600, 
+        showlegend=False, 
+        margin=dict(l=20, r=20, t=40, b=20),
+        template=p_template,
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)'
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 st.info("💡 각 수치를 변경하면 표와 그래프가 실시간으로 업데이트됩니다.")
