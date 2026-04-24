@@ -5,25 +5,6 @@ import numpy as np
 # 페이지 설정
 st.set_page_config(layout="wide")
 
-st.title("🏀 비스듬히 위로 던진 물체의 정밀 분석")
-st.markdown("""
-포물선 운동의 수평 성분과 연직 성분을 분리하여 분석합니다. 
-하단의 **Play/Pause** 버튼을 사용하여 운동 과정을 멈추어가며 관찰해 보세요!
-""")
-
-# --- 사이드바 전용 스타일 설정 ---
-st.sidebar.markdown("""
-    <style>
-    /* 사이드바 폰트 크기 조정 (메뉴와 일관성 유지) */
-    [data-testid="stSidebar"] .stMarkdown, 
-    [data-testid="stSidebar"] label,
-    [data-testid="stSidebar"] .stButton,
-    [data-testid="stSidebar"] .stNumberInput {
-        font-size: 11pt !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 # --- 발사 조건 설정 (메인 페이지 상단) ---
 with st.container(border=True):
     st.markdown("### 🚀 발사 조건 설정")
@@ -39,6 +20,12 @@ with st.container(border=True):
     st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
 
 theta = np.radians(theta_deg)
+
+st.title("🏀 비스듬히 위로 던진 물체의 정밀 분석")
+st.markdown("""
+포물선 운동의 수평 성분과 연직 성분을 분리하여 분석합니다. 
+하단의 **Play/Pause** 버튼을 사용하여 운동 과정을 멈추어가며 관찰해 보세요!
+""")
 
 # --- 물리 정보 계산 ---
 vx0 = v0 * np.cos(theta)
