@@ -30,7 +30,7 @@ H = (vy0**2) / (2 * g) # 최고점 높이
 t_R = 2 * t_H # 지면 도달 시간
 R = vx0 * t_R # 수평 도달 거리
 
-t_steps = np.linspace(0, t_R, 60) # 60프레임 (약 1~2초 애니메이션)
+t_steps = np.linspace(0, t_R, 100) # 더 세밀한 분석을 위해 100단계로 증가
 
 # 프레임별 데이터 생성 함수
 def get_oblique_frame_data(t_curr):
@@ -57,77 +57,53 @@ def get_oblique_frame_data(t_curr):
     
     return [trace_path, trace_ball, trace_vx, trace_vy]
 
-# --- Plotly 애니메이션 구성 ---
-# 초기 데이터 (t=0)
-initial_data = get_oblique_frame_data(0)
-initial_data.append(go.Scatter(x=[vx0 * t_H], y=[H], mode='markers', marker=dict(size=12, color='red', symbol='star'), name='최고점'))
+# --- [실시간 시뮬레이션 제어 및 데이터] ---
+st.divider()
+c_play1, c_play2 = st.columns([3, 1])
 
-# 프레임 생성
-frames = [go.Frame(data=get_oblique_frame_data(t), name=f"frame_{i}") for i, t in enumerate(t_steps)]
+with c_play1:
+    t_curr = st.slider("⏱️ 시뮬레이션 시간 조절 (t)", min_value=0.0, max_value=float(t_R), value=0.0, step=0.01, help="슬라이더를 움직여 특정 시점의 물리량을 확인하세요.")
+with c_play2:
+    st.write("") # 간격 맞춤
+    if st.button("🔄 처음으로 (Reset)", use_container_width=True):
+        st.rerun()
 
-# 슬라이더 설정
-sliders_dict = {
-    "active": 0,
-    "yanchor": "top",
-    "xanchor": "left",
-    "currentvalue": {
-        "font": {"size": 14},
-        "prefix": "시간 (t): ",
-        "visible": True,
-        "xanchor": "right"
-    },
-    "transition": {"duration": 30, "easing": "cubic-in-out"},
-    "pad": {"b": 10, "t": 50},
-    "len": 0.9,
-    "x": 0.1,
-    "y": 0,
-    "steps": []
-}
+# 실시간 데이터 계산
+curr_x = vx0 * t_curr
+curr_y = max(vy0 * t_curr - 0.5 * g * t_curr**2, 0)
+curr_vx = vx0
+curr_vy = vy0 - g * t_curr
+v_total = np.sqrt(curr_vx**2 + curr_vy**2)
 
-for i, t in enumerate(t_steps):
-    slider_step = {
-        "args": [
-            [f"frame_{i}"],
-            {"frame": {"duration": 30, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}
-        ],
-        "label": f"{t:.2f}s",
-        "method": "animate"
-    }
-    sliders_dict["steps"].append(slider_step)
+# --- 실시간 데이터 대시보드 ---
+with st.container(border=True):
+    d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+    d_col1.metric("수평 거리 (x)", f"{curr_x:.2f} m")
+    d_col2.metric("높이 (y)", f"{curr_y:.2f} m")
+    d_col3.metric("현재 속도 (v)", f"{v_total:.2f} m/s")
+    d_col4.metric("연직 속도 (vy)", f"{curr_vy:.2f} m/s", delta=f"{-g:.1f} m/s²", delta_color="inverse")
+
+# --- Plotly 시각화 (정적 프레임 업데이트) ---
+data_traces = get_oblique_frame_data(t_curr)
+data_traces.append(go.Scatter(x=[vx0 * t_H], y=[H], mode='markers', marker=dict(size=12, color='red', symbol='star'), name='최고점'))
 
 fig = go.Figure(
-    data=initial_data,
+    data=data_traces,
     layout=go.Layout(
         xaxis=dict(range=[-2, R * 1.2], title="수평 거리 x (m)", gridcolor='LightGray'),
         yaxis=dict(range=[-2, H * 1.5], title="높이 y (m)", gridcolor='LightGray'),
-        updatemenus=[dict(
-            type="buttons",
-            direction="left",
-            buttons=[
-                dict(label="▶️ 재생 (Play)",
-                     method="animate",
-                     args=[None, {"frame": {"duration": 30, "redraw": False}, "fromcurrent": True}]),
-                dict(label="⏸️ 정지 (Pause)",
-                     method="animate",
-                     args=[[None], {"frame": {"duration": 0, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}])
-            ],
-            pad={"r": 10, "t": 10},
-            showactive=False,
-            x=0.1, y=1.15
-        )],
-        sliders=[sliders_dict],
-        height=650,
+        height=550,
         plot_bgcolor='white',
-        margin=dict(l=50, r=50, t=80, b=100)
-    ),
-    frames=frames
+        showlegend=True,
+        legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+        margin=dict(l=20, r=20, t=20, b=20)
+    )
 )
 
 # 주요 수치 표시(어노테이션)
 fig.add_annotation(x=vx0 * t_H, y=H, text=f"최고점 H={H:.2f}m", showarrow=True, arrowhead=1)
 fig.add_annotation(x=R, y=0, text=f"도달 거리 R={R:.2f}m", showarrow=True, arrowhead=1)
 
-# 애니메이션 출력
 st.plotly_chart(fig, use_container_width=True)
 
 # --- [데이터 분석 및 상세 결과] ---
