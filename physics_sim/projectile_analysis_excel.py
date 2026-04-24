@@ -15,77 +15,22 @@ st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout
 # CSS를 활용한 엑셀 스타일 및 인쇄 최적화
 st.markdown("""
     <style>
+    <style>
     /* 엑셀 스타일 디자인 */
-    .excel-header { background-color: #3b82f6; color: white !important; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .excel-header { background-color: #3b82f6; color: white; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
     .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
-    .result-header { background-color: #fecaca; color: black !important; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .result-header { background-color: #fecaca; color: black; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
     .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
     
-    /* 인쇄 시 흰색 배경 & 검은 글씨 초강력 설정 (상세 타겟팅) */
-    @media print {
-        @page { margin: 15mm; size: A4; }
-        
-        /* 모든 요소의 배경색과 글자색을 강제 조정 */
-        html, body, .stApp, 
-        [data-testid="stAppViewContainer"], 
-        [data-testid="stHeader"],
-        [data-testid="stMain"],
-        .main .block-container {
-            background-color: white !important;
-            color: black !important;
-        }
-        
-        /* Streamlit 특유의 어두운 배경 제거 */
-        div, span, p, h1, h2, h3, h4, h5, h6, table, tr, td, th, section, label {
-            color: black !important;
-            background-color: transparent !important;
-            background-image: none !important;
-        }
-
-        /* 답변 공간(밑줄)은 검은색으로 유지 */
-        .answer-space {
-            border-bottom: 2px solid black !important;
-            background-color: transparent !important;
-        }
-
-        /* 필요 없는 요소 완전히 제거 */
-        header, footer, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, button { 
-            display: none !important; 
-        }
-        
-        /* 엑셀 표 스타일 고대비 유지 */
-        .excel-header { background-color: #ddd !important; border: 1px solid black !important; }
-        .excel-value { background-color: #fff !important; border: 1px solid black !important; }
-        .result-header { background-color: #ccc !important; border: 1px solid black !important; }
-        .result-value { background-color: #fff !important; border: 1px solid black !important; }
-
-        /* 페이지 내 주요 그래프 박스 처리 */
-        .stPlotlyChart { 
-            border: 1px solid #000; 
-            background-color: white !important; 
-            margin-bottom: 30px !important;
-        }
-    }
-    
     .print-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid black; padding-bottom: 8px; color: inherit; }
-    .answer-space { border-bottom: 2px solid black; height: 35px; margin-bottom: 10px; width: 100%; }
+    </style>
     </style>
 """, unsafe_allow_html=True)
 
 st.title("📊 포물선 운동 정밀 데이터 분석")
 
-# 탐구 질문 추가 (상단 고정)
+# 📝 탐구 질문 및 데이터 분석
 st.markdown("""
-**📝 탐구 질문**
-1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?
-2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?
-3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?
-4. 수평 도달 거리 $R$과 최고점 높이 $H$ 사이에는 어떤 정량적 관계가 성립하는가?
-""")
-
-# 탐구 질문 추가
-st.markdown("""
-**📝 탐구 질문**
 1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?
 2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?
 3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?
@@ -146,93 +91,81 @@ df = pd.DataFrame({
     "a_y(가속도)": ay_vals
 })
 
-# --- [출력 모드 및 다운로드 옵션] ---
+# --- [데이터 리포트 내보내기] ---
 st.divider()
-is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
+st.subheader("📤 결과 데이터 리포트 저장")
 
-if is_print_mode:
-    # --- Word 보고서 생성 함수 ---
-    def create_docx():
-        doc = Document()
-        # 기본 폰트 설정 (한글 깨짐 방지)
-        doc.styles['Normal'].font.name = '맑은 고딕'
-        doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
-        
-        title = doc.add_heading('포물선 운동 실험 결과 보고서', 0)
-        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        for run in title.runs:
-            run.font.name = '맑은 고딕'
-            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
-        
-        # 기본 정보
-        p_info = doc.add_paragraph(' 학년: ____   반: ____   번호: ____   이름: __________')
-        p_cond = doc.add_paragraph(f'실험 조건: 발사각 {theta_deg}°, 초기속도 {v0}m/s, 중력가속도 {g}m/s²')
-        
-        # 탐구 질문 및 답변
-        doc.add_heading('📝 탐구 질문 및 답변', level=1)
-        questions = [
-            "1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?",
-            "2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?",
-            "3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?",
-            "4. 수평 도달 거리 R과 최고점 높이 H 사이에는 어떤 정량적 관계가 성립하는가?"
-        ]
-        for q in questions:
-            p_q = doc.add_paragraph(q)
-            # 폰트 강제 적용 (각 파라그래프마다)
-            for run in p_q.runs:
-                run.font.name = '맑은 고딕'
-                run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
-            
-            doc.add_paragraph("\n" * 3) # 답변 공간
-            doc.add_paragraph("_" * 50)
-            
-        # 결과 요약
-        head_res = doc.add_heading('📊 실험 결과 요약', level=1)
-        for run in head_res.runs:
-            run.font.name = '맑은 고딕'
-            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
-
-        table = doc.add_table(rows=1, cols=2)
-        table.style = 'Table Grid'
-        hdr_cells = table.rows[0].cells
-        hdr_cells[0].text = '구분'
-        hdr_cells[1].text = '결괏값'
-        # 표 내부 폰트 설정
-        for row in table.rows:
-            for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    for run in paragraph.runs:
-                        run.font.name = '맑은 고딕'
-                        run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
-        
-        results = [
-            ("최고점 도달 시간", f"{t_H:.2f} s"),
-            ("최고점 높이", f"{H:.2f} m"),
-            ("수평 도달 거리", f"{R:.2f} m")
-        ]
-        for item, val in results:
-            row_cells = table.add_row().cells
-            row_cells[0].text = item
-            row_cells[1].text = val
-            
-        doc.add_paragraph("\n* 위 데이터는 시뮬레이션 기반 결과입니다.")
-        
-        bio = io.BytesIO()
-        doc.save(bio)
-        return bio.getvalue()
-
-    col_p1, col_p2, col_p3 = st.columns(3)
-    with col_p1:
-        if st.button("🖨️ 바로 인쇄 (흰 배경 전환)", use_container_width=True):
-            st.components.v1.html("<script>parent.window.print()</script>", height=0)
-    with col_p2:
-        docx_data = create_docx()
-        st.download_button("📝 보고서 양식 다운로드 (DOCX)", data=docx_data, file_name=f"projectile_report_{theta_deg}deg.docx", mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', use_container_width=True)
-    with col_p3:
-        csv = df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📂 실험 데이터 다운로드 (CSV)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv', use_container_width=True)
+# --- Word 보고서 생성 함수 ---
+def create_docx():
+    doc = Document()
+    # 기본 폰트 설정 (한글 깨짐 방지)
+    doc.styles['Normal'].font.name = '맑은 고딕'
+    doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
     
-    st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
+    title = doc.add_heading('포물선 운동 실험 결과 보고서', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for run in title.runs:
+        run.font.name = '맑은 고딕'
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+    
+    # 기본 정보
+    doc.add_paragraph(' 학년: ____   반: ____   번호: ____   이름: __________')
+    doc.add_paragraph(f'실험 조건: 발사각 {theta_deg}°, 초기속도 {v0}m/s, 중력가속도 {g}m/s²')
+    
+    # 탐구 질문 및 답변
+    doc.add_heading('📝 탐구 질문 및 답변', level=1)
+    questions = [
+        "1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?",
+        "2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?",
+        "3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?",
+        "4. 수평 도달 거리 R과 최고점 높이 H 사이에는 어떤 정량적 관계가 성립하는가?"
+    ]
+    for q in questions:
+        p_q = doc.add_paragraph(q)
+        for run in p_q.runs:
+            run.font.name = '맑은 고딕'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+        doc.add_paragraph("\n" * 3)
+        doc.add_paragraph("_" * 50)
+        
+    # 결과 요약
+    head_res = doc.add_heading('📊 실험 결과 요약', level=1)
+    for run in head_res.runs:
+        run.font.name = '맑은 고딕'
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+
+    table = doc.add_table(rows=1, cols=2)
+    table.style = 'Table Grid'
+    hdr_cells = table.rows[0].cells
+    hdr_cells[0].text = '구분'
+    hdr_cells[1].text = '결괏값'
+    for row in table.rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.name = '맑은 고딕'
+                    run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+    
+    results = [
+        ("최고점 도달 시간", f"{t_H:.2f} s"), ("최고점 높이", f"{H:.2f} m"), ("수평 도달 거리", f"{R:.2f} m")
+    ]
+    for item, val in results:
+        row_cells = table.add_row().cells
+        row_cells[0].text = item
+        row_cells[1].text = val
+        
+    doc.add_paragraph("\n* 위 데이터는 시뮬레이션 기반 결과입니다.")
+    bio = io.BytesIO()
+    doc.save(bio)
+    return bio.getvalue()
+
+col_ex1, col_ex2 = st.columns(2)
+with col_ex1:
+    docx_data = create_docx()
+    st.download_button("📝 보고서 양식 다운로드 (DOCX)", data=docx_data, file_name=f"projectile_report_{theta_deg}deg.docx", mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', use_container_width=True)
+with col_ex2:
+    csv = df.to_csv(index=False).encode('utf-8-sig')
+    st.download_button("📂 실험 데이터 다운로드 (CSV/Excel용)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv', use_container_width=True)
 
 # --- 메인 레이아웃: 표(좌) + 그래프(우) ---
 col_table, col_graphs = st.columns([2, 3])
@@ -261,8 +194,8 @@ with col_graphs:
     # Graph 4: vy-t
     fig.add_trace(go.Scatter(x=t_steps, y=vy_vals, mode='lines+markers', name='vy(t)', line=dict(color='orange')), row=2, col=2)
 
-    # 그래프 스타일 설정 (인쇄 모드일 때 흰 배경 템플릿 사용)
-    p_template = "plotly_white" if is_print_mode else "plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white"
+    # 그래프 스타일 설정 (테마에 맞는 템플릿 사용)
+    p_template = "plotly_dark" if st.get_option("theme.base") == "dark" else "plotly_white"
     
     fig.update_layout(
         height=600, 
