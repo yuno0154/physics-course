@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+import io
 
 # 페이지 설정
 st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout="wide")
@@ -11,39 +15,59 @@ st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout
 st.markdown("""
     <style>
     /* 엑셀 스타일 디자인 */
-    .excel-header { background-color: #3b82f6; color: white; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
-    .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; color: black; }
-    .result-header { background-color: #fecaca; color: black; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
-    .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; color: black; }
+    .excel-header { background-color: #3b82f6; color: white !important; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
+    .result-header { background-color: #fecaca; color: black !important; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
+    .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
     
-    /* 인쇄 시 흰색 배경 & 검은 글씨 강제 설정 */
+    /* 인쇄 시 흰색 배경 & 검은 글씨 초강력 설정 (상세 타겟팅) */
     @media print {
         @page { margin: 15mm; size: A4; }
-        .stApp { background-color: white !important; color: black !important; }
-        [data-testid="stAppViewContainer"] { background-color: white !important; }
-        .main .block-container { padding: 0 !important; color: black !important; }
         
-        /* 다크모드 무시하고 흰 배경에 검은 글자 강제 */
-        span, p, div, h1, h2, h3, h4, h5, h6, table, tr, td, th {
+        /* 모든 요소의 배경색과 글자색을 강제 조정 */
+        html, body, .stApp, 
+        [data-testid="stAppViewContainer"], 
+        [data-testid="stHeader"],
+        [data-testid="stMain"],
+        .main .block-container {
+            background-color: white !important;
             color: black !important;
-            background-color: transparent !important;
         }
         
-        /* 필요 없는 요소 숨기기 */
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, footer { display: none !important; }
+        /* Streamlit 특유의 어두운 배경 제거 */
+        div, span, p, h1, h2, h3, h4, h5, h6, table, tr, td, th, section, label {
+            color: black !important;
+            background-color: transparent !important;
+            background-image: none !important;
+        }
+
+        /* 답변 공간(밑줄)은 검은색으로 유지 */
+        .answer-space {
+            border-bottom: 2px solid black !important;
+            background-color: transparent !important;
+        }
+
+        /* 필요 없는 요소 완전히 제거 */
+        header, footer, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, button { 
+            display: none !important; 
+        }
         
-        /* 그래프 및 표 줄바꿈 방지 */
-        .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; border: 1px solid #eee; margin-bottom: 20px !important; }
-        
-        /* 엑셀 스타일 인쇄 시에도 유지 (고대비) */
-        .excel-header { background-color: #eee !important; color: black !important; border: 1px solid #000 !important; }
-        .excel-value { background-color: #fff !important; color: black !important; border: 1px solid #000 !important; }
-        .result-header { background-color: #ddd !important; color: black !important; border: 1px solid #000 !important; }
-        .result-value { background-color: #fff !important; color: black !important; border: 1px solid #000 !important; }
+        /* 엑셀 표 스타일 고대비 유지 */
+        .excel-header { background-color: #ddd !important; border: 1px solid black !important; }
+        .excel-value { background-color: #fff !important; border: 1px solid black !important; }
+        .result-header { background-color: #ccc !important; border: 1px solid black !important; }
+        .result-value { background-color: #fff !important; border: 1px solid black !important; }
+
+        /* 페이지 내 주요 그래프 박스 처리 */
+        .stPlotlyChart { 
+            border: 1px solid #000; 
+            background-color: white !important; 
+            margin-bottom: 30px !important;
+        }
     }
     
     .print-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid black; padding-bottom: 8px; color: inherit; }
-    .answer-space { border-bottom: 1px solid #ccc; height: 35px; margin-bottom: 10px; width: 100%; }
+    .answer-space { border-bottom: 2px solid black; height: 35px; margin-bottom: 10px; width: 100%; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -121,26 +145,70 @@ df = pd.DataFrame({
     "a_y(가속도)": ay_vals
 })
 
-# --- [출력 모드 및 다운로드 옵션] (데이터 생성 후 배치하여 오류 방지) ---
+# --- [출력 모드 및 다운로드 옵션] ---
 st.divider()
 is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
 
 if is_print_mode:
-    col_p1, col_p2 = st.columns([1, 1])
+    # --- Word 보고서 생성 함수 ---
+    def create_docx():
+        doc = Document()
+        title = doc.add_heading('포물선 운동 실험 결과 보고서', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        
+        # 기본 정보
+        doc.add_paragraph(' 학년: ____   반: ____   번호: ____   이름: __________')
+        doc.add_paragraph(f'실험 조건: 발사각 {theta_deg}°, 초기속도 {v0}m/s, 중력가속도 {g}m/s²')
+        
+        # 탐구 질문 및 답변
+        doc.add_heading('📝 탐구 질문 및 답변', level=1)
+        questions = [
+            "1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?",
+            "2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?",
+            "3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?",
+            "4. 수평 도달 거리 R과 최고점 높이 H 사이에는 어떤 정량적 관계가 성립하는가?"
+        ]
+        for q in questions:
+            doc.add_paragraph(q)
+            doc.add_paragraph("\n" * 3) # 답변 공간
+            doc.add_paragraph("_" * 50)
+            
+        # 결과 요약
+        doc.add_heading('📊 실험 결과 요약', level=1)
+        table = doc.add_table(rows=1, cols=2)
+        table.style = 'Table Grid'
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = '구분'
+        hdr_cells[1].text = '결괏값'
+        
+        results = [
+            ("최고점 도달 시간", f"{t_H:.2f} s"),
+            ("최고점 높이", f"{H:.2f} m"),
+            ("수평 도달 거리", f"{R:.2f} m")
+        ]
+        for item, val in results:
+            row_cells = table.add_row().cells
+            row_cells[0].text = item
+            row_cells[1].text = val
+            
+        doc.add_paragraph("\n* 위 데이터는 시뮬레이션 기반 결과입니다.")
+        
+        bio = io.BytesIO()
+        doc.save(bio)
+        return bio.getvalue()
+
+    col_p1, col_p2, col_p3 = st.columns(3)
     with col_p1:
-        if st.button("🖨️ 바로 인쇄 (검정색 글씨/흰배경 자동 전환)", use_container_width=True):
+        if st.button("🖨️ 바로 인쇄 (흰 배경 전환)", use_container_width=True):
             st.components.v1.html("<script>parent.window.print()</script>", height=0)
     with col_p2:
+        docx_data = create_docx()
+        st.download_button("📝 보고서 양식 다운로드 (DOCX)", data=docx_data, file_name=f"projectile_report_{theta_deg}deg.docx", mime='application/vnd.openxmlformats-officedocument.wordprocessingml.document', use_container_width=True)
+    with col_p3:
         csv = df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📂 실험 데이터 다운로드 (CSV/Excel용)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv', use_container_width=True)
+        st.download_button("📂 실험 데이터 다운로드 (CSV)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv', use_container_width=True)
     
     st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
-    
-    # 답변 공간 추가 (출력용)
-    for i in range(1, 5):
-        st.write(f"**[{i}번 답변]**")
-        for _ in range(3): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-    st.divider()
 
 # --- 메인 레이아웃: 표(좌) + 그래프(우) ---
 col_table, col_graphs = st.columns([2, 3])
