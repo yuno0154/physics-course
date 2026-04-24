@@ -2,21 +2,12 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-# 페이지 설정
-st.set_page_config(layout="wide")
-
-# --- 발사 조건 설정 (메인 페이지 상단) ---
+# --- 발사 조건 설정 (메인 페이지 최상단) ---
 with st.container(border=True):
     st.markdown("### 🚀 발사 조건 설정")
-    col1, col2, col3 = st.columns([1, 1, 1.2])
-    
-    with col1:
-        v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
-    with col2:
-        theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
-    with col3:
-        g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
-    
+    v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
+    theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
+    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
     st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
 
 theta = np.radians(theta_deg)
