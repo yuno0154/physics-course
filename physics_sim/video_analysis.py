@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import json
+import plotly.graph_objects as go
 
 # 페이지 설정
 # st.set_page_config(page_title="포물선 운동 영상 분석 실습", layout="wide") # main_app에서 설정됨
@@ -126,22 +127,55 @@ st.divider()
 st.subheader("📊 탐구 결과 1: 데이터 및 그래프 기록")
 st.write("동영상 분석 프로그램에서 추출한 데이터 표와 5가지 종류의 그래프를 각각 캡처하여 업로드하세요.")
 
-# 1. 데이터 표 업로드
-st.markdown("#### 📋 1. 분석 데이터 표 기록")
+# 1. 데이터 표 업로드 및 디지털 전산화
+st.markdown("#### 📋 1. 분석 데이터 디지털 기록")
+st.info("💡 실습 프로그램에서 다운로드한 **CSV 파일**을 업로드하면 자동으로 데이터가 입력됩니다. 이미지를 업로드한 경우 아래 표에 직접 입력하여 데이터를 디지털화하세요.")
+
 data_file = st.file_uploader("데이터 표 이미지 또는 CSV 파일 업로드", type=['png', 'jpg', 'jpeg', 'csv'], key="data_file")
+
+# 기본 데이터 프레임 구조 (데이터 부재 시)
+default_df = pd.DataFrame({
+    "시간(s)": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5],
+    "x위치(m)": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    "y위치(m)": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+})
 
 if data_file:
     if data_file.name.lower().endswith('.csv'):
         try:
-            df = pd.read_csv(data_file)
-            st.dataframe(df, use_container_width=True)
-            st.caption("[기록] 분석 데이터 (CSV)")
+            input_df = pd.read_csv(data_file)
+            st.success("✅ CSV 데이터를 성공적으로 불러왔습니다.")
         except Exception as e:
-            st.error(f"CSV 파일을 읽는데 실패했습니다: {e}")
+            st.error(f"CSV 읽기 실패: {e}")
+            input_df = default_df
     else:
-        st.image(data_file, use_container_width=True, caption="[기록] 분석 데이터 표 이미지")
+        # 이미지 업로드 시 이미지 보여주기
+        st.image(data_file, use_container_width=True, caption="[참고] 업로드된 데이터 표 이미지")
+        st.warning("⚠️ 이미지 속 데이터를 아래 '디지털 데이터 시트'에 직접 입력하여 그래프를 생성하세요.")
+        input_df = default_df
 else:
-    st.info("실습 프로그램에서 다운로드한 CSV 파일 또는 캡처한 데이터 표 이미지를 업로드해 주세요.")
+    input_df = default_df
+
+# 상호작용 가능한 데이터 에디터 (데이터 디지털화)
+st.markdown("**📝 디지털 데이터 시트 (수정 가능)**")
+edited_df = st.data_editor(
+    input_df, 
+    num_rows="dynamic", 
+    use_container_width=True,
+    key="digital_data_table"
+)
+
+# 디지털화된 데이터를 바탕으로 즉석 그래프 생성
+if not edited_df.empty and "시간(s)" in edited_df.columns:
+    st.markdown("#### 📉 디지털화된 데이터 그래프 분석")
+    fig_auto = go.Figure()
+    if "x위치(m)" in edited_df.columns:
+        fig_auto.add_trace(go.Scatter(x=edited_df["시간(s)"], y=edited_df["x위치(m)"], name="x-t (수평)", mode='lines+markers'))
+    if "y위치(m)" in edited_df.columns:
+        fig_auto.add_trace(go.Scatter(x=edited_df["시간(s)"], y=edited_df["y위치(m)"], name="y-t (연직)", mode='lines+markers'))
+    
+    fig_auto.update_layout(height=400, margin=dict(l=20, r=20, t=30, b=20), title="입력된 데이터 기반 실시간 그래프")
+    st.plotly_chart(fig_auto, use_container_width=True)
 
 st.divider()
 
