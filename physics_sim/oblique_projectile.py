@@ -57,11 +57,43 @@ def get_oblique_frame_data(t_curr):
     
     return [trace_path, trace_ball, trace_vx, trace_vy]
 
-# --- Plotly 애니메이션 구성 (Play / Pause 버튼 포함) ---
+# --- Plotly 애니메이션 구성 ---
+# 초기 데이터 (t=0)
 initial_data = get_oblique_frame_data(0)
 initial_data.append(go.Scatter(x=[vx0 * t_H], y=[H], mode='markers', marker=dict(size=12, color='red', symbol='star'), name='최고점'))
 
-frames = [go.Frame(data=get_oblique_frame_data(t), name=str(i)) for i, t in enumerate(t_steps)]
+# 프레임 생성
+frames = [go.Frame(data=get_oblique_frame_data(t), name=f"frame_{i}") for i, t in enumerate(t_steps)]
+
+# 슬라이더 설정
+sliders_dict = {
+    "active": 0,
+    "yanchor": "top",
+    "xanchor": "left",
+    "currentvalue": {
+        "font": {"size": 14},
+        "prefix": "시간 (t): ",
+        "visible": True,
+        "xanchor": "right"
+    },
+    "transition": {"duration": 30, "easing": "cubic-in-out"},
+    "pad": {"b": 10, "t": 50},
+    "len": 0.9,
+    "x": 0.1,
+    "y": 0,
+    "steps": []
+}
+
+for i, t in enumerate(t_steps):
+    slider_step = {
+        "args": [
+            [f"frame_{i}"],
+            {"frame": {"duration": 30, "redraw": False}, "mode": "immediate", "transition": {"duration": 0}}
+        ],
+        "label": f"{t:.2f}s",
+        "method": "animate"
+    }
+    sliders_dict["steps"].append(slider_step)
 
 fig = go.Figure(
     data=initial_data,
@@ -81,10 +113,12 @@ fig = go.Figure(
             ],
             pad={"r": 10, "t": 10},
             showactive=False,
-            x=0.1, y=1.2
+            x=0.1, y=1.15
         )],
-        height=600,
-        plot_bgcolor='white'
+        sliders=[sliders_dict],
+        height=650,
+        plot_bgcolor='white',
+        margin=dict(l=50, r=50, t=80, b=100)
     ),
     frames=frames
 )
@@ -96,49 +130,32 @@ fig.add_annotation(x=R, y=0, text=f"도달 거리 R={R:.2f}m", showarrow=True, a
 # 애니메이션 출력
 st.plotly_chart(fig, use_container_width=True)
 
-# --- [학습지 기반 단계별 분석 표] ---
+# --- [데이터 분석 및 상세 결과] ---
 st.divider()
-st.subheader("📋 포물선 운동의 수평/연직 성분 분석 단계")
 
-analysis_data = {
-    "구분": ["알짜힘(F)", "운동의 종류", "가속도(a)", "처음 속도", "t초 후 속도", "t초 후 위치", "운동 경로", "최고점 도달 시간", "최고점의 높이", "수평 도달 거리"],
-    "수평 방향(x)": [
-        "0 (Fx = 0)",
-        "등속 직선 운동",
-        "ax = 0",
-        "v0x = v0 cosθ",
-        "vx = v0 cosθ",
-        "x = (v0 cosθ) * t",
-        "포물선",
-        "-",
-        "-",
-        "R = v0cosθ × 2tH"
-    ],
-    "연직 방향(y)": [
-        "중력 (Fy = -mg)",
-        "등가속도 직선 운동",
-        "ay = -g",
-        "v0y = v0 sinθ",
-        "vy = v0 sinθ - gt",
-        "y = (v0 sinθ) * t - 1/2gt²",
-        "포물선",
-        "tH = v0sinθ / g",
-        "H = (v0sinθ)² / 2g",
-        "지면 도달 시간 = 2tH"
-    ]
-}
-
-st.table(analysis_data)
-
-# --- 주요 결과 수치 요약 ---
-st.subheader("📝 시뮬레이션 결과 요약")
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.info(f"**최고점 도달 시간 (tH)**: `{t_H:.2f}`초")
-with c2:
-    st.info(f"**최고점의 높이 (H)**: `{H:.2f}`m")
-with c3:
-    st.info(f"**수평 도달 거리 (R)**: `{R:.2f}`m")
+with st.expander("📊 상세 분석 데이터 및 수치 보기", expanded=False):
+    st.subheader("📋 포물선 운동의 수평/연직 성분 분석 단계")
+    
+    analysis_data = {
+        "구분": ["알짜힘(F)", "운동의 종류", "가속도(a)", "처음 속도", "t초 후 속도", "t초 후 위치", "운동 경로", "최고점 도달 시간", "최고점의 높이", "수평 도달 거리"],
+        "수평 방향(x)": [
+            "0 (Fx = 0)", "등속 직선 운동", "ax = 0", "v0x = v0 cosθ", "vx = v0 cosθ", "x = (v0 cosθ) * t", "포물선", "-", "-", "R = v0cosθ × 2tH"
+        ],
+        "연직 방향(y)": [
+            "중력 (Fy = -mg)", "등가속도 직선 운동", "ay = -g", "v0y = v0 sinθ", "vy = v0 sinθ - gt", "y = (v0 sinθ) * t - 1/2gt²", "포물선", "tH = v0sinθ / g", "H = (v0sinθ)² / 2g", "지면 도달 시간 = 2tH"
+        ]
+    }
+    st.table(analysis_data)
+    
+    st.divider()
+    st.subheader("📝 시뮬레이션 결과 요약")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.info(f"**최고점 도달 시간 (tH)**: `{t_H:.2f}`초")
+    with c2:
+        st.info(f"**최고점의 높이 (H)**: `{H:.2f}`m")
+    with c3:
+        st.info(f"**수평 도달 거리 (R)**: `{R:.2f}`m")
 
 with st.expander("📝 공식 학습"):
     st.latex(r"t_H = \frac{v_0 \sin\theta}{g}")
