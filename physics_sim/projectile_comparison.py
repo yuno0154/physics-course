@@ -2,8 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-# 페이지 설정
-st.set_page_config(layout="wide")
+import numpy as np
 
 st.title("🏃 수평 속도에 따른 포물선 운동 비교")
 st.markdown("""
@@ -12,15 +11,24 @@ st.markdown("""
 하단의 **'Play'** 버튼을 클릭하여 실험을 시작하세요!
 """)
 
-# --- 사이드바: 속도 및 높이 설정 ---
-with st.sidebar:
-    st.header("⚙️ 시뮬레이션 설정")
-    v1 = st.slider("물체 1 (Red) 속도 (m/s)", 0, 30, 0)
-    v2 = st.slider("물체 2 (Green) 속도 (m/s)", 0, 30, 10)
-    v3 = st.slider("물체 3 (Blue) 속도 (m/s)", 0, 30, 20)
-    h = st.slider("초기 높이 (m)", 10, 100, 50)
-    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
-    st.info("💡 팁: 그래프 하단의 Play 버튼을 누르세요!")
+# --- 시뮬레이션 설정 (메인 페이지 상단) ---
+with st.container(border=True):
+    st.markdown("### ⚙️ 시뮬레이션 설정")
+    coll1, coll2, coll3 = st.columns(3)
+    with coll1:
+        v1 = st.number_input("물체 1 (Red) 속도 (m/s)", 0, 50, 0, step=1)
+    with coll2:
+        v2 = st.number_input("물체 2 (Green) 속도 (m/s)", 0, 50, 10, step=1)
+    with coll3:
+        v3 = st.number_input("물체 3 (Blue) 속도 (m/s)", 0, 50, 20, step=1)
+    
+    coll4, coll5 = st.columns([2, 1])
+    with coll4:
+        h = st.slider("초기 높이 h (m)", 10, 100, 50)
+    with coll5:
+        g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
+    
+    st.info("💡 팁: 그래프 상단의 ▶️ 재생(Play) 버튼을 누르세요!")
 
 # --- 데이터 계산 ---
 t_max = np.sqrt(2 * h / g)
