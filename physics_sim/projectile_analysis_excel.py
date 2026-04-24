@@ -49,20 +49,14 @@ st.markdown("""
 
 st.title("📊 포물선 운동 정밀 데이터 분석")
 
-# --- 출력 모드 선택 ---
-is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
-
-if is_print_mode:
-    col_p1, col_p2 = st.columns([1, 1])
-    with col_p1:
-        if st.button("🖨️ 바로 인쇄 (검정색 글씨/흰배경 자동 전환)"):
-            st.components.v1.html("<script>parent.window.print()</script>", height=0)
-    with col_p2:
-        # 데이터 엑셀 다운로드 (docx 대용으로 데이터 활용 가능)
-        csv = df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📂 실험 데이터 다운로드 (CSV/Excel용)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv')
-    
-    st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
+# 탐구 질문 추가 (상단 고정)
+st.markdown("""
+**📝 탐구 질문**
+1. 초기 속도가 같을 때 가장 멀리 날아갈 수 있는 각도는?
+2. 초기 속도가 같을 때 수평 도달 거리가 같은 각도들은 어떤 관계인가?
+3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?
+4. 수평 도달 거리 $R$과 최고점 높이 $H$ 사이에는 어떤 정량적 관계가 성립하는가?
+""")
 
 # 탐구 질문 추가
 st.markdown("""
@@ -73,12 +67,6 @@ st.markdown("""
 4. 수평 도달 거리 $R$과 최고점 높이 $H$ 사이에는 어떤 정량적 관계가 성립하는가?
 """)
 
-if is_print_mode:
-    # 답변 공간 추가 (출력용)
-    for i in range(1, 5):
-        st.write(f"**[{i}번 답변]**")
-        for _ in range(3): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-    st.divider()
 
 # --- 상단 입력부 및 주요 결과값 ---
 col_in1, col_in2, col_res = st.columns([1, 1, 2])
@@ -132,6 +120,27 @@ df = pd.DataFrame({
     "v_y(속도)": vy_vals,
     "a_y(가속도)": ay_vals
 })
+
+# --- [출력 모드 및 다운로드 옵션] (데이터 생성 후 배치하여 오류 방지) ---
+st.divider()
+is_print_mode = st.toggle("🖨️ 보고서 출력 모드 전환 (인쇄 후 PDF 저장 권장)", value=False)
+
+if is_print_mode:
+    col_p1, col_p2 = st.columns([1, 1])
+    with col_p1:
+        if st.button("🖨️ 바로 인쇄 (검정색 글씨/흰배경 자동 전환)", use_container_width=True):
+            st.components.v1.html("<script>parent.window.print()</script>", height=0)
+    with col_p2:
+        csv = df.to_csv(index=False).encode('utf-8-sig')
+        st.download_button("📂 실험 데이터 다운로드 (CSV/Excel용)", data=csv, file_name=f"projectile_data_{theta_deg}deg.csv", mime='text/csv', use_container_width=True)
+    
+    st.markdown('<div class="print-header">📄 포물선 운동 실험 결과 보고서 &nbsp; [ 학년: ____ &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ ]</div>', unsafe_allow_html=True)
+    
+    # 답변 공간 추가 (출력용)
+    for i in range(1, 5):
+        st.write(f"**[{i}번 답변]**")
+        for _ in range(3): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
+    st.divider()
 
 # --- 메인 레이아웃: 표(좌) + 그래프(우) ---
 col_table, col_graphs = st.columns([2, 3])
