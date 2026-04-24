@@ -2,21 +2,25 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-# --- 발사 조건 설정 (메인 페이지 최상단) ---
-with st.container(border=True):
-    st.markdown("### 🚀 발사 조건 설정")
-    v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
-    theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
-    g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True, help="계산의 편의를 위해 10으로 설정해 보세요.")
-    st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
-
-theta = np.radians(theta_deg)
-
 st.title("🏀 비스듬히 위로 던진 물체의 정밀 분석")
 st.markdown("""
 포물선 운동의 수평 성분과 연직 성분을 분리하여 분석합니다. 
 하단의 **Play/Pause** 버튼을 사용하여 운동 과정을 멈추어가며 관찰해 보세요!
 """)
+
+# --- 발사 조건 설정 (재생, 정지 버튼 바로 위 배치) ---
+with st.container(border=True):
+    st.markdown("### 🚀 발사 조건 설정")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
+    with col2:
+        theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
+    with col3:
+        g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
+    st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
+
+theta = np.radians(theta_deg)
 
 # --- 물리 정보 계산 ---
 vx0 = v0 * np.cos(theta)
