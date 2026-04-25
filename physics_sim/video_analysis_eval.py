@@ -4,6 +4,10 @@ import numpy as np
 import json
 import base64
 import io
+from docx import Document
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn 
 
 # --- 로드 대기 데이터 처리 (위젯 렌더링 전에 반드시 실행) ---
 if '_pending_load' in st.session_state:
@@ -42,9 +46,19 @@ st.markdown("""
     }
 
     @media print {
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stExpander"], [data-testid="stFileUploader"] { display: none !important; }
+        @page { margin: 15mm; size: A4; }
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, [data-testid="stExpander"], [data-testid="stFileUploader"], button { display: none !important; }
         .main .block-container { padding: 0 !important; }
-        .stMarkdown, .stTable, .stPlotlyChart { page-break-inside: avoid; }
+        
+        /* 겹침 방지 */
+        .stMarkdown, .stTable, .stPlotlyChart, .stImage, section, div.row-widget { 
+            page-break-inside: avoid !important; 
+            display: block !important;
+            margin-bottom: 1.5rem !important;
+            float: none !important;
+            position: relative !important;
+        }
+        img { max-width: 100% !important; height: auto !important; }
     }
     .answer-box { border: 1px solid #ccc; min-height: 80px; padding: 10px; margin-bottom: 20px; background-color: #f9f9f9; }
     </style>
@@ -72,11 +86,32 @@ def get_img_b64_for_save(key):
     # 새 파일 없으면 기존 저장된 b64 재사용
     return st.session_state.get(f'{key}_b64'), st.session_state.get(f'{key}_name')
 
+st.divider()
+
+st.divider()
+
+# --- [상단 고정] 학생 정보 및 데이터 관리 ---
+st.markdown("### 👤 학생 정보")
+info_c1, info_c2, info_c3 = st.columns(3)
+with info_c1:
+    class_num = st.text_input("반 (Class)", placeholder="예: 3-1", key="class_num")
+with info_c2:
+    student_num = st.text_input("번호 (Number)", placeholder="예: 01", key="student_num")
+with info_c3:
+    student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
+
+# 답변/데이터 변수 사전 로드 (NameError 방지 및 보고서 생성용)
+qa_data = {f"a{i}": st.session_state.get(f"a{i}", "") for i in range(1, 6)}
+m_inputs = {f"m_{i}": st.session_state.get(f"m_input_{i}", "") for i in range(3)}
+b_theories = {f"b_{i}": st.session_state.get(f"b_theory_{i}", "") for i in range(3)}
+
+st.divider()
+
 # --- 상단 헤더 섹션 (제목 및 작업 버튼 한 줄 배치) ---
 header_col1, header_col2, header_col3, header_col4 = st.columns([3.5, 0.8, 0.8, 0.8])
 
 with header_col1:
-    st.markdown("<h2 style='margin:0; padding:0; line-height:1.5;'>📹 [수행평가 1-1] 영상 분석 및 데이터 해석</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='margin:0; padding:0; line-height:1.5;'>📹 [수행평가 1-1] 영상 분석 보고서</h2>", unsafe_allow_html=True)
 
 with header_col2:
     if st.button("🖨️ 인쇄", key="print_btn", use_container_width=True):
@@ -88,52 +123,87 @@ with header_col3:
         if uploaded_json:
             try:
                 loaded_data = json.load(uploaded_json)
-                # _pending_load에 저장 후 rerun → 위젯 렌더링 전에 적용됨
                 st.session_state['_pending_load'] = loaded_data
                 st.rerun()
             except Exception as e:
                 st.error(f"오류: {e}")
 
 with header_col4:
-    # 텍스트/숫자 데이터 키
-    text_keys = [
-        'class_num', 'student_num', 'student_name',
-        'a1', 'a2', 'a3', 'a4', 'a5',
-        'm_input_0', 'm_input_1', 'm_input_2',
-        'b_theory_0', 'b_theory_1', 'b_theory_2'
-    ]
-    save_dict = {k: st.session_state.get(k, '') for k in text_keys}
+    # --- Word 보고서 생성 함수 ---
+    def create_eval_docx():
+        doc = Document()
+        doc.styles['Normal'].font.name = '맑은 고딕'
+        doc.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
+        
+        title = doc.add_heading('[수행평가 1-1] 영상 분석 및 데이터 해석 보고서', 0)
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        for run in title.runs:
+            run.font.name = '맑은 고딕'
+            run._element.rPr.rFonts.set(qn('w:eastAsia'), '맑은 고딕')
 
-    # 이미지/파일 데이터 base64 인코딩 후 저장
-    for img_key in ['data_file', 'g_img_pos', 'g_img_vel']:
-        b64, name = get_img_b64_for_save(img_key)
-        if b64:
-            save_dict[f'{img_key}_b64'] = b64
-            save_dict[f'{img_key}_name'] = name
+        doc.add_paragraph(f"반: {class_num}  번호: {student_num}  이름: {student_name}")
+        
+        # 1. 시각적 자료 (이미지)
+        doc.add_heading('📊 실험 데이터 및 그래프', level=1)
+        for img_key, label in [('data_file', '📋 분석 데이터 표'), ('g_img_pos', '① 시간-위치 그래프'), ('g_img_vel', '② 시간-속도 그래프')]:
+            img_file = st.session_state.get(img_key)
+            img_b64 = st.session_state.get(f"{img_key}_b64")
+            
+            if img_file or img_b64:
+                doc.add_heading(label, level=2)
+                try:
+                    img_data = img_file if img_file else io.BytesIO(base64.b64decode(img_b64))
+                    if img_key == 'data_file' and hasattr(img_data, 'name') and img_data.name.lower().endswith('.csv'):
+                        doc.add_paragraph("(CSV 데이터 파일은 이미지로 포함되지 않습니다.)")
+                    else:
+                        doc.add_picture(img_data, width=Inches(5.5))
+                except:
+                    doc.add_paragraph(f"({label} 이미지 로드 오류)")
 
-    json_save = json.dumps(save_dict, ensure_ascii=False, indent=4)
+        doc.add_page_break()
 
+        # 2. 분석 및 답변
+        doc.add_heading('🤔 탐구 결과 정리 및 분석', level=1)
+        qa_labels = [
+            "가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?",
+            "나. 수평 방향 운동이 그렇게 일어나는 이유는?",
+            "다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?",
+            "라. 연직 방향 운동이 그렇게 일어나는 이유는?"
+        ]
+        for i, label in enumerate(qa_labels, 1):
+            p_q = doc.add_paragraph(f"{label}", style='List Bullet')
+            for run in p_q.runs: run.font.bold = True
+            doc.add_paragraph(st.session_state.get(f"a{i}", "(답변 없음)"))
+
+        # 3. 측정 데이터 표
+        doc.add_heading('📏 측정 결과 및 비교', level=1)
+        table = doc.add_table(rows=1, cols=3)
+        table.style = 'Table Grid'
+        cells = table.rows[0].cells
+        for i, h in enumerate(["항목", "실측값", "이론값"]): cells[i].text = h
+        
+        m_labels = ["최고점 도달 시간(s)", "최고점 높이(m)", "수평도달 거리(m)"]
+        for i in range(3):
+            row = table.add_row().cells
+            row[0].text = m_labels[i]
+            row[1].text = st.session_state.get(f"m_input_{i}", "")
+            row[2].text = st.session_state.get(f"b_theory_{i}", "")
+
+        doc.add_heading('마. 결과 비교 및 추론', level=2)
+        doc.add_paragraph(st.session_state.get("a5", "(답변 없음)"))
+
+        bio = io.BytesIO()
+        doc.save(bio)
+        return bio.getvalue()
+
+    docx_data = create_eval_docx()
     st.download_button(
-        "💾 저장",
-        data=json_save,
-        file_name=f"수행평가_{st.session_state.get('student_name', '무명')}.json",
-        key="save_btn",
+        "📝 DOCX", 
+        data=docx_data, 
+        file_name=f"수행평가_보고서_{student_name}.docx", 
+        key="docx_eval_btn",
         use_container_width=True
     )
-
-st.divider()
-
-# --- 학생 정보 입력부 ---
-st.markdown("### 👤 학생 정보")
-info_c1, info_c2, info_c3 = st.columns(3)
-with info_c1:
-    class_num = st.text_input("반 (Class)", placeholder="예: 3-1", key="class_num")
-with info_c2:
-    student_num = st.text_input("번호 (Number)", placeholder="예: 01", key="student_num")
-with info_c3:
-    student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
-
-st.divider()
 
 # --- 탐구 기본 정보 ---
 st.markdown("### 📝 탐구 개요")

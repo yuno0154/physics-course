@@ -189,8 +189,8 @@ function SimTab() {
     const DISP_R = 44;                // 행성 표시 반지름(px)
     const SURF_X = PX + DISP_R;      // 표면 화면 X = 118
     const INF_X  = W - 28;           // ∞ 마커 화면 X = 792
-    const DT_BASE = 0.18;
-    const STEPS   = 6;
+    const DT_BASE = 0.06;
+    const STEPS   = 5;
     const R_INF   = 90 * PLANET_R;   // '무한대 도달' 임계 (화면 끝 ≈ ∞)
     const color   = isCustom ? '#8b5cf6' : PRESETS[presetIdx].color;
 
@@ -206,7 +206,7 @@ function SimTab() {
       for (let i = 0; i < STEPS; i++) {
         /* 적응형 dt: r 클수록 빠르게 이동 (화면 속도 균일) */
         const rRatio = Math.max(s.r, PLANET_R) / PLANET_R;
-        const dt = DT_BASE * Math.pow(rRatio, 1.3);
+        const dt = DT_BASE * Math.pow(rRatio, 1.15);
 
         if (!s.returning) {
           /* ── 탈출 방향 ── 에너지 보존으로 속도 계산 */
