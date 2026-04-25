@@ -121,6 +121,36 @@ with header_col4:
 
         doc.add_paragraph(f"반: {class_num}  번호: {student_num}  이름: {student_name}")
         
+        # 1. 시각적 자료 (이미지) 포함
+        doc.add_heading('📊 실험 데이터 및 그래프', level=1)
+        
+        # 데이터 표 이미지 포함 여부 확인
+        if 'data_file' in st.session_state and st.session_state.data_file is not None:
+            # CSV가 아닌 이미지인 경우에만 추가
+            if not st.session_state.data_file.name.lower().endswith('.csv'):
+                doc.add_heading('📋 분석 데이터 표', level=2)
+                try:
+                    doc.add_picture(st.session_state.data_file, width=Inches(6))
+                except:
+                    doc.add_paragraph("(이미지 로드 오류)")
+
+        # 그래프 이미지 포함 여부 확인
+        graph_map = [
+            ('g_img_pos', '① 시간-위치 (x-t, y-t) 그래프'),
+            ('g_img_vel', '② 시간-속도 (vx-t, vy-t) 그래프')
+        ]
+        
+        for key, label in graph_map:
+            if key in st.session_state and st.session_state[key] is not None:
+                doc.add_heading(label, level=2)
+                try:
+                    doc.add_picture(st.session_state[key], width=Inches(6))
+                except:
+                    doc.add_paragraph(f"({label} 이미지 로드 오류)")
+
+        doc.add_page_break()
+
+        # 2. 탐구 답변 포함
         doc.add_heading('🤔 탐구 결과 및 답변', level=1)
         qa_list = [
             ("가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?", qa_a1),
