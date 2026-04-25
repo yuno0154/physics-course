@@ -2,11 +2,11 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="등속 원운동 심화 탐구", layout="wide")
+    st.set_page_config(page_title="?깆냽 ?먯슫???ы솕 ?먭뎄", layout="wide")
     
-    st.title("🏀 [수행평가 1-3] 등속 원운동 심화 탐구 (Advanced Study)")
+    st.title("?? [?섑뻾?됯? 1-3] ?깆냽 ?먯슫???ы솕 ?먭뎄 (Advanced Study)")
     st.markdown("""
-    이 시뮬레이션은 등속 원운동의 상급 개념인 **라디안의 �    react_code = """
+    ???쒕??덉씠?섏? ?깆냽 ?먯슫?숈쓽 ?곴툒 媛쒕뀗??**?쇰뵒?덉쓽 ?    react_code = """
     <!DOCTYPE html>
     <html lang="ko">
     <head>
@@ -92,7 +92,7 @@ def run_sim():
                     <div className="flex flex-col bg-white min-h-screen p-4 text-slate-800">
                       <div className="w-full max-w-6xl mx-auto bg-white rounded-[2rem] shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
                         <div className="flex bg-slate-100 p-2 gap-2 border-b border-slate-200">
-                          {[{id:1,label:'라디안 정의',icon:'layers'},{id:2,label:'v = rω 탐구',icon:'zap'},{id:3,label:'가속도 증명',icon:'scissors'}].map(m=>(
+                          {[{id:1,label:'?쇰뵒???뺤쓽',icon:'layers'},{id:2,label:'v = r? ?먭뎄',icon:'zap'},{id:3,label:'媛?띾룄 利앸챸',icon:'scissors'}].map(m=>(
                             <button key={m.id} onClick={()=>{setMode(m.id);handleReset();}} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-all ${mode===m.id?'bg-white shadow text-blue-600':'text-slate-400 hover:bg-slate-200'}`}>
                               <Icon name={m.icon} size={16}/> {m.label}
                             </button>
@@ -101,8 +101,8 @@ def run_sim():
                         <div className="flex flex-col lg:flex-row h-[520px]">
                           <div className="flex-1 bg-white relative overflow-hidden flex items-center justify-center border-r border-slate-100">
                             <div className="absolute top-4 left-4 bg-white/80 p-3 rounded-2xl border border-slate-100 text-[10px] space-y-1 shadow-sm z-10">
-                              <div className="flex items-center gap-2 font-bold"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div><span>속도 (Green)</span></div>
-                              <div className="flex items-center gap-2 font-bold"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span>가속도 (Red)</span></div>
+                              <div className="flex items-center gap-2 font-bold"><div className="w-2 h-2 bg-emerald-500 rounded-full"></div><span>?띾룄 (Green)</span></div>
+                              <div className="flex items-center gap-2 font-bold"><div className="w-2 h-2 bg-rose-500 rounded-full"></div><span>媛?띾룄 (Red)</span></div>
                             </div>
                             <svg viewBox="0 0 500 500" className="w-full h-full max-w-[500px]">
                               <circle cx={CX} cy={CY} r="2" fill="#94a3b8" />
@@ -150,26 +150,26 @@ def run_sim():
                           </div>
                           <div className="w-full lg:w-80 bg-slate-50 flex flex-col border-l border-slate-100 p-6 space-y-6">
                             <div className="flex border-b border-slate-200">
-                                <button onClick={()=>setActiveTab('settings')} className={`flex-1 py-3 font-bold text-xs ${activeTab==='settings'?'text-blue-600 border-b-2 border-blue-600':'text-slate-400'}`}>설정</button>
-                                <button onClick={()=>setActiveTab('activity')} className={`flex-1 py-3 font-bold text-xs ${activeTab==='activity'?'text-emerald-600 border-b-2 border-emerald-600':'text-slate-400'}`}>활동지</button>
+                                <button onClick={()=>setActiveTab('settings')} className={`flex-1 py-3 font-bold text-xs ${activeTab==='settings'?'text-blue-600 border-b-2 border-blue-600':'text-slate-400'}`}>?ㅼ젙</button>
+                                <button onClick={()=>setActiveTab('activity')} className={`flex-1 py-3 font-bold text-xs ${activeTab==='activity'?'text-emerald-600 border-b-2 border-emerald-600':'text-slate-400'}`}>?쒕룞吏</button>
                             </div>
                             {activeTab==='settings' ? (
                               <div className="space-y-4">
                                 <div className="text-xs font-bold text-slate-400">Radius: {radius}px</div>
                                 <input type="range" min="50" max="200" value={radius} onChange={e=>setRadius(parseInt(e.target.value))} className="w-full accent-blue-600" />
                                 <div className="grid grid-cols-2 gap-2">
-                                  <button onClick={()=>setIsPaused(!isPaused)} className="py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold">{isPaused?'재개':'정지'}</button>
-                                  <button onClick={handleReset} className="py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold">리셋</button>
+                                  <button onClick={()=>setIsPaused(!isPaused)} className="py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold">{isPaused?'?ш컻':'?뺤?'}</button>
+                                  <button onClick={handleReset} className="py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold">由ъ뀑</button>
                                 </div>
-                                {mode===3 && <button onClick={handleCut} className="w-full py-2 bg-rose-500 text-white rounded-xl text-xs font-bold">실 끊기 (관성)</button>}
+                                {mode===3 && <button onClick={handleCut} className="w-full py-2 bg-rose-500 text-white rounded-xl text-xs font-bold">???딄린 (愿??</button>}
                               </div>
                             ) : (
                               <div className="space-y-4 text-xs leading-relaxed">
                                 <div className="p-3 bg-white border border-slate-200 rounded-xl">
-                                  <strong>Mission:</strong> 활동지의 인출 질문(Retrieval)을 채우며 탐구하세요.
+                                  <strong>Mission:</strong> ?쒕룞吏???몄텧 吏덈Ц(Retrieval)??梨꾩슦硫??먭뎄?섏꽭??
                                 </div>
                                 <div className="p-3 bg-slate-800 text-white rounded-xl">
-                                   곡선 도로 설계 시 F = mv²/r 공식을 어떻게 활용해야 안전할까요?
+                                   怨≪꽑 ?꾨줈 ?ㅺ퀎 ??F = mv짼/r 怨듭떇???대뼸寃??쒖슜?댁빞 ?덉쟾?좉퉴??
                                 </div>
                               </div>
                             )}
