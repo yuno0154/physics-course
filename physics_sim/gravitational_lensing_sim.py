@@ -42,332 +42,343 @@ def render_header_cards():
         """, unsafe_allow_html=True)
 
 
-# ── 3D 중력 렌즈 시뮬레이션 (Three.js) ──────────────────────────────────────
+# 3D gravitational lensing simulation - pure Canvas 2D with custom 3D engine
 LENSING_3D_HTML = """
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:#030608; overflow:hidden; }
-#glc { width:100%; height:560px; position:relative; cursor:grab; }
-#glc:active { cursor:grabbing; }
+#wrap { position:relative; width:100%; height:560px; user-select:none; }
+#sim { display:block; width:100%; height:560px; cursor:grab; }
+#sim:active { cursor:grabbing; }
 #hint {
   position:absolute; bottom:14px; left:50%; transform:translateX(-50%);
-  color:#64748b; font:12px/1 "Inter",sans-serif;
+  color:#64748b; font:12px/1 sans-serif;
   background:rgba(0,0,0,0.55); padding:6px 14px; border-radius:20px;
   pointer-events:none; white-space:nowrap;
 }
-#mass-badge {
+#mbadge {
   position:absolute; top:12px; left:12px;
-  color:#a5b4fc; font:bold 12px "Inter",sans-serif;
+  color:#a5b4fc; font:bold 12px sans-serif;
   background:rgba(15,23,42,0.82); padding:6px 14px; border-radius:8px;
   border:1px solid rgba(99,102,241,0.35); pointer-events:none;
 }
 #inset {
-  position:absolute; top:12px; right:12px;
-  width:160px; height:160px; border-radius:12px;
+  position:absolute; top:12px; right:12px; border-radius:12px;
   background:rgba(5,8,18,0.88); border:1px solid rgba(99,102,241,0.35);
   pointer-events:none;
 }
 </style>
-<div id="glc">
-  <div id="hint">🖱️ 드래그: 회전 &nbsp;|&nbsp; 스크롤: 줌 &nbsp;|&nbsp; 우클릭 드래그: 이동</div>
-  <div id="mass-badge">질량: <span id="mv">5.0</span> M☉</div>
+<div id="wrap">
+  <canvas id="sim" width="820" height="560"></canvas>
+  <div id="hint">&#x1F5B1; 드래그: 회전 &nbsp;|&nbsp; 스크롤: 줌</div>
+  <div id="mbadge">질량: <span id="mv">?</span> M&#x2609;</div>
   <canvas id="inset" width="160" height="160"></canvas>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 (function () {
-  const MASS   = +(window.stParams?.mass ?? 5);
-  const CASE   = window.stParams?.case ?? 'cross';
-
+  var MASS = 5;
+  var CASE = 'cross';
+  try {
+    if (window.stParams) {
+      MASS = parseFloat(window.stParams.mass) || 5;
+      CASE = window.stParams.case || 'cross';
+    }
+  } catch(e) {}
   document.getElementById('mv').textContent = MASS.toFixed(1);
 
-  const container = document.getElementById('glc');
-  const W = container.clientWidth || 820;
-  const H = 560;
+  var canvas = document.getElementById('sim');
+  var ctx = canvas.getContext('2d');
+  var W = 820, H = 560;
+  canvas.width = W; canvas.height = H;
 
-  // ── 렌더러 ──
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(W, H);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x030608);
-  container.insertBefore(renderer.domElement, container.firstChild);
+  // Camera rotation state
+  var theta = -0.15;
+  var phi   =  0.22;
+  var zoom  =  1.0;
+  var drag  = false, lx = 0, ly = 0;
 
-  // ── 씬 / 카메라 ──
-  const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(52, W / H, 1, 12000);
-  camera.position.set(0, 220, 820);
-
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
-  controls.enableDamping  = true;
-  controls.dampingFactor  = 0.07;
-  controls.minDistance    = 150;
-  controls.maxDistance    = 3000;
-  controls.target.set(0, 0, 0);
-
-  // ── 별 배경 ──
-  (function () {
-    const geo = new THREE.BufferGeometry();
-    const pos = new Float32Array(3000 * 3);
-    for (let i = 0; i < pos.length; i++) pos[i] = (Math.random() - 0.5) * 9000;
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    scene.add(new THREE.Points(geo,
-      new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, transparent: true, opacity: 0.65 })));
-  })();
-
-  // ── 주요 위치 / 아인슈타인 반경 ──
-  const SRC = new THREE.Vector3(-540, 0, 0);
-  const OBS = new THREE.Vector3( 540, 0, 0);
-  const LENS_R  = 16 + MASS * 2.2;
-  const EIN_R   = 32 + MASS * 13;   // 아인슈타인 반경 (시뮬레이션 단위)
-
-  // ── 광원 (퀘이사) ──
-  const srcMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(11, 20, 20),
-    new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
-  );
-  srcMesh.position.copy(SRC);
-  scene.add(srcMesh);
-  [22, 40].forEach((r, i) => {
-    const g = new THREE.Mesh(
-      new THREE.SphereGeometry(r, 16, 16),
-      new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.10 - i * 0.04, side: THREE.BackSide })
-    );
-    g.position.copy(SRC);
-    scene.add(g);
+  canvas.addEventListener('mousedown', function(e) { drag=true; lx=e.offsetX; ly=e.offsetY; });
+  canvas.addEventListener('mouseup',   function()  { drag=false; });
+  canvas.addEventListener('mouseleave',function()  { drag=false; });
+  canvas.addEventListener('mousemove', function(e) {
+    if (!drag) return;
+    theta += (e.offsetX - lx) * 0.007;
+    phi   += (e.offsetY - ly) * 0.007;
+    phi = Math.max(-1.35, Math.min(1.35, phi));
+    lx = e.offsetX; ly = e.offsetY;
   });
+  canvas.addEventListener('wheel', function(e) {
+    zoom *= e.deltaY > 0 ? 0.92 : 1.09;
+    zoom = Math.max(0.25, Math.min(4.0, zoom));
+    e.preventDefault();
+  }, { passive: false });
 
-  // ── 중력 렌즈 (은하단) ──
-  const lensMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(LENS_R, 36, 36),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  );
-  scene.add(lensMesh);
-  [2.2, 4.0, 7.5].forEach((s, i) => {
-    scene.add(Object.assign(new THREE.Mesh(
-      new THREE.SphereGeometry(LENS_R * s, 24, 24),
-      new THREE.MeshBasicMaterial({
-        color: [0x9999ff, 0x4455bb, 0x1a1a55][i],
-        transparent: true, opacity: [0.18, 0.10, 0.05][i],
-        side: THREE.BackSide
-      })
-    )));
-  });
-
-  // ── 관측자 (지구) ──
-  const obsMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(14, 20, 20),
-    new THREE.MeshBasicMaterial({ color: 0x3b82f6 })
-  );
-  obsMesh.position.copy(OBS);
-  scene.add(obsMesh);
-  const obsGlow = new THREE.Mesh(
-    new THREE.SphereGeometry(28, 16, 16),
-    new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.10, side: THREE.BackSide })
-  );
-  obsGlow.position.copy(OBS);
-  scene.add(obsGlow);
-
-  // ── 라벨 스프라이트 ──
-  function makeLabel(text, color, w, h) {
-    const cv = document.createElement('canvas');
-    cv.width = w * 2; cv.height = h * 2;
-    const c = cv.getContext('2d');
-    c.scale(2, 2);
-    c.font = 'bold 14px "Noto Sans KR","Inter",sans-serif';
-    c.fillStyle = color;
-    c.textAlign = 'center';
-    c.textBaseline = 'middle';
-    c.fillText(text, w / 2, h / 2);
-    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true }));
-    sp.scale.set(w, h, 1);
-    return sp;
+  // 3D -> 2D perspective projection
+  // Y-axis rotation (theta) then X-axis rotation (phi) then perspective
+  function proj(x, y, z) {
+    var x1 =  x*Math.cos(theta) - z*Math.sin(theta);
+    var z1 =  x*Math.sin(theta) + z*Math.cos(theta);
+    var y2 =  y*Math.cos(phi)   + z1*Math.sin(phi);
+    var z2 = -y*Math.sin(phi)   + z1*Math.cos(phi);
+    var f  = 510 * zoom;
+    var d  = 900;
+    var s  = f / (d + z2);
+    return { sx: W/2 + x1*s, sy: H/2 + y2*s, z: z2, s: s };
   }
-  const lSrc  = makeLabel('실제 광원 (퀘이사)',     '#fbbf24', 200, 30);
-  lSrc.position.set(SRC.x, SRC.y + 30, 0); scene.add(lSrc);
-  const lLens = makeLabel('중력 렌즈 (중심 은하단)', '#a5b4fc', 210, 30);
-  lLens.position.set(0, -(LENS_R + 30), 0); scene.add(lLens);
-  const lObs  = makeLabel('지구 (관측자)',           '#60a5fa', 160, 30);
-  lObs.position.set(OBS.x, OBS.y + 36, 0); scene.add(lObs);
 
-  // ── 시공간 격자 (중력에 의해 변형) ──
-  (function () {
-    const mat  = new THREE.LineBasicMaterial({ color: 0x2d3acc, transparent: true, opacity: 0.32 });
-    const RNG  = 520;
-    const STEP = 52;
-    const wellDepth = MASS * 55;
+  // Scene constants
+  var SRC_X = -540, OBS_X = 540;
+  var LENS_R = 15 + MASS * 2.2;
+  var EIN_R  = 30 + MASS * 13;
 
-    function dip(x, y) {
-      const r = Math.sqrt(x * x + y * y) + 1;
-      return Math.max(-wellDepth, -MASS * 550 / r);
+  // Stars - uniform spherical distribution
+  var stars = [];
+  for (var i = 0; i < 350; i++) {
+    var u  = Math.random()*2 - 1;
+    var th = Math.random()*Math.PI*2;
+    var sq = Math.sqrt(1 - u*u);
+    stars.push({
+      x: 3200*sq*Math.cos(th),
+      y: 3200*u,
+      z: 3200*sq*Math.sin(th),
+      r: Math.random()*1.1+0.3,
+      op: Math.random()*0.45+0.3
+    });
+  }
+
+  // Spacetime grid - deformed by gravity well
+  var gridLines = [];
+  var GR = 500, GS = 55;
+  for (var gi = -GR; gi <= GR; gi += GS) {
+    var lxPts = [], lyPts = [];
+    for (var gv = -GR; gv <= GR; gv += 18) {
+      var dX = Math.max(-MASS*62, -MASS*520 / (Math.sqrt(gv*gv+gi*gi)+1));
+      var dY = Math.max(-MASS*62, -MASS*520 / (Math.sqrt(gi*gi+gv*gv)+1));
+      lxPts.push([gv, gi, dX]);
+      lyPts.push([gi, gv, dY]);
     }
+    gridLines.push(lxPts);
+    gridLines.push(lyPts);
+  }
 
-    for (let i = -RNG; i <= RNG; i += STEP) {
-      const px = [], py = [];
-      for (let v = -RNG; v <= RNG; v += 14) {
-        px.push(new THREE.Vector3(v,  i, dip(v, i)));
-        py.push(new THREE.Vector3(i,  v, dip(i, v)));
-      }
-      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(px), mat));
-      scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(py), mat));
-    }
-  })();
-
-  // ── 굴절된 광선 (Bezier 곡선 튜브) ──
-  // 광원 S(-540,0,0) → 제어점(0, by, bz) → 관측자 O(540,0,0)
-  // 빛이 렌즈를 충격 인자 b로 통과 후 굴절되어 관측자에게 도달
-  function bezierPts(by, bz, n) {
-    const ctrl = new THREE.Vector3(0, by, bz);
-    const pts  = [];
-    for (let i = 0; i <= n; i++) {
-      const t = i / n;
-      pts.push(new THREE.Vector3(
-        (1-t)*(1-t)*SRC.x + 2*(1-t)*t*ctrl.x + t*t*OBS.x,
-        (1-t)*(1-t)*SRC.y + 2*(1-t)*t*ctrl.y + t*t*OBS.y,
-        (1-t)*(1-t)*SRC.z + 2*(1-t)*t*ctrl.z + t*t*OBS.z
-      ));
+  // Bent light rays: quadratic Bezier
+  // Source(-540,0,0) -> control(0,by,bz) -> Observer(540,0,0)
+  function makeBezier(by, bz) {
+    var N = 52, pts = [];
+    for (var i = 0; i <= N; i++) {
+      var t = i/N, mt = 1-t;
+      pts.push([
+        mt*mt*SRC_X + t*t*OBS_X,
+        2*mt*t*by,
+        2*mt*t*bz
+      ]);
     }
     return pts;
   }
 
-  const photonData = [];  // { curve, t, mesh }
+  var rayCfg = CASE === 'cross'
+    ? [
+        {bF:0.30, n:16, r:255, g:215, b:0,   op:0.88, lw:1.55},
+        {bF:0.54, n:16, r:251, g:191, b:36,  op:0.72, lw:1.25},
+        {bF:0.84, n:16, r:245, g:158, b:11,  op:0.55, lw:1.00},
+        {bF:1.40, n:12, r:217, g:119, b:6,   op:0.34, lw:0.75},
+        {bF:2.40, n: 8, r:146, g: 64, b:14,  op:0.18, lw:0.55}
+      ]
+    : [
+        {bF:0.28, n: 8, r:255, g:215, b:0,   op:0.90, lw:1.55},
+        {bF:0.54, n: 8, r:251, g:191, b:36,  op:0.72, lw:1.25},
+        {bF:0.90, n: 6, r:245, g:158, b:11,  op:0.50, lw:1.00},
+        {bF:1.60, n: 4, r:217, g:119, b:6,   op:0.27, lw:0.70}
+      ];
 
-  (function buildRays() {
-    // b값 레벨: 아인슈타인 반경 기준 배수
-    const cfg = CASE === 'cross'
-      ? [
-          { bFac: 0.30, n: 16, col: 0xffd700, op: 0.90, rad: 0.85 },
-          { bFac: 0.55, n: 16, col: 0xfbbf24, op: 0.75, rad: 0.75 },
-          { bFac: 0.85, n: 16, col: 0xf59e0b, op: 0.60, rad: 0.65 },
-          { bFac: 1.40, n: 12, col: 0xd97706, op: 0.38, rad: 0.50 },
-          { bFac: 2.40, n:  8, col: 0x92400e, op: 0.20, rad: 0.38 },
-        ]
-      : [
-          { bFac: 0.28, n:  8, col: 0xffd700, op: 0.92, rad: 0.85 },
-          { bFac: 0.55, n:  8, col: 0xfbbf24, op: 0.72, rad: 0.70 },
-          { bFac: 0.90, n:  6, col: 0xf59e0b, op: 0.50, rad: 0.55 },
-          { bFac: 1.60, n:  4, col: 0xd97706, op: 0.28, rad: 0.40 },
-        ];
-
-    cfg.forEach(({ bFac, n, col, op, rad }) => {
-      const b = EIN_R * bFac;
-      for (let j = 0; j < n; j++) {
-        const ang = (j / n) * Math.PI * 2;
-        const pts = bezierPts(b * Math.cos(ang), b * Math.sin(ang), 60);
-        const curve = new THREE.CatmullRomCurve3(pts);
-        scene.add(new THREE.Mesh(
-          new THREE.TubeGeometry(curve, 60, rad, 6, false),
-          new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: op })
-        ));
-        // 광자 (각 광선당 1개)
-        const pm = new THREE.Mesh(
-          new THREE.SphereGeometry(2.8, 8, 8),
-          new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9 })
-        );
-        scene.add(pm);
-        photonData.push({ curve, t: j / n, mesh: pm });
-      }
-    });
-  })();
-
-  // ── 관측자 뷰 인셋 (2D 캔버스 오버레이) ──
-  const inset = document.getElementById('inset');
-  const ic    = inset.getContext('2d');
-
-  function drawInset(ft) {
-    ic.clearRect(0, 0, 160, 160);
-    ic.font = 'bold 9px sans-serif';
-    ic.fillStyle = '#64748b';
-    ic.textAlign = 'center';
-    ic.fillText("EARTH'S VIEW (TELESCOPE)", 80, 13);
-
-    // 원형 시야
-    ic.beginPath(); ic.arc(80, 88, 58, 0, Math.PI * 2);
-    ic.strokeStyle = 'rgba(51,65,85,0.55)'; ic.lineWidth = 1; ic.stroke();
-
-    // 렌즈 은하 (중심)
-    const gr = ic.createRadialGradient(80, 88, 0, 80, 88, 9);
-    gr.addColorStop(0, 'rgba(255,255,255,0.95)');
-    gr.addColorStop(1, 'rgba(165,180,252,0.15)');
-    ic.beginPath(); ic.arc(80, 88, 9, 0, Math.PI * 2);
-    ic.fillStyle = gr; ic.fill();
-
-    const eR = 17 + MASS * 1.9;
-
-    if (CASE === 'cross') {
-      // 아인슈타인 링 (맥동)
-      const pulse = 0.92 + 0.08 * Math.sin(ft * 0.038);
-      ic.beginPath(); ic.arc(80, 88, eR * pulse, 0, Math.PI * 2);
-      ic.strokeStyle = `rgba(251,191,36,${0.45 + 0.2 * Math.sin(ft * 0.038)})`;
-      ic.lineWidth = 2.8; ic.stroke();
-
-      // 4개 상 (아인슈타인 십자가)
-      [[80, 88 - eR * 1.18], [80, 88 + eR * 1.18],
-       [80 - eR * 1.18, 88], [80 + eR * 1.18, 88]].forEach(([px, py]) => {
-        ic.save();
-        ic.shadowColor = '#ffd700'; ic.shadowBlur = 10;
-        ic.beginPath(); ic.arc(px, py, 4, 0, Math.PI * 2);
-        ic.fillStyle = '#ffd700'; ic.fill();
-        ic.restore();
-      });
-    } else {
-      // 별의 위치 변화: A·B 두 상
-      const shiftA = eR * (0.8 + MASS * 0.07);
-      const shiftB = eR * 0.55;
-      [
-        [80 - shiftA, 88, 'A', MASS > 5 ? 0.95 : 0.45],
-        [80 + shiftB, 88, 'B', 0.95],
-      ].forEach(([px, py, lbl, op]) => {
-        ic.save();
-        ic.shadowColor = '#fbbf24'; ic.shadowBlur = 8;
-        ic.beginPath(); ic.arc(px, py, 4, 0, Math.PI * 2);
-        ic.fillStyle = `rgba(251,191,36,${op})`; ic.fill();
-        ic.restore();
-        ic.font = 'bold 10px sans-serif';
-        ic.fillStyle = '#fbbf24'; ic.textAlign = 'center';
-        ic.fillText(lbl, px, py - 9);
+  var allRays = [];
+  for (var ri = 0; ri < rayCfg.length; ri++) {
+    var c = rayCfg[ri];
+    var b = EIN_R * c.bF;
+    for (var j = 0; j < c.n; j++) {
+      var ang = (j/c.n)*Math.PI*2;
+      allRays.push({
+        pts: makeBezier(b*Math.cos(ang), b*Math.sin(ang)),
+        cfg: c,
+        phase: j/c.n
       });
     }
   }
 
-  // ── 애니메이션 루프 ──
-  let ft = 0;
-  (function animate() {
-    requestAnimationFrame(animate);
+  // Photon state - one per ray
+  var photons = allRays.map(function(r) { return { ray: r, t: r.phase }; });
+
+  // Observer view inset canvas
+  var inset = document.getElementById('inset');
+  var ic = inset.getContext('2d');
+
+  function drawInset(ft) {
+    ic.clearRect(0, 0, 160, 160);
+    ic.font = 'bold 8.5px sans-serif';
+    ic.fillStyle = '#64748b';
+    ic.textAlign = 'center';
+    ic.fillText("EARTH'S VIEW (TELESCOPE)", 80, 13);
+
+    ic.beginPath(); ic.arc(80, 88, 58, 0, Math.PI*2);
+    ic.strokeStyle = 'rgba(51,65,85,0.5)'; ic.lineWidth = 1; ic.stroke();
+
+    var gr = ic.createRadialGradient(80,88,0,80,88,9);
+    gr.addColorStop(0,'rgba(255,255,255,0.95)');
+    gr.addColorStop(1,'rgba(165,180,252,0.1)');
+    ic.beginPath(); ic.arc(80,88,9,0,Math.PI*2);
+    ic.fillStyle = gr; ic.fill();
+
+    var eR = 16 + MASS * 1.9;
+    if (CASE === 'cross') {
+      var pulse = 0.93 + 0.07*Math.sin(ft*0.038);
+      ic.beginPath(); ic.arc(80, 88, eR*pulse, 0, Math.PI*2);
+      ic.strokeStyle = 'rgba(251,191,36,' + (0.42+0.2*Math.sin(ft*0.038)) + ')';
+      ic.lineWidth = 2.6; ic.stroke();
+      var crossPts = [[80,88-eR*1.18],[80,88+eR*1.18],[80-eR*1.18,88],[80+eR*1.18,88]];
+      for (var ci = 0; ci < crossPts.length; ci++) {
+        var px = crossPts[ci][0], py = crossPts[ci][1];
+        ic.save(); ic.shadowColor='#ffd700'; ic.shadowBlur=10;
+        ic.beginPath(); ic.arc(px,py,4,0,Math.PI*2);
+        ic.fillStyle='#ffd700'; ic.fill(); ic.restore();
+      }
+    } else {
+      var sA = eR*(0.80 + MASS*0.07), sB = eR*0.55;
+      var imgPts = [[80-sA,88,'A', MASS>5?0.95:0.40],[80+sB,88,'B',0.95]];
+      for (var ii = 0; ii < imgPts.length; ii++) {
+        var ipx=imgPts[ii][0], ipy=imgPts[ii][1], lbl=imgPts[ii][2], op=imgPts[ii][3];
+        ic.save(); ic.shadowColor='#fbbf24'; ic.shadowBlur=8;
+        ic.beginPath(); ic.arc(ipx,ipy,4,0,Math.PI*2);
+        ic.fillStyle='rgba(251,191,36,'+op+')'; ic.fill(); ic.restore();
+        ic.font='bold 10px sans-serif'; ic.fillStyle='#fbbf24'; ic.textAlign='center';
+        ic.fillText(lbl, ipx, ipy-9);
+      }
+    }
+  }
+
+  // Main render loop
+  var ft = 0;
+  function render() {
     ft++;
-    controls.update();
 
-    // 광자 이동
-    photonData.forEach(p => {
-      p.t = (p.t + 0.0038) % 1;
-      const pos = p.curve.getPoint(p.t);
-      p.mesh.position.copy(pos);
-      const distLens = pos.length();
-      const boost = Math.max(0, 1 - distLens / 180);
-      p.mesh.scale.setScalar(1 + boost * 2.5);
-      p.mesh.material.opacity = 0.55 + boost * 0.45;
-    });
+    ctx.fillStyle = '#030608';
+    ctx.fillRect(0, 0, W, H);
 
-    // 광원 맥동
-    const pulse = 1 + 0.07 * Math.sin(ft * 0.055);
-    srcMesh.scale.setScalar(pulse);
+    // Stars
+    for (var si = 0; si < stars.length; si++) {
+      var s = stars[si];
+      var p = proj(s.x, s.y, s.z);
+      if (p.s <= 0) continue;
+      ctx.beginPath(); ctx.arc(p.sx, p.sy, s.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,' + s.op + ')'; ctx.fill();
+    }
+
+    // Spacetime grid
+    ctx.lineWidth = 0.75;
+    for (var gli = 0; gli < gridLines.length; gli++) {
+      var line = gridLines[gli];
+      ctx.beginPath(); ctx.strokeStyle = 'rgba(50,64,210,0.30)';
+      var first = true;
+      for (var gpi = 0; gpi < line.length; gpi++) {
+        var gp = proj(line[gpi][0], line[gpi][1], line[gpi][2]);
+        if (first) { ctx.moveTo(gp.sx, gp.sy); first=false; }
+        else ctx.lineTo(gp.sx, gp.sy);
+      }
+      ctx.stroke();
+    }
+
+    // Bent light rays
+    for (var ryi = 0; ryi < allRays.length; ryi++) {
+      var ray = allRays[ryi];
+      var rc = ray.cfg;
+      ctx.strokeStyle = 'rgba('+rc.r+','+rc.g+','+rc.b+','+rc.op+')';
+      ctx.lineWidth = rc.lw;
+      ctx.beginPath();
+      for (var pi = 0; pi < ray.pts.length; pi++) {
+        var rp = proj(ray.pts[pi][0], ray.pts[pi][1], ray.pts[pi][2]);
+        if (pi===0) ctx.moveTo(rp.sx, rp.sy); else ctx.lineTo(rp.sx, rp.sy);
+      }
+      ctx.stroke();
+    }
+
+    // Photons (moving light particles)
+    for (var phi2 = 0; phi2 < photons.length; phi2++) {
+      var ph = photons[phi2];
+      ph.t = (ph.t + 0.0042) % 1;
+      var idx  = Math.min(Math.floor(ph.t * 52), 51);
+      var frac = ph.t*52 - idx;
+      var p0 = ph.ray.pts[idx];
+      var p1 = ph.ray.pts[Math.min(idx+1, 52)];
+      var wx = p0[0]+(p1[0]-p0[0])*frac;
+      var wy = p0[1]+(p1[1]-p0[1])*frac;
+      var wz = p0[2]+(p1[2]-p0[2])*frac;
+      var boost = Math.max(0, 1 - Math.sqrt(wx*wx+wy*wy+wz*wz)/170);
+      var pp = proj(wx, wy, wz);
+      var pr = Math.max(1, (2.2 + boost*3.5)*Math.min(1.6, pp.s*2.5));
+      ctx.save();
+      ctx.shadowColor='#fff'; ctx.shadowBlur = 7 + boost*14;
+      ctx.beginPath(); ctx.arc(pp.sx, pp.sy, pr, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.5+boost*0.5) + ')'; ctx.fill();
+      ctx.restore();
+    }
+
+    // Gravitational lens galaxy (center)
+    var pL = proj(0, 0, 0);
+    var lR = Math.max(5, LENS_R * pL.s * 1.1);
+    var glowSizes = [lR*6, lR*3.5, lR*2];
+    var glowAlphas = [0.055, 0.10, 0.18];
+    for (var gli2 = 0; gli2 < 3; gli2++) {
+      var grd = ctx.createRadialGradient(pL.sx,pL.sy,0,pL.sx,pL.sy,glowSizes[gli2]);
+      grd.addColorStop(0, 'rgba(110,110,255,'+glowAlphas[gli2]+')');
+      grd.addColorStop(1, 'rgba(50,50,200,0)');
+      ctx.beginPath(); ctx.arc(pL.sx,pL.sy,glowSizes[gli2],0,Math.PI*2);
+      ctx.fillStyle=grd; ctx.fill();
+    }
+    ctx.save();
+    ctx.shadowColor='rgba(180,180,255,0.7)'; ctx.shadowBlur=22;
+    var lGrd = ctx.createRadialGradient(pL.sx-lR*0.3,pL.sy-lR*0.3,0,pL.sx,pL.sy,lR);
+    lGrd.addColorStop(0,'#ffffff'); lGrd.addColorStop(1,'#c7d2fe');
+    ctx.beginPath(); ctx.arc(pL.sx,pL.sy,lR,0,Math.PI*2);
+    ctx.fillStyle=lGrd; ctx.fill(); ctx.restore();
+
+    // Source quasar
+    var pS = proj(SRC_X, 0, 0);
+    var sR = Math.max(4, 11*pS.s*1.1);
+    var pls = 1 + 0.08*Math.sin(ft*0.055);
+    ctx.save();
+    ctx.shadowColor='#ffd700'; ctx.shadowBlur=28;
+    var sGrd = ctx.createRadialGradient(pS.sx,pS.sy,0,pS.sx,pS.sy,sR*3.2*pls);
+    sGrd.addColorStop(0,'rgba(251,191,36,0.32)'); sGrd.addColorStop(1,'rgba(251,191,36,0)');
+    ctx.beginPath(); ctx.arc(pS.sx,pS.sy,sR*3.2*pls,0,Math.PI*2); ctx.fillStyle=sGrd; ctx.fill();
+    ctx.beginPath(); ctx.arc(pS.sx,pS.sy,sR*pls,0,Math.PI*2); ctx.fillStyle='#fbbf24'; ctx.fill();
+    ctx.restore();
+
+    // Observer (Earth)
+    var pO = proj(OBS_X, 0, 0);
+    var oR = Math.max(4, 13*pO.s*1.1);
+    ctx.save();
+    ctx.shadowColor='#60a5fa'; ctx.shadowBlur=20;
+    var oGrd = ctx.createRadialGradient(pO.sx-oR*0.3,pO.sy-oR*0.3,0,pO.sx,pO.sy,oR);
+    oGrd.addColorStop(0,'#93c5fd'); oGrd.addColorStop(1,'#1e40af');
+    ctx.beginPath(); ctx.arc(pO.sx,pO.sy,oR,0,Math.PI*2); ctx.fillStyle=oGrd; ctx.fill();
+    ctx.restore();
+
+    // Labels
+    ctx.font = 'bold 12px "Malgun Gothic","Noto Sans KR",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle='#fbbf24'; ctx.fillText('실제 광원 (케이사)', pS.sx, pS.sy - sR*pls - 10);
+    ctx.fillStyle='#a5b4fc'; ctx.fillText('중력 렌즈 (중심 은하단)', pL.sx, pL.sy + lR + 18);
+    ctx.fillStyle='#60a5fa'; ctx.fillText('지구 (관측자)', pO.sx, pO.sy - oR - 10);
 
     drawInset(ft);
-    renderer.render(scene, camera);
-  })();
+    requestAnimationFrame(render);
+  }
 
-  // ── 리사이즈 ──
-  window.addEventListener('resize', () => {
-    const nw = container.clientWidth;
-    camera.aspect = nw / H;
-    camera.updateProjectionMatrix();
-    renderer.setSize(nw, H);
-  });
+  render();
 })();
 </script>
 """
 
-# ── 구 버전 2D 캔버스 (등가원리 디스크 전용) ──────────────────────────────
+
 DISK_HTML = """
 <div id="root"></div>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -393,7 +404,7 @@ function drawDashboard(ctx, clocks) {
     ctx.fillStyle='rgba(15,23,42,0.9)'; ctx.strokeStyle='rgba(99,102,241,0.6)';
     ctx.lineWidth=2; ctx.beginPath(); ctx.rect(sX,sY,bW,bH); ctx.fill(); ctx.stroke();
     ctx.fillStyle='#fff'; ctx.font='bold 14px Inter'; ctx.textAlign='center';
-    ctx.fillText('🕒 시간 흐름 비교', sX+bW/2, sY+25);
+    ctx.fillText('\u{1F552} 시간 흐름 비교', sX+bW/2, sY+25);
     const renderClock=(y,label,time,color)=>{
         ctx.save(); ctx.translate(sX+30,y);
         ctx.beginPath(); ctx.arc(0,0,14,0,Math.PI*2); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
@@ -438,8 +449,8 @@ const Main = () => {
         const loop = (t_val) => {
             setT(t_val);
             setClocks(prev => {
-                const speed = (window.stParams?.speed || 1);
-                const discVel = (window.stParams?.discVel || 1);
+                const speed = (window.stParams && window.stParams.speed) || 1;
+                const discVel = (window.stParams && window.stParams.discVel) || 1;
                 const fac = Math.max(0.1, 1 - (discVel * 0.08));
                 return { A: prev.A + 0.1*speed, B: prev.B + 0.1*speed, C: prev.C + 0.1*speed*fac };
             });
@@ -466,27 +477,25 @@ const Main = () => {
 ReactDOM.render(<Main />, document.getElementById('root'));
 </script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap');
 body { font-family:'Inter','Noto Sans KR',sans-serif; background:transparent; margin:0; padding:0; overflow:hidden; color:#fff; }
 </style>
 """
 
-# ── 사이드바 ──
-st.sidebar.title("🛠️ 아인슈타인 탐구 메뉴")
+
+st.sidebar.title("아인슈타인 탐구 메뉴")
 mode = st.sidebar.radio("탐구 모드 선택",
-                        ["🔭 중력 렌즈 탐구", "🎡 등가 원리 학습", "🎬 인터스텔라 스토리"])
+                        ["중력 렌즈 탐구 (3D)", "등가 원리 학습", "인터스텔라 스토리"])
 
 render_header_cards()
 st.write("---")
 
-if mode == "🔭 중력 렌즈 탐구":
+if mode == "중력 렌즈 탐구 (3D)":
     col1, col2 = st.columns([1, 2.5])
     with col1:
-        st.success("**🔬 중력 렌즈 현상 탐구 (3D)**")
+        st.success("**중력 렌즈 현상 탐구 (3D)**")
         case = st.radio("실험 케이스 선택",
                         ["별의 위치 변화 (A/B)", "아인슈타인의 십자가"], index=0)
         mass = st.slider("렌즈 천체(은하단)의 질량", 1.0, 20.0, 5.0, step=0.5)
-
         st.write("---")
         if case == "별의 위치 변화 (A/B)":
             st.markdown("""
@@ -495,32 +504,32 @@ if mode == "🔭 중력 렌즈 탐구":
 - 질량이 클 때 : 빛이 더 많이 휘어 별이 더 먼 **A** 위치에 보임.
 
 **3D 조작**
-- 🖱️ 왼쪽 드래그 → 시점 회전
-- 🖱️ 스크롤 → 줌
-- 🖱️ 오른쪽 드래그 → 이동
+- 왼쪽 드래그 → 시점 회전
+- 스크롤 → 줌 인/아웃
 """)
         else:
             st.markdown("""
 **아인슈타인의 십자가**
-- 매우 먼 곳의 퀘이사 빛이 중간 은하의 중력으로 4개로 쪼개져 보입니다.
+- 퀘이사 빛이 중간 은하의 중력으로 4개로 쪼개져 보입니다.
 - 우상단 인셋에서 지구 망원경 시야를 확인하세요.
 
 **3D 조작**
-- 🖱️ 왼쪽 드래그 → 시점 회전
-- 🖱️ 스크롤 → 줌
+- 왼쪽 드래그 → 시점 회전
+- 스크롤 → 줌 인/아웃
 """)
     with col2:
         case_val = 'shift' if case == "별의 위치 변화 (A/B)" else 'cross'
         components.html(
-            f"<script>window.stParams = {{ mode:'lensing', case:'{case_val}', mass:{mass} }};</script>"
+            "<script>window.stParams = {{ mode:'lensing', case:'{c}', mass:{m} }};</script>".format(
+                c=case_val, m=mass)
             + LENSING_3D_HTML,
             height=580
         )
 
-elif mode == "🎡 등가 원리 학습":
+elif mode == "등가 원리 학습":
     col1, col2 = st.columns([1, 2.5])
     with col1:
-        st.success("**🎢 가속도와 중력의 등가성**")
+        st.success("**가속도와 중력의 등가성**")
         pov = st.radio("관찰 시점 선택", ["A (지면)", "B (중심)", "C (가장자리)"])
         disc_vel = st.slider("원판 회전 속도 (ω)", 0.5, 10.0, 5.0)
         st.write("---")
@@ -534,13 +543,14 @@ elif mode == "🎡 등가 원리 학습":
     with col2:
         pov_val = pov[0]
         components.html(
-            f"<script>window.stParams = {{ mode:'disk', pov:'{pov_val}', discVel:{disc_vel}, speed:1.0 }};</script>"
+            "<script>window.stParams = {{ mode:'disk', pov:'{p}', discVel:{d}, speed:1.0 }};</script>".format(
+                p=pov_val, d=disc_vel)
             + DISK_HTML,
             height=520
         )
 
 else:
-    st.markdown("### 🎬 영화 '인터스텔라'로 배우는 상대성 이론")
+    st.markdown("### 영화 '인터스텔라'로 배우는 상대성 이론")
     col_img1, col_txt1 = st.columns([1, 1.2])
     with col_img1:
         st.image(img_blackhole, use_container_width=True, caption="블랙홀 가르강튀아")
@@ -561,5 +571,5 @@ else:
 """)
     with col_img2:
         st.image(img_reunion, use_container_width=True, caption="시간의 상대성이 만든 재회")
-    st.info("💡 **결론**: 아인슈타인의 일반 상대성 이론은 '중력 = 시공간의 휘어짐'임을 증명하며, "
+    st.info("결론: 아인슈타인의 일반 상대성 이론은 '중력 = 시공간의 휘어짐'임을 증명하며, "
             "이는 중력 렌즈와 시간 지연이라는 놀라운 현상으로 나타납니다.")
