@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import streamlit.components.v1 as components
 import os
@@ -404,7 +405,7 @@ function drawDashboard(ctx, clocks) {
     ctx.fillStyle='rgba(15,23,42,0.9)'; ctx.strokeStyle='rgba(99,102,241,0.6)';
     ctx.lineWidth=2; ctx.beginPath(); ctx.rect(sX,sY,bW,bH); ctx.fill(); ctx.stroke();
     ctx.fillStyle='#fff'; ctx.font='bold 14px Inter'; ctx.textAlign='center';
-    ctx.fillText('🕒 시간 흐름 비교', sX+bW/2, sY+25);
+    ctx.fillText('[시계] 시간 흐름 비교', sX+bW/2, sY+25);
     const renderClock=(y,label,time,color)=>{
         ctx.save(); ctx.translate(sX+30,y);
         ctx.beginPath(); ctx.arc(0,0,14,0,Math.PI*2); ctx.strokeStyle=color; ctx.lineWidth=2; ctx.stroke();
