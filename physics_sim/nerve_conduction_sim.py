@@ -3,7 +3,11 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from scipy.interpolate import interp1d
+try:
+    from scipy.interpolate import interp1d
+    HAS_SCIPY = True
+except ImportError:
+    HAS_SCIPY = False
 
 # 페이지 설정
 st.set_page_config(
@@ -39,14 +43,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 1. 사실적인 막전위 곡선 정의 (Spline Interpolation 사용)
+# 1. 사실적인 막전위 곡선 정의
 def get_voltage_fn():
     # 주요 지점: t(ms), V(mV)
     # 0:자극, 0.8:역치(-55), 1.2:정점(+35), 2.0:재분극(-70), 3.0:과분극(-80), 4.5:회복(-70)
     times = [0, 0.8, 1.2, 1.6, 2.2, 3.2, 5.0]
     volts = [-70, -55, 35, 10, -70, -82, -70]
-    f = interp1d(times, volts, kind='cubic', fill_value=(-70, -70), bounds_error=False)
-    return f
+    
+    if HAS_SCIPY:
+        f = interp1d(times, volts, kind='cubic', fill_value=(-70, -70), bounds_error=False)
+        return f
+    else:
+        # Scipy가 없을 경우 Numpy 선형 보간으로 대체
+        return lambda t: np.interp(t, times, volts, left=-70, right=-70)
 
 ap_func = get_voltage_fn()
 

@@ -1,5 +1,6 @@
 streamlit
 plotly
 numpy
+scipy
 streamlit-pdf-viewer
 python-docx
