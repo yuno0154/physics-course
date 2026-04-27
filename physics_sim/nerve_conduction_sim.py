@@ -262,16 +262,14 @@ for i, (label, pos, color) in enumerate(zip(labels, positions, COLORS)):
     fig_stack.add_hrect(y0=-55, y1=35, fillcolor="rgba(239,68,68,0.06)",
                         line_width=0, row=row, col=1)
 
-    # 휴지 전위선
-    fig_stack.add_shape(type="line",
-        x0=0, x1=t_max, y0=-70, y1=-70,
+    # 휴지 전위선 (-70 mV)
+    fig_stack.add_hline(y=-70,
         line=dict(color="#475569", width=1, dash="dot"),
         row=row, col=1
     )
-    # 역치선
-    fig_stack.add_shape(type="line",
-        x0=0, x1=t_max, y0=-55, y1=-55,
-        line=dict(color="#fbbf2480", width=1, dash="dot"),
+    # 역치선 (-55 mV)
+    fig_stack.add_hline(y=-55,
+        line=dict(color="rgba(251,191,36,0.5)", width=1, dash="dot"),
         row=row, col=1
     )
 
@@ -283,9 +281,8 @@ for i, (label, pos, color) in enumerate(zip(labels, positions, COLORS)):
     ), row=row, col=1)
 
     # 현재 시간 수직선
-    fig_stack.add_shape(type="line",
-        x0=t_now, x1=t_now, y0=-90, y1=45,
-        line=dict(color="#f8fafc", width=1.5, dash="dash"),
+    fig_stack.add_vline(x=t_now,
+        line=dict(color="rgba(248,250,252,0.8)", width=1.5, dash="dash"),
         row=row, col=1
     )
 
@@ -301,11 +298,10 @@ for i, (label, pos, color) in enumerate(zip(labels, positions, COLORS)):
         hovertemplate=f"{label}: %{{y:.1f}}mV<extra></extra>"
     ), row=row, col=1)
 
-    # 자극 도달 시점 표시
+    # 자극 도달 시점 표시 (컬러 점선)
     if t_arr <= t_max:
-        fig_stack.add_shape(type="line",
-            x0=t_arr, x1=t_arr, y0=-90, y1=45,
-            line=dict(color=color + "80", width=1, dash="dot"),
+        fig_stack.add_vline(x=t_arr,
+            line=dict(color=color, width=1, dash="dot"),
             row=row, col=1
         )
 
