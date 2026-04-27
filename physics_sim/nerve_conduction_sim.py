@@ -3,183 +3,208 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import os
+from scipy.interpolate import interp1d
 
 # 페이지 설정
 st.set_page_config(
-    page_title="신경 흥분 전도 정밀 시뮬레이터",
-    page_icon="🧠",
+    page_title="신경 흥분 전도 동적 시뮬레이터",
+    page_icon="⚡",
     layout="wide"
 )
 
-# --- 커스텀 CSS ---
+# --- 커스텀 CSS (프리미엄 & 슬림 디자인) ---
 st.markdown("""
 <style>
     .main {
-        background-color: #f8fafc;
+        background-color: #f1f5f9;
     }
     .stNumberInput, .stSlider {
         background: white;
-        padding: 10px;
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
     }
-    h1 {
-        color: #0F172A;
-        font-weight: 800;
-        text-align: center;
-    }
-    .chart-container {
+    .metric-container {
+        display: flex;
+        justify-content: space-around;
         background: white;
-        padding: 20px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+    h2, h3 {
+        color: #1e293b;
     }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🧠 신경 흥분 전도 정밀 시뮬레이터")
+# 1. 사실적인 막전위 곡선 정의 (Spline Interpolation 사용)
+def get_voltage_fn():
+    # 주요 지점: t(ms), V(mV)
+    # 0:자극, 0.8:역치(-55), 1.2:정점(+35), 2.0:재분극(-70), 3.0:과분극(-80), 4.5:회복(-70)
+    times = [0, 0.8, 1.2, 1.6, 2.2, 3.2, 5.0]
+    volts = [-70, -55, 35, 10, -70, -82, -70]
+    f = interp1d(times, volts, kind='cubic', fill_value=(-70, -70), bounds_error=False)
+    return f
 
-# --- 데이터 정의 ---
+ap_func = get_voltage_fn()
+
 def get_voltage(t):
-    """4ms 주기의 막전위 변화 곡선 (표준형)"""
-    # t=0: -70, t=1: -60, t=1.5: +30, t=2: 0, t=3: -80, t=4: -70
-    times = [0, 1, 1.5, 2, 3, 4, 10]
-    volts = [-70, -60, 30, 0, -80, -70, -70]
-    if t < 0: return -70
-    return np.interp(t, times, volts)
+    if t < 0: return -70.0
+    return float(ap_func(t))
 
-v = 1.0  # 전도 속도: 1 cm/ms
-positions = [0, 1, 2, 3, 4]  # d1, d2, d3, d4, d5 (1cm 간격)
+# --- 컨트롤 영역 (상단 고정) ---
+st.title("⚡ 신경 흥분 전도 동적 시뮬레이터")
+
+c1, c2, c3 = st.columns([2, 1, 1])
+with c1:
+    t_current = st.slider("⏱️ 경과 시간 (ms)", 0.0, 8.0, 2.0, step=0.05)
+with c2:
+    t_input = st.number_input("시간 직접 입력 (ms)", 0.0, 8.0, t_current, step=0.1)
+    # 입력 시 동기화 (단순화)
+    if t_input != t_current:
+        t_current = t_input
+with c3:
+    v_speed = st.slider("🏃 전도 속도 (cm/ms)", 0.5, 2.0, 1.0, step=0.1)
+
+# --- 파라미터 ---
+positions = np.array([0, 1, 2, 3, 4])  # d1, d2, d3, d4, d5
 labels = ["d1", "d2", "d3", "d4", "d5"]
+current_voltages = [get_voltage(t_current - pos/v_speed) for pos in positions]
 
-# --- 사이드바 및 컨트롤 ---
-with st.sidebar:
-    st.header("🎮 시뮬레이션 제어")
-    
-    # 시간 제어 (슬라이더와 입력창 동기화)
-    if 'current_t' not in st.session_state:
-        st.session_state.current_t = 0.0
-    
-    def update_slider():
-        st.session_state.current_t = st.session_state.t_input
+# --- 시각화 1: 동적 뉴런 모식도 (실시간 전위 반영) ---
+st.subheader("🧬 뉴런 축삭(Axon) 실시간 상태")
 
-    def update_input():
-        st.session_state.t_input = st.session_state.current_t
+# Axon 베이스라인
+axon_x = np.linspace(-0.5, 4.5, 200)
+# 각 지점의 색상 결정 (막전위에 따라)
+# -70: 파란색(휴지), +35: 빨간색(흥분), -82: 보라색(과분극)
+def val_to_color(v):
+    # Normalized value for color mapping (-82 to 40)
+    norm = (v + 82) / (40 + 82)
+    return f"interpolateRdBu({1 - norm})" # Plotly logic simplified later
 
-    t_current = st.slider(
-        "경과 시간 (ms)", 
-        0.0, 10.0, 
-        key='current_t', 
-        on_change=update_input,
-        step=0.1
-    )
-    
-    t_input = st.number_input(
-        "직접 시간 입력 (ms)", 
-        0.0, 10.0, 
-        key='t_input', 
-        on_change=update_slider,
-        step=0.1
-    )
+fig_axon = go.Figure()
 
-    st.divider()
-    st.info("""
-    **💡 시뮬레이션 설정:**
-    - **전도 속도:** 1 cm/ms
-    - **측정 지점:** d1~d5 (1cm 간격)
-    - **자극 시작:** d1 (0ms 시점)
-    """)
+# Axon 몸체 (직사각형 형태)
+fig_axon.add_shape(type="rect", x0=-0.5, y0=-0.2, x1=4.5, y1=0.2, 
+                   fillcolor="#f8fafc", line=dict(color="#cbd5e1", width=2))
 
-# --- 메인 화면 구성 ---
+# 전위 변화를 나타내는 그라데이션 (현재 시간에 따른 축삭 전체 전위)
+fine_x = np.linspace(-0.5, 4.5, 100)
+fine_v = [get_voltage(t_current - x/v_speed) for x in fine_x]
+fig_axon.add_trace(go.Scatter(
+    x=fine_x, y=[0]*len(fine_x),
+    mode='markers',
+    marker=dict(
+        size=40,
+        color=fine_v,
+        colorscale='RdBu',
+        cmin=-85, cmax=40,
+        reversescale=True,
+        showscale=True,
+        colorbar=dict(title="막전위 (mV)", orientation='h', y=-0.5)
+    ),
+    hoverinfo='none',
+    name='전위 분포'
+))
 
-# 1. 뉴런 구조 이미지 표시
-st.subheader("🔬 뉴런 축삭 전도 모식도")
-# 이미지 경로 설정 (생성된 이미지 사용)
-image_path = "physics_sim/assets/neuron_axon.png"
-if os.path.exists(image_path):
-    st.image(image_path, use_container_width=True, caption="신경 축삭을 통한 흥분 전도 및 이온 이동 모식도 (1cm 간격 지점 d1~d5)")
-else:
-    # 텍스트 대체
-    st.warning("이미지를 로드할 수 없습니다. 경로를 확인해주세요.")
-
-# 2. 5개 지점별 막전위 변화 그래프 (동시 표시)
-st.subheader("📈 각 지점별 막전위 변화 (d1 ~ d5)")
-
-# 그래프 데이터 생성
-t_range = np.linspace(0, 10, 500)
-fig = make_subplots(
-    rows=5, cols=1, 
-    shared_xaxes=True,
-    vertical_spacing=0.05,
-    subplot_titles=[f"지점 {label} (위치: {pos}cm)" for label, pos in zip(labels, positions)]
-)
-
-colors = ['#EF4444', '#10B981', '#3B82F6', '#F59E0B', '#8B5CF6']
-
+# 측정 지점 표시 (d1~d5)
 for i, (pos, label) in enumerate(zip(positions, labels)):
-    t_arrival = pos / v
-    # 전체 시간 축에 대한 전압 데이터
-    v_values = [get_voltage(t - t_arrival) for t in t_range]
-    
-    # 현재 시점의 전압
-    v_now = get_voltage(t_current - t_arrival)
-    
-    # 곡선 추가
-    fig.add_trace(
-        go.Scatter(
-            x=t_range, y=v_values, 
-            name=label, 
-            line=dict(color=colors[i], width=2),
-            hovertemplate="시간: %{x}ms<br>전압: %{y}mV<extra></extra>"
-        ),
-        row=i+1, col=1
-    )
-    
-    # 현재 시간 수직선 표시
-    fig.add_vline(x=t_current, line_dash="dash", line_color="gray", row=i+1, col=1)
-    
-    # 현재 시점 포인트 표시
-    fig.add_trace(
-        go.Scatter(
-            x=[t_current], y=[v_now],
-            mode='markers',
-            marker=dict(color='black', size=10, symbol='x'),
-            showlegend=False
-        ),
-        row=i+1, col=1
-    )
-    
-    # y축 범위 및 가이드라인
-    fig.update_yaxes(range=[-90, 50], title_text="mV", row=i+1, col=1)
-    fig.add_hline(y=-70, line_dash="dot", line_color="rgba(0,0,0,0.2)", row=i+1, col=1)
+    v_now = current_voltages[i]
+    fig_axon.add_trace(go.Scatter(
+        x=[pos], y=[0],
+        mode='markers+text',
+        text=[f"<b>{label}</b><br>{round(v_now,1)}mV"],
+        textposition="top center",
+        marker=dict(size=15, color="black", line=dict(width=2, color="white")),
+        name=label,
+        showlegend=False
+    ))
 
-fig.update_layout(
-    height=1000,
-    showlegend=False,
-    template="plotly_white",
-    margin=dict(l=50, r=50, t=50, b=50),
-    xaxis5_title="경과 시간 (ms)"
+fig_axon.update_layout(
+    height=250,
+    margin=dict(l=20, r=20, t=40, b=20),
+    xaxis=dict(showgrid=False, zeroline=False, range=[-0.7, 4.7], title="거리 (cm)"),
+    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-1, 1]),
+    plot_bgcolor='rgba(0,0,0,0)',
+    title="축삭 내부의 실시간 흥분 전파 상태"
 )
+st.plotly_chart(fig_axon, use_container_width=True)
 
-st.plotly_chart(fig, use_container_width=True)
-
-# 3. 실시간 요약 데이터
+# --- 시각화 2: 그래프 분석 ---
 st.divider()
-cols = st.columns(5)
-for i, (pos, label) in enumerate(zip(positions, labels)):
-    t_arrival = pos / v
-    v_now = get_voltage(t_current - t_arrival)
-    status = "자극 미도달" if t_current < t_arrival else ("회복 중" if t_current - t_arrival > 4 else "흥분 중")
-    
-    with cols[i]:
-        st.metric(label=f"📍 지점 {label}", value=f"{round(v_now, 1)} mV")
-        st.caption(f"도착 예정: {t_arrival}ms")
-        if status == "흥분 중":
-            st.error(status)
-        elif status == "회복 중":
-            st.success(status)
-        else:
-            st.info(status)
+col_left, col_right = st.columns([1, 1])
 
-st.caption("※ 본 시뮬레이션은 전도 속도 1cm/ms, 막전위 변화 주기 4ms를 기준으로 제작되었습니다.")
+with col_left:
+    st.subheader("📉 시간에 따른 막전위 변화 (V-t)")
+    # 5개 지점의 V-t 그래프를 하나의 차트에 오버레이
+    fig_vt = go.Figure()
+    t_range = np.linspace(0, 8, 300)
+    colors = ['#ef4444', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6']
+    
+    for i, (pos, label) in enumerate(zip(positions, labels)):
+        v_vals = [get_voltage(t - pos/v_speed) for t in t_range]
+        fig_vt.add_trace(go.Scatter(
+            x=t_range, y=v_vals, name=label, 
+            line=dict(color=colors[i], width=2)
+        ))
+    
+    # 현재 시간 수직선
+    fig_vt.add_vline(x=t_current, line_dash="dash", line_color="#334155", 
+                     annotation_text=f"현재: {t_current}ms")
+    
+    fig_vt.update_layout(
+        xaxis_title="시간 (ms)",
+        yaxis_title="막전위 (mV)",
+        template="plotly_white",
+        height=400,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(l=40, r=20, t=40, b=40)
+    )
+    st.plotly_chart(fig_vt, use_container_width=True)
+
+with col_right:
+    st.subheader("📏 거리에 따른 막전위 분포 (V-x)")
+    # 현재 시점 t에서 거리 x에 따른 전위 분포
+    x_range = np.linspace(-0.5, 4.5, 200)
+    v_dist = [get_voltage(t_current - x/v_speed) for x in x_range]
+    
+    fig_vx = go.Figure()
+    fig_vx.add_trace(go.Scatter(
+        x=x_range, y=v_dist, fill='tozeroy', 
+        name='거리별 전위', line=dict(color='#3b82f6', width=3)
+    ))
+    
+    # 지점별 마커
+    fig_vx.add_trace(go.Scatter(
+        x=positions, y=current_voltages, 
+        mode='markers', 
+        marker=dict(size=12, color=colors, symbol='circle'),
+        name='측정 지점'
+    ))
+
+    fig_vx.update_layout(
+        xaxis_title="거리 (cm)",
+        yaxis_title="막전위 (mV)",
+        template="plotly_white",
+        height=400,
+        yaxis=dict(range=[-90, 50]),
+        margin=dict(l=40, r=20, t=40, b=40)
+    )
+    st.plotly_chart(fig_vx, use_container_width=True)
+
+# --- 하단 측정 데이터 ---
+st.markdown("### 📊 실시간 측정 데이터 요약")
+cols = st.columns(5)
+for i in range(5):
+    with cols[i]:
+        st.markdown(f"""
+        <div style="background:white; padding:10px; border-radius:10px; text-align:center; border-top: 4px solid {colors[i]};">
+            <p style="margin:0; font-weight:bold; color:#64748b;">{labels[i]}</p>
+            <p style="margin:0; font-size:1.4rem; font-weight:800;">{round(current_voltages[i], 1)} <span style="font-size:0.8rem;">mV</span></p>
+        </div>
+        """, unsafe_allow_html=True)
+
+st.info(f"💡 **현재 상태 요약:** {t_current}ms 시점에서 흥분은 자극 원점(d1)으로부터 약 {round(t_current * v_speed, 2)}cm 지점을 지나고 있습니다.")
