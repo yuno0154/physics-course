@@ -33,13 +33,13 @@ def _build_ap_table():
     t2 = np.linspace(1.0, 1.7, n, endpoint=False)
     v2 = -60 + 90  * _smoothstep((t2 - 1.0) / 0.7)
 
-    # Phase3: 1.7 → 2 ms  +30 → 0   (Δ = -30, 빠른 하강 시작)
+    # Phase3: 1.7 → 2 ms  +30 → +10  (Δ = -20, 빠른 하강 시작)
     t3 = np.linspace(1.7, 2.0, n, endpoint=False)
-    v3 =  30 - 30  * _smoothstep((t3 - 1.7) / 0.3)
+    v3 =  30 - 20  * _smoothstep((t3 - 1.7) / 0.3)
 
-    # Phase4: 2 → 3 ms    0 → -80   (Δ = -80, 재분극+과분극)
+    # Phase4: 2 → 3 ms   +10 → -80  (Δ = -90, 재분극+과분극)
     t4 = np.linspace(2.0, 3.0, n, endpoint=False)
-    v4 =   0 - 80  * _smoothstep((t4 - 2.0) / 1.0)
+    v4 =  10 - 90  * _smoothstep((t4 - 2.0) / 1.0)
 
     # Phase5: 3 → 4 ms   -80 → -70  (Δ = +10, 회복)
     t5 = np.linspace(3.0, 4.0, n)
@@ -82,7 +82,7 @@ with st.sidebar:
 | 0 ms | −70 mV | 휴지 전위 |
 | 1 ms | −60 mV | 탈분극 진행 |
 | **1.7 ms** | **+30 mV** | **탈분극 정점** |
-| 2 ms | 0 mV | 재분극 진행 |
+| 2 ms | +10 mV | 재분극 진행 |
 | 3 ms | −80 mV | 과분극 정점 |
 | 4 ms | −70 mV | 휴지 회복 |
 """)
