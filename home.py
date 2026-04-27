@@ -55,7 +55,7 @@ st.markdown("""
 
 | 학습 자료실 QR 코드 | 📍 물리학 수업 자료 |
 | :---: | :--- |
-| ![DRIVE_QR](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link) | - **위치 벡터와 변위 시각화** <br> - **평균 및 순간 속도 탐구** <br> - **포물선(수평/비스듬히) 운동 분석** <br> - **영상 분석 실습 및 정밀 데이터 분석** |
+| ![DRIVE_QR](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link) | - **위치 벡터와 변위 시각화** <br> - **평균 및 순간 속도 탐구** <br> - **포물선(수평/비스듬히) 운동 분석** <br> - **일반 상대성 이론 및 블랙홀 탐구** <br> - **신경 흥분 전도 및 전달 시뮬레이션** |
 
 제작: 사곡고등학교 물리실
 """)
