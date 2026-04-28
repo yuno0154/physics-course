@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 # 페이지 설정 및 제목
-st.set_page_config(page_title="엘리베이터 관성력 탐구", layout="wide")
 st.title("🛗 엘리베이터 시뮬레이션: 겉보기 무게와 관성력")
 
 # React 컴포넌트

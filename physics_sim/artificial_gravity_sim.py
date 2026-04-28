@@ -1,9 +1,8 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 import os
 
 # 페이지 설정
-st.set_page_config(page_title="인공중력 통합 탐구 시스템", layout="wide")
 
 # ── 1. 메인 타이틀 및 소개 ──
 st.title("🛰️ 인공중력 우주 정거장: 통합 탐구 시스템")

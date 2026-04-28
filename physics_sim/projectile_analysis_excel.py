@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
@@ -10,20 +10,17 @@ from docx.oxml.ns import qn # 한글 폰트 설정을 위한 qn 임포트 추가
 import io
 
 # 페이지 설정
-st.set_page_config(page_title="포물선 운동 정밀 데이터 분석", layout="wide")
 
 # CSS를 활용한 엑셀 스타일 및 인쇄 최적화
 st.markdown("""
-    <style>
     <style>
     /* 엑셀 스타일 디자인 */
     .excel-header { background-color: #3b82f6; color: white; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
     .excel-value { background-color: #f3f4f6; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
     .result-header { background-color: #fecaca; color: black; padding: 5px; text-align: center; font-weight: bold; border: 1px solid #ddd; }
     .result-value { background-color: #fee2e2; padding: 5px; text-align: center; border: 1px solid #ddd; color: black !important; }
-    
+
     .print-header { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid black; padding-bottom: 8px; color: inherit; }
-    </style>
     </style>
 """, unsafe_allow_html=True)
 
@@ -36,7 +33,6 @@ st.markdown("""
 3. 초기 속도가 같을 때 수평도달 거리가 같은 발사각에서 최고점 도달 시간, 최고점의 높이는 어떤 차이가 있는가?
 4. 수평 도달 거리 $R$과 최고점 높이 $H$ 사이에는 어떤 정량적 관계가 성립하는가?
 """)
-
 
 # --- 상단 입력부 및 주요 결과값 ---
 col_in1, col_in2, col_res = st.columns([1, 1, 2])

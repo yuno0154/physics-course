@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_practice():
-    # Note: st.set_page_config is handled by main_app.py when using st.navigation
     st.title("📝 케플러 법칙 복습 및 연습 문제")
     st.markdown("""
     그림과 상황을 보고 케플러 제1~3법칙을 적용하여 물리량을 분석하고 비교해 보세요.

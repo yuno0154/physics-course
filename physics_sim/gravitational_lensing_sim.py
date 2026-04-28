@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 import streamlit as st
 import streamlit.components.v1 as components
 import os
-
-st.set_page_config(page_title="아인슈타인의 중력 실험실", layout="wide")
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 assets_dir = os.path.join(current_dir, "assets")
@@ -12,7 +10,6 @@ img_cross = os.path.join(assets_dir, "einstein_cross.png")
 img_3d_curve = os.path.join(assets_dir, "spacetime_curvature.png")
 img_blackhole = os.path.join(assets_dir, "blackhole.png")
 img_reunion = os.path.join(assets_dir, "reunion.png")
-
 
 def render_header_cards():
     st.markdown("#### 🔭 현대 우주론의 결정적 관측 및 이론적 모델")
@@ -41,7 +38,6 @@ def render_header_cards():
             </p>
         </div>
         """, unsafe_allow_html=True)
-
 
 # 3D gravitational lensing simulation - pure Canvas 2D with custom 3D engine
 LENSING_3D_HTML = """
@@ -379,7 +375,6 @@ body { background:#030608; overflow:hidden; }
 </script>
 """
 
-
 DISK_HTML = """
 <div id="root"></div>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -481,7 +476,6 @@ ReactDOM.render(<Main />, document.getElementById('root'));
 body { font-family:'Inter','Noto Sans KR',sans-serif; background:transparent; margin:0; padding:0; overflow:hidden; color:#fff; }
 </style>
 """
-
 
 st.sidebar.title("아인슈타인 탐구 메뉴")
 mode = st.sidebar.radio("탐구 모드 선택",

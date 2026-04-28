@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import numpy as np
 import io
 from datetime import datetime
@@ -14,6 +14,10 @@ try:
     DOCX_AVAILABLE = True
 except ImportError:
     DOCX_AVAILABLE = False
+
+# ── Session State 초기화 ────────────────────────────────────────────
+if "report_content" not in st.session_state:
+    st.session_state["report_content"] = ""
 
 # ── 물리 상수 ──────────────────────────────────────────────────────
 G = 6.674e-11
@@ -236,10 +240,8 @@ def create_docx(form_data: dict, orbit: dict) -> bytes:
     buf.seek(0)
     return buf.getvalue()
 
-
 # ── Streamlit 페이지 본체 ──────────────────────────────────────────
 def run_sim():
-    st.set_page_config(page_title="연구 보고서 작성", layout="wide")
 
     # ── 헤더 ───────────────────────────────────────────────────
     st.markdown("""
@@ -532,7 +534,6 @@ def run_sim():
 
     st.markdown("---")
     st.caption("📌 사곡고등학교 물리학II · 수행평가 지원 시스템 v1.0")
-
 
 if __name__ == "__main__":
     run_sim()

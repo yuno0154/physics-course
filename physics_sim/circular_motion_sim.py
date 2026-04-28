@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="원운동의 기초: 라디안과 호의 길이", layout="wide")
     
     # 상단 브랜딩 및 제목
     st.title("📏 원운동의 기초: 라디안(Radian)과 호의 길이")

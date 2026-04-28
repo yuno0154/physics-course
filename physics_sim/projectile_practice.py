@@ -1,9 +1,8 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
 # 페이지 설정
-st.set_page_config(layout="centered")
 
 # 인쇄용 CSS 설정
 st.markdown("""

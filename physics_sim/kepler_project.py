@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 import numpy as np
 import plotly.graph_objects as go
@@ -198,7 +198,6 @@ def kepler_animation(a_km, e, planet_color, planet_M, orbit_vp, planet_name="화
     )
     return fig
 
-
 @st.cache_data(show_spinner=False)
 def loglog_plot(a_km, e, planet_M):
     """Log-Log Plot: T² vs a³ (캐시 적용)"""
@@ -240,9 +239,7 @@ def loglog_plot(a_km, e, planet_M):
     )
     return fig
 
-
 def run_sim():
-    st.set_page_config(page_title="화성 탐사선 '다누리 2호' 궤도 설계 프로젝트", layout="wide")
 
     st.title("🚀 프로젝트: 화성 탐사선 '다누리 2호' 궤도 설계")
     st.markdown("""
@@ -674,8 +671,6 @@ def run_sim():
             """)
             # LaTeX 수식은 별도 문자열로 분리 (f-string 내 {} 충돌 방지)
             st.markdown(r"*힌트: $v_p = \sqrt{\frac{GM}{a}\cdot\frac{1+e}{1-e}}$ 에서 $e$가 클수록 $v_p$는?*")
-
-
 
 if __name__ == "__main__":
     run_sim()

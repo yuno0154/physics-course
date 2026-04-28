@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="원운동의 표현: 각속도와 선속도", layout="wide")
     
     st.title("🔄 원운동의 표현: 각속도(ω), 선속도(v), 주기(T)")
     st.markdown("""

@@ -1,9 +1,8 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
 # 페이지 설정
-# st.set_page_config(page_title="물리학 I/II 가속도와 포물선 운동", layout="wide")
 
 st.title("🏀 가속도의 정의와 포물선 운동 탐구")
 st.markdown("""
@@ -23,7 +22,6 @@ st.sidebar.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
 
 # --- 사이드바: 초기 조건 및 시각 설정 ---
 with st.sidebar:

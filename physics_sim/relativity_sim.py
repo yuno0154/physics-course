@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 # 페이지 제목
-st.set_page_config(page_title="가속좌표계 탐구", layout="wide")
 st.title("🚌 가속좌표계와 관성력 탐구 시뮬레이션")
 
 # React 컴포넌트

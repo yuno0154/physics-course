@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="케플러 제3법칙: 조화의 법칙", layout="wide")
 
     react_code = r"""
 <!DOCTYPE html>
@@ -192,7 +191,6 @@ const ScatterAnalysis = () => {
         },200);
         return ()=>clearInterval(t);
     },[]);
-
 
     /* 원점(0) 기준 줌 — dMin 항상 0, dMax만 배율 조정 */
     const zoomIn  = () => { setDMin(0); setDMax(v => Math.max(0.5, v * 0.6)); };

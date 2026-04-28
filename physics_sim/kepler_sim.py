@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="케플러 법칙: 타원 궤도와 면적 속도", layout="wide")
     
     st.title("🪐 케플러 제1, 2법칙: 타원 궤도와 면적 속도 일정 법칙")
     st.markdown("""
