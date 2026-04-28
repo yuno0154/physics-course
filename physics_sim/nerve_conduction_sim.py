@@ -68,12 +68,6 @@ def run_sim():
         d_interval = st.slider("결절 간격 (cm)",   0.5, 2.0, 1.0, 0.1)
         t_max      = st.slider("표시 시간 범위 (ms)", 6.0, 20.0, 10.0, 1.0)
         st.markdown("---")
-        speed_sel = st.selectbox("재생 속도",
-            ["0.1× 초슬로우", "0.25× 매우 느림", "0.5× 느림", "1× 보통"], index=1)
-        step_map = {"0.1× 초슬로우": 0.008, "0.25× 매우 느림": 0.02,
-                    "0.5× 느림": 0.04, "1× 보통": 0.08}
-        play_step = step_map[speed_sel]
-        st.markdown("---")
         st.markdown("### 활동전위 기준값")
         st.markdown("""
 | 시간 | 전위 | 상태 |
@@ -96,7 +90,7 @@ def run_sim():
     # ── 상단 제어 ──
     st.title("⚡ 민말이집 신경 흥분 전도 시뮬레이터")
 
-    c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 4, 1.5])
+    c1, c2, c3, c4, c5, c6 = st.columns([1, 1, 1, 2, 1.5, 1.5])
     with c1:
         if st.button("▶ 재생" if not st.session_state.playing else "⏸ 정지"):
             st.session_state.playing = not st.session_state.playing
@@ -120,7 +114,14 @@ def run_sim():
         if abs(nv - st.session_state.t_now) > 1e-4:
             st.session_state.t_now   = nv
             st.session_state.playing = False
+    with c6:
+        speed_sel = st.selectbox("속도 🎬",
+            ["0.1× 초슬로우", "0.25× 매우 느림", "0.5× 느림", "1× 보통"],
+            index=1, label_visibility="collapsed")
 
+    step_map = {"0.1× 초슬로우": 0.04, "0.25× 매우 느림": 0.1,
+                "0.5× 느림": 0.2, "1× 보통": 0.4}
+    play_step = step_map[speed_sel]
     t_now = st.session_state.t_now
     v_now_list = [float(get_voltage(t_now - p / v_speed, _AP_T, _AP_V)) for p in positions]
 
@@ -195,7 +196,7 @@ def run_sim():
         # 파형
         fig_st.add_trace(go.Scatter(
             x=T_FULL, y=vf, name=lab,
-            line=dict(color=col, width=2.2),
+            line=dict(color=col, width=3.5),
             hovertemplate=f"<b>{lab}</b> %{{x:.2f}}ms → %{{y:.1f}}mV<extra></extra>"
         ), row=row, col=1)
 
