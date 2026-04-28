@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_practice():
-    # Note: st.set_page_config is handled by main_app.py when using st.navigation
     st.title("📝 원운동 복습 및 연습 문제")
     st.markdown("""
     등속 원운동의 성분 분석과 관련된 핵심 개념을 파악하고 실전 문제를 해결해 보세요.

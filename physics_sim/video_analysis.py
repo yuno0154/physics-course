@@ -1,15 +1,18 @@
-import streamlit as st
+﻿import streamlit as st
 import pandas as pd
 import numpy as np
 import json
 from docx import Document
 from docx.shared import Inches, Pt
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import qn 
+from docx.oxml.ns import qn
 import io
 
+# ── Session State 초기화 ────────────────────────────────────────────
+if "report_content" not in st.session_state:
+    st.session_state["report_content"] = ""
+
 # 페이지 설정
-# st.set_page_config(page_title="포물선 운동 영상 분석 실습", layout="wide") # main_app에서 설정됨
 
 # CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
@@ -76,10 +79,10 @@ with student_info_placeholder.container():
         student_name = st.text_input("성함 (Name)", placeholder="홍길동", key="student_name")
 
 # 답변 변수 사전 정의 (하단 위젯에서 입력받은 값을 session_state를 통해 가져옴)
-qa_a1 = st.session_state.get('a1', '')
-qa_a2 = st.session_state.get('a2', '')
-qa_a3 = st.session_state.get('a3', '')
-qa_a4 = st.session_state.get('a4', '')
+qa_a1 = st.session_state.get('video_a1', '')
+qa_a2 = st.session_state.get('video_a2', '')
+qa_a3 = st.session_state.get('video_a3', '')
+qa_a4 = st.session_state.get('video_a4', '')
 
 st.divider()
 
@@ -261,16 +264,16 @@ st.write("분석 데이터를 바탕으로 다음 질문에 답해 보세요.")
 
 # 질문 및 답변 입력 영역
 st.markdown("#### 가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="a1")
+a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="video_a1")
 
 st.markdown("#### 나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?")
-a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="a2")
+a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="video_a2")
 
 st.markdown("#### 다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="a3")
+a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="video_a3")
 
 st.markdown("#### 라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?")
-a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="a4")
+a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="video_a4")
 
 st.divider()
 st.caption("사곡고등학교 물리학 II 시뮬레이션 및 실습 지원 포털 | 본 보고서는 작성 후 상단 인쇄 버튼을 통해 PDF로 저장할 수 있습니다.")

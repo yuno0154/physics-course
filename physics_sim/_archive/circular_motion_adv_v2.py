@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="등속 원운동 심화 탐구", layout="wide")
     
     st.title("🏀 [수행평가 1-3] 등속 원운동 심화 탐구 (Advanced Study)")
     st.markdown("""

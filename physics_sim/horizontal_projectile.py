@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-import numpy as np
 
 st.title("🏹 수평으로 던진 물체의 정밀 분석")
 st.markdown("""

@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    # st.set_page_config is removed as it's handled by main_app.py
     
     st.title("📊 원운동의 성분 분석: 삼각함수와 조화 운동")
     st.markdown("""

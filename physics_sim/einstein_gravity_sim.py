@@ -1,9 +1,8 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 import os
 
 # 페이지 설정
-st.set_page_config(page_title="중력 렌즈와 시공간의 곡률", layout="wide")
 
 # 에셋 경로 설정
 current_dir = os.path.dirname(os.path.abspath(__file__))

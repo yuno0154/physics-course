@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 # 페이지 설정
-st.set_page_config(page_title="회전 원판과 관성력(원심력) 탐구", layout="wide")
 st.title("🎡 회전 원판 시뮬레이션: 원심력과 관성력")
 
 # React 컴포넌트 코드

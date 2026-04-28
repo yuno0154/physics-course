@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-import numpy as np
 
 st.title("🏃 수평 속도에 따른 포물선 운동 비교")
 st.markdown("""

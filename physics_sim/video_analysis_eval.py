@@ -15,6 +15,10 @@ if '_pending_load' in st.session_state:
     for k, v in pending.items():
         st.session_state[k] = v
 
+# ── Session State 초기화 ────────────────────────────────────────────
+if "report_content" not in st.session_state:
+    st.session_state["report_content"] = ""
+
 # CSS를 활용한 인쇄 최적화 및 폰트 크기 설정
 st.markdown("""
     <style>
@@ -300,16 +304,16 @@ st.write("분석 데이터를 바탕으로 다음 질문에 답해 보세요.")
 
 # 질문 및 답변 입력 영역
 st.markdown("#### 가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="a1")
+a1 = st.text_area("답변 입력 (가)", placeholder="실험 데이터를 통해 관찰한 내용을 적어주세요.", height=100, label_visibility="collapsed", key="eval_a1")
 
 st.markdown("#### 나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가?")
-a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="a2")
+a2 = st.text_area("답변 입력 (나)", placeholder="뉴턴의 운동 법칙을 적용하여 설명하세요.", height=100, label_visibility="collapsed", key="eval_a2")
 
 st.markdown("#### 다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가?")
-a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="a3")
+a3 = st.text_area("답변 입력 (다)", placeholder="최고점 도달 전후의 속력 변화를 포함하여 설명하세요.", height=100, label_visibility="collapsed", key="eval_a3")
 
 st.markdown("#### 라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가?")
-a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="a4")
+a4 = st.text_area("답변 입력 (라)", placeholder="작용하는 힘(알짜힘)의 관점에서 설명하세요.", height=100, label_visibility="collapsed", key="eval_a4")
 
 # --- 추가 질문 마, 바 ---
 st.markdown("#### 마. 분석 데이터(표, 그래프)에서 최고점 도달 시간, 최고점의 높이, 수평 도달 거리를 찾아 기록하시오.")

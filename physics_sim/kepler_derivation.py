@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
-    st.set_page_config(page_title="케플러 제3법칙: 수학적 유도", layout="wide")
     
     st.title("📐 케플러 제3법칙의 수학적 유도")
     st.markdown("""
@@ -211,7 +210,6 @@ def run_sim():
                     </div>
                 );
             };
-
 
             const KeplerDerivation = () => {
                 const [expandedIdx, setExpandedIdx] = useState(0);

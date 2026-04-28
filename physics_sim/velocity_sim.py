@@ -1,9 +1,8 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
 # 페이지 설정
-# st.set_page_config(page_title="물리학 I/II 평균 및 순간 속도 탐구", layout="wide")
 
 st.title("🚀 속도(Velocity)의 정의와 극한 탐구")
 st.markdown("""

@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import base64
+from pathlib import Path
 
 try:
     from streamlit_pdf_viewer import pdf_viewer
@@ -21,7 +22,7 @@ st.markdown("---")
 st.subheader("📑 2026학년도 사곡고 1학기 3학년 물리학Ⅱ 평가계획")
 
 pdf_file_name = "2026학년도 사곡고 1학기 3학년 물리학Ⅱ 평가계획 세부 계획서.pdf"
-pdf_path = os.path.join(os.path.dirname(__file__), pdf_file_name)
+pdf_path = Path(__file__).parent / pdf_file_name
 
 if os.path.exists(pdf_path):
     with open(pdf_path, "rb") as f:
