@@ -102,11 +102,11 @@ pg = st.navigation({
         escape_velocity_page,
         black_hole_page
     ],
-    "📑 수행평가 : 포물선 운동과 인공위성 궤도의 역학적 연결 탐구": [
+    "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [
         video_analysis_eval_page,
-        satellite_orbit_eval_page
+        satellite_orbit_eval_page,
+        satellite_nasa_page
     ],
-    "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [satellite_nasa_page],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
     ]
