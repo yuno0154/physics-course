@@ -55,6 +55,7 @@ black_hole_page = st.Page("physics_sim/black_hole_sim.py", title="🌑 [탐구2]
 # 7. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📑 [기록] 수행평가 제출")
 satellite_orbit_eval_page = st.Page("physics_sim/satellite_orbit_sim.py", title="🛰️ [수행] 포물선과 궤도 역학적 연결")
+satellite_nasa_page = st.Page("physics_sim/satellite_orbit_sim_nasa.py", title="🛰️ [분석] NASA 실제 위성 궤도")
 
 # 8. 기타 탐구 섹션 (신규)
 nerve_conduction_page = st.Page("physics_sim/nerve_conduction_sim.py", title="⚡ [기타] 신경 흥분 전도와 전달")
@@ -105,6 +106,7 @@ pg = st.navigation({
         video_analysis_eval_page,
         satellite_orbit_eval_page
     ],
+    "🛰️ 만유인력과 인공위성 궤도": [satellite_nasa_page],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
     ]
