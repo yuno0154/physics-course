@@ -600,10 +600,10 @@ with tab4:
 
     st.markdown("---")
     st.markdown("#### 📐 핵심 공식")
-    st.latex(r"	ext{만유인력} = 	ext{구심력} : \quad rac{GMm}{r^2} = rac{mv^2}{r}")
-    st.latex(r"\Rightarrow \quad v = \sqrt{rac{GM}{r}}")
-    st.latex(r"T = rac{2\pi r}{v} = 2\pi\sqrt{rac{r^3}{GM}} \quad 	ext{(케플러 제3법칙)}")
-    st.latex(r"v_1 = \sqrt{rac{GM}{R_E}} pprox 7{,}905 	ext{ m/s} \quad 	ext{(제1 우주 속도)}")
+    st.latex(r"\text{만유인력} = \text{구심력} : \quad \frac{GMm}{r^2} = \frac{mv^2}{r}")
+    st.latex(r"\Rightarrow \quad v = \sqrt{\frac{GM}{r}}")
+    st.latex(r"T = \frac{2\pi r}{v} = 2\pi\sqrt{\frac{r^3}{GM}} \quad \text{(케플러 제3법칙)}")
+    st.latex(r"v_1 = \sqrt{\frac{GM}{R_E}} \approx 7{,}905 \text{ m/s} \quad \text{(제1 우주 속도)}")
 
     # CSV 다운로드
     st.markdown("---")
