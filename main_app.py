@@ -57,6 +57,10 @@ video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="
 satellite_orbit_eval_page = st.Page("physics_sim/satellite_orbit_sim.py", title="🛰️ [수행연습] 포물선과 궤도 역학적 연결")
 satellite_nasa_page = st.Page("physics_sim/satellite_orbit_sim_nasa.py", title="🛰️ [분석] NASA 실제 위성 궤도")
 
+# 7. 전기장 섹션 (신규)
+charges_fields_web_page = st.Page("physics_sim/charges_and_fields_web.py", title="⚡ [탐구] 전하와 전기장 방향")
+electric_field_page     = st.Page("physics_sim/electric_field_sim.py",      title="🔬 [실험] 전기장 세기 탐구")
+
 # 8. 기타 탐구 섹션 (신규)
 nerve_conduction_page = st.Page("physics_sim/nerve_conduction_sim.py", title="⚡ [기타] 신경 흥분 전도와 전달")
 
@@ -101,6 +105,10 @@ pg = st.navigation({
     "🌑 학습주제 6: 탈출속도와 블랙홀": [
         escape_velocity_page,
         black_hole_page
+    ],
+    "⚡ 학습주제 7: 전기장": [
+        charges_fields_web_page,
+        electric_field_page
     ],
     "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [
         video_analysis_eval_page,
