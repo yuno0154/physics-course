@@ -45,6 +45,8 @@ if 'ef_Q_nC' not in st.session_state:
     st.session_state.ef_Q_nC = 1.0
 if 'ef_r' not in st.session_state:
     st.session_state.ef_r = 1.0
+if 'ef_r_input' not in st.session_state:
+    st.session_state.ef_r_input = 1.0
 
 # ══════════════════════════════════════════════════════════════
 st.title("🔬 전기장 세기 탐구 실험")
@@ -96,19 +98,21 @@ with tab1:
     for i, rp in enumerate(r_presets):
         with r_cols[i]:
             if st.button(f"{rp}m", key=f'ef_rp{i}', use_container_width=True):
+                # 위젯 내부 상태(ef_r_input)와 세션 상태(ef_r) 모두 업데이트
                 st.session_state.ef_r = rp
+                st.session_state.ef_r_input = rp
                 st.rerun()
 
-    # 직접 입력
+    # 직접 입력 — key='ef_r_input'로 위젯 상태를 직접 관리
     r_input = st.number_input(
         "거리 r 직접 입력 (m)",
         min_value=0.1, max_value=5.0,
-        value=st.session_state.ef_r,
         step=0.1, format="%.1f",
-        key='ef_r_input'
+        key='ef_r_input'   # st.session_state.ef_r_input 과 자동 연동
     )
-    st.session_state.ef_r = r_input
-    r = st.session_state.ef_r
+    # 항상 위젯이 반환한 값을 기준으로 r 결정
+    r = float(st.session_state.ef_r_input)
+    st.session_state.ef_r = r
     E_now = compute_E(Q_nC, r)
 
     st.markdown("---")
