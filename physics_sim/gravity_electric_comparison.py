@@ -241,6 +241,21 @@ $g = \\dfrac{GM}{r^2}$
     )
     st.plotly_chart(fig_proc, use_container_width=True)
     st.markdown("---")
+    
+    # 📝 스스로 작성해보는 중력장의 정의
+    st.markdown("#### 📝 스스로 정리해보기")
+    user_grav_def = st.text_area(
+        "질문: 위 시뮬레이션을 바탕으로 '중력장'의 의미를 나만의 언어로 서술해보세요.",
+        placeholder="여기에 답을 작성해보세요...",
+        key="user_grav_def_input"
+    )
+    
+    if st.button("답안 확인하기", key="btn_check_grav_def"):
+        st.success("""
+**📖 모범 답안:**
+지구의 질량은 주변 공간의 성질을 변화시켜 눈에 보이지 않는 힘의 공간, 즉 '중력장(Gravity Field)'을 형성합니다. 이 중력장의 공간 속 각 지점에는 지구를 향하는 '방향'과 당기는 힘의 '크기'가 정해져 있습니다. 이 성질을 가진 공간(중력장)에 질량을 가진 다른 물체가 놓이게 되면, 물체는 그 지점의 공간이 가진 성질에 따라 비로소 중력을 경험(작용)하게 됩니다.
+        """)
+    st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════
 # 2단계: 전기장
@@ -459,6 +474,21 @@ $E = \\dfrac{kQ}{r^2}$
         plot_bgcolor="rgba(0,0,0,0)"
     )
     st.plotly_chart(fig_proc2, use_container_width=True)
+    st.markdown("---")
+    
+    # 📝 스스로 작성해보는 전기장의 정의
+    st.markdown("#### 📝 스스로 정리해보기")
+    user_elec_def = st.text_area(
+        "질문: 위 시뮬레이션을 바탕으로 '전기장'의 의미를 나만의 언어로 서술해보세요.",
+        placeholder="여기에 답을 작성해보세요...",
+        key="user_elec_def_input"
+    )
+    
+    if st.button("답안 확인하기", key="btn_check_elec_def"):
+        st.success("""
+**📖 모범 답안:**
+원천 전하($Q$)는 주변 공간의 성질을 변화시켜 눈에 보이지 않는 힘의 공간, 즉 '전기장(Electric Field)'을 형성합니다. 이 전기장의 공간 속 각 지점에는 전기력이 작용하는 '방향'과 힘의 '크기'가 정해져 있습니다. 이 성질을 가진 공간(전기장)에 전하($q$)를 가진 다른 물체가 놓이게 되면, 물체는 그 지점의 공간이 가진 성질에 따라 비로소 전기력을 경험(작용)하게 됩니다.
+        """)
     st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════
