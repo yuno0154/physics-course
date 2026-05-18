@@ -40,7 +40,7 @@ if "1단계" in step:
         fig.add_trace(go.Scatter(
             x=[3], y=[5], mode="markers+text",
             marker=dict(size=30, color="#7f8c8d"),
-            text=["m"], textposition="inside",
+            text=["m"], textposition="middle center",
             name="물체 A (질량 m)"
         ))
         fig.add_trace(go.Scatter(
@@ -54,7 +54,7 @@ if "1단계" in step:
         fig.add_trace(go.Scatter(
             x=[7], y=[5], mode="markers+text",
             marker=dict(size=45, color="#34495e"),
-            text=["2m"], textposition="inside",
+            text=["2m"], textposition="middle center",
             name="물체 B (질량 2m)"
         ))
         fig.add_trace(go.Scatter(
@@ -106,7 +106,7 @@ else:
         fig.add_trace(go.Scatter(
             x=[4], y=[7], mode="markers+text",
             marker=dict(size=40, color="#e74c3c"),
-            text=["+2q"], textposition="inside",
+            text=["+2q"], textposition="middle center",
             name="양전하 (+2q)"
         ))
         fig.add_trace(go.Scatter(
@@ -120,7 +120,7 @@ else:
         fig.add_trace(go.Scatter(
             x=[6], y=[3], mode="markers+text",
             marker=dict(size=30, color="#9b59b6"),
-            text=["-q"], textposition="inside",
+            text=["-q"], textposition="middle center",
             name="음전하 (-q)"
         ))
         fig.add_trace(go.Scatter(
