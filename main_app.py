@@ -106,14 +106,14 @@ pg = st.navigation({
         escape_velocity_page,
         black_hole_page
     ],
-    "⚡ 학습주제 7: 전기장": [
-        charges_fields_web_page,
-        electric_field_page
-    ],
     "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [
         video_analysis_eval_page,
         satellite_orbit_eval_page,
         satellite_nasa_page
+    ],
+    "⚡ 학습주제 7: 전기장": [
+        electric_field_page,
+        charges_fields_web_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
