@@ -40,8 +40,8 @@ with tab1:
     fig_dia.add_trace(go.Scatter(
         x=[2], y=[5], mode="markers+text",
         marker=dict(size=80, color="#3498db"),
-        text=["지구 (M)"], textposition="middle center",
-        textfont=dict(color="white", size=14, bold=True),
+        text=["<b>지구 (M)</b>"], textposition="middle center",
+        textfont=dict(color="white", size=14),
         showlegend=False
     ))
     # 사과 (작은 원)
@@ -91,8 +91,8 @@ with tab1:
     fig_proc.add_trace(go.Scatter(
         x=[2], y=[5], mode="markers+text",
         marker=dict(size=60, color="#3498db"),
-        text=["지구"], textposition="middle center",
-        textfont=dict(color="white", size=12, bold=True),
+        text=["<b>지구</b>"], textposition="middle center",
+        textfont=dict(color="white", size=12),
         showlegend=False
     ))
     
@@ -257,8 +257,8 @@ with tab2:
     fig_dia2.add_trace(go.Scatter(
         x=[2], y=[5], mode="markers+text",
         marker=dict(size=70, color="#e74c3c"),
-        text=["원천 전하 (Q)"], textposition="middle center",
-        textfont=dict(color="white", size=12, bold=True),
+        text=["<b>원천 전하 (Q)</b>"], textposition="middle center",
+        textfont=dict(color="white", size=12),
         showlegend=False
     ))
     # 시험 전하 q (작은 원)
@@ -308,8 +308,8 @@ with tab2:
     fig_proc2.add_trace(go.Scatter(
         x=[2], y=[5], mode="markers+text",
         marker=dict(size=60, color="#e74c3c"),
-        text=["Q"], textposition="middle center",
-        textfont=dict(color="white", size=12, bold=True),
+        text=["<b>Q</b>"], textposition="middle center",
+        textfont=dict(color="white", size=12),
         showlegend=False
     ))
     
