@@ -74,85 +74,6 @@ with tab1:
     )
     st.plotly_chart(fig_dia, use_container_width=True)
 
-    # ── [추가] 장(Field)의 인과관계 시각화 시뮬레이션 ─────────────────
-    st.markdown("#### 🔄 힘이 작용하는 2단계 과정 (장의 개념)")
-    
-    process_step = st.radio(
-        "과정을 순서대로 확인해보세요:",
-        ["1단계: 질량(지구)이 공간의 성질을 변화시킴 (장 형성)", 
-         "2단계: 변화된 공간이 물체(사과)에 힘을 가함"],
-        horizontal=True,
-        key="grav_proc_step"
-    )
-    
-    fig_proc = go.Figure()
-    
-    # 기본 요소: 지구 (모든 단계 공통)
-    fig_proc.add_trace(go.Scatter(
-        x=[2], y=[5], mode="markers+text",
-        marker=dict(size=60, color="#3498db"),
-        text=["<b>지구</b>"], textposition="middle center",
-        textfont=dict(color="white", size=12),
-        showlegend=False
-    ))
-    
-    if "1단계" in process_step:
-        # 중력장 화살표들 (지구를 향하는 방향)
-        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
-            r_val = 2.0
-            dx = r_val * np.cos(angle)
-            dy = r_val * np.sin(angle)
-            fig_proc.add_trace(go.Scatter(
-                x=[2 + dx, 2 + dx*0.3], y=[5 + dy, 5 + dy*0.3],
-                mode="lines+markers",
-                marker=dict(symbol="arrow", size=10, angleref="previous"),
-                line=dict(color="rgba(52,152,219,0.5)", width=2),
-                showlegend=False
-            ))
-        fig_proc.add_annotation(x=5, y=5, text="지구가 주변 공간의 성질을 변화시킴<br>(중력장 형성)", showarrow=False, font=dict(color="#93c5fd", size=12))
-        
-    elif "2단계" in process_step:
-        # 중력장 화살표들 (배경에 흐릿하게)
-        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
-            r_val = 2.0
-            dx = r_val * np.cos(angle)
-            dy = r_val * np.sin(angle)
-            fig_proc.add_trace(go.Scatter(
-                x=[2 + dx, 2 + dx*0.3], y=[5 + dy, 5 + dy*0.3],
-                mode="lines",
-                line=dict(color="rgba(52,152,219,0.15)", width=1),
-                showlegend=False
-            ))
-            
-        # 사과 등장
-        fig_proc.add_trace(go.Scatter(
-            x=[8], y=[5], mode="markers+text",
-            marker=dict(size=20, color="#e74c3c"),
-            text=["사과"], textposition="top center",
-            textfont=dict(color="#e2e8f0", size=12),
-            showlegend=False
-        ))
-        
-        # 사과가 받는 힘 화살표 (지구 방향)
-        fig_proc.add_trace(go.Scatter(
-            x=[8, 5.5], y=[5, 5], mode="lines+markers",
-            marker=dict(symbol="arrow", size=12, angleref="previous"),
-            line=dict(color="#e74c3c", width=4),
-            showlegend=False
-        ))
-        fig_proc.add_annotation(x=6.5, y=5.8, text="변화된 공간이<br>사과에 힘(중력)을 가함", showarrow=False, font=dict(color="#fca5a5", size=12))
-
-    fig_proc.update_layout(
-        xaxis=dict(range=[0, 10], showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(range=[2, 8], showgrid=False, zeroline=False, showticklabels=False),
-        height=180, template="plotly_white",
-        margin=dict(l=20, r=20, t=10, b=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)"
-    )
-    st.plotly_chart(fig_proc, use_container_width=True)
-    st.markdown("---")
-
     col_eq1, col_eq2, col_eq3 = st.columns(3)
     with col_eq1:
         st.markdown("<div style='text-align:center; color:#93c5fd; font-weight:700;'>① 뉴턴의 만유인력 법칙 (지구와 물체 사이)</div>", unsafe_allow_html=True)
@@ -242,6 +163,85 @@ $g = \\dfrac{GM}{r^2}$
         """)
         st.warning("🔍 질문: g값이 같은 이유는 무엇일까요?")
 
+    # ── [추가] 장(Field)의 인과관계 시각화 시뮬레이션 ─────────────────
+    st.markdown("#### 🔄 힘이 작용하는 2단계 과정 (장의 개념)")
+    
+    process_step = st.radio(
+        "과정을 순서대로 확인해보세요:",
+        ["1단계: 질량(지구)이 공간의 성질을 변화시킴 (장 형성)", 
+         "2단계: 변화된 공간이 물체(사과)에 힘을 가함"],
+        horizontal=True,
+        key="grav_proc_step"
+    )
+    
+    fig_proc = go.Figure()
+    
+    # 기본 요소: 지구 (모든 단계 공통)
+    fig_proc.add_trace(go.Scatter(
+        x=[2], y=[5], mode="markers+text",
+        marker=dict(size=60, color="#3498db"),
+        text=["<b>지구</b>"], textposition="middle center",
+        textfont=dict(color="white", size=12),
+        showlegend=False
+    ))
+    
+    if "1단계" in process_step:
+        # 중력장 화살표들 (지구를 향하는 방향)
+        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
+            r_val = 2.0
+            dx = r_val * np.cos(angle)
+            dy = r_val * np.sin(angle)
+            fig_proc.add_trace(go.Scatter(
+                x=[2 + dx, 2 + dx*0.3], y=[5 + dy, 5 + dy*0.3],
+                mode="lines+markers",
+                marker=dict(symbol="arrow", size=10, angleref="previous"),
+                line=dict(color="rgba(52,152,219,0.5)", width=2),
+                showlegend=False
+            ))
+        fig_proc.add_annotation(x=5, y=5, text="지구가 주변 공간의 성질을 변화시킴<br>(중력장 형성)", showarrow=False, font=dict(color="#93c5fd", size=12))
+        
+    elif "2단계" in process_step:
+        # 중력장 화살표들 (배경에 흐릿하게)
+        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
+            r_val = 2.0
+            dx = r_val * np.cos(angle)
+            dy = r_val * np.sin(angle)
+            fig_proc.add_trace(go.Scatter(
+                x=[2 + dx, 2 + dx*0.3], y=[5 + dy, 5 + dy*0.3],
+                mode="lines",
+                line=dict(color="rgba(52,152,219,0.15)", width=1),
+                showlegend=False
+            ))
+            
+        # 사과 등장
+        fig_proc.add_trace(go.Scatter(
+            x=[8], y=[5], mode="markers+text",
+            marker=dict(size=20, color="#e74c3c"),
+            text=["사과"], textposition="top center",
+            textfont=dict(color="#e2e8f0", size=12),
+            showlegend=False
+        ))
+        
+        # 사과가 받는 힘 화살표 (지구 방향)
+        fig_proc.add_trace(go.Scatter(
+            x=[8, 5.5], y=[5, 5], mode="lines+markers",
+            marker=dict(symbol="arrow", size=12, angleref="previous"),
+            line=dict(color="#e74c3c", width=4),
+            showlegend=False
+        ))
+        fig_proc.add_annotation(x=6.5, y=5.8, text="변화된 공간이<br>사과에 힘(중력)을 가함", showarrow=False, font=dict(color="#fca5a5", size=12))
+
+    fig_proc.update_layout(
+        xaxis=dict(range=[0, 10], showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(range=[2, 8], showgrid=False, zeroline=False, showticklabels=False),
+        height=180, template="plotly_white",
+        margin=dict(l=20, r=20, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)"
+    )
+    st.plotly_chart(fig_proc, use_container_width=True)
+    st.markdown("---")
+
 # ═══════════════════════════════════════════════════════════
 # 2단계: 전기장
 # ═══════════════════════════════════════════════════════════
@@ -291,85 +291,7 @@ with tab2:
     )
     st.plotly_chart(fig_dia2, use_container_width=True)
 
-    # ── [추가] 장(Field)의 인과관계 시각화 시뮬레이션 (전기장) ───────
-    st.markdown("#### 🔄 힘이 작용하는 2단계 과정 (장의 개념)")
-    
-    process_step_elec = st.radio(
-        "과정을 순서대로 확인해보세요:",
-        ["1단계: 원천전하(Q)가 공간의 성질을 변화시킴 (장 형성)", 
-         "2단계: 변화된 공간이 시험전하(q)에 힘을 가함"],
-        horizontal=True,
-        key="elec_proc_step"
-    )
-    
-    fig_proc2 = go.Figure()
-    
-    # 기본 요소: 원천 전하 Q (모든 단계 공통)
-    fig_proc2.add_trace(go.Scatter(
-        x=[2], y=[5], mode="markers+text",
-        marker=dict(size=60, color="#e74c3c"),
-        text=["<b>Q</b>"], textposition="middle center",
-        textfont=dict(color="white", size=12),
-        showlegend=False
-    ))
-    
-    if "1단계" in process_step_elec:
-        # 전기장 화살표들 (나가는 방향)
-        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
-            r_val = 2.0
-            dx = r_val * np.cos(angle)
-            dy = r_val * np.sin(angle)
-            # 화살표는 밖을 향해야 하므로
-            fig_proc2.add_trace(go.Scatter(
-                x=[2 + dx*0.3, 2 + dx], y=[5 + dy*0.3, 5 + dy],
-                mode="lines+markers",
-                marker=dict(symbol="arrow", size=10, angleref="previous"),
-                line=dict(color="rgba(231,76,60,0.5)", width=2),
-                showlegend=False
-            ))
-        fig_proc2.add_annotation(x=5, y=5, text="원천 전하가 주변 공간의 성질을 변화시킴<br>(전기장 형성)", showarrow=False, font=dict(color="#fca5a5", size=12))
-        
-    elif "2단계" in process_step_elec:
-        # 전기장 화살표들 (배경에 흐릿하게)
-        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
-            r_val = 2.0
-            dx = r_val * np.cos(angle)
-            dy = r_val * np.sin(angle)
-            fig_proc2.add_trace(go.Scatter(
-                x=[2 + dx*0.3, 2 + dx], y=[5 + dy*0.3, 5 + dy],
-                mode="lines",
-                line=dict(color="rgba(231,76,60,0.15)", width=1),
-                showlegend=False
-            ))
-            
-        # 시험 전하 q 등장
-        fig_proc2.add_trace(go.Scatter(
-            x=[8], y=[5], mode="markers+text",
-            marker=dict(size=20, color="#e74c3c"),
-            text=["q"], textposition="top center",
-            textfont=dict(color="#e2e8f0", size=12),
-            showlegend=False
-        ))
-        
-        # q가 받는 힘 화살표 (오른쪽 방향, 척력 가정)
-        fig_proc2.add_trace(go.Scatter(
-            x=[8, 9.5], y=[5, 5], mode="lines+markers",
-            marker=dict(symbol="arrow", size=12, angleref="previous"),
-            line=dict(color="#e74c3c", width=4),
-            showlegend=False
-        ))
-        fig_proc2.add_annotation(x=6.5, y=5.8, text="변화된 공간이<br>시험 전하에 힘을 가함", showarrow=False, font=dict(color="#fca5a5", size=12))
 
-    fig_proc2.update_layout(
-        xaxis=dict(range=[0, 10], showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(range=[2, 8], showgrid=False, zeroline=False, showticklabels=False),
-        height=180, template="plotly_white",
-        margin=dict(l=20, r=20, t=10, b=10),
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)"
-    )
-    st.plotly_chart(fig_proc2, use_container_width=True)
-    st.markdown("---")
 
     col_eq1, col_eq2, col_eq3 = st.columns(3)
     with col_eq1:
@@ -458,6 +380,86 @@ $E = \\dfrac{kQ}{r^2}$
         """)
         st.success("✍️ F = qE 에서 q < 0이면 힘의 방향이 E와 반대!")
         st.warning("🔍 질문: E값이 같은 이유는 무엇일까요?")
+
+    # ── [추가] 장(Field)의 인과관계 시각화 시뮬레이션 (전기장) ───────
+    st.markdown("#### 🔄 힘이 작용하는 2단계 과정 (장의 개념)")
+    
+    process_step_elec = st.radio(
+        "과정을 순서대로 확인해보세요:",
+        ["1단계: 원천전하(Q)가 공간의 성질을 변화시킴 (장 형성)", 
+         "2단계: 변화된 공간이 시험전하(q)에 힘을 가함"],
+        horizontal=True,
+        key="elec_proc_step"
+    )
+    
+    fig_proc2 = go.Figure()
+    
+    # 기본 요소: 원천 전하 Q (모든 단계 공통)
+    fig_proc2.add_trace(go.Scatter(
+        x=[2], y=[5], mode="markers+text",
+        marker=dict(size=60, color="#e74c3c"),
+        text=["<b>Q</b>"], textposition="middle center",
+        textfont=dict(color="white", size=12),
+        showlegend=False
+    ))
+    
+    if "1단계" in process_step_elec:
+        # 전기장 화살표들 (나가는 방향)
+        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
+            r_val = 2.0
+            dx = r_val * np.cos(angle)
+            dy = r_val * np.sin(angle)
+            # 화살표는 밖을 향해야 하므로
+            fig_proc2.add_trace(go.Scatter(
+                x=[2 + dx*0.3, 2 + dx], y=[5 + dy*0.3, 5 + dy],
+                mode="lines+markers",
+                marker=dict(symbol="arrow", size=10, angleref="previous"),
+                line=dict(color="rgba(231,76,60,0.5)", width=2),
+                showlegend=False
+            ))
+        fig_proc2.add_annotation(x=5, y=5, text="원천 전하가 주변 공간의 성질을 변화시킴<br>(전기장 형성)", showarrow=False, font=dict(color="#fca5a5", size=12))
+        
+    elif "2단계" in process_step_elec:
+        # 전기장 화살표들 (배경에 흐릿하게)
+        for angle in np.linspace(0, 2*np.pi, 8, endpoint=False):
+            r_val = 2.0
+            dx = r_val * np.cos(angle)
+            dy = r_val * np.sin(angle)
+            fig_proc2.add_trace(go.Scatter(
+                x=[2 + dx*0.3, 2 + dx], y=[5 + dy*0.3, 5 + dy],
+                mode="lines",
+                line=dict(color="rgba(231,76,60,0.15)", width=1),
+                showlegend=False
+            ))
+            
+        # 시험 전하 q 등장
+        fig_proc2.add_trace(go.Scatter(
+            x=[8], y=[5], mode="markers+text",
+            marker=dict(size=20, color="#e74c3c"),
+            text=["q"], textposition="top center",
+            textfont=dict(color="#e2e8f0", size=12),
+            showlegend=False
+        ))
+        
+        # q가 받는 힘 화살표 (오른쪽 방향, 척력 가정)
+        fig_proc2.add_trace(go.Scatter(
+            x=[8, 9.5], y=[5, 5], mode="lines+markers",
+            marker=dict(symbol="arrow", size=12, angleref="previous"),
+            line=dict(color="#e74c3c", width=4),
+            showlegend=False
+        ))
+        fig_proc2.add_annotation(x=6.5, y=5.8, text="변화된 공간이<br>시험 전하에 힘을 가함", showarrow=False, font=dict(color="#fca5a5", size=12))
+
+    fig_proc2.update_layout(
+        xaxis=dict(range=[0, 10], showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(range=[2, 8], showgrid=False, zeroline=False, showticklabels=False),
+        height=180, template="plotly_white",
+        margin=dict(l=20, r=20, t=10, b=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)"
+    )
+    st.plotly_chart(fig_proc2, use_container_width=True)
+    st.markdown("---")
 
 # ═══════════════════════════════════════════════════════════
 # 3단계: 비교 정리
