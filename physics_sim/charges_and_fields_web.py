@@ -328,8 +328,9 @@ st.markdown("""
      border-radius:8px; padding:12px 16px; margin-top:12px;'>
   💡 <b style='color:#c4b5fd;'>다음 차시 연결</b><br>
   <span style='color:#e2e8f0; font-size:0.9rem;'>
-  오늘 관찰한 전기장의 방향과 모양을 바탕으로,<br>
-  다음 시간에는 전기장의 <b>세기(크기)</b>가 거리에 따라 어떻게 변하는지 정량적으로 탐구합니다.
+  오늘 관찰한 2차원 전기장의 방향과 모양을 바탕으로,<br>
+  다음 시간에는 3차원 공간에서 전하 배치에 따른 입체적인 <b>전기력선 그리기 [해보기]</b> 활동을 진행하고,<br>
+  이어서 전기장의 세기가 거리에 따라 어떻게 변하는지 정량적으로 탐구합니다.
   </span>
 </div>
 """, unsafe_allow_html=True)
