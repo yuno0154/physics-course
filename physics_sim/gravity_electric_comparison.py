@@ -510,7 +510,7 @@ with tab3:
 
     st.markdown("---")
     st.markdown("### 📝 스스로 확인해보기")
-    ans = st.text_input("전기장의 정의($E$)를 식으로 작성해보세요: (예: E = kQ/r^2)", key="elec_def_input")
+    ans = st.text_input("전기장의 정의($E$)를 식으로 작성해보세요: (예: g = GM/r^2)", key="elec_def_input")
     if ans:
         ans_clean = ans.replace(" ", "")
         if 'k' in ans_clean and 'Q' in ans_clean and ('r^2' in ans_clean or 'r**2' in ans_clean) and 'E=' in ans_clean:

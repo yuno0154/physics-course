@@ -60,6 +60,7 @@ satellite_nasa_page = st.Page("physics_sim/satellite_orbit_sim_nasa.py", title="
 # 7. 전기장 섹션 (신규)
 gravity_electric_page   = st.Page("physics_sim/gravity_electric_comparison.py", title="⚖️ [도입] 중력장과 전기장 비교")
 charges_fields_web_page = st.Page("physics_sim/charges_and_fields_web.py",     title="⚡ [탐구] 전하와 전기장 방향")
+electric_field_3d_page  = st.Page("physics_sim/electric_field_3d_sim.py",       title="🔌 [해보기] 전기력선 그리기")
 electric_field_page     = st.Page("physics_sim/electric_field_sim.py",          title="🔬 [실험] 전기장 세기 탐구")
 
 # 8. 기타 탐구 섹션 (신규)
@@ -114,8 +115,9 @@ pg = st.navigation({
     ],
     "⚡ 학습주제 7: 전기장": [
         gravity_electric_page,
-        electric_field_page,
-        charges_fields_web_page
+        charges_fields_web_page,
+        electric_field_3d_page,
+        electric_field_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
