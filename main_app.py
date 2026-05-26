@@ -66,7 +66,8 @@ electric_field_page     = st.Page("physics_sim/electric_field_sim.py",          
 # 8. 기타 탐구 섹션 (신규)
 nerve_conduction_page = st.Page("physics_sim/nerve_conduction_sim.py", title="⚡ [기타] 신경 흥분 전도와 전달")
 
-# 9. 저항의 연결 섹션 (신규)
+# 9. 저항의 연결 섹션 (개념 및 탐구 추가)
+resistor_formula_page = st.Page("physics_sim/resistor_formula_sim.py", title="🔌 [개념] 저항의 연결과 공식 학습")
 resistor_connection_page = st.Page("physics_sim/resistor_connection_sim.py", title="🔌 [탐구] 저항의 연결과 소비 전력")
 
 # 네비게이션 구성
@@ -123,6 +124,7 @@ pg = st.navigation({
         electric_field_page
     ],
     "🔌 학습주제 8: 저항의 연결": [
+        resistor_formula_page,
         resistor_connection_page
     ],
     "⚡ 기타 탐구 주제": [
