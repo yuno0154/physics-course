@@ -333,7 +333,7 @@ with tab_parallel:
         <div style='background:#818cf8; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
     </div>
     <p style='font-size:0.75rem; color:#94a3b8; margin-top:8px; line-height:1.4;'>
-        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. ($P \propto \frac{1}{R}$)
+        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. ($P \propto \frac{{1}}{{R}}$)
     </p>
     </div>
     """, unsafe_allow_html=True)
