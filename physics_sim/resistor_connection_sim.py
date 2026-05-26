@@ -241,7 +241,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v1)}V | {fmt(p1)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v1)}V &#124; {fmt(p1)}W</text>
             </g>
 
             <!-- 저항 2 (상단 오른쪽) -->
@@ -250,7 +250,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v2)}V | {fmt(p2)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v2)}V &#124; {fmt(p2)}W</text>
             </g>
             """
             if show_electron:
@@ -270,7 +270,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A | {fmt(p1)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A &#124; {fmt(p1)}W</text>
             </g>
 
             <!-- 저항 2 (하단 분기) -->
@@ -279,7 +279,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A | {fmt(p2)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A &#124; {fmt(p2)}W</text>
             </g>
             """
             if show_electron:
@@ -315,7 +315,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A | {fmt(p1)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A &#124; {fmt(p1)}W</text>
             </g>
 
             <!-- 저항 2 (상단 분기) -->
@@ -324,7 +324,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A | {fmt(p2)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A &#124; {fmt(p2)}W</text>
             </g>
 
             <!-- 저항 3 (하단 분기) -->
@@ -333,7 +333,7 @@ with tab_sim:
               <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f43f5e" stroke-width="4" />
               <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f43f5e" stroke-width="1.5" opacity="0.9" />
               <text x="0" y="-16" fill="#f43f5e" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R3: {r3}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i3)}A | {fmt(p3)}W</text>
+              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i3)}A &#124; {fmt(p3)}W</text>
             </g>
             """
             if show_electron:
