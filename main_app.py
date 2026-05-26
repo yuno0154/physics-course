@@ -67,6 +67,7 @@ electric_field_page     = st.Page("physics_sim/electric_field_sim.py",          
 nerve_conduction_page = st.Page("physics_sim/nerve_conduction_sim.py", title="⚡ [기타] 신경 흥분 전도와 전달")
 
 # 9. 저항의 연결 섹션 (개념 및 탐구 추가)
+current_model_page = st.Page("physics_sim/current_model_sim.py", title="🔌 [개념] 도선 내 전하 흐름 모델")
 resistor_formula_page = st.Page("physics_sim/resistor_formula_sim.py", title="🔌 [개념] 저항의 연결과 공식 학습")
 resistor_connection_page = st.Page("physics_sim/resistor_connection_sim.py", title="🔌 [탐구] 저항의 연결과 소비 전력")
 
@@ -124,6 +125,7 @@ pg = st.navigation({
         electric_field_page
     ],
     "🔌 학습주제 8: 저항의 연결": [
+        current_model_page,
         resistor_formula_page,
         resistor_connection_page
     ],
