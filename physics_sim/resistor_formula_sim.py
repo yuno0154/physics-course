@@ -196,13 +196,13 @@ with tab_series:
         st.markdown("**③ 각 저항의 전압 강하 (전위차 $V_n$) 구하기**")
         st.latex(rf"V_1 = I \cdot R_1 = {fmt(s_i)}\,A \times {s_r1}\,\Omega \approx {fmt(s_v1)}\,V")
         st.latex(rf"V_2 = I \cdot R_2 = {fmt(s_i)}\,A \times {s_r2}\,\Omega \approx {fmt(s_v2)}\,V")
-        st.latex(rf"V_{{total}} = V_1 + V_2 = {fmt(s_v1)}\,V + {fmt(s_v2)}\,V = {s_v}\,V \quad \text{[(에너지 보존 만족)]}")
+        st.latex(rf"V_{{total}} = V_1 + V_2 = {fmt(s_v1)}\,V + {fmt(s_v2)}\,V = {s_v}\,V \quad \text{{[(에너지 보존 만족)]}}")
         
         # 4. 전기에너지 전환율(소비 전력)
         st.markdown("**④ 저항별 소비 전력($P = I^2R$) 즉, 에너지 전환율 유도**")
         st.latex(rf"P_1 = I^2 \cdot R_1 = ({fmt(s_i)}\,A)^2 \times {s_r1}\,\Omega \approx {fmt(s_p1)}\,W")
         st.latex(rf"P_2 = I^2 \cdot R_2 = ({fmt(s_i)}\,A)^2 \times {s_r2}\,\Omega \approx {fmt(s_p2)}\,W")
-        st.latex(rf"P_{{1}} : P_{{2}} = R_1 : R_2 = {s_r1} : {s_r2} \quad \text{[(저항과 소비 전력비 정비례)]}")
+        st.latex(rf"P_{{1}} : P_{{2}} = R_1 : R_2 = {s_r1} : {s_r2} \quad \text{{[(저항과 소비 전력비 정비례)]}}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     # 비주얼 에너지 전환 밸런스 게이지
@@ -297,11 +297,11 @@ with tab_parallel:
         # 1. 합성 저항 유도
         st.markdown("**① 합성 저항 ($R_{eq}$) 구하기**")
         st.latex(rf"\frac{{1}}{{R_{{eq}}}} = \frac{{1}}{{R_1}} + \frac{{1}}{{R_2}} = \frac{{1}}{{{p_r1}}} + \frac{{1}}{{{p_r2}}} = \frac{{{p_r1} + {p_r2}}}{{{p_r1} \times {p_r2}}}")
-        st.latex(rf"R_{{eq}} = \frac{{R_1 \cdot R_2}}{{R_1 + R_2}} = \frac{{{p_r1} \times {p_r2}}}{{{p_r1} + {p_r2}}} = \frac{{{p_r1 \times p_r2}}}{{{p_r1 + p_r2}}} \approx {fmt(p_req)}\,\Omega")
+        st.latex(rf"R_{{eq}} = \frac{{R_1 \cdot R_2}}{{R_1 + R_2}} = \frac{{{p_r1} \times {p_r2}}}{{{p_r1} + {p_r2}}} = \frac{{{p_r1 * p_r2}}}{{{p_r1 + p_r2}}} \approx {fmt(p_req)}\,\Omega")
         
         # 2. 전위차 보존
         st.markdown("**② 각 저항의 인가 전압 (전위차 $V_n$) 확인**")
-        st.latex(rf"V_1 = V_2 = V_{{total}} = {p_v}\,V \quad \text{[(전위차 보존 법칙 만족)]}")
+        st.latex(rf"V_1 = V_2 = V_{{total}} = {p_v}\,V \quad \text{{[(전위차 보존 법칙 만족)]}}")
         
         # 3. 분기 전류 계산
         st.markdown("**③ 옴의 법칙을 이용한 개별 분기 전류 ($I_n$) 계산**")
@@ -313,7 +313,7 @@ with tab_parallel:
         st.markdown("**④ 저항별 소비 전력($P = V^2 / R$) 즉, 에너지 전환율 유도**")
         st.latex(rf"P_1 = \frac{{V^2}}{{R_1}} = \frac{{{p_v}^2}}{{{p_r1}\,\Omega}} \approx {fmt(p_p1)}\,W")
         st.latex(rf"P_2 = \frac{{V^2}}{{R_2}} = \frac{{{p_v}^2}}{{{p_r2}\,\Omega}} \approx {fmt(p_p2)}\,W")
-        st.latex(rf"P_{{1}} : P_{{2}} = \frac{{1}}{{R_1}} : \frac{{1}}{{R_2}} = {p_r2} : {p_r1} \quad \text{[(저항과 소비 전력비 반비례)]}")
+        st.latex(rf"P_{{1}} : P_{{2}} = \frac{{1}}{{R_1}} : \frac{{1}}{{R_2}} = {p_r2} : {p_r1} \quad \text{{[(저항과 소비 전력비 반비례)]}}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     # 비주얼 에너지 전환 밸런스 게이지 (병렬)
