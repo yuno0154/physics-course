@@ -393,8 +393,9 @@ with tab_sim:
         </svg>
         """
         
-        # SVG 화면 드로잉
-        st.markdown(svg_diagram, unsafe_allow_html=True)
+        # SVG 화면 드로잉 (마크다운 엔진의 들여쓰기 코드 블록 오작동 버그 방지를 위한 라인별 공백 제거)
+        clean_svg = "\n".join([line.strip() for line in svg_diagram.split("\n")])
+        st.markdown(clean_svg, unsafe_allow_html=True)
 
         # 범례 표시
         st.markdown("""
