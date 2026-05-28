@@ -1,6 +1,7 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
+# Streamlit Cloud Redeploy Tag: May 29 2026
 # ── 공통 스타일 시트 ──────────────────────────────────────────────
 st.markdown("""
 <style>

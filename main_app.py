@@ -1,4 +1,15 @@
 import streamlit as st
+import os
+
+# Streamlit Cloud Diagnostic Logs
+print("=== Streamlit Cloud Diagnostic ===")
+print("Current Working Directory (CWD):", os.getcwd())
+print("Files in root:", os.listdir("."))
+if os.path.exists("physics_sim"):
+    print("Files in physics_sim:", os.listdir("physics_sim"))
+else:
+    print("WARNING: physics_sim folder not found!")
+print("==================================")
 
 st.set_page_config(
     page_title="물리학습 지원 포털",
