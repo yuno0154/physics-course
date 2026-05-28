@@ -550,7 +550,7 @@ html_content = r"""<!DOCTYPE html>
         fbCard.className = "p-3.5 rounded-xl border border-amber-500/30 bg-amber-950/20 text-xs text-amber-300 flex flex-col gap-1";
         fbCard.innerHTML = `
           <strong class="flex items-center gap-1.5"><i class="fa-solid fa-circle-arrow-up text-amber-400"></i> 현재 상태: 초과 수요 (Shortage) +${Math.abs(diff).toFixed(1)}</strong>
-          <span>시장 가격이 낮아 물건을 사려는 수량(${qd.toFixed(1)})이 공급되는 수량(${qs.toFixed(1)})보다 터무니없이 부족한 품귀 상태입니다. 구매자들 간 웃돈 거래 경쟁으로 가격이 <strong>상승 압력</strong>을 강하게 받습니다.</span>
+          <span>시장 가격이 낮아 공급되는 수량(${qs.toFixed(1)})이 물건을 사려는 수량(${qd.toFixed(1)})보다 부족한 품귀 상태입니다. 구매자들 간 웃돈 거래 경쟁으로 가격이 <strong>상승 압력</strong>을 강하게 받습니다.</span>
         `;
         gapArea.setAttribute('fill', '#fbbf24');
       }
