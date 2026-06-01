@@ -187,7 +187,7 @@ st.markdown("""
     <b style='color:#60a5fa; font-size:1.05rem;'>📐 저항 연결 개념 유도 Sequence</b><br>
     <span style='color:#e2e8f0; font-size:0.92rem; line-height: 1.6;'>
     이 탭에서는 저항의 직렬 및 병렬 연결에 대해 각 요소들의 단계적 학습을 진행합니다.<br>
-    <b>합성 저항($R_{eq}$) 구하기 ➡️ 회로의 전체 전류($I$) 구하기 ➡️ 각 저항의 전압 강하($V_n$) 계산 ➡️ 최종 소비전력($P$) 학습</b>의 과학적인 교육 과정 순서로 구성되어 인지 과부하를 방지합니다.
+    <b>합성 저항(<i>R<sub>eq</sub></i>) 구하기 ➡️ 회로의 전체 전류(<i>I</i>) 구하기 ➡️ 각 저항의 전압 강하(<i>V<sub>n</sub></i>) 계산 ➡️ 최종 소비전력(<i>P</i>) 학습</b>의 과학적인 교육 과정 순서로 구성되어 인지 과부하를 방지합니다.
     </span>
 </div>
 """, unsafe_allow_html=True)
@@ -241,7 +241,7 @@ with tab_series:
             <b style='color: #38bdf8;'>4️⃣ 에너지 전환 (Joule Heating / Power)</b><br>
             저항기에서 소비되는 전기에너지(초당 열에너지) 공식은 다음과 같습니다:<br>
             <span style='color: #f43f5e; font-weight: bold;'>P = I²R</span><br>
-            전류 $I$가 일정하므로, <b>소비 전력은 저항값 $R$에 정비례</b>하여 방출됩니다.
+            전류 <i>I</i>가 일정하므로, <b>소비 전력은 저항값 <i>R</i>에 정비례</b>하여 방출됩니다.
         </div>
         """, unsafe_allow_html=True)
 
@@ -307,7 +307,7 @@ with tab_series:
         <div style='background:#ea580c; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
     </div>
     <p style='font-size:0.75rem; color:#94a3b8; margin-top:8px; line-height:1.4;'>
-        💡 <b>물리 직관</b>: 직렬 연결은 단일 전하 흐름 통로를 공유하므로, 전류가 공통입니다. 이에 따라 저항이 클수록 전기적 충돌 빈도가 늘어나 저항 크기에 비례하여 줄 열(소비 전력)을 방출합니다. ($P \\propto R$)
+        💡 <b>물리 직관</b>: 직렬 연결은 단일 전하 흐름 통로를 공유하므로, 전류가 공통입니다. 이에 따라 저항이 클수록 전기적 충돌 빈도가 늘어나 저항 크기에 비례하여 줄 열(소비 전력)을 방출합니다. (<i>P</i> ∝ <i>R</i>)
     </p>
     </div>
     """, unsafe_allow_html=True)
@@ -354,7 +354,7 @@ with tab_parallel:
             <b style='color: #a5b4fc;'>4️⃣ 에너지 전환 (Joule Heating / Power)</b><br>
             병렬 구조에서 저항기 소비 전력(초당 열에너지) 공식은 다음과 같습니다:<br>
             <span style='color: #f43f5e; font-weight: bold;'>P = V² / R</span><br>
-            각 저항의 전압 $V$가 일정하므로, <b>소비 전력은 저항값 $R$에 반비례</b>하여 방출됩니다.
+            각 저항의 전압 <i>V</i>가 일정하므로, <b>소비 전력은 저항값 <i>R</i>에 반비례</b>하여 방출됩니다.
         </div>
         """, unsafe_allow_html=True)
 
@@ -421,7 +421,7 @@ with tab_parallel:
         <div style='background:#818cf8; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
     </div>
     <p style='font-size:0.75rem; color:#94a3b8; margin-top:8px; line-height:1.4;'>
-        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. ($P \\propto \\frac{{1}}{{R}}$)
+        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. (<i>P</i> ∝ 1/<i>R</i>)
     </p>
     </div>
     """, unsafe_allow_html=True)
@@ -461,7 +461,7 @@ with tab_concept_quiz:
         if q1_choice == "① 1 : 2":
             st.session_state.rfs_q1_feedback = {
                 "success": True, 
-                "text": "🎉 정답입니다! 직렬 연결에서는 각 저항에 흐르는 전류 $I$가 동일합니다. 소비 전력 공식 $P = I^2R$에 의해 전류가 동일하므로 소비 전력 비율은 저항 비율과 완벽하게 일치하게 됩니다 ($3:6 = 1:2$)."
+                "text": "🎉 정답입니다! 직렬 연결에서는 각 저항에 흐르는 전류 <i>I</i>가 동일합니다. 소비 전력 공식 <i>P</i> = <i>I</i><sup>2</sup><i>R</i>에 의해 전류가 동일하므로 소비 전력 비율은 저항 비율과 완벽하게 일치하게 됩니다 (3 : 6 = 1 : 2)."
             }
             st.session_state.rfs_score += 10
         elif q1_choice == "선택지를 골라주세요":
@@ -469,7 +469,7 @@ with tab_concept_quiz:
         else:
             st.session_state.rfs_q1_feedback = {
                 "success": False, 
-                "text": "❌ 오답입니다. 직렬 연결에서는 전류($I$)가 회로 내의 모든 위치에서 같습니다. 소비 전력 공식 $P = I^2R$을 대입하여 저항과 소비 전력의 비례 관계를 다시 검토해 보세요."
+                "text": "❌ 오답입니다. 직렬 연결에서는 전류(<i>I</i>)가 회로 내의 모든 위치에서 같습니다. 소비 전력 공식 <i>P</i> = <i>I</i><sup>2</sup><i>R</i>을 대입하여 저항과 소비 전력의 비례 관계를 다시 검토해 보세요."
             }
         st.rerun()
 
@@ -510,7 +510,7 @@ with tab_concept_quiz:
         if q2_choice == "④ R2가 R1보다 더 많은 열에너지(소비 전력)를 방출한다.":
             st.session_state.rfs_q2_feedback = {
                 "success": True, 
-                "text": "🎉 정답입니다! 병렬 회로에서는 각 저항에 걸리는 전압($V$)이 동일하므로, 소비 전력 공식 $P = V^2 / R$에 의해 저항이 더 작은 R1($4\\Omega$)이 R2($12\\Omega$)보다 전력을 3배 더 많이 방출(열에너지 전환)합니다. 따라서 ④번은 잘못된 설명입니다."
+                "text": "🎉 정답입니다! 병렬 회로에서는 각 저항에 걸리는 전압(<i>V</i>)이 동일하므로, 소비 전력 공식 <i>P</i> = <i>V</i><sup>2</sup> / <i>R</i>에 의해 저항이 더 작은 R1(4Ω)이 R2(12Ω)보다 전력을 3배 더 많이 방출(열에너지 전환)합니다. 따라서 ④번은 잘못된 설명입니다."
             }
             st.session_state.rfs_score += 10
         elif q2_choice == "선택지를 골라주세요":
@@ -518,7 +518,7 @@ with tab_concept_quiz:
         else:
             st.session_state.rfs_q2_feedback = {
                 "success": False, 
-                "text": "❌ 오답입니다. 선택하신 문항은 옳은 설명입니다. 병렬 회로에서의 합성 저항 공식 $R_{eq} = \\frac{R_1 R_2}{R_1+R_2} = \\frac{48}{16} = 3\\Omega$ 및 옴의 법칙 $I = V/R$을 고려하여 정답이 아닌 '옳지 않은' 설명을 골라보세요."
+                "text": "❌ 오답입니다. 선택하신 문항은 옳은 설명입니다. 병렬 회로에서의 합성 저항 공식 <i>R<sub>eq</sub></i> = <i>R</i>₁<i>R</i>₂ / (<i>R</i>₁+<i>R</i>₂) = 48/16 = 3Ω 및 옴의 법칙 <i>I</i> = <i>V</i>/<i>R</i>을 고려하여 정답이 아닌 '옳지 않은' 설명을 골라보세요."
             }
         st.rerun()
 
