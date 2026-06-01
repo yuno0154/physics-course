@@ -1,16 +1,109 @@
 """
-저항의 연결과 소비 전력 탐구 시뮬레이터
-- 직렬, 병렬, 복합 회로 연결에 따른 합성 저항, 전류, 전압 강하, 전력 분석
-- 도선 내 전하(전자) 흐름 및 저항 발열 실시간 SVG 애니메이션 시각화
-- 오개념 격파 및 스마트팜 열원 설계 탐구 챌린지
+저항의 연결과 소비 전력 탐구 시뮬레이터 (활동지 기반 4단계 탐구관)
+- [1단계] 탐구 질문과 물리 직관: 전하의 미시적 거동과 알짜힘 분석
+- [2단계] 전기에너지 & 전력 공식 유도: 실시간 슬라이더 값 연동 LaTeX 유도
+- [3단계] 소비전력 비교 가상 실험실: 직렬/병렬 시뮬레이션 및 발열 게이지 시각화
+- [4단계] 디지털 활동지 작성 및 자가 채점: 실생활 융합 문제(멀티탭 화재) 서술형 채점
 """
 
 import streamlit as st
-import numpy as np
 
 # 소수점 2자리 반올림 포맷팅 Helper
 def fmt(val):
     return round(val, 2)
+
+# ── SVG 회로 다이어그램 생성 함수 (직렬) ──────────────────────────────────
+def series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2):
+    p_max = max(p1, p2, 0.01)
+    a1 = min(0.85, p1 / p_max * 0.85)
+    a2 = min(0.85, p2 / p_max * 0.85)
+    wc = "#60a5fa"
+    return f"""
+<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;border: 1px solid #1e293b;">
+  <text x="200" y="22" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 직렬 회로 실시간 시뮬레이션</text>
+  <!-- 상단 전선 -->
+  <line x1="55" y1="75" x2="120" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="205" y1="75" x2="235" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="320" y1="75" x2="370" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="370" y1="75" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 하단 전선 -->
+  <line x1="55" y1="165" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 배터리 왼쪽 세로선 -->
+  <line x1="40" y1="75" x2="40" y2="103" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="23" y1="103" x2="57" y2="103" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="29" y1="117" x2="51" y2="117" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="40" y1="117" x2="40" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="40" y1="75" x2="55" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <text x="62" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
+  <text x="62" y="122" fill="#f87171" font-size="12" font-family="monospace">−</text>
+  <text x="40" y="148" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 전류 화살표 -->
+  <text x="88" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <text x="220" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <text x="345" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <!-- R1 저항 -->
+  <rect x="120" y="59" width="85" height="32" fill="rgba(245,158,11,{a1:.2f})" stroke="#f59e0b" stroke-width="2.5" rx="5"/>
+  <text x="162" y="79" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
+  <text x="162" y="104" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="monospace">V₁={fmt(v1)}V</text>
+  <text x="162" y="117" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">P₁={fmt(p1)}W 🔥</text>
+  <!-- R2 저항 -->
+  <rect x="235" y="59" width="85" height="32" fill="rgba(234,88,12,{a2:.2f})" stroke="#ea580c" stroke-width="2.5" rx="5"/>
+  <text x="277" y="79" text-anchor="middle" fill="#fed7aa" font-size="12" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
+  <text x="277" y="104" text-anchor="middle" fill="#ea580c" font-size="10" font-family="monospace">V₂={fmt(v2)}V</text>
+  <text x="277" y="117" text-anchor="middle" fill="#f97316" font-size="10" font-family="monospace">P₂={fmt(p2)}W 🔥</text>
+  <!-- 하단 전류 표시 -->
+  <text x="213" y="183" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">← I={fmt(i)}A (공통 전류)</text>
+  <!-- 요약 박스 -->
+  <rect x="80" y="200" width="240" height="28" fill="#1e293b" rx="8"/>
+  <text x="200" y="218" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(i)}A</text>
+</svg>"""
+
+# ── SVG 회로 다이어그램 생성 함수 (병렬) ──────────────────────────────────
+def parallel_circuit_svg(v, r1, r2, i1, i2, itot, req, p1, p2):
+    p_max = max(p1, p2, 0.01)
+    a1 = min(0.85, p1 / p_max * 0.85)
+    a2 = min(0.85, p2 / p_max * 0.85)
+    wc = "#60a5fa"
+    return f"""
+<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;border: 1px solid #1e293b;">
+  <text x="200" y="17" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 병렬 회로 실시간 시뮬레이션</text>
+  <!-- 배터리 (좌측 세로, y=65~195) -->
+  <line x1="40" y1="65" x2="40" y2="103" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="22" y1="103" x2="58" y2="103" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="29" y1="118" x2="51" y2="118" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="40" y1="118" x2="40" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <text x="63" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
+  <text x="63" y="123" fill="#f87171" font-size="12" font-family="monospace">-</text>
+  <text x="40" y="162" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 상단 수평 버스 -->
+  <line x1="40" y1="65" x2="360" y2="65" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 하단 수평 버스 -->
+  <line x1="40" y1="195" x2="360" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 마감선 -->
+  <line x1="360" y1="65" x2="360" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- R1 세로 가지 -->
+  <line x1="148" y1="65" x2="148" y2="103" stroke="{wc}" stroke-width="2"/>
+  <rect x="108" y="103" width="80" height="38" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2.5" rx="6"/>
+  <text x="148" y="126" text-anchor="middle" fill="#e0e7ff" font-size="12" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
+  <line x1="148" y1="141" x2="148" y2="195" stroke="{wc}" stroke-width="2"/>
+  <text x="97" y="120" text-anchor="end" fill="#a5b4fc" font-size="10" font-family="monospace">I₁={fmt(i1)}A</text>
+  <text x="97" y="133" text-anchor="end" fill="#a5b4fc" font-size="10" font-family="monospace">P₁={fmt(p1)}W</text>
+  <!-- R2 세로 가지 -->
+  <line x1="268" y1="65" x2="268" y2="103" stroke="{wc}" stroke-width="2"/>
+  <rect x="228" y="103" width="80" height="38" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2.5" rx="6"/>
+  <text x="268" y="126" text-anchor="middle" fill="#e0e7ff" font-size="12" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
+  <line x1="268" y1="141" x2="268" y2="195" stroke="{wc}" stroke-width="2"/>
+  <text x="319" y="120" fill="#818cf8" font-size="10" font-family="monospace">I₂={fmt(i2)}A</text>
+  <text x="319" y="133" fill="#818cf8" font-size="10" font-family="monospace">P₂={fmt(p2)}W</text>
+  <!-- 방향 화살표 및 라벨 -->
+  <text x="131" y="90" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">↓</text>
+  <text x="251" y="90" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">↓</text>
+  <text x="90" y="57" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">→ I={fmt(itot)}A</text>
+  <text x="200" y="215" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V₁ = V₂ = {v}V (공통 전압)</text>
+  <!-- 요약 박스 -->
+  <rect x="80" y="228" width="240" height="24" fill="#1e293b" rx="7"/>
+  <text x="200" y="244" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(itot)}A</text>
+</svg>"""
 
 # ── 공통 스타일 시트 ──────────────────────────────────────────────
 st.markdown("""
@@ -23,11 +116,11 @@ st.markdown("""
     -webkit-text-fill-color: transparent;
     margin-bottom: 5px;
 }
-.info-card {
+.inquiry-card {
     background: linear-gradient(135deg, #064e3b, #022c22);
     border-left: 5px solid #10b981;
     border-radius: 12px;
-    padding: 16px 20px;
+    padding: 18px 22px;
     margin-bottom: 20px;
     box-shadow: 0 4px 15px rgba(16, 185, 129, 0.1);
 }
@@ -44,19 +137,19 @@ st.markdown("""
     align-items: center;
     gap: 8px;
 }
-.analysis-card {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 15px;
-}
-.heat-gauge-container {
-    background: #090d16;
+.formula-block {
+    background: #0b1329;
     border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+}
+.energy-gauge-container {
+    background: #090d16;
+    border: 1.5px solid #1e293b;
     border-radius: 10px;
-    padding: 14px;
-    margin-top: 10px;
+    padding: 15px;
+    margin-top: 15px;
 }
 .feedback-box-success {
     background: rgba(16, 185, 129, 0.12);
@@ -75,9 +168,9 @@ st.markdown("""
     color: #fb7185;
 }
 .badge-mission {
-    background: rgba(56, 189, 248, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
+    background: rgba(52, 211, 153, 0.15);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #34d399;
     border-radius: 9999px;
     padding: 2px 10px;
     font-size: 0.75rem;
@@ -87,557 +180,262 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ── session_state 초기화 ──────────────────────────────────────
-if 'rcs_score' not in st.session_state:
-    st.session_state.rcs_score = 0
-if 'rcs_user_answer' not in st.session_state:
-    st.session_state.rcs_user_answer = ""
-if 'rcs_feedback' not in st.session_state:
-    st.session_state.rcs_feedback = None
-if 'rcs_current_mission' not in st.session_state:
-    st.session_state.rcs_current_mission = 1
+if 'worksheet_score' not in st.session_state:
+    st.session_state.worksheet_score = 0
+if 'ws_submits' not in st.session_state:
+    st.session_state.ws_submits = {}
 
 # ══════════════════════════════════════════════════════════════
 # 헤더 섹션
 # ══════════════════════════════════════════════════════════════
-st.markdown("<h1 class='main-title'>🔌 저항의 연결과 소비 전력 탐구 시뮬레이터</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-top: -5px;'>직류 회로의 연결 방식에 따른 전하 흐름의 보존 법칙과 열에너지 발열 설계 물리 실험실</p>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>🔌 저항의 연결과 소비 전력 탐구실</h1>", unsafe_allow_html=True)
+st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-top: -5px;'>실제 물리학 탐구 활동지(Worksheet)의 흐름에 맞춰 미시적 거동, 대수 증명, 가상 실험실 및 실생활 문제를 단계별로 통합 해결합니다.</p>", unsafe_allow_html=True)
 
 st.markdown("""
-<div class='info-card'>
-    <b style='color:#34d399; font-size:1.05rem;'>🎯 탐구 목표</b><br>
+<div class='inquiry-card'>
+    <b style='color:#34d399; font-size:1.05rem;'>📝 활동지 기반 4단계 탐구 시퀀스</b><br>
     <span style='color:#e2e8f0; font-size:0.92rem; line-height: 1.6;'>
-    1. 직렬 연결과 병렬 연결 방식에 따라 전체 합성 저항과 각 저항별 전압, 전류 분포가 달라지는 규칙을 정량적으로 탐구합니다.<br>
-    2. 저항에서 방출되는 소비 전력(열 에너지)의 분포를 비교하여 스마트팜 등의 실생활 발열 열원 설계를 직접 체험해 봅니다.
+    1. <b>[1단계] 탐구 질문과 물리 직관</b>: 도선 내부 전자의 미시적인 충돌 메커니즘과 힘의 알짜 힘 평형 분석<br>
+    2. <b>[2단계] 전기에너지 & 전력 공식 유도</b>: 변수 슬라이더를 실시간 수식에 반영한 전기에너지($W$)와 전력($P$) 공식 대수 유도<br>
+    3. <b>[3단계] 소비전력 비교 가상 실험실</b>: 직렬/병렬 회로의 합성 저항과 개별 저항 소비전력 비교 및 발열량 가시화 실험<br>
+    4. <b>[4단계] 디지털 활동지 작성 및 자가 채점</b>: 획득한 물리 직관을 바탕으로 실생활 융합 서술형 평가 자동 채점
     </span>
 </div>
 """, unsafe_allow_html=True)
 
-# Streamlit 탭 설정 (가상 회로실, 탐구 챌린지)
-tab_sim, tab_mission = st.tabs(["🔌 가상 회로실 (Virtual Circuit Room)", "🏆 탐구 챌린지 (Inquiry Challenge)"])
+# 4단계 탐구의 선택을 위한 라디오 버튼
+power_stage = st.radio(
+    "📋 탐구 활동 단계 선택",
+    ["[1단계] 탐구 질문과 물리 직관", "[2단계] 전기에너지 & 전력 공식 유도", "[3단계] 소비전력 비교 가상 실험실", "[4단계] 디지털 활동지 작성 및 자가 채점"],
+    horizontal=True,
+    key="rcs_stage_select"
+)
 
-# ══════════════════════════════════════════════════════════════
-# 탭 1: 가상 회로실
-# ══════════════════════════════════════════════════════════════
-with tab_sim:
-    col_ctrl, col_display = st.columns([1, 2])
+# ────────────── [1단계] 탐구 질문과 물리 직관 ──────────────
+if power_stage == "[1단계] 탐구 질문과 물리 직관":
+    st.markdown("#### 🚀 E. 전자를 흐르게 하기 위한 전기력의 일과 에너지 전환")
+    
+    st.markdown("""
+    <div class='inquiry-card' style='background: #0f172a; border-left-color: #38bdf8;'>
+        <b style='color:#38bdf8; font-size:1.1rem;'>💡 핵심 탐구 과제</b><br>
+        <span style='color:#e2e8f0; font-size:0.95rem; line-height: 1.7;'>
+        전자가 도선 내부를 이동할 때 배터리가 공급하는 전기력은 일을 합니다. 이 일은 도선 내부에서 어떤 현상을 일으키고 어떤 형태의 에너지로 전환될까요? 아래 질문들을 깊이 고민해 봅시다.
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
+    col_q1, col_q2 = st.columns(2)
+    with col_q1:
+        st.subheader("💡 질문 1")
+        st.info("**도선에 흐르는 전류(전자)는 등속 운동을 할까요, 아니면 가속 운동을 할까요?**")
+        q1_ans = st.radio("질문 1에 대한 나의 생각 선택:", [
+            "선택해 주세요",
+            "전기력을 계속 받으므로 속도가 점점 빨라지는 가속 운동을 한다.",
+            "금속 원자들과의 충돌로 인해 평균적으로 일정한 속도를 유지하는 등속 운동을 한다."
+        ], key="inquiry_q1")
+        
+        if q1_ans != "선택해 주세요":
+            if "등속 운동" in q1_ans:
+                st.success("🎯 **정답입니다!** 전자는 전기력에 의해 가속되지만, 격자 구조의 금속 원자핵들과 끊임없이 충돌하면서 저항(마찰력과 유사)을 받아 **평균적으로 일정한 속력(유동 속도)**으로 이동하는 **등속 직선 운동**을 하게 됩니다.")
+            else:
+                st.error("❌ **다시 생각해 봅시다.** 만약 끊임없이 가속된다면 도선의 전류가 시간에 따라 무한히 증가해야 합니다. 금속 내부의 무언가가 전자의 운동을 방해하지 않을까요?")
+
+    with col_q2:
+        st.subheader("💡 질문 2")
+        st.info("**도선 속 전자에 작용하는 힘에는 무엇이 있을까요?**")
+        q2_ans = st.radio("질문 2에 대한 나의 생각 선택:", [
+            "선택해 주세요",
+            "전압에 의한 전기력만 작용한다.",
+            "전압에 의한 전기력과 원자 충돌에 의한 저항력(방해하는 힘)이 함께 작용한다."
+        ], key="inquiry_q2")
+        
+        if q2_ans != "선택해 주세요":
+            if "저항력" in q2_ans:
+                st.success("🎯 **정답입니다!** 전압이 형성하는 전기장 내부에서 전자는 순방향 **전기력($F = qE$)**을 받고, 동시에 원자핵과의 충돌에 의해 반대 방향으로 작용하는 **저항력(마찰 효과)**을 받습니다. 이 두 힘이 평형을 이루어 전자가 등속으로 움직이게 됩니다.")
+            else:
+                st.error("❌ **다시 생각해 봅시다.** 전자가 등속으로 움직이기 위해서는 짜맞춘 듯이 알짜힘이 0이 되어야 합니다. 전기력 외에 반대 방향으로 방해하는 힘이 존재해야 합니다.")
+
+    st.markdown("---")
+    st.markdown("""
+    <div style='background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid #1e293b;'>
+        <b style='color: #818cf8;'>🔥 줄 열(Joule Heat)의 탄생</b><br>
+        전자가 전기력으로부터 얻은 운동에너지는 금속 원자핵과의 충돌을 통해 <b>원자의 열진동 에너지</b>로 전환됩니다. 
+        이것이 바로 저항기에서 열이 발생하는 원리이며, 공급된 <b>전기에너지가 100% 열에너지(소비전력)로 전환</b>되는 물리적 배경입니다.
+    </div>
+    """, unsafe_allow_html=True)
+
+# ────────────── [2단계] 전기에너지 & 전력 공식 유도 ──────────────
+elif power_stage == "[2단계] 전기에너지 & 전력 공식 유도":
+    st.markdown("#### 📐 전기에너지와 전력량의 대수 수식 유도")
+    st.write("활동지 단계를 따라 전기에너지($W$), 전력($P$), 그리고 전력량의 유도 과정을 확인하고, 가상 변수를 조절하여 실시간으로 변화하는 수식을 확인하세요.")
+
+    # 연동형 슬라이더
+    col_dv1, col_dv2 = st.columns([1, 3])
+    with col_dv1:
+        st.markdown("##### ⚙️ 계산 변수 설정")
+        dv_v = st.slider("인가 전압 V (V)", 1, 220, 110, key="dv_v")
+        dv_r = st.slider("저항 값 R (Ω)", 1, 100, 20, key="dv_r")
+        dv_t = st.slider("사용 시간 t (초)", 1, 60, 10, key="dv_t")
+        
+        # 물리량 계산
+        dv_i = dv_v / dv_r
+        dv_w = dv_v * dv_i * dv_t
+        dv_p = dv_v * dv_i
+        dv_wh = (dv_p * (dv_t / 3600)) # Wh 단위
+        
+    with col_dv2:
+        st.markdown("<div class='formula-block'>", unsafe_allow_html=True)
+        st.subheader("📚 단계별 수식 증명 학습")
+        
+        # 가. 전기에너지 W
+        st.markdown("##### **가. 전기에너지 ($W$)**")
+        st.caption("전류가 흐를 때 회로에 공급되거나 소비되는 총 에너지량 [단위: J (줄)]")
+        st.latex(rf"W = V \cdot I \cdot t = I^2 \cdot R \cdot t = \frac{{V^2}}{{R}} \cdot t")
+        st.markdown(f"**실시간 대입 결과:**")
+        st.latex(rf"W = {dv_v}\text{{ V}} \times {fmt(dv_i)}\text{{ A}} \times {dv_t}\text{{ s}} \approx {fmt(dv_w)}\text{{ J (Joule)}}")
+        
+        # 다. 전력 P
+        st.markdown("##### **다. 전력 ($P$)**")
+        st.caption("1초 동안 소비하거나 생산되는 전기에너지 [단위: W (와트)]")
+        st.latex(rf"P = \frac{{W}}{{t}} = V \cdot I = I^2 \cdot R = \frac{{V^2}}{{R}}")
+        st.markdown(f"**실시간 대입 결과:**")
+        st.latex(rf"P = \frac{{{fmt(dv_w)}\text{{ J}}}}{{{dv_t}\text{{ s}}}} = {dv_v}\text{{ V}} \times {fmt(dv_i)}\text{{ A}} \approx {fmt(dv_p)}\text{{ W (Watt)}}")
+
+        # 라. 전력량
+        st.markdown("##### **라. 전력량 (Electricity Consumption)**")
+        st.caption("일정 시간(보통 시간 단위, h) 동안 소비하는 전기에너지의 총량 [단위: Wh]")
+        st.latex(rf"\text{{전력량}} = P \cdot t_{{hour}} = {fmt(dv_p)}\text{{ W}} \times \left(\frac{{{dv_t}}}{{3600}}\right)\text{{ h}} \approx {fmt(dv_wh)}\text{{ Wh}}")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ────────────── [3단계] 소비전력 비교 가상 실험실 ──────────────
+elif power_stage == "[3단계] 소비전력 비교 가상 실험실":
+    st.markdown("#### 🎛️ 직렬 vs 병렬 연결에 따른 소비전력 실시간 가상 실험")
+    st.write("변수를 조정하면 두 회로 방식의 저항 온도(발열 수준)와 소비전력이 실시간으로 시각화됩니다.")
+    
+    sim_mode = st.radio("🔋 회로 연결 방식 선택", ["직렬 연결 (Series)", "병렬 연결 (Parallel)"], horizontal=True, key="inquiry_sim_mode")
+    
+    col_ctrl, col_circ, col_analysis = st.columns([1, 1.4, 1.6])
+    
     with col_ctrl:
-        st.markdown("<div class='step-header'>⚙️ 1. 회로 연결 방식 선택</div>", unsafe_allow_html=True)
+        st.markdown("##### ⚙️ 회로 변수 조절")
+        v = st.slider("입력 전압 (V)", 1, 24, 12, key="sim_v")
+        r1 = st.slider("저항 R1 (Ω)", 1, 20, 4, key="sim_r1")
+        r2 = st.slider("저항 R2 (Ω)", 1, 20, 8, key="sim_r2")
         
-        circuit_type = st.radio(
-            "회로 구성 방법",
-            ["직렬 회로 (Series: R1 + R2)", "병렬 회로 (Parallel: R1 // R2)", "복합 회로 (Mixed: R1 + (R2 // R3))"],
-            label_visibility="collapsed",
-            key="rcs_circuit_type"
-        )
+    if sim_mode == "직렬 연결 (Series)":
+        req = r1 + r2
+        i = v / req
+        v1 = i * r1
+        v2 = i * r2
+        p1 = (i ** 2) * r1
+        p2 = (i ** 2) * r2
+        ptot = p1 + p2
         
-        # 간소화된 타입 식별자 지정
-        if "직렬" in circuit_type:
-            c_type = "series"
-        elif "병렬" in circuit_type:
-            c_type = "parallel"
-        else:
-            c_type = "mixed"
-
-        st.markdown("<div class='step-header'>🎛️ 2. 가변 회로 변수 조절</div>", unsafe_allow_html=True)
-
-        # 초기화 버튼
-        if st.button("🔄 설정 변수 초기화", use_container_width=True):
-            st.session_state.rcs_voltage = 12
-            st.session_state.rcs_r1 = 6
-            st.session_state.rcs_r2 = 12
-            st.session_state.rcs_r3 = 4
-            st.rerun()
-
-        # 전압 및 저항 변수 슬라이더
-        voltage = st.slider("입력 전압 (V)", 1, 24, 12, step=1, key="rcs_voltage")
-        r1 = st.slider("저항 R1 (Ω)", 1, 20, 6, step=1, key="rcs_r1")
-        r2 = st.slider("저항 R2 (Ω)", 1, 24, 12, step=1, key="rcs_r2")
-        
-        if c_type == "mixed":
-            r3 = st.slider("저항 R3 (Ω) [병렬 구간]", 1, 20, 4, step=1, key="rcs_r3")
-        else:
-            r3 = 4 # 기본값 유지
-
-        st.markdown("<div class='step-header'>👁️ 3. 시각화 제어</div>", unsafe_allow_html=True)
-        show_electron = st.checkbox("자유 전자 (e⁻) 흐름 애니메이션 표시", True, key="rcs_show_electron")
-
-    with col_display:
-        # --- 물리 계산 공식 ---
-        req = 0.0      # 등가 저항
-        i_total = 0.0  # 전체 전류
-        i1 = i2 = i3 = 0.0
-        v1 = v2 = v3 = 0.0
-        p1 = p2 = p3 = 0.0
-        p_total = 0.0
-
-        if c_type == 'series':
-            req = r1 + r2
-            i_total = voltage / req
-            i1 = i_total
-            i2 = i_total
-            v1 = i1 * r1
-            v2 = i2 * r2
-            p1 = i1 * v1
-            p2 = i2 * v2
-            p_total = p1 + p2
-        elif c_type == 'parallel':
-            req = 1 / ((1 / r1) + (1 / r2))
-            i_total = voltage / req
-            v1 = voltage
-            v2 = voltage
-            i1 = v1 / r1
-            i2 = v2 / r2
-            p1 = i1 * v1
-            p2 = i2 * v2
-            p_total = p1 + p2
-        else: # mixed
-            r_parallel = 1 / ((1 / r2) + (1 / r3))
-            req = r1 + r_parallel
-            i_total = voltage / req
-            i1 = i_total
-            v1 = i1 * r1
+        with col_circ:
+            st.markdown(series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2), unsafe_allow_html=True)
             
-            v_parallel = voltage - v1
-            v2 = v_parallel
-            v3 = v_parallel
-            i2 = v2 / r2
-            i3 = v3 / r3
+        with col_analysis:
+            st.markdown("<div class='formula-block'>", unsafe_allow_html=True)
+            st.write("##### 📐 직렬 소비전력 수식 유도")
+            st.latex(rf"I = \frac{{V}}{{R_1 + R_2}} = \frac{{{v}}}{{{r1} + {r2}}} \approx {fmt(i)}\,A")
+            st.latex(rf"P_1 = I^2 \cdot R_1 = ({fmt(i)})^2 \times {r1} \approx {fmt(p1)}\,W")
+            st.latex(rf"P_2 = I^2 \cdot R_2 = ({fmt(i)})^2 \times {r2} \approx {fmt(p2)}\,W")
+            st.latex(rf"P_1 : P_2 = R_1 : R_2 = {r1} : {r2}")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    else: # 병렬 연결 (Parallel)
+        req = 1 / ((1 / r1) + (1 / r2))
+        i_tot = v / req
+        i1 = v / r1
+        i2 = v / r2
+        p1 = (v ** 2) / r1
+        p2 = (v ** 2) / r2
+        ptot = p1 + p2
+        
+        with col_circ:
+            st.markdown(parallel_circuit_svg(v, r1, r2, i1, i2, i_tot, req, p1, p2), unsafe_allow_html=True)
             
-            p1 = i1 * v1
-            p2 = i2 * v2
-            p3 = i3 * v3
-            p_total = p1 + p2 + p3
+        with col_analysis:
+            st.markdown("<div class='formula-block'>", unsafe_allow_html=True)
+            st.write("##### 📐 병렬 소비전력 수식 유도")
+            st.latex(rf"R_{{eq}} = \frac{{R_1 \cdot R_2}}{{R_1 + R_2}} \approx {fmt(req)}\,\Omega")
+            st.latex(rf"P_1 = \frac{{V^2}}{{R_1}} = \frac{{{v}^2}}{{{r1}}} \approx {fmt(p1)}\,W")
+            st.latex(rf"P_2 = \frac{{V^2}}{{R_2}} = \frac{{{v}^2}}{{{r2}}} \approx {fmt(p2)}\,W")
+            st.latex(rf"P_1 : P_2 = \frac{{1}}{{R_1}} : \frac{{1}}{{R_2}} = {r2} : {r1}")
+            st.markdown("</div>", unsafe_allow_html=True)
 
-        # 회로 상태 대시보드 리드아웃
-        st.markdown("### 📊 실시간 회로 정량 분석")
-        col_m1, col_m2, col_m3 = st.columns(3)
-        with col_m1:
-            st.metric("합성 저항 (Req)", f"{fmt(req)} Ω")
-        with col_m2:
-            st.metric("전체 전류 (Itotal)", f"{fmt(i_total)} A")
-        with col_m3:
-            st.metric("총 소비 전력 (Ptotal)", f"{fmt(p_total)} W")
-
-        # --- SVG 회로 도면 생성 ---
-        # 저항 발열 글로우 크기 및 오파시티 계산
-        op1 = min(0.6, 0.2 + (p1 / max(1.0, p_total)) * 0.4) if p1 > 0 else 0
-        r_glow1 = min(30.0, 8.0 + p1 * 1.5)
-        
-        op2 = min(0.6, 0.2 + (p2 / max(1.0, p_total)) * 0.4) if p2 > 0 else 0
-        r_glow2 = min(30.0, 8.0 + p2 * 1.5)
-
-        op3 = min(0.6, 0.2 + (p3 / max(1.0, p_total)) * 0.4) if p3 > 0 else 0
-        r_glow3 = min(30.0, 8.0 + p3 * 1.5)
-
-        components_svg = ""
-        electron_svg = ""
-
-        if c_type == 'series':
-            components_svg = f"""
-            <!-- 저항 1 (상단 왼쪽) -->
-            <g transform="translate(220, 50)">
-              <circle cx="0" cy="0" r="{r_glow1}" fill="#ef4444" opacity="{op1}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v1)}V &#124; {fmt(p1)}W</text>
-            </g>
-
-            <!-- 저항 2 (상단 오른쪽) -->
-            <g transform="translate(370, 50)">
-              <circle cx="0" cy="0" r="{r_glow2}" fill="#ef4444" opacity="{op2}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(v2)}V &#124; {fmt(p2)}W</text>
-            </g>
-            """
-            if show_electron:
-                dur = max(0.4, 5 / (i_total + 0.1))
-                for offset in [0, 0.2, 0.4, 0.6, 0.8]:
-                    begin = offset * dur
-                    electron_svg += f'<circle r="5" fill="#67e8f9" opacity="0.95"><animateMotion dur="{dur}s" repeatCount="indefinite" path="M 100,200 L 100,50 L 450,50 L 450,200 Z" begin="{begin}s" /></circle>'
-
-        elif c_type == 'parallel':
-            components_svg = f"""
-            <!-- 병렬 배선 -->
-            <path d="M 200,50 L 200,150 L 380,150 L 380,50" fill="none" stroke="url(#potentialGrad)" stroke-width="3" opacity="0.6" />
-
-            <!-- 저항 1 (상단 분기) -->
-            <g transform="translate(290, 50)">
-              <circle cx="0" cy="0" r="{r_glow1}" fill="#ef4444" opacity="{op1}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A &#124; {fmt(p1)}W</text>
-            </g>
-
-            <!-- 저항 2 (하단 분기) -->
-            <g transform="translate(290, 150)">
-              <circle cx="0" cy="0" r="{r_glow2}" fill="#ef4444" opacity="{op2}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A &#124; {fmt(p2)}W</text>
-            </g>
-            """
-            if show_electron:
-                dur_total = max(0.4, 4 / (i_total + 0.1))
-                dur1 = max(0.4, 4 / (i1 + 0.1))
-                dur2 = max(0.4, 4 / (i2 + 0.1))
-
-                # 주도선 좌측 흐름
-                for offset in [0, 0.3, 0.6]:
-                    begin = offset * dur_total
-                    electron_svg += f'<circle r="5" fill="#67e8f9"><animateMotion dur="{dur_total}s" repeatCount="indefinite" path="M 100,200 L 100,50 L 200,50" begin="{begin}s" /></circle>'
-                # 분기 R1 흐름
-                for offset in [0, 0.4, 0.8]:
-                    begin = offset * dur1
-                    electron_svg += f'<circle r="4" fill="#fbbf24"><animateMotion dur="{dur1}s" repeatCount="indefinite" path="M 200,50 L 380,50" begin="{begin}s" /></circle>'
-                # 분기 R2 흐름
-                for offset in [0, 0.4, 0.8]:
-                    begin = offset * dur2
-                    electron_svg += f'<circle r="4" fill="#f97316"><animateMotion dur="{dur2}s" repeatCount="indefinite" path="M 200,50 L 200,150 L 380,150 L 380,50" begin="{begin}s" /></circle>'
-                # 주도선 우측 회수 흐름
-                for offset in [0, 0.3, 0.6]:
-                    begin = offset * dur_total
-                    electron_svg += f'<circle r="5" fill="#67e8f9"><animateMotion dur="{dur_total}s" repeatCount="indefinite" path="M 380,50 L 450,50 L 450,200 L 100,200" begin="{begin}s" /></circle>'
-
-        else: # mixed
-            components_svg = f"""
-            <!-- 복합 회로 병렬 배선 -->
-            <path d="M 300,50 L 300,130 L 420,130 L 420,50" fill="none" stroke="url(#potentialGrad)" stroke-width="3" opacity="0.6" />
-
-            <!-- 저항 1 (직렬 구간) -->
-            <g transform="translate(200, 50)">
-              <circle cx="0" cy="0" r="{r_glow1}" fill="#ef4444" opacity="{op1}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f59e0b" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#f59e0b" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R1: {r1}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i1)}A &#124; {fmt(p1)}W</text>
-            </g>
-
-            <!-- 저항 2 (상단 분기) -->
-            <g transform="translate(360, 50)">
-              <circle cx="0" cy="0" r="{r_glow2}" fill="#ef4444" opacity="{op2}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#ea580c" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#ea580c" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#ea580c" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R2: {r2}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i2)}A &#124; {fmt(p2)}W</text>
-            </g>
-
-            <!-- 저항 3 (하단 분기) -->
-            <g transform="translate(360, 130)">
-              <circle cx="0" cy="0" r="{r_glow3}" fill="#ef4444" opacity="{op3}" filter="url(#glow)" />
-              <path d="M -30,0 L -15,-10 L -5,10 L 5,-10 L 15,10 L 30,0" fill="none" stroke="#f43f5e" stroke-width="4" />
-              <rect x="-35" y="-30" width="70" height="20" rx="4" fill="#0f172a" stroke="#f43f5e" stroke-width="1.5" opacity="0.9" />
-              <text x="0" y="-16" fill="#f43f5e" font-weight="bold" font-family="sans-serif" font-size="10" text-anchor="middle">R3: {r3}Ω</text>
-              <text x="0" y="25" fill="#94a3b8" font-family="monospace" font-size="9.5" text-anchor="middle">{fmt(i3)}A &#124; {fmt(p3)}W</text>
-            </g>
-            """
-            if show_electron:
-                dur_total = max(0.4, 5 / (i_total + 0.1))
-                dur2 = max(0.4, 4 / (i2 + 0.1))
-                dur3 = max(0.4, 4 / (i3 + 0.1))
-
-                # 직렬부 주도선 흐름
-                for offset in [0, 0.25, 0.5, 0.75]:
-                    begin = offset * dur_total
-                    electron_svg += f'<circle r="5" fill="#67e8f9"><animateMotion dur="{dur_total}s" repeatCount="indefinite" path="M 100,200 L 100,50 L 300,50" begin="{begin}s" /></circle>'
-                # 상단 병렬 분기 R2
-                for offset in [0, 0.5]:
-                    begin = offset * dur2
-                    electron_svg += f'<circle r="4" fill="#f97316"><animateMotion dur="{dur2}s" repeatCount="indefinite" path="M 300,50 L 420,50" begin="{begin}s" /></circle>'
-                # 하단 병렬 분기 R3
-                for offset in [0, 0.5]:
-                    begin = offset * dur3
-                    electron_svg += f'<circle r="4" fill="#f43f5e"><animateMotion dur="{dur3}s" repeatCount="indefinite" path="M 300,50 L 300,130 L 420,130 L 420,50" begin="{begin}s" /></circle>'
-                # 주도선 우측 회수
-                for offset in [0, 0.25, 0.5, 0.75]:
-                    begin = offset * dur_total
-                    electron_svg += f'<circle r="5" fill="#67e8f9"><animateMotion dur="{dur_total}s" repeatCount="indefinite" path="M 420,50 L 450,50 L 450,200 L 100,200" begin="{begin}s" /></circle>'
-
-        svg_diagram = f"""
-        <svg width="100%" height="270" viewBox="0 0 550 250" style="background-color: #0b1329; border: 1.5px solid #1e293b; border-radius: 16px;">
-          <defs>
-            <linearGradient id="potentialGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#ef4444" />
-              <stop offset="50%" stop-color="#f59e0b" />
-              <stop offset="100%" stop-color="#3b82f6" />
-            </linearGradient>
-            <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="7" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
-          </defs>
-
-          <!-- 도선 기본 라인 -->
-          <path d="M 100,50 L 450,50 L 450,200 L 100,200 Z" fill="none" stroke="url(#potentialGrad)" stroke-width="4.5" stroke-linecap="round" opacity="0.4" />
-
-          <!-- 배터리 전원장치 (100, 125) -->
-          <g transform="translate(100, 125)">
-            <line x1="0" y1="-30" x2="0" y2="30" stroke="#ef4444" stroke-width="4" />
-            <line x1="-15" y1="-15" x2="15" y2="-15" stroke="#ef4444" stroke-width="6" />
-            <line x1="-8" y1="-5" x2="8" y2="-5" stroke="#3b82f6" stroke-width="9" />
-            <line x1="-15" y1="5" x2="15" y2="5" stroke="#ef4444" stroke-width="6" />
-            <line x1="-8" y1="15" x2="8" y2="15" stroke="#3b82f6" stroke-width="9" />
-            <text x="-48" y="5" fill="#ef4444" font-weight="bold" font-family="monospace" font-size="13">{voltage}V</text>
-          </g>
-
-          <!-- 실시간 저항 소자 및 라벨 렌더링 -->
-          {components_svg}
-
-          <!-- 애니메이션 효과 전자 렌더링 -->
-          {electron_svg}
-        </svg>
-        """
-        
-        # SVG 화면 드로잉 (마크다운 엔진의 들여쓰기 코드 블록 오작동 버그 방지를 위한 라인별 공백 제거)
-        clean_svg = "\n".join([line.strip() for line in svg_diagram.split("\n")])
-        st.markdown(clean_svg, unsafe_allow_html=True)
-
-        # 범례 표시
+    # 비주얼 에너지 전환 밸런스 게이지
+    st.markdown("<div class='energy-gauge-container'>", unsafe_allow_html=True)
+    st.markdown(f"##### 🔥 실시간 소비 전력(열에너지 방출량) 밸런스 (총 {fmt(ptot)} W)")
+    
+    ratio_p1 = (p1 / max(0.01, ptot)) * 100
+    ratio_p2 = (p2 / max(0.01, ptot)) * 100
+    
+    st.markdown(f"""
+    <div style='display:flex; justify-content:space-between; margin-bottom: 5px; font-size:0.85rem; font-family:monospace; color:#cbd5e1;'>
+        <span style='color:#a5b4fc;'>R1 발열량 ({r1}Ω): {fmt(p1)} W ({fmt(ratio_p1)}%)</span>
+        <span style='color:#818cf8;'>R2 발열량 ({r2}Ω): {fmt(p2)} W ({fmt(ratio_p2)}%)</span>
+    </div>
+    <div style='background:#1e293b; border-radius:9999px; height:20px; width:100%; display:flex; overflow:hidden;'>
+        <div style='background:#a5b4fc; width:{ratio_p1}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P1</div>
+        <div style='background:#818cf8; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if sim_mode == "직렬 연결 (Series)":
         st.markdown("""
-        <div style="display: flex; justify-content: center; gap: 20px; font-size: 0.8rem; color: #94a3b8; margin-top: 8px;">
-            <div><span style="display: inline-block; width: 10px; height: 10px; background-color: #ef4444; border-radius: 2px;"></span> 고전위 (+)</div>
-            <div><span style="display: inline-block; width: 10px; height: 10px; background-color: #3b82f6; border-radius: 2px;"></span> 저전위 (-)</div>
-            <div><span style="display: inline-block; width: 10px; height: 10px; background-color: #67e8f9; border-radius: 50%;"></span> 이동하는 자유 전자 (e⁻)</div>
-        </div>
-        """, unsafe_allow_html=True)
+        💡 **물리 직관 (직렬)**: 직렬 회로는 모든 구간에 동일한 전류($I$)가 공통으로 통과합니다. 따라서 **저항이 클수록 ($P = I^2R$)** 전기적 충돌이 격렬해져 **더 많은 전기에너지를 열로 전환**합니다.
+        """)
+    else:
+        st.markdown("""
+        💡 **물리 직관 (병렬)**: 병렬 회로는 모든 가지에 동일한 전압($V$)이 걸립니다. 따라서 **저항이 작을수록 ($P = V^2/R$)** 전자가 원활하고 많이 흐르게 되어 **더 많은 전기에너지를 열로 전환**합니다.
+        """)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown("---")
+# ────────────── [4단계] 디지털 활동지 작성 및 자가 채점 ──────────────
+elif power_stage == "[4단계] 디지털 활동지 작성 및 자가 채점":
+    st.markdown("#### 📝 디지털 탐구 활동지 작성 및 개념 진단")
+    st.write("가상실험 결과를 바탕으로 아래 활동지 빈칸을 알맞게 채워 탐구를 마쳐봅시다.")
+    
+    st.markdown("<div class='step-header'>✍️ 탐구 활동지 채우기</div>", unsafe_allow_html=True)
+    
+    # 활동지 문제 1
+    st.markdown("**1. 같은 시간 동안 소비되는 전기에너지는 직렬연결에서는 저항에 ( ㉠ )하고, 병렬연결에서는 저항에 ( ㉡ )한다.**")
+    ws_blank1 = st.text_input("㉠에 들어갈 알맞은 단어 (예: 비례, 반비례)", key="ws_b1").strip()
+    ws_blank2 = st.text_input("㉡에 들어갈 알맞은 단어 (예: 비례, 반비례)", key="ws_b2").strip()
+    
+    if st.button("🚀 활동지 1번 제출"):
+        if ws_blank1 == "비례" and ws_blank2 == "반비례":
+            st.success("🎉 **완벽한 정답입니다!** 직렬에서는 저항값에 비례하고, 병렬에서는 저항값에 반비례(역수에 비례)하여 에너지가 소비됩니다.")
+            if "ws_q1" not in st.session_state.ws_submits:
+                st.session_state.worksheet_score += 50
+                st.session_state.ws_submits["ws_q1"] = True
+        else:
+            st.error("❌ **틀렸습니다.** [3단계 소비전력 비교 가상 실험실] 탭의 '물리 직관' 설명을 다시 한 번 꼼꼼히 읽어보세요.")
 
-        # 3색 세부 카드 레이아웃
-        col_c1, col_c2, col_c3 = st.columns(3)
+    st.markdown("---")
 
-        with col_c1:
-            st.markdown(f"""
-            <div class='analysis-card'>
-                <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-                    <b style='color:#f59e0b;'>저항 R1 분석</b>
-                    <span style='font-size:1.1rem;'>🌡️</span>
-                </div>
-                <div style='font-family:monospace; font-size:0.85rem; color:#cbd5e1; line-height:1.7;'>
-                    저항값: {r1} Ω<br>
-                    전류 I1: <span style='color:#22d3ee;'>{fmt(i1)} A</span><br>
-                    전압 V1: <span style='color:#c084fc;'>{fmt(v1)} V</span><br>
-                    <div style='border-top:1px solid #1e293b; margin:6px 0;'></div>
-                    소비 전력: <span style='color:#f59e0b; font-weight:bold;'>{fmt(p1)} W</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    # 활동지 문제 2 (실무 응용)
+    st.markdown("**2. 가정용 전자기기는 모두 멀티탭에 ( ㉢ )로 연결됩니다. 이때 멀티탭에 너무 많은 전자기기를 꽂아 사용하면 발생하는 화재 위험의 근본적인 물리학적 원인은 무엇일까요?**")
+    ws_blank3 = st.selectbox("㉢에 들어갈 연결 방법:", ["선택해 주세요", "직렬", "병렬"], key="ws_b3")
+    ws_explain = st.text_area("화재 위험이 커지는 이유를 전력(소비전력) 및 합성저항 개념을 포함하여 서술해 보세요:", key="ws_b4")
+    
+    if st.button("🚀 활동지 2번 제출"):
+        if ws_blank3 == "병렬":
+            st.success("""
+            🎯 **정답 및 해설:**
+            가정용 기기는 모두 **병렬**로 연결됩니다. 병렬 연결 기기가 늘어날수록 회로의 **전체 합성 저항이 감소**하여, 메인 도선에 흐르는 **전체 전류($I_{total}$)가 급격히 증가**하게 됩니다.
+            이에 따라 도선 자체의 저항에 의해 발생하는 소비 전력(열에너지, $P=I^2R$)이 전류의 제곱에 비례하여 기하급수적으로 폭증하게 되어 도선이 녹거나 화재가 발생할 수 있습니다!
+            """)
+            if "ws_q2" not in st.session_state.ws_submits:
+                st.session_state.worksheet_score += 50
+                st.session_state.ws_submits["ws_q2"] = True
+        else:
+            st.error("❌ ㉢ 연결 방식을 다시 생각해 보세요. 집안의 불 하나를 꺼도 다른 가전이 꺼지지 않는 연결 방식입니다.")
 
-        with col_c2:
-            st.markdown(f"""
-            <div class='analysis-card'>
-                <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-                    <b style='color:#ea580c;'>저항 R2 분석</b>
-                    <span style='font-size:1.1rem;'>🌡️</span>
-                </div>
-                <div style='font-family:monospace; font-size:0.85rem; color:#cbd5e1; line-height:1.7;'>
-                    저항값: {r2} Ω<br>
-                    전류 I2: <span style='color:#22d3ee;'>{fmt(i2)} A</span><br>
-                    전압 V2: <span style='color:#c084fc;'>{fmt(v2)} V</span><br>
-                    <div style='border-top:1px solid #1e293b; margin:6px 0;'></div>
-                    소비 전력: <span style='color:#ea580c; font-weight:bold;'>{fmt(p2)} W</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col_c3:
-            if c_type == 'mixed':
-                st.markdown(f"""
-                <div class='analysis-card'>
-                    <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-                        <b style='color:#f43f5e;'>저항 R3 분석</b>
-                        <span style='font-size:1.1rem;'>🌡️</span>
-                    </div>
-                    <div style='font-family:monospace; font-size:0.85rem; color:#cbd5e1; line-height:1.7;'>
-                        저항값: {r3} Ω<br>
-                        전류 I3: <span style='color:#22d3ee;'>{fmt(i3)} A</span><br>
-                        전압 V3: <span style='color:#c084fc;'>{fmt(v3)} V</span><br>
-                        <div style='border-top:1px solid #1e293b; margin:6px 0;'></div>
-                        소비 전력: <span style='color:#f43f5e; font-weight:bold;'>{fmt(p3)} W</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div class='analysis-card'>
-                    <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;'>
-                        <b style='color:#94a3b8;'>시스템 열 출력</b>
-                        <span style='font-size:1.1rem;'>⚡</span>
-                    </div>
-                    <div class='heat-gauge-container'>
-                        <div style='display:flex; justify-content:space-between; font-size:0.75rem; color:#94a3b8; font-family:monospace;'>
-                            <span>에너지 공급률</span>
-                            <span>{fmt(p_total)} J/s (W)</span>
-                        </div>
-                        <div style='background:#1e293b; border-radius:9999px; height:8px; width:100%; margin-top:5px; overflow:hidden;'>
-                            <div style='background:linear-gradient(90deg, #f59e0b, #f43f5e); height:100%; width:{min(100.0, (p_total / 60) * 100)}%;'></div>
-                        </div>
-                    </div>
-                    <p style='font-size:0.7rem; color:#64748b; line-height:1.3; margin-top:8px;'>* 전기 에너지는 자유전자가 금속 원자핵과 충돌하여 줄 열(Joule Heat)로 100% 전환 방출됩니다.</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-        if c_type == 'mixed':
-            st.markdown(f"""
-            <div class='analysis-card'>
-                <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;'>
-                    <b style='color:#10b981;'>시스템 전체 열 방출 밸런스</b>
-                    <span style='font-size:0.85rem; color:#10b981; font-family:monospace; font-weight:bold;'>총 {fmt(p_total)} J/s</span>
-                </div>
-                <div class='heat-gauge-container'>
-                    <div style='background:#1e293b; border-radius:9999px; height:12px; width:100%; overflow:hidden;'>
-                        <div style='background:linear-gradient(90deg, #f59e0b, #f43f5e); height:100%; width:{min(100.0, (p_total / 60) * 100)}%;'></div>
-                    </div>
-                </div>
-                <p style='font-size:0.7rem; color:#64748b; line-height:1.3; margin-top:8px;'>* 세 가변 저항(R1, R2, R3)의 결합에 의해 소비되는 전기 에너지의 열 전환량 게이지입니다. (가변 저항을 변경하면 실시간으로 밸런스가 조절됩니다)</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-# ══════════════════════════════════════════════════════════════
-# 탭 2: 탐구 챌린지
-# ══════════════════════════════════════════════════════════════
-with tab_mission:
-    col_list, col_quiz = st.columns([1, 2])
-
-    with col_list:
-        st.markdown("<h4 style='color: #e2e8f0; margin-bottom: 12px;'>🏆 탐구 과제 목록</h4>", unsafe_allow_html=True)
-        
-        # 미션 목록 정의
-        m_list = [
-            {"id": 1, "title": "⚡ 미션 01. 전류 보존 법칙 증명"},
-            {"id": 2, "title": "🌱 미션 02. 스마트팜 열원 설계"}
-        ]
-        
-        for m in m_list:
-            is_selected = st.session_state.rcs_current_mission == m["id"]
-            if st.button(
-                m["title"],
-                key=f"rcs_m_btn_{m['id']}",
-                use_container_width=True,
-                type="primary" if is_selected else "secondary"
-            ):
-                st.session_state.rcs_current_mission = m["id"]
-                st.session_state.rcs_user_answer = ""
-                st.session_state.rcs_feedback = None
-                st.rerun()
-
-    with col_quiz:
-        active_id = st.session_state.rcs_current_mission
-        
-        if active_id == 1:
-            st.markdown("""
-            <span class='badge-mission'>실험 탐구 미션 01</span>
-            <h3 style='color: #e2e8f0; margin-top: 8px; margin-bottom: 12px;'>오개념 격파! 전류 보존 법칙 증명하기</h3>
-            <div style='background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; font-size: 0.92rem; line-height: 1.6; color: #e2e8f0;'>
-                <b>[문제 상황]</b><br>
-                가상 회로실에서 <b>직렬 회로(Series)</b>를 선택하고 아래 조건으로 값을 조정하세요.<br>
-                - <b>입력 전압 (V): 18V</b><br>
-                - <b>저항 R1: 6Ω</b><br>
-                - <b>저항 R2: 12Ω</b><br><br>
-                이때 R1을 지나는 전류(I1)와 R2를 지나는 전류(I2)의 비율 <b>(I1 / I2)</b>은 얼마입니까?<br>
-                <i>(정답을 계산하거나 실시간 분석 카드에서 찾아 숫자로 정밀하게 입력하세요. 예: 1)</i>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # 정답 검증 로직
-            def verify_ans1(ans_str):
-                try:
-                    val = float(ans_str.strip())
-                    # 직렬 회로에서 입력 변수를 올바르게 맞추었는지와, 전류 비율이 1인지 검증
-                    correct_params = (st.session_state.rcs_voltage == 18 and 
-                                      st.session_state.rcs_r1 == 6 and 
-                                      st.session_state.rcs_r2 == 12 and 
-                                      c_type == "series")
-                    
-                    if not correct_params:
-                        return False, "⚠️ 먼저 가상 회로실 탭으로 가셔서 회로 구조를 '직렬 회로'로 변경하고, 전압=18V, R1=6Ω, R2=12Ω으로 가변 슬라이더를 맞추어 시뮬레이션 데이터를 관측하세요!"
-                    
-                    if abs(val - 1.0) < 0.01:
-                        return True, "🎉 훌륭합니다! 많은 학생들이 큰 저항 R2를 지나면 전류가 '소비'되어 줄어든다고 착각하지만, 단일 도선 내 전하량은 보존되므로 전류는 어디서나 같습니다! 소비되는 것은 전류가 아니라 '전기적 위치 에너지(전압)'입니다."
-                    else:
-                        return False, "❌ 비율 계산이 잘못되었습니다. 전류 보존 법칙(전하량 보존 법칙)에 의해 단일 회로에서 전류의 크기가 어때야 하는지 가상 회로실 분석 카드를 보고 다시 확인해 보세요."
-                except ValueError:
-                    return False, "⚠️ 숫자로 입력해 주세요 (예: 1)"
-
-        else: # 미션 2
-            st.markdown("""
-            <span class='badge-mission'>실험 탐구 미션 02</span>
-            <h3 style='color: #e2e8f0; margin-top: 8px; margin-bottom: 12px;'>사곡고 스마트팜 열원 설계 챌린지</h3>
-            <div style='background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 16px; font-size: 0.92rem; line-height: 1.6; color: #e2e8f0;'>
-                <b>[문제 상황]</b><br>
-                사곡고 스마트팜 수조 온도를 일정하게 유지하기 위해 <b>전기에너지 발열 전도 장치</b>를 설계하고 있습니다.<br>
-                전력(발열량)이 정확히 <b>12W</b>가 되는 직렬 회로를 구축하고자 합니다.<br><br>
-                전압이 <b>12V</b>일 때, 전하량 소모 효율을 고려하여 R1과 R2의 합성 저항(Req)이 몇 옴(Ω)이 되어야 총 전력 P = 12W가 될 수 있을까요?<br>
-                합성 저항 Req(Ω)에 해당하는 수치값을 정답으로 입력하세요.<br>
-                <i>(힌트: 전력 공식 P = V² / Req 를 이용하여 역산해 보세요!)</i>
-            </div>
-            """, unsafe_allow_html=True)
-
-            def verify_ans2(ans_str):
-                try:
-                    val = float(ans_str.strip())
-                    # P = V^2 / Req => Req = V^2 / P = 12^2 / 12 = 12 Ohm.
-                    if abs(val - 12.0) < 0.01:
-                        return True, "🎉 정답입니다! 12V의 인가 전압 조건에서 전체 합성 저항이 12Ω이 되면, 1초당 12J의 열 에너지가 고르게 발생하여 스마트팜을 안전하고 효율적으로 데울 수 있습니다."
-                    else:
-                        return False, "❌ 스마트팜 열 효율 조건을 만족하지 못합니다. P = V² / Req 공식을 이용하여 Req = V² / P 로 합성 저항을 설계해 보세요."
-                except ValueError:
-                    return False, "⚠️ 숫자로 입력해 주세요 (예: 12)"
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # 답안 입력 상자
-        user_ans = st.text_input(
-            "계산 및 시뮬레이션 측정 정답 기입",
-            value=st.session_state.rcs_user_answer,
-            placeholder="정답 수치를 입력하고 제출 버튼을 누르세요",
-            key="rcs_ans_input"
-        )
-        
-        # 답안 제출 및 검증
-        if st.button("🚀 답안 제출", type="primary", use_container_width=True):
-            if active_id == 1:
-                success, msg = verify_ans1(user_ans)
-            else:
-                success, msg = verify_ans2(user_ans)
-                
-            if success:
-                st.session_state.rcs_feedback = {"success": True, "text": msg}
-                # 점수 가산은 최초 1회만 가산하는 효과를 내기 위해 피드백이 이전에 통과 상태가 아니었을 때만
-                st.session_state.rcs_score += 10
-            else:
-                st.session_state.rcs_feedback = {"success": False, "text": msg}
-            st.rerun()
-
-        # 피드백 메시지 박스 드로잉
-        if st.session_state.rcs_feedback:
-            fb = st.session_state.rcs_feedback
-            if fb["success"]:
-                st.markdown(f"""
-                <div class='feedback-box-success'>
-                    <b>✅ 축하합니다! 정답입니다.</b><br>
-                    <p style='font-size:0.88rem; line-height:1.5; color:#e2e8f0; margin-top:6px;'>{fb['text']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div class='feedback-box-error'>
-                    <b>❌ 틀렸습니다. 다시 도전해 보세요!</b><br>
-                    <p style='font-size:0.88rem; line-height:1.5; color:#e2e8f0; margin-top:6px;'>{fb['text']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-        st.markdown("---")
-        
-        # 하단 점수 누계 스코어보드
-        st.markdown(f"""
-        <div style="display: flex; justify-content: space-between; align-items: center; color: #94a3b8; font-size: 0.85rem;">
-            <span>* 탐구 미션을 성공하면 교과 가산점(마일리지)을 부여합니다.</span>
-            <span>현재 누적 탐구 스코어: <strong style="color: #34d399; font-size: 1.1rem; font-family: monospace;">{st.session_state.rcs_score} pts</strong></span>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style="text-align: right; margin-top: 20px; font-size: 1.1rem; color: #34d399; font-weight: bold;">
+        현재 탐구 활동 점수: <span style="font-family: monospace; font-size: 1.3rem;">{st.session_state.worksheet_score} / 100 점</span>
+    </div>
+    """, unsafe_allow_html=True)
