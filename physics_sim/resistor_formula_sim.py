@@ -28,14 +28,14 @@ def series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2):
   <line x1="370" y1="75" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
   <!-- 하단 전선 -->
   <line x1="55" y1="165" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
-  <!-- 배터리 -->
-  <line x1="40" y1="75" x2="40" y2="105" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="23" y1="105" x2="57" y2="105" stroke="#38bdf8" stroke-width="4"/>
-  <line x1="30" y1="118" x2="50" y2="118" stroke="#38bdf8" stroke-width="2"/>
-  <line x1="40" y1="118" x2="40" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 배터리 왼쪽 세로선 -->
+  <line x1="40" y1="75" x2="40" y2="103" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="23" y1="103" x2="57" y2="103" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="29" y1="117" x2="51" y2="117" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="40" y1="117" x2="40" y2="165" stroke="{wc}" stroke-width="2.5"/>
   <line x1="40" y1="75" x2="55" y2="75" stroke="{wc}" stroke-width="2.5"/>
-  <text x="62" y="110" fill="#34d399" font-size="11" font-family="monospace">+</text>
-  <text x="62" y="124" fill="#f87171" font-size="11" font-family="monospace">−</text>
+  <text x="62" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
+  <text x="62" y="122" fill="#f87171" font-size="12" font-family="monospace">−</text>
   <text x="40" y="148" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
   <!-- 전류 화살표 -->
   <text x="88" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
@@ -64,46 +64,48 @@ def parallel_circuit_svg(v, r1, r2, i1, i2, itot, req, p1, p2):
     a2 = min(0.85, p2 / p_max * 0.85)
     wc = "#60a5fa"
     return f"""
-<svg viewBox="0 0 400 270" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
-  <text x="200" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 병렬 회로 실시간 시뮬레이션</text>
-  <!-- 배터리 -->
-  <line x1="40" y1="80" x2="40" y2="113" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="23" y1="113" x2="57" y2="113" stroke="#38bdf8" stroke-width="4"/>
-  <line x1="30" y1="126" x2="50" y2="126" stroke="#38bdf8" stroke-width="2"/>
-  <line x1="40" y1="126" x2="40" y2="185" stroke="{wc}" stroke-width="2.5"/>
-  <text x="62" y="118" fill="#34d399" font-size="11" font-family="monospace">+</text>
-  <text x="62" y="132" fill="#f87171" font-size="11" font-family="monospace">−</text>
-  <text x="40" y="163" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
-  <!-- 좌측 분기 전선 -->
-  <line x1="40" y1="80" x2="90" y2="80" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="90" y1="80" x2="90" y2="110" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="90" y1="155" x2="90" y2="185" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="40" y1="185" x2="90" y2="185" stroke="{wc}" stroke-width="2.5"/>
-  <!-- 우측 분기 전선 -->
-  <line x1="310" y1="80" x2="360" y2="80" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="360" y1="80" x2="360" y2="110" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="360" y1="155" x2="360" y2="185" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="310" y1="185" x2="360" y2="185" stroke="{wc}" stroke-width="2.5"/>
-  <!-- R1 상단 가지 -->
-  <line x1="90" y1="110" x2="130" y2="110" stroke="{wc}" stroke-width="2"/>
-  <rect x="130" y="95" width="80" height="30" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2" rx="5"/>
-  <text x="170" y="114" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
-  <line x1="210" y1="110" x2="360" y2="110" stroke="{wc}" stroke-width="2"/>
-  <text x="170" y="136" text-anchor="middle" fill="#a5b4fc" font-size="10" font-family="monospace">I₁={fmt(i1)}A  P₁={fmt(p1)}W</text>
-  <!-- R2 하단 가지 -->
-  <line x1="90" y1="155" x2="130" y2="155" stroke="{wc}" stroke-width="2"/>
-  <rect x="130" y="140" width="80" height="30" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2" rx="5"/>
-  <text x="170" y="159" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
-  <line x1="210" y1="155" x2="360" y2="155" stroke="{wc}" stroke-width="2"/>
-  <text x="170" y="180" text-anchor="middle" fill="#818cf8" font-size="10" font-family="monospace">I₂={fmt(i2)}A  P₂={fmt(p2)}W</text>
-  <!-- 전압 표시 -->
-  <text x="300" y="100" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V={v}V (공통)</text>
-  <!-- 전체 전류 -->
-  <text x="65" y="73" text-anchor="middle" fill="#34d399" font-size="13" font-family="monospace">→</text>
-  <text x="55" y="60" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">I={fmt(itot)}A</text>
+<svg viewBox="0 0 420 265" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
+  <text x="210" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">&#x26A1; 병렬 회로 실시간 시뮬레이션</text>
+  <!-- 배터리 (좌측 세로) -->
+  <line x1="38" y1="65" x2="38" y2="103" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="20" y1="103" x2="56" y2="103" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="27" y1="118" x2="49" y2="118" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="38" y1="118" x2="38" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <text x="60" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
+  <text x="60" y="123" fill="#f87171" font-size="12" font-family="monospace">-</text>
+  <text x="38" y="160" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 상단 버스 -->
+  <line x1="38" y1="65" x2="375" y2="65" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 하단 버스 -->
+  <line x1="38" y1="195" x2="375" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 반환 수직선 -->
+  <line x1="375" y1="65" x2="375" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 좌측 분기 버스: 연속 수직선 y=65~195 (끊김 없음) -->
+  <line x1="92" y1="65" x2="92" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 합류 버스: 연속 수직선 y=65~195 (끊김 없음) -->
+  <line x1="330" y1="65" x2="330" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- R1 상단 가지 (y=107) -->
+  <line x1="92" y1="107" x2="138" y2="107" stroke="{wc}" stroke-width="2"/>
+  <rect x="138" y="92" width="84" height="30" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2" rx="5"/>
+  <text x="180" y="111" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R1={r1}&#x03A9;</text>
+  <line x1="222" y1="107" x2="330" y2="107" stroke="{wc}" stroke-width="2"/>
+  <text x="180" y="133" text-anchor="middle" fill="#a5b4fc" font-size="10" font-family="monospace">I1={fmt(i1)}A  P1={fmt(p1)}W</text>
+  <!-- R2 하단 가지 (y=153) -->
+  <line x1="92" y1="153" x2="138" y2="153" stroke="{wc}" stroke-width="2"/>
+  <rect x="138" y="138" width="84" height="30" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2" rx="5"/>
+  <text x="180" y="157" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R2={r2}&#x03A9;</text>
+  <line x1="222" y1="153" x2="330" y2="153" stroke="{wc}" stroke-width="2"/>
+  <text x="180" y="178" text-anchor="middle" fill="#818cf8" font-size="10" font-family="monospace">I2={fmt(i2)}A  P2={fmt(p2)}W</text>
+  <!-- 전류 화살표 -->
+  <text x="115" y="99" text-anchor="middle" fill="#34d399" font-size="12" font-family="monospace">-&gt;</text>
+  <text x="115" y="145" text-anchor="middle" fill="#34d399" font-size="12" font-family="monospace">-&gt;</text>
+  <text x="65" y="57" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">-&gt; I={fmt(itot)}A</text>
+  <!-- 공통 전압 표시 -->
+  <text x="352" y="128" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V={v}V</text>
+  <text x="352" y="140" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">(공통)</text>
   <!-- 요약 박스 -->
-  <rect x="80" y="210" width="240" height="28" fill="#1e293b" rx="8"/>
-  <text x="200" y="228" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(itot)}A</text>
+  <rect x="90" y="212" width="240" height="28" fill="#1e293b" rx="8"/>
+  <text x="210" y="230" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}&#x03A9;  |  I_total={fmt(itot)}A</text>
 </svg>"""
 
 # ── 공통 스타일 시트 ──────────────────────────────────────────────
