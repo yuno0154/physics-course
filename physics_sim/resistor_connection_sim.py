@@ -393,6 +393,25 @@ elif power_stage == "[3단계] 소비전력 비교 가상 실험실":
         """)
     st.markdown("</div>", unsafe_allow_html=True)
 
+    # ── Tinkercad 3D 실습 연계 ─────────────────────────────────
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #1e293b, #0f172a); border: 2.5px solid #f59e0b; border-radius: 14px; padding: 20px; margin-top: 25px; box-shadow: 0 4px 18px rgba(245, 158, 11, 0.15);'>
+        <div style='display: flex; align-items: center; gap: 12px; margin-bottom: 12px;'>
+            <span style='font-size: 1.6rem;'>🌐</span>
+            <b style='color: #f59e0b; font-size: 1.15rem; font-family: sans-serif;'>Tinkercad 3D 입체 브레드보드 가상 실험실 연계</b>
+        </div>
+        <p style='color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; margin-bottom: 15px;'>
+            웹 브라우저 상에서 실제 브레드보드, 저항 소자, 디지털 멀티미터, 가변 직류 전원장치를 직접 연결하고 실시간으로 회로 전류와 전압을 계측할 수 있는 <b>Tinkercad 3D 가상 실습 회로</b>입니다. <br>
+            아래 버튼을 클릭하여 직접 브레드보드 상에서 저항의 직렬/병렬 연결을 구축하고 탐구해 보세요!
+        </p>
+        <a href="https://www.tinkercad.com/things/hmjoLbPvgti-?sharecode=nznZz3WZGs26hxTKSJySse5jnIPqxuegE9cpiayXOrA" target="_blank" style="text-decoration: none;">
+            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #0f172a; text-align: center; padding: 12px 20px; border-radius: 10px; font-weight: 800; font-size: 1rem; cursor: pointer; transition: 0.2s; box-shadow: 0 3px 10px rgba(245, 158, 11, 0.2);">
+                🔗 Tinkercad 3D 가상 실험실 입장하기 (새 창)
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ────────────── [4단계] 디지털 활동지 작성 및 자가 채점 ──────────────
 elif power_stage == "[4단계] 디지털 활동지 작성 및 자가 채점":
     st.markdown("#### 📝 디지털 탐구 활동지 작성 및 개념 진단")
