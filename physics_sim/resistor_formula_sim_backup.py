@@ -1,7 +1,9 @@
 """
-저항의 연결 공식 학습관 (개념 학습)
-- 직렬 및 병렬 연결에서의 합성저항, 전류, 전위차, 소비전력의 정량적 유도 및 학습
-- 개념 자가 진단 평가 퀴즈
+저항의 연결 공식 및 에너지 전환 개념 학습 시뮬레이터
+- 직렬 및 병렬 연결에서의 전위차, 저항, 전류, 에너지 전환(소비 전력) 공식의 정량적 유도
+- 실시간 수치 연동 LaTeX 수식 계산 시뮬레이션
+- 직렬(비례) vs 병렬(반비례) 에너지 방출 밸런스 비주얼 게이지
+- 자가 개념 진단 퀴즈 및 스코어보드 시스템
 """
 
 import streamlit as st
@@ -10,15 +12,15 @@ import streamlit as st
 def fmt(val):
     return round(val, 2)
 
-# ── SVG 회로 다이어그램 생성 함수 (직렬) ──────────────────────────────────
+# ── SVG 회로 다이어그램 생성 함수 ──────────────────────────────────
 def series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2):
     p_max = max(p1, p2, 0.01)
     a1 = min(0.85, p1 / p_max * 0.85)
     a2 = min(0.85, p2 / p_max * 0.85)
     wc = "#60a5fa"
     return f"""
-<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;border: 1px solid #1e293b;">
-  <text x="200" y="22" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 직렬 회로 실시간 시뮬레이션</text>
+<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
+  <text x="200" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 직렬 회로 실시간 시뮬레이션</text>
   <!-- 상단 전선 -->
   <line x1="55" y1="75" x2="120" y2="75" stroke="{wc}" stroke-width="2.5"/>
   <line x1="205" y1="75" x2="235" y2="75" stroke="{wc}" stroke-width="2.5"/>
@@ -56,58 +58,61 @@ def series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2):
   <text x="200" y="218" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(i)}A</text>
 </svg>"""
 
-# ── SVG 회로 다이어그램 생성 함수 (병렬) ──────────────────────────────────
 def parallel_circuit_svg(v, r1, r2, i1, i2, itot, req, p1, p2):
     p_max = max(p1, p2, 0.01)
     a1 = min(0.85, p1 / p_max * 0.85)
     a2 = min(0.85, p2 / p_max * 0.85)
     wc = "#60a5fa"
     return f"""
-<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;border: 1px solid #1e293b;">
-  <text x="200" y="17" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 병렬 회로 실시간 시뮬레이션</text>
-  <!-- 배터리 (좌측 세로, y=65~195) -->
-  <line x1="40" y1="65" x2="40" y2="103" stroke="{wc}" stroke-width="2.5"/>
-  <line x1="22" y1="103" x2="58" y2="103" stroke="#38bdf8" stroke-width="4"/>
-  <line x1="29" y1="118" x2="51" y2="118" stroke="#38bdf8" stroke-width="2"/>
-  <line x1="40" y1="118" x2="40" y2="195" stroke="{wc}" stroke-width="2.5"/>
-  <text x="63" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
-  <text x="63" y="123" fill="#f87171" font-size="12" font-family="monospace">-</text>
-  <text x="40" y="162" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
-  <!-- 상단 수평 버스 -->
-  <line x1="40" y1="65" x2="360" y2="65" stroke="{wc}" stroke-width="2.5"/>
-  <!-- 하단 수평 버스 -->
-  <line x1="40" y1="195" x2="360" y2="195" stroke="{wc}" stroke-width="2.5"/>
-  <!-- 우측 마감선 -->
-  <line x1="360" y1="65" x2="360" y2="195" stroke="{wc}" stroke-width="2.5"/>
-  <!-- R1 세로 가지 -->
-  <line x1="148" y1="65" x2="148" y2="103" stroke="{wc}" stroke-width="2"/>
-  <rect x="108" y="103" width="80" height="38" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2.5" rx="6"/>
-  <text x="148" y="126" text-anchor="middle" fill="#e0e7ff" font-size="12" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
-  <line x1="148" y1="141" x2="148" y2="195" stroke="{wc}" stroke-width="2"/>
-  <text x="97" y="120" text-anchor="end" fill="#a5b4fc" font-size="10" font-family="monospace">I₁={fmt(i1)}A</text>
-  <text x="97" y="133" text-anchor="end" fill="#a5b4fc" font-size="10" font-family="monospace">P₁={fmt(p1)}W</text>
-  <!-- R2 세로 가지 -->
-  <line x1="268" y1="65" x2="268" y2="103" stroke="{wc}" stroke-width="2"/>
-  <rect x="228" y="103" width="80" height="38" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2.5" rx="6"/>
-  <text x="268" y="126" text-anchor="middle" fill="#e0e7ff" font-size="12" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
-  <line x1="268" y1="141" x2="268" y2="195" stroke="{wc}" stroke-width="2"/>
-  <text x="319" y="120" fill="#818cf8" font-size="10" font-family="monospace">I₂={fmt(i2)}A</text>
-  <text x="319" y="133" fill="#818cf8" font-size="10" font-family="monospace">P₂={fmt(p2)}W</text>
-  <!-- 방향 화살표 및 라벨 -->
-  <text x="131" y="90" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">↓</text>
-  <text x="251" y="90" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">↓</text>
-  <text x="90" y="57" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">→ I={fmt(itot)}A</text>
-  <text x="200" y="215" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V₁ = V₂ = {v}V (공통 전압)</text>
+<svg viewBox="0 0 420 265" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
+  <text x="210" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">&#x26A1; 병렬 회로 실시간 시뮬레이션</text>
+  <!-- 배터리 (좌측 세로) -->
+  <line x1="38" y1="65" x2="38" y2="103" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="20" y1="103" x2="56" y2="103" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="27" y1="118" x2="49" y2="118" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="38" y1="118" x2="38" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <text x="60" y="108" fill="#34d399" font-size="12" font-family="monospace">+</text>
+  <text x="60" y="123" fill="#f87171" font-size="12" font-family="monospace">-</text>
+  <text x="38" y="160" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 상단 버스 -->
+  <line x1="38" y1="65" x2="375" y2="65" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 하단 버스 -->
+  <line x1="38" y1="195" x2="375" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 반환 수직선 -->
+  <line x1="375" y1="65" x2="375" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 좌측 분기 버스: 연속 수직선 y=65~195 (끊김 없음) -->
+  <line x1="92" y1="65" x2="92" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 합류 버스: 연속 수직선 y=65~195 (끊김 없음) -->
+  <line x1="330" y1="65" x2="330" y2="195" stroke="{wc}" stroke-width="2.5"/>
+  <!-- R1 상단 가지 (y=107) -->
+  <line x1="92" y1="107" x2="138" y2="107" stroke="{wc}" stroke-width="2"/>
+  <rect x="138" y="92" width="84" height="30" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2" rx="5"/>
+  <text x="180" y="111" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R1={r1}&#x03A9;</text>
+  <line x1="222" y1="107" x2="330" y2="107" stroke="{wc}" stroke-width="2"/>
+  <text x="180" y="133" text-anchor="middle" fill="#a5b4fc" font-size="10" font-family="monospace">I1={fmt(i1)}A  P1={fmt(p1)}W</text>
+  <!-- R2 하단 가지 (y=153) -->
+  <line x1="92" y1="153" x2="138" y2="153" stroke="{wc}" stroke-width="2"/>
+  <rect x="138" y="138" width="84" height="30" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2" rx="5"/>
+  <text x="180" y="157" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R2={r2}&#x03A9;</text>
+  <line x1="222" y1="153" x2="330" y2="153" stroke="{wc}" stroke-width="2"/>
+  <text x="180" y="178" text-anchor="middle" fill="#818cf8" font-size="10" font-family="monospace">I2={fmt(i2)}A  P2={fmt(p2)}W</text>
+  <!-- 전류 화살표 -->
+  <text x="115" y="99" text-anchor="middle" fill="#34d399" font-size="12" font-family="monospace">-&gt;</text>
+  <text x="115" y="145" text-anchor="middle" fill="#34d399" font-size="12" font-family="monospace">-&gt;</text>
+  <text x="65" y="57" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">-&gt; I={fmt(itot)}A</text>
+  <!-- 공통 전압 표시 -->
+  <text x="352" y="128" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V={v}V</text>
+  <text x="352" y="140" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">(공통)</text>
   <!-- 요약 박스 -->
-  <rect x="80" y="228" width="240" height="24" fill="#1e293b" rx="7"/>
-  <text x="200" y="244" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(itot)}A</text>
+  <rect x="90" y="212" width="240" height="28" fill="#1e293b" rx="8"/>
+  <text x="210" y="230" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}&#x03A9;  |  I_total={fmt(itot)}A</text>
 </svg>"""
 
 # ── 공통 스타일 시트 ──────────────────────────────────────────────
 st.markdown("""
 <style>
 .main-title {
-    font-size: 2.3rem;
+    font-size: 2.2rem;
     font-weight: 800;
     background: linear-gradient(135deg, #38bdf8, #818cf8);
     -webkit-background-clip: text;
@@ -165,6 +170,15 @@ st.markdown("""
     margin-top: 12px;
     color: #fb7185;
 }
+.badge-concept {
+    background: rgba(129, 140, 248, 0.15);
+    border: 1px solid rgba(129, 140, 248, 0.3);
+    color: #a5b4fc;
+    border-radius: 9999px;
+    padding: 2px 10px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -179,31 +193,31 @@ if 'rfs_q2_feedback' not in st.session_state:
 # ══════════════════════════════════════════════════════════════
 # 헤더 섹션
 # ══════════════════════════════════════════════════════════════
-st.markdown("<h1 class='main-title'>🔌 저항의 연결 공식 개념 학습관</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-top: -5px;'>직류/병렬 회로의 3대 요소(합성저항, 전류, 전위차) 기본 공식부터 전기에너지 소비전력까지 체계적으로 학습합니다.</p>", unsafe_allow_html=True)
+st.markdown("<h1 class='main-title'>🔌 저항의 연결 공식 및 에너지 전환 학습관</h1>", unsafe_allow_html=True)
+st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-top: -5px;'>직류 회로 속 전위차, 전류, 합성 저항, 전기에너지 전환(줄 열) 공식을 실시간으로 수학적 유도하여 완전 학습합니다.</p>", unsafe_allow_html=True)
 
 st.markdown("""
 <div class='info-card'>
-    <b style='color:#60a5fa; font-size:1.05rem;'>📐 저항 연결 개념 유도 Sequence</b><br>
+    <b style='color:#60a5fa; font-size:1.05rem;'>📖 이론의 개요</b><br>
     <span style='color:#e2e8f0; font-size:0.92rem; line-height: 1.6;'>
-    이 탭에서는 저항의 직렬 및 병렬 연결에 대해 각 요소들의 단계적 학습을 진행합니다.<br>
-    <b>합성 저항($R_{eq}$) 구하기 ➡️ 회로의 전체 전류($I$) 구하기 ➡️ 각 저항의 전압 강하($V_n$) 계산 ➡️ 최종 소비전력($P$) 학습</b>의 과학적인 교육 과정 순서로 구성되어 인지 과부하를 방지합니다.
+    전압(전위차)이 인가된 도선에서 자유전자가 저항(원자핵)과 충돌하며 발생하는 열에너지를 <b>줄 열(Joule Heat)</b>이라고 합니다.<br>
+    본 학습실에서는 저항을 <b>직렬</b>과 <b>병렬</b>로 연결할 때, 각 저항에 배분되는 물리량들과 에너지 전환(소비 전력) 공식이 유도되는 규칙을 정량적인 수치와 수식의 유기적 변화를 통해 탐구할 수 있습니다.
     </span>
 </div>
 """, unsafe_allow_html=True)
 
-# 탭 구조 설계 (직렬 연결 공식, 병렬 연결 공식, 개념 자가 진단 평가)
+# 탭 구조 설계 (직렬 연결 공식, 병렬 연결 공식, 개념 진단 평가)
 tab_series, tab_parallel, tab_concept_quiz = st.tabs([
-    "📐 직렬 연결 공식 학습 (Req ➡️ I ➡️ V ➡️ P)",
-    "📐 병렬 연결 공식 학습 (Req ➡️ V ➡️ I ➡️ P)",
-    "🏆 개념 자가 진단 평가"
+    "📐 직렬 연결 공식 유도 (Series formulas)",
+    "📐 병렬 연결 공식 유도 (Parallel formulas)",
+    "🏆 개념 자가 진단 평가 (Diagnostic Test)"
 ])
 
-# ==============================================================
-# 탭 1: 직렬 연결 공식 학습
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
+# 탭 1: 직렬 연결 공식 유도
+# ══════════════════════════════════════════════════════════════
 with tab_series:
-    st.markdown("### 🔌 직렬 연결(Series Connection)의 4대 핵심 물리 공식")
+    st.markdown("### 🔌 1. 직렬 연결(Series Connection)의 4대 핵심 물리 공식")
     
     col_th_s1, col_th_s2 = st.columns(2)
     with col_th_s1:
@@ -245,7 +259,7 @@ with tab_series:
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div class='step-header'>🎛️ 실시간 대화형 수식 유도 시뮬레이션 (직렬)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-header'>🎛️ 2. 실시간 대화형 수식 유도 시뮬레이션 (직렬)</div>", unsafe_allow_html=True)
     
     col_ctrl_s, col_circ_s, col_eq_s = st.columns([1, 1.4, 2])
     with col_ctrl_s:
@@ -307,16 +321,16 @@ with tab_series:
         <div style='background:#ea580c; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
     </div>
     <p style='font-size:0.75rem; color:#94a3b8; margin-top:8px; line-height:1.4;'>
-        💡 <b>물리 직관</b>: 직렬 연결은 단일 전하 흐름 통로를 공유하므로, 전류가 공통입니다. 이에 따라 저항이 클수록 전기적 충돌 빈도가 늘어나 저항 크기에 비례하여 줄 열(소비 전력)을 방출합니다. ($P \\propto R$)
+        💡 <b>물리 직관</b>: 직렬 연결은 단일 전하 흐름 통로를 공유하므로, 전류가 공통입니다. 이에 따라 저항이 클수록 전기적 충돌 빈도가 늘어나 저항 크기에 비례하여 줄 열(소비 전력)을 방출합니다. ($P \propto R$)
     </p>
     </div>
     """, unsafe_allow_html=True)
 
-# ==============================================================
-# 탭 2: 병렬 연결 공식 학습
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
+# 탭 2: 병렬 연결 공식 유도
+# ══════════════════════════════════════════════════════════════
 with tab_parallel:
-    st.markdown("### 🔌 병렬 연결(Parallel Connection)의 4대 핵심 물리 공식")
+    st.markdown("### 🔌 1. 병렬 연결(Parallel Connection)의 4대 핵심 물리 공식")
     
     col_th_p1, col_th_p2 = st.columns(2)
     with col_th_p1:
@@ -358,7 +372,7 @@ with tab_parallel:
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown("<div class='step-header'>🎛️ 실시간 대화형 수식 유도 시뮬레이션 (병렬)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='step-header'>🎛️ 2. 실시간 대화형 수식 유도 시뮬레이션 (병렬)</div>", unsafe_allow_html=True)
     
     col_ctrl_p, col_circ_p, col_eq_p = st.columns([1, 1.4, 2])
     with col_ctrl_p:
@@ -421,15 +435,14 @@ with tab_parallel:
         <div style='background:#818cf8; width:{ratio_p2}%; height:100%; text-align:center; color:#0f172a; font-weight:bold; font-size:0.75rem; line-height:20px;'>P2</div>
     </div>
     <p style='font-size:0.75rem; color:#94a3b8; margin-top:8px; line-height:1.4;'>
-        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. ($P \\propto \\frac{{1}}{{R}}$)
+        💡 <b>물리 직관</b>: 병렬 연결은 모든 저항에 공통된 전압이 분배됩니다. 따라서 저항이 작을수록 전자의 흐름이 원활하여 더 많은 전하가 흐르게 되고, 결과적으로 더 활발하게 열에너지를 방출하게 됩니다. ($P \propto \frac{{1}}{{R}}$)
     </p>
     </div>
     """, unsafe_allow_html=True)
 
-
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
 # 탭 3: 개념 자가 진단 평가
-# ==============================================================
+# ══════════════════════════════════════════════════════════════
 with tab_concept_quiz:
     st.markdown("<h3 style='color: #e2e8f0;'>🏆 저항 연결 공식 자가 진단 평가</h3>", unsafe_allow_html=True)
     st.markdown("<p style='color: #94a3b8; font-size: 0.9rem;'>배운 공식을 바탕으로 자가 진단 문제를 해결하여 개념 오개념을 완벽하게 극복해 봅니다.</p>", unsafe_allow_html=True)
