@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
@@ -52,8 +52,8 @@ def get_horizontal_frame_data(t_curr):
     traces = [
         go.Scatter(x=[curr_x], y=[curr_y], mode='markers', marker=dict(size=20, color='gold', line=dict(width=2, color='black')), name="수평 투사 (실시간)"),
         go.Scatter(x=[0], y=[curr_y], mode='markers', marker=dict(size=20, color='red', line=dict(width=2, color='black')), name="자유 낙하 (실시간)"),
-        go.Scatter(x=x_proj_strobe, y=y_proj_strobe, mode='markers', marker=dict(size=12, color='rgba(255, 215, 0, 0.6)'), name="수평 투사 자취"),
-        go.Scatter(x=x_fall_strobe, y=y_fall_strobe, mode='markers', marker=dict(size=12, color='rgba(255, 0, 0, 0.4)'), name="자유 낙하 자취"),
+        go.Scatter(x=x_proj_strobe.tolist(), y=y_proj_strobe.tolist(), mode='markers', marker=dict(size=12, color='rgba(255, 215, 0, 0.6)'), name="수평 투사 자취"),
+        go.Scatter(x=x_fall_strobe.tolist(), y=y_fall_strobe.tolist(), mode='markers', marker=dict(size=12, color='rgba(255, 0, 0, 0.4)'), name="자유 낙하 자취"),
         go.Scatter(x=[0, curr_x], y=[curr_y, curr_y], mode='lines', line=dict(color='gray', width=1, dash='dash'), showlegend=False)
     ]
     return traces, telemetry_text

@@ -12,6 +12,100 @@ import streamlit as st
 def fmt(val):
     return round(val, 2)
 
+# ── SVG 회로 다이어그램 생성 함수 ──────────────────────────────────
+def series_circuit_svg(v, r1, r2, i, v1, v2, req, p1, p2):
+    p_max = max(p1, p2, 0.01)
+    a1 = min(0.85, p1 / p_max * 0.85)
+    a2 = min(0.85, p2 / p_max * 0.85)
+    wc = "#60a5fa"
+    return f"""
+<svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
+  <text x="200" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 직렬 회로 실시간 시뮬레이션</text>
+  <!-- 상단 전선 -->
+  <line x1="55" y1="75" x2="120" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="205" y1="75" x2="235" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="320" y1="75" x2="370" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="370" y1="75" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 하단 전선 -->
+  <line x1="55" y1="165" x2="370" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 배터리 -->
+  <line x1="40" y1="75" x2="40" y2="105" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="23" y1="105" x2="57" y2="105" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="30" y1="118" x2="50" y2="118" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="40" y1="118" x2="40" y2="165" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="40" y1="75" x2="55" y2="75" stroke="{wc}" stroke-width="2.5"/>
+  <text x="62" y="110" fill="#34d399" font-size="11" font-family="monospace">+</text>
+  <text x="62" y="124" fill="#f87171" font-size="11" font-family="monospace">−</text>
+  <text x="40" y="148" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 전류 화살표 -->
+  <text x="88" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <text x="220" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <text x="345" y="67" text-anchor="middle" fill="#34d399" font-size="14" font-family="monospace">→</text>
+  <!-- R1 저항 -->
+  <rect x="120" y="59" width="85" height="32" fill="rgba(245,158,11,{a1:.2f})" stroke="#f59e0b" stroke-width="2.5" rx="5"/>
+  <text x="162" y="79" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
+  <text x="162" y="104" text-anchor="middle" fill="#f59e0b" font-size="10" font-family="monospace">V₁={fmt(v1)}V</text>
+  <text x="162" y="117" text-anchor="middle" fill="#fbbf24" font-size="10" font-family="monospace">P₁={fmt(p1)}W 🔥</text>
+  <!-- R2 저항 -->
+  <rect x="235" y="59" width="85" height="32" fill="rgba(234,88,12,{a2:.2f})" stroke="#ea580c" stroke-width="2.5" rx="5"/>
+  <text x="277" y="79" text-anchor="middle" fill="#fed7aa" font-size="12" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
+  <text x="277" y="104" text-anchor="middle" fill="#ea580c" font-size="10" font-family="monospace">V₂={fmt(v2)}V</text>
+  <text x="277" y="117" text-anchor="middle" fill="#f97316" font-size="10" font-family="monospace">P₂={fmt(p2)}W 🔥</text>
+  <!-- 하단 전류 표시 -->
+  <text x="213" y="183" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">← I={fmt(i)}A (공통 전류)</text>
+  <!-- 요약 박스 -->
+  <rect x="80" y="200" width="240" height="28" fill="#1e293b" rx="8"/>
+  <text x="200" y="218" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(i)}A</text>
+</svg>"""
+
+def parallel_circuit_svg(v, r1, r2, i1, i2, itot, req, p1, p2):
+    p_max = max(p1, p2, 0.01)
+    a1 = min(0.85, p1 / p_max * 0.85)
+    a2 = min(0.85, p2 / p_max * 0.85)
+    wc = "#60a5fa"
+    return f"""
+<svg viewBox="0 0 400 270" xmlns="http://www.w3.org/2000/svg" style="width:100%;background:#090d16;border-radius:10px;">
+  <text x="200" y="18" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace">⚡ 병렬 회로 실시간 시뮬레이션</text>
+  <!-- 배터리 -->
+  <line x1="40" y1="80" x2="40" y2="113" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="23" y1="113" x2="57" y2="113" stroke="#38bdf8" stroke-width="4"/>
+  <line x1="30" y1="126" x2="50" y2="126" stroke="#38bdf8" stroke-width="2"/>
+  <line x1="40" y1="126" x2="40" y2="185" stroke="{wc}" stroke-width="2.5"/>
+  <text x="62" y="118" fill="#34d399" font-size="11" font-family="monospace">+</text>
+  <text x="62" y="132" fill="#f87171" font-size="11" font-family="monospace">−</text>
+  <text x="40" y="163" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="bold" font-family="monospace">{v}V</text>
+  <!-- 좌측 분기 전선 -->
+  <line x1="40" y1="80" x2="90" y2="80" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="90" y1="80" x2="90" y2="110" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="90" y1="155" x2="90" y2="185" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="40" y1="185" x2="90" y2="185" stroke="{wc}" stroke-width="2.5"/>
+  <!-- 우측 분기 전선 -->
+  <line x1="310" y1="80" x2="360" y2="80" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="360" y1="80" x2="360" y2="110" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="360" y1="155" x2="360" y2="185" stroke="{wc}" stroke-width="2.5"/>
+  <line x1="310" y1="185" x2="360" y2="185" stroke="{wc}" stroke-width="2.5"/>
+  <!-- R1 상단 가지 -->
+  <line x1="90" y1="110" x2="130" y2="110" stroke="{wc}" stroke-width="2"/>
+  <rect x="130" y="95" width="80" height="30" fill="rgba(165,180,252,{a1:.2f})" stroke="#a5b4fc" stroke-width="2" rx="5"/>
+  <text x="170" y="114" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R₁={r1}Ω</text>
+  <line x1="210" y1="110" x2="360" y2="110" stroke="{wc}" stroke-width="2"/>
+  <text x="170" y="136" text-anchor="middle" fill="#a5b4fc" font-size="10" font-family="monospace">I₁={fmt(i1)}A  P₁={fmt(p1)}W</text>
+  <!-- R2 하단 가지 -->
+  <line x1="90" y1="155" x2="130" y2="155" stroke="{wc}" stroke-width="2"/>
+  <rect x="130" y="140" width="80" height="30" fill="rgba(129,140,248,{a2:.2f})" stroke="#818cf8" stroke-width="2" rx="5"/>
+  <text x="170" y="159" text-anchor="middle" fill="#e0e7ff" font-size="11" font-weight="bold" font-family="monospace">R₂={r2}Ω</text>
+  <line x1="210" y1="155" x2="360" y2="155" stroke="{wc}" stroke-width="2"/>
+  <text x="170" y="180" text-anchor="middle" fill="#818cf8" font-size="10" font-family="monospace">I₂={fmt(i2)}A  P₂={fmt(p2)}W</text>
+  <!-- 전압 표시 -->
+  <text x="300" y="100" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="monospace">V={v}V (공통)</text>
+  <!-- 전체 전류 -->
+  <text x="65" y="73" text-anchor="middle" fill="#34d399" font-size="13" font-family="monospace">→</text>
+  <text x="55" y="60" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">I={fmt(itot)}A</text>
+  <!-- 요약 박스 -->
+  <rect x="80" y="210" width="240" height="28" fill="#1e293b" rx="8"/>
+  <text x="200" y="228" text-anchor="middle" fill="#a5b4fc" font-size="11" font-family="monospace">R_eq={fmt(req)}Ω  |  I_total={fmt(itot)}A</text>
+</svg>"""
+
 # ── 공통 스타일 시트 ──────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -165,7 +259,7 @@ with tab_series:
 
     st.markdown("<div class='step-header'>🎛️ 2. 실시간 대화형 수식 유도 시뮬레이션 (직렬)</div>", unsafe_allow_html=True)
     
-    col_ctrl_s, col_eq_s = st.columns([1, 2])
+    col_ctrl_s, col_circ_s, col_eq_s = st.columns([1, 1.4, 2])
     with col_ctrl_s:
         s_v = st.slider("입력 전압 (V)", 1, 24, 12, key="rfs_s_v")
         s_r1 = st.slider("저항 R1 (Ω)", 1, 20, 4, key="rfs_s_r1")
@@ -179,7 +273,10 @@ with tab_series:
         s_p1 = (s_i ** 2) * s_r1
         s_p2 = (s_i ** 2) * s_r2
         s_ptot = s_p1 + s_p2
-        
+
+    with col_circ_s:
+        st.markdown(series_circuit_svg(s_v, s_r1, s_r2, fmt(s_i), fmt(s_v1), fmt(s_v2), fmt(s_req), fmt(s_p1), fmt(s_p2)), unsafe_allow_html=True)
+
     with col_eq_s:
         st.markdown("<div class='formula-block'>", unsafe_allow_html=True)
         st.write("#### 📐 단계별 대수 수식 유도 과정")
@@ -275,7 +372,7 @@ with tab_parallel:
 
     st.markdown("<div class='step-header'>🎛️ 2. 실시간 대화형 수식 유도 시뮬레이션 (병렬)</div>", unsafe_allow_html=True)
     
-    col_ctrl_p, col_eq_p = st.columns([1, 2])
+    col_ctrl_p, col_circ_p, col_eq_p = st.columns([1, 1.4, 2])
     with col_ctrl_p:
         p_v = st.slider("입력 전압 (V)", 1, 24, 12, key="rfs_p_v")
         p_r1 = st.slider("저항 R1 (Ω)", 1, 20, 6, key="rfs_p_r1")
@@ -289,7 +386,10 @@ with tab_parallel:
         p_p1 = (p_v ** 2) / p_r1
         p_p2 = (p_v ** 2) / p_r2
         p_ptot = p_p1 + p_p2
-        
+
+    with col_circ_p:
+        st.markdown(parallel_circuit_svg(p_v, p_r1, p_r2, fmt(p_i1), fmt(p_i2), fmt(p_i_tot), fmt(p_req), fmt(p_p1), fmt(p_p2)), unsafe_allow_html=True)
+
     with col_eq_p:
         st.markdown("<div class='formula-block'>", unsafe_allow_html=True)
         st.write("#### 📐 단계별 대수 수식 유도 과정")
