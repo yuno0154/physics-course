@@ -189,7 +189,7 @@ if 'ws_submits' not in st.session_state:
 # 헤더 섹션
 # ══════════════════════════════════════════════════════════════
 st.markdown("<h1 class='main-title'>🔌 저항의 연결과 소비 전력 탐구실</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #94a3b8; font-size: 0.95rem; margin-top: -5px;'>실제 물리학 탐구 활동지(Worksheet)의 흐름에 맞춰 미시적 거동, 대수 증명, 가상 실험실 및 실생활 문제를 단계별로 통합 해결합니다.</p>", unsafe_allow_html=True)
+
 
 st.markdown("""
 <div class='inquiry-card'>
