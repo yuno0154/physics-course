@@ -101,10 +101,10 @@ fig.add_trace(go.Scatter(x=[p1[0], p2[0]], y=[p1[1], p2[1]], mode='markers+text'
                          marker=dict(color=['blue', 'red'], size=12), showlegend=False))
 
 # 범례
-fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='변위 Δr⃗', line=dict(color='purple', width=4)))
-fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='평균 속도 v⃗<sub>avg</sub>', line=dict(color='rgba(34, 139, 34, 0.7)', width=5)))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='변위 Δr→', line=dict(color='purple', width=4)))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='평균 속도 v→<sub>avg</sub>', line=dict(color='rgba(34, 139, 34, 0.7)', width=5)))
 if mode == "순간 속도 모드":
-    fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='순간 속도 v⃗<sub>inst</sub>', line=dict(color='darkgreen', width=8)))
+    fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='순간 속도 v→<sub>inst</sub>', line=dict(color='darkgreen', width=8)))
 
 fig.update_layout(height=650, showlegend=True, 
                   margin=dict(l=20, r=20, t=20, b=20),
