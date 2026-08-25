@@ -1,4 +1,4 @@
-<title>벡터 학습 시뮬레이터</title>
+﻿<title>벡터 학습 시뮬레이터</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap">
 
 <style>
@@ -502,7 +502,7 @@ const C = {
   x: '#0369A1',
   y: '#BE185D',
   names: ['A','B','C','D'],
-  arrows: ['A⃗','B⃗','C⃗','D⃗','R⃗']
+  arrows: ['A→','B→','C→','D→','R→']
 };
 
 const CANVAS = document.getElementById('vc');
@@ -522,11 +522,11 @@ let vecs = [
 
 // Mode 3 visibility flags
 let vis3 = {
-  vecA:   true,   // 벡터 A⃗
-  vecB:   true,   // 벡터 B⃗
+  vecA:   true,   // 벡터 A→
+  vecB:   true,   // 벡터 B→
   compX:  true,   // x축 성분 화살표 (Aₓ, Bₓ)
   compY:  true,   // y축 성분 화살표 (Aᵧ, Bᵧ)
-  result: true,   // 합성벡터 R⃗ + Rₓ Rᵧ
+  result: true,   // 합성벡터 R→ + Rₓ Rᵧ
   guide:  true,   // 점선 안내선
 };
 
@@ -811,8 +811,8 @@ function buildVis3() {
     <div class="vis-group">
       <div class="vis-group-lbl">벡터</div>
       <div class="vis-chips">
-        ${chip('vecA', 'A⃗', C.v[0])}
-        ${chip('vecB', 'B⃗', C.v[1])}
+        ${chip('vecA', 'A→', C.v[0])}
+        ${chip('vecB', 'B→', C.v[1])}
       </div>
     </div>
     <div class="vis-group">
@@ -825,7 +825,7 @@ function buildVis3() {
     <div class="vis-group">
       <div class="vis-group-lbl">기타</div>
       <div class="vis-chips">
-        ${chip('result', '합성 R⃗', C.r)}
+        ${chip('result', '합성 R→', C.r)}
         ${chip('guide', '안내선', '#64748B')}
       </div>
     </div>
@@ -855,10 +855,10 @@ function buildResults() {
     if (rang < 0) rang += 360;
 
     h = `<div class="ctrl-section">
-      <div class="ctrl-label">합성 벡터 R⃗</div>
+      <div class="ctrl-label">합성 벡터 R→</div>
       <div class="result-grid">
         <div class="r-card">
-          <div class="r-lbl">크기 |R⃗|</div>
+          <div class="r-lbl">크기 |R→|</div>
           <div class="r-val" style="color:${C.r}">${rmag.toFixed(2)}</div>
         </div>
         <div class="r-card">
@@ -882,14 +882,14 @@ function buildResults() {
     h = `<div class="ctrl-section">
       <div class="ctrl-label">분해 결과</div>
       <div class="formula">
-        <span style="color:${C.v[0]};font-weight:700">A⃗</span> = (<span class="hl">${c.x.toFixed(3)}</span>, <span class="hl">${c.y.toFixed(3)}</span>)<br>
-        Aₓ = |A⃗| cos θ<br>
+        <span style="color:${C.v[0]};font-weight:700">A→</span> = (<span class="hl">${c.x.toFixed(3)}</span>, <span class="hl">${c.y.toFixed(3)}</span>)<br>
+        Aₓ = |A→| cos θ<br>
         &nbsp;&nbsp; = <span class="hl">${v.mag.toFixed(1)}</span> × cos <span class="hl">${v.angle}°</span><br>
         &nbsp;&nbsp; = <span class="hl" style="color:${C.x}">${c.x.toFixed(4)}</span><br>
-        Aᵧ = |A⃗| sin θ<br>
+        Aᵧ = |A→| sin θ<br>
         &nbsp;&nbsp; = <span class="hl">${v.mag.toFixed(1)}</span> × sin <span class="hl">${v.angle}°</span><br>
         &nbsp;&nbsp; = <span class="hl" style="color:${C.y}">${c.y.toFixed(4)}</span><br>
-        |A⃗| = √(Aₓ²+Aᵧ²) = <span class="hl">${v.mag.toFixed(2)}</span>
+        |A→| = √(Aₓ²+Aᵧ²) = <span class="hl">${v.mag.toFixed(2)}</span>
       </div>
     </div>`;
   }
@@ -904,24 +904,24 @@ function buildResults() {
         <thead><tr><th>벡터</th><th>x 성분</th><th>y 성분</th></tr></thead>
         <tbody>
           <tr>
-            <td style="color:${C.v[0]};font-weight:700">A⃗</td>
+            <td style="color:${C.v[0]};font-weight:700">A→</td>
             <td style="color:${C.x}">${c1.x.toFixed(3)}</td>
             <td style="color:${C.y}">${c1.y.toFixed(3)}</td>
           </tr>
           <tr>
-            <td style="color:${C.v[1]};font-weight:700">B⃗</td>
+            <td style="color:${C.v[1]};font-weight:700">B→</td>
             <td style="color:${C.x}">${c2.x.toFixed(3)}</td>
             <td style="color:${C.y}">${c2.y.toFixed(3)}</td>
           </tr>
           <tr class="total-row">
-            <td style="color:${C.r};font-weight:700">R⃗</td>
+            <td style="color:${C.r};font-weight:700">R→</td>
             <td style="color:${C.x};font-weight:700">${rx.toFixed(3)}</td>
             <td style="color:${C.y};font-weight:700">${ry.toFixed(3)}</td>
           </tr>
         </tbody>
       </table>
       <div class="formula">
-        |R⃗| = √(Rₓ² + Rᵧ²)<br>
+        |R→| = √(Rₓ² + Rᵧ²)<br>
         &nbsp;&nbsp;&nbsp; = √(<span class="hl">${rx.toFixed(3)}</span>² + <span class="hl">${ry.toFixed(3)}</span>²)<br>
         &nbsp;&nbsp;&nbsp; = <span class="hl" style="color:${C.r};font-size:1rem">${rmag.toFixed(4)}</span>
       </div>
@@ -934,30 +934,30 @@ function buildResults() {
 function buildLegend() {
   const modeLabels = [
     [
-      { color: C.v[0], label: '벡터 A⃗' },
-      { color: C.v[1], label: '벡터 B⃗' },
-      { color: C.r,   label: '합성벡터 R⃗' },
+      { color: C.v[0], label: '벡터 A→' },
+      { color: C.v[1], label: '벡터 B→' },
+      { color: C.r,   label: '합성벡터 R→' },
       { color: '#64748B', label: '평행사변형', dashed: true }
     ],
     null,  // built dynamically below
     [
-      { color: C.v[0], label: '벡터 A⃗' },
+      { color: C.v[0], label: '벡터 A→' },
       { color: C.x,   label: 'x 성분 Aₓ' },
       { color: C.y,   label: 'y 성분 Aᵧ' }
     ],
     [
-      { color: C.v[0], label: '벡터 A⃗' },
-      { color: C.v[1], label: '벡터 B⃗' },
+      { color: C.v[0], label: '벡터 A→' },
+      { color: C.v[1], label: '벡터 B→' },
       { color: C.x,   label: 'x 성분' },
       { color: C.y,   label: 'y 성분' },
-      { color: C.r,   label: '합성벡터 R⃗' }
+      { color: C.r,   label: '합성벡터 R→' }
     ]
   ];
 
   let items = modeLabels[mode];
   if (mode === 1) {
-    items = vecs.map((_, i) => ({ color: C.v[i], label: `벡터 ${C.names[i]}⃗` }));
-    items.push({ color: C.r, label: '합성벡터 R⃗' });
+    items = vecs.map((_, i) => ({ color: C.v[i], label: `벡터 ${C.names[i]}→` }));
+    items.push({ color: C.r, label: '합성벡터 R→' });
   }
 
   document.getElementById('legend').innerHTML = items.map(it =>

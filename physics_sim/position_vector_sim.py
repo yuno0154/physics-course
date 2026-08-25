@@ -43,21 +43,21 @@ fig.add_annotation(x=ax, y=ay, ax=0, ay=0, xref="x", yref="y", axref="x", ayref=
                    text="", showarrow=True, arrowhead=3, arrowsize=1, arrowwidth=3, arrowcolor="blue")
 fig.add_annotation(x=ax/2, y=ay/2, text="<b><i>r</i>&#x20d7;<sub>A</sub></b>", showarrow=False, 
                    font=dict(color="blue", size=18), xshift=15, yshift=15)
-fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='위치 벡터 r⃗<sub>A</sub>', line=dict(color='blue', width=3)))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='위치 벡터 r→<sub>A</sub>', line=dict(color='blue', width=3)))
 
 # 4. 위치 벡터 B (Origin -> B)
 fig.add_annotation(x=bx, y=by, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y",
                    text="", showarrow=True, arrowhead=3, arrowsize=1, arrowwidth=3, arrowcolor="red")
 fig.add_annotation(x=bx/2, y=by/2, text="<b><i>r</i>&#x20d7;<sub>B</sub></b>", showarrow=False, 
                    font=dict(color="red", size=18), xshift=15, yshift=15)
-fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='위치 벡터 r⃗<sub>B</sub>', line=dict(color='red', width=3)))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='위치 벡터 r→<sub>B</sub>', line=dict(color='red', width=3)))
 
 # 5. 변위 벡터 (A -> B)
 fig.add_annotation(x=bx, y=by, ax=ax, ay=ay, xref="x", yref="y", axref="x", ayref="y",
                    text="", showarrow=True, arrowhead=3, arrowsize=1, arrowwidth=4, arrowcolor="purple")
 fig.add_annotation(x=(ax+bx)/2, y=(ay+by)/2, text="<b>Δ<i>r</i>&#x20d7;</b>", showarrow=False, 
                    font=dict(color="purple", size=20), xshift=20, yshift=20)
-fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='변위 벡터 Δr⃗', line=dict(color='purple', width=4)))
+fig.add_trace(go.Scatter(x=[None], y=[None], mode='lines', name='변위 벡터 Δr→', line=dict(color='purple', width=4)))
 
 # 6. 점 A, B 표시
 fig.add_trace(go.Scatter(x=[ax, bx], y=[ay, by], mode='markers+text', 
