@@ -1,4 +1,4 @@
-﻿<title>벡터 학습 시뮬레이터</title>
+<title>벡터 학습 시뮬레이터</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap">
 
 <style>
@@ -520,7 +520,19 @@ let vecs = [
   { mag: 4, angle: 315 }
 ];
 
-// Mode 3 visibility flags
+// Mode visibility flags
+let vis0 = {
+  vecA:   true,   // 벡터 A→
+  vecB:   true,   // 벡터 B→
+  result: false,  // 합성벡터 R→ (Default false!)
+  guide:  true,   // 평행사변형 안내선
+};
+
+let vis1 = {
+  vecs:   [true, true, true, true], // 각 인덱스별 활성 상태
+  result: false,  // 합성벡터 R→ (Default false!)
+};
+
 let vis3 = {
   vecA:   true,   // 벡터 A→
   vecB:   true,   // 벡터 B→
@@ -696,14 +708,22 @@ function render0() {   // 2-vector parallelogram
   const rx = ca.x + cb.x, ry = ca.y + cb.y;
 
   // parallelogram dashes
-  dashedLine(ca.x, ca.y, ca.x + cb.x, ca.y + cb.y, '#64748B');
-  dashedLine(cb.x, cb.y, cb.x + ca.x, cb.y + ca.y, '#64748B');
+  if (vis0.guide && vis0.vecA && vis0.vecB && vis0.result) {
+    dashedLine(ca.x, ca.y, ca.x + cb.x, ca.y + cb.y, '#64748B');
+    dashedLine(cb.x, cb.y, cb.x + ca.x, cb.y + ca.y, '#64748B');
+  }
 
-  arrow(0, 0, ca.x, ca.y, C.v[0], 3, C.arrows[0]);
-  angleArc(0, 0, vecs[0].angle, C.v[0], 28);
-  arrow(0, 0, cb.x, cb.y, C.v[1], 3, C.arrows[1]);
-  angleArc(0, 0, vecs[1].angle, C.v[1], 40);
-  arrow(0, 0, rx, ry, C.r, 3.5, C.arrows[4]);
+  if (vis0.vecA) {
+    arrow(0, 0, ca.x, ca.y, C.v[0], 3, C.arrows[0]);
+    angleArc(0, 0, vecs[0].angle, C.v[0], 28);
+  }
+  if (vis0.vecB) {
+    arrow(0, 0, cb.x, cb.y, C.v[1], 3, C.arrows[1]);
+    angleArc(0, 0, vecs[1].angle, C.v[1], 40);
+  }
+  if (vis0.result) {
+    arrow(0, 0, rx, ry, C.r, 3.5, C.arrows[4]);
+  }
 }
 
 function render1() {   // tip-to-tail
@@ -712,10 +732,14 @@ function render1() {   // tip-to-tail
   const comps = vecs.map(v => cmp(v));
 
   comps.forEach((c, i) => {
-    arrow(hx, hy, hx + c.x, hy + c.y, C.v[i], 2.5, C.arrows[i]);
-    hx += c.x; hy += c.y;
+    if (vis1.vecs[i]) {
+      arrow(hx, hy, hx + c.x, hy + c.y, C.v[i], 2.5, C.arrows[i]);
+      hx += c.x; hy += c.y;
+    }
   });
-  arrow(0, 0, hx, hy, C.r, 3.5, C.arrows[4]);
+  if (vis1.result) {
+    arrow(0, 0, hx, hy, C.r, 3.5, C.arrows[4]);
+  }
 }
 
 function render2() {   // decomposition
@@ -783,15 +807,23 @@ function vecCard(i, removable) {
     <div class="slider-row">
       <div class="slider-field">
         <label>크기 (magnitude)</label>
-        <input type="range" min="1" max="10" step="0.5" value="${v.mag}"
-          oninput="upd(${i},'mag',this.value)">
-        <div class="slider-val" id="sv-${i}-m">${v.mag.toFixed(1)}</div>
+        <div class="input-row" style="display:flex; align-items:center; gap:8px;">
+          <input type="range" id="slide-${i}-m" min="1" max="10" step="0.5" value="${v.mag}"
+            oninput="upd(${i},'mag',this.value)" style="flex:1;">
+          <input type="number" id="num-${i}-m" min="1" max="10" step="0.5" value="${v.mag}"
+            oninput="upd(${i},'mag',this.value)"
+            style="width:55px; font-family:'Space Mono', monospace; font-size:0.78rem; border:1px solid var(--border); border-radius:4px; padding:2px 4px; text-align:right; background:var(--panel); color:var(--text);">
+        </div>
       </div>
       <div class="slider-field">
         <label>방향 (angle, °)</label>
-        <input type="range" min="0" max="359" step="1" value="${v.angle}"
-          oninput="upd(${i},'angle',this.value)">
-        <div class="slider-val" id="sv-${i}-a">${v.angle.toFixed(0)}°</div>
+        <div class="input-row" style="display:flex; align-items:center; gap:8px;">
+          <input type="range" id="slide-${i}-a" min="0" max="359" step="1" value="${v.angle}"
+            oninput="upd(${i},'angle',this.value)" style="flex:1;">
+          <input type="number" id="num-${i}-a" min="0" max="359" step="1" value="${v.angle}"
+            oninput="upd(${i},'angle',this.value)"
+            style="width:55px; font-family:'Space Mono', monospace; font-size:0.78rem; border:1px solid var(--border); border-radius:4px; padding:2px 4px; text-align:right; background:var(--panel); color:var(--text);">
+        </div>
       </div>
     </div>
   </div>`;
@@ -802,6 +834,70 @@ function chip(key, label, color) {
   return `<button class="vis-chip ${on ? 'on' : ''}"
     style="${on ? `background:${color};` : `color:${color};border-color:${color}40;`}"
     onclick="toggleVis3('${key}')">${label}</button>`;
+}
+
+function buildVis0() {
+  const chip0 = (key, label, color) => {
+    const on = vis0[key];
+    return `<button class="vis-chip ${on ? 'on' : ''}"
+      style="${on ? `background:${color};` : `color:${color};border-color:${color}40;`}"
+      onclick="toggleVis0('${key}')">${label}</button>`;
+  };
+  return `
+  <div class="vis-section">
+    <div class="ctrl-label" style="margin-bottom:10px">표시 설정</div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">벡터</div>
+      <div class="vis-chips">
+        ${chip0('vecA', 'A→', C.v[0])}
+        ${chip0('vecB', 'B→', C.v[1])}
+      </div>
+    </div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">기타</div>
+      <div class="vis-chips">
+        ${chip0('result', '합성 R→', C.r)}
+        ${chip0('guide', '평행사변형', '#64748B')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildVis1() {
+  const chip1_vec = (idx, label, color) => {
+    const on = vis1.vecs[idx];
+    return `<button class="vis-chip ${on ? 'on' : ''}"
+      style="${on ? `background:${color};` : `color:${color};border-color:${color}40;`}"
+      onclick="toggleVis1Vec(${idx})">${label}</button>`;
+  };
+  const chip1_res = (label, color) => {
+    const on = vis1.result;
+    return `<button class="vis-chip ${on ? 'on' : ''}"
+      style="${on ? `background:${color};` : `color:${color};border-color:${color}40;`}"
+      onclick="toggleVis1Res()">${label}</button>`;
+  };
+
+  let vecChips = '';
+  for (let i = 0; i < vecs.length; i++) {
+    vecChips += chip1_vec(i, `${C.names[i]}→`, C.v[i]);
+  }
+
+  return `
+  <div class="vis-section">
+    <div class="ctrl-label" style="margin-bottom:10px">표시 설정</div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">벡터</div>
+      <div class="vis-chips">
+        ${vecChips}
+      </div>
+    </div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">기타</div>
+      <div class="vis-chips">
+        ${chip1_res('합성 R→', C.r)}
+      </div>
+    </div>
+  </div>`;
 }
 
 function buildVis3() {
@@ -840,6 +936,8 @@ function buildInputs() {
     h += `<button class="add-btn" onclick="addVec()">+ 벡터 추가 (${vecs.length}/4)</button>`;
   }
   h += '</div>';
+  if (mode === 0) h += buildVis0();
+  if (mode === 1) h += buildVis1();
   if (mode === 3) h += buildVis3();
   document.getElementById('ctrl-inputs').innerHTML = h;
 }
@@ -932,32 +1030,29 @@ function buildResults() {
 }
 
 function buildLegend() {
-  const modeLabels = [
-    [
-      { color: C.v[0], label: '벡터 A→' },
-      { color: C.v[1], label: '벡터 B→' },
-      { color: C.r,   label: '합성벡터 R→' },
-      { color: '#64748B', label: '평행사변형', dashed: true }
-    ],
-    null,  // built dynamically below
-    [
+  let items = [];
+  if (mode === 0) {
+    if (vis0.vecA) items.push({ color: C.v[0], label: '벡터 A→' });
+    if (vis0.vecB) items.push({ color: C.v[1], label: '벡터 B→' });
+    if (vis0.result) items.push({ color: C.r,   label: '합성벡터 R→' });
+    if (vis0.guide && vis0.vecA && vis0.vecB && vis0.result) items.push({ color: '#64748B', label: '평행사변형', dashed: true });
+  } else if (mode === 1) {
+    vecs.forEach((_, i) => {
+      if (vis1.vecs[i]) items.push({ color: C.v[i], label: `벡터 ${C.names[i]}→` });
+    });
+    if (vis1.result) items.push({ color: C.r, label: '합성벡터 R→' });
+  } else if (mode === 2) {
+    items = [
       { color: C.v[0], label: '벡터 A→' },
       { color: C.x,   label: 'x 성분 Aₓ' },
       { color: C.y,   label: 'y 성분 Aᵧ' }
-    ],
-    [
-      { color: C.v[0], label: '벡터 A→' },
-      { color: C.v[1], label: '벡터 B→' },
-      { color: C.x,   label: 'x 성분' },
-      { color: C.y,   label: 'y 성분' },
-      { color: C.r,   label: '합성벡터 R→' }
-    ]
-  ];
-
-  let items = modeLabels[mode];
-  if (mode === 1) {
-    items = vecs.map((_, i) => ({ color: C.v[i], label: `벡터 ${C.names[i]}→` }));
-    items.push({ color: C.r, label: '합성벡터 R→' });
+    ];
+  } else if (mode === 3) {
+    if (vis3.vecA) items.push({ color: C.v[0], label: '벡터 A→' });
+    if (vis3.vecB) items.push({ color: C.v[1], label: '벡터 B→' });
+    if (vis3.compX) items.push({ color: C.x,   label: 'x 성분' });
+    if (vis3.compY) items.push({ color: C.y,   label: 'y 성분' });
+    if (vis3.result) items.push({ color: C.r,   label: '합성벡터 R→' });
   }
 
   document.getElementById('legend').innerHTML = items.map(it =>
@@ -970,20 +1065,59 @@ function buildLegend() {
 
 // ─── Event handlers ──────────────────────────────────────────────────────────
 function upd(i, key, val) {
-  vecs[i][key] = parseFloat(val);
-  const mEl = document.getElementById(`sv-${i}-m`);
-  const aEl = document.getElementById(`sv-${i}-a`);
-  if (mEl) mEl.textContent = vecs[i].mag.toFixed(1);
-  if (aEl) aEl.textContent = vecs[i].angle.toFixed(0) + '°';
+  let parsed = parseFloat(val);
+  if (isNaN(parsed)) return;
+
+  if (key === 'mag') {
+    if (parsed < 1) parsed = 1;
+    if (parsed > 10) parsed = 10;
+    vecs[i].mag = parsed;
+    const slideEl = document.getElementById(`slide-${i}-m`);
+    const numEl = document.getElementById(`num-${i}-m`);
+    if (slideEl) slideEl.value = parsed;
+    if (numEl) numEl.value = parsed;
+  } else if (key === 'angle') {
+    parsed = (parsed % 360 + 360) % 360;
+    vecs[i].angle = parsed;
+    const slideEl = document.getElementById(`slide-${i}-a`);
+    const numEl = document.getElementById(`num-${i}-a`);
+    if (slideEl) slideEl.value = parsed;
+    if (numEl) numEl.value = parsed;
+  }
+
   buildResults();
   renderers[mode]();
 }
 
+function toggleVis0(key) {
+  vis0[key] = !vis0[key];
+  const existing = document.querySelector('.vis-section');
+  if (existing) existing.outerHTML = buildVis0();
+  buildLegend();
+  render0();
+}
+
+function toggleVis1Vec(idx) {
+  vis1.vecs[idx] = !vis1.vecs[idx];
+  const existing = document.querySelector('.vis-section');
+  if (existing) existing.outerHTML = buildVis1();
+  buildLegend();
+  render1();
+}
+
+function toggleVis1Res() {
+  vis1.result = !vis1.result;
+  const existing = document.querySelector('.vis-section');
+  if (existing) existing.outerHTML = buildVis1();
+  buildLegend();
+  render1();
+}
+
 function toggleVis3(key) {
   vis3[key] = !vis3[key];
-  // Swap only the vis chips section — sliders are untouched
   const existing = document.querySelector('.vis-section');
   if (existing) existing.outerHTML = buildVis3();
+  buildLegend();
   render3();
 }
 
@@ -1002,17 +1136,21 @@ function setMode(m) {
 function addVec() {
   if (vecs.length >= 4) return;
   vecs.push({ mag: 3, angle: 90 * vecs.length });
+  vis1.vecs[vecs.length - 1] = true;
   buildInputs(); buildResults(); buildLegend(); renderers[mode]();
 }
 
 function removeVec(i) {
   if (vecs.length <= 2) return;
   vecs.splice(i, 1);
+  vis1.vecs.splice(i, 1);
   buildInputs(); buildResults(); buildLegend(); renderers[mode]();
 }
 
 function resetAll() {
   vecs = [{ mag: 5, angle: 45 }, { mag: 4, angle: 315 }];
+  vis0 = { vecA: true, vecB: true, result: false, guide: true };
+  vis1 = { vecs: [true, true, true, true], result: false };
   vis3 = { vecA: true, vecB: true, compX: true, compY: true, result: true, guide: true };
   buildInputs(); buildResults(); buildLegend(); renderers[mode]();
 }
