@@ -21,8 +21,9 @@ st.set_page_config(
 # 1. 페이지 정의
 home_page = st.Page("home.py", title="🏠 홈 (Home)", default=True)
 
-# 1. 위치와 속도 섹션 (트리 구조)
-vector_page = st.Page("physics_sim/vector_sim.py", title="📍 [기학] 위치 벡터와 변위")
+# 1. 힘의 합성과 운동 예측 섹션 (트리 구조)
+vector_decomp_page = st.Page("physics_sim/vector_sim.py", title="📍 [기학] 벡터의 합성과 분해")
+position_vector_page = st.Page("physics_sim/position_vector_sim.py", title="📍 [기학] 위치 벡터와 변위")
 velocity_page = st.Page("physics_sim/velocity_sim.py", title="🚀 [기학] 평균 속도 탐구")
 
 # 2. 가속도와 포물선 운동 섹션
@@ -83,10 +84,13 @@ resistor_formula_page = st.Page("physics_sim/resistor_formula_sim.py", title="�
 resistor_connection_page = st.Page("physics_sim/resistor_connection_sim.py", title="🔌 [탐구] 저항의 연결과 소비 전력")
 market_resistor_page = st.Page("physics_sim/market_resistor_sim.py", title="🔌 [융합] 직류 회로와 시장 원리의 구조적 전이 탐구")
 
+# 10. 트랜지스터 섹션 (신규)
+transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] PNP BJT 트랜지스터의 동작 원리와 포화")
+
 # 네비게이션 구성
 pg = st.navigation({
     "🏠 메인": [home_page],
-    "📍 학습주제 1: 위치와 속도": [vector_page, velocity_page],
+    "📍 학습 주제1: 힘의 합성과 운동 예측": [vector_decomp_page, position_vector_page, velocity_page],
     "🏀 학습주제 2: 포물선 운동": [
         accel_page, 
         horizontal_page, 
@@ -141,6 +145,9 @@ pg = st.navigation({
         resistor_formula_page,
         resistor_connection_page,
         market_resistor_page
+    ],
+    "🔌 학습주제 9: 트랜지스터": [
+        transistor_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page

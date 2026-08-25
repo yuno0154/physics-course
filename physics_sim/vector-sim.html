@@ -1,0 +1,1035 @@
+<title>벡터 학습 시뮬레이터</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap">
+
+<style>
+:root {
+  --bg: #EEF3FA;
+  --panel: #FFFFFF;
+  --border: #D1DCF0;
+  --text: #1A2640;
+  --muted: #6478A0;
+  --faint: #F4F7FD;
+  --grid-minor: #DAEAFF;
+  --grid-major: #B8CFEE;
+  --grid-axis: #7A99CC;
+  --grid-bg: #FAFCFF;
+  --v0: #2563EB;
+  --v1: #DC2626;
+  --v2: #16A34A;
+  --v3: #9333EA;
+  --vr: #EA580C;
+  --vx: #0369A1;
+  --vy: #BE185D;
+  --shadow: 0 1px 4px rgba(20,40,100,0.08), 0 4px 16px rgba(20,40,100,0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120;
+    --panel: #131B2E;
+    --border: #1F2E4A;
+    --text: #C8D8F8;
+    --muted: #6878A0;
+    --faint: #0F1928;
+    --grid-minor: #141F33;
+    --grid-major: #1A2B45;
+    --grid-axis: #2E4668;
+    --grid-bg: #0D1626;
+    --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0B1120;
+  --panel: #131B2E;
+  --border: #1F2E4A;
+  --text: #C8D8F8;
+  --muted: #6878A0;
+  --faint: #0F1928;
+  --grid-minor: #141F33;
+  --grid-major: #1A2B45;
+  --grid-axis: #2E4668;
+  --grid-bg: #0D1626;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+/* ── Header ── */
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 52px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brand-icon {
+  width: 30px; height: 30px;
+  background: var(--v0);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.brand-icon svg { display: block; }
+
+.brand-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* ── Mode tabs ── */
+.tabs {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 6px 0;
+}
+
+.tab {
+  padding: 5px 13px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 6px;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+}
+
+.tab:hover { background: var(--faint); color: var(--text); }
+.tab.active { background: #2563EB18; color: var(--v0); font-weight: 700; }
+
+.header-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+.btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.btn:hover { border-color: var(--v0); color: var(--v0); }
+
+.btn-print {
+  background: var(--v0);
+  color: white;
+  border-color: var(--v0);
+}
+
+.btn-print:hover { opacity: 0.88; color: white; border-color: var(--v0); }
+
+/* ── Layout ── */
+main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Controls ── */
+.controls {
+  width: 270px;
+  min-width: 270px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.ctrl-section {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ctrl-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ── Vector card ── */
+.vec-card {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 12px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.vec-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.vec-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.vec-name { font-size: 0.88rem; font-weight: 700; }
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.slider-field { display: flex; flex-direction: column; gap: 3px; }
+
+.slider-field label {
+  font-size: 0.67rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.slider-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--v0);
+  cursor: pointer;
+}
+
+.slider-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.76rem;
+  color: var(--text);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 7px; right: 8px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--faint);
+  color: var(--muted);
+  font-size: 0.78rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+  transition: border-color 0.12s, color 0.12s;
+}
+.remove-btn:hover { border-color: var(--v1); color: var(--v1); }
+
+.add-btn {
+  width: 100%;
+  padding: 7px;
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.add-btn:hover { border-color: var(--v0); color: var(--v0); }
+
+/* ── Results ── */
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.r-card {
+  background: var(--faint);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.r-lbl {
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-bottom: 3px;
+}
+
+.r-val {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Component table ── */
+.comp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+}
+
+.comp-table th {
+  padding: 5px 8px;
+  text-align: center;
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 700;
+  border-bottom: 1.5px solid var(--border);
+}
+
+.comp-table td {
+  padding: 6px 8px;
+  text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.79rem;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid var(--border);
+}
+
+.comp-table .total-row td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+  border-bottom: none;
+  background: var(--faint);
+}
+
+/* ── Visibility toggles (mode 3) ── */
+.vis-section { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+
+.vis-group { margin-bottom: 9px; }
+.vis-group:last-child { margin-bottom: 0; }
+
+.vis-group-lbl {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.vis-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+
+.vis-chip {
+  padding: 4px 11px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, opacity 0.12s;
+  line-height: 1.4;
+}
+
+.vis-chip.on { color: white; border-color: transparent; }
+.vis-chip:not(.on) { opacity: 0.65; }
+.vis-chip:hover { opacity: 1; }
+
+/* ── Formula box ── */
+.formula {
+  background: var(--faint);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.79rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+.formula .hl {
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.77rem;
+}
+
+/* ── Canvas area ── */
+.canvas-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  gap: 12px;
+  overflow: auto;
+  background: var(--bg);
+}
+
+#vc {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  display: block;
+  max-width: 100%;
+}
+
+.legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.leg-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.leg-line { width: 18px; height: 3px; border-radius: 2px; flex-shrink: 0; }
+.leg-dashed { background: repeating-linear-gradient(90deg, currentColor 0,currentColor 4px,transparent 4px,transparent 7px); height: 2px; }
+
+.canvas-note {
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ── Print ── */
+@media print {
+  body { background: white; }
+  header, .controls, .legend, .canvas-note { display: none !important; }
+  main { display: block; }
+  .canvas-wrap { padding: 0; }
+  #vc { box-shadow: none; border: 1px solid #ccc; max-width: none; }
+  .print-head { display: block !important; }
+}
+
+.print-head {
+  display: none;
+  font-size: 14pt;
+  font-weight: bold;
+  margin-bottom: 8pt;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+</style>
+
+<!-- Print header (hidden on screen) -->
+<div class="print-head" id="printHead">벡터 학습 활동지</div>
+
+<header>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M2 8h11M9 4l4 4-4 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="brand-name">벡터 학습 시뮬레이터</span>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" onclick="setMode(0)">① 벡터 합성 (2개)</button>
+    <button class="tab" onclick="setMode(1)">② 다중 벡터 합성</button>
+    <button class="tab" onclick="setMode(2)">③ 벡터 분해</button>
+    <button class="tab" onclick="setMode(3)">④ 성분으로 합성</button>
+  </nav>
+
+  <div class="header-actions">
+    <button class="btn" onclick="resetAll()">↺ 초기화</button>
+    <button class="btn btn-print" onclick="printPage()">🖨 인쇄</button>
+  </div>
+</header>
+
+<main>
+  <aside class="controls">
+    <div id="ctrl-inputs"></div>
+    <div id="ctrl-results"></div>
+  </aside>
+
+  <div class="canvas-wrap">
+    <div class="print-head" id="printHead2"></div>
+    <canvas id="vc" width="620" height="560"></canvas>
+    <div class="legend" id="legend"></div>
+    <div class="canvas-note">눈금 1칸 = 1단위 &nbsp;|&nbsp; 슬라이더로 벡터 조정</div>
+  </div>
+</main>
+
+<script>
+// ─── Config ─────────────────────────────────────────────────────────────────
+const C = {
+  v: ['#2563EB','#DC2626','#16A34A','#9333EA'],
+  r: '#EA580C',
+  x: '#0369A1',
+  y: '#BE185D',
+  names: ['A','B','C','D'],
+  arrows: ['A⃗','B⃗','C⃗','D⃗','R⃗']
+};
+
+const CANVAS = document.getElementById('vc');
+const ctx = CANVAS.getContext('2d');
+const W = CANVAS.width, H = CANVAS.height;
+const SCALE = 43;   // px per unit
+const OX = W / 2, OY = H / 2;
+
+function toC(x, y) { return [OX + x * SCALE, OY - y * SCALE]; }
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let mode = 0;
+let vecs = [
+  { mag: 5, angle: 45 },
+  { mag: 4, angle: 315 }
+];
+
+// Mode 3 visibility flags
+let vis3 = {
+  vecA:   true,   // 벡터 A⃗
+  vecB:   true,   // 벡터 B⃗
+  compX:  true,   // x축 성분 화살표 (Aₓ, Bₓ)
+  compY:  true,   // y축 성분 화살표 (Aᵧ, Bᵧ)
+  result: true,   // 합성벡터 R⃗ + Rₓ Rᵧ
+  guide:  true,   // 점선 안내선
+};
+
+function cmp(v) {
+  const r = v.angle * Math.PI / 180;
+  return { x: v.mag * Math.cos(r), y: v.mag * Math.sin(r) };
+}
+
+function isDark() {
+  const dt = document.documentElement.getAttribute('data-theme');
+  if (dt === 'dark') return true;
+  if (dt === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function gc() {
+  return isDark()
+    ? { minor:'#141F33', major:'#1A2B45', axis:'#2E4668', text:'#4A6488', bg:'#0D1626', origin:'#8096B8' }
+    : { minor:'#DAEAFF', major:'#B8CFEE', axis:'#7A99CC', text:'#8096B8', bg:'#FAFCFF', origin:'#4A6488' };
+}
+
+// ─── Drawing ─────────────────────────────────────────────────────────────────
+function drawGrid() {
+  const g = gc();
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = g.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  const minX = Math.floor(-OX / SCALE) - 1;
+  const maxX = Math.ceil((W - OX) / SCALE) + 1;
+  const minY = Math.floor(-(H - OY) / SCALE) - 1;
+  const maxY = Math.ceil(OY / SCALE) + 1;
+
+  // minor grid
+  ctx.strokeStyle = g.minor; ctx.lineWidth = 0.5;
+  for (let x = minX; x <= maxX; x++) {
+    if (x % 5 === 0) continue;
+    const [cx] = toC(x, 0);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  }
+  for (let y = minY; y <= maxY; y++) {
+    if (y % 5 === 0) continue;
+    const [, cy] = toC(0, y);
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  }
+
+  // major grid (every 5)
+  ctx.strokeStyle = g.major; ctx.lineWidth = 1;
+  for (let x = minX; x <= maxX; x++) {
+    if (x % 5 !== 0 || x === 0) continue;
+    const [cx] = toC(x, 0);
+    ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  }
+  for (let y = minY; y <= maxY; y++) {
+    if (y % 5 !== 0 || y === 0) continue;
+    const [, cy] = toC(0, y);
+    ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle = g.axis; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, OY); ctx.lineTo(W, OY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(OX, 0); ctx.lineTo(OX, H); ctx.stroke();
+
+  // tick labels
+  ctx.fillStyle = g.text;
+  ctx.font = '10px Space Mono, monospace';
+  for (let x = minX; x <= maxX; x++) {
+    if (x === 0 || x % 5 !== 0) continue;
+    const [cx] = toC(x, 0);
+    ctx.textAlign = 'center';
+    ctx.fillText(x, cx, OY + 14);
+  }
+  for (let y = minY; y <= maxY; y++) {
+    if (y === 0 || y % 5 !== 0) continue;
+    const [, cy] = toC(0, y);
+    ctx.textAlign = 'right';
+    ctx.fillText(y, OX - 5, cy + 4);
+  }
+
+  // axis name labels
+  ctx.fillStyle = g.axis;
+  ctx.font = 'bold 11px Noto Sans KR, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('x', W - 10, OY - 6);
+  ctx.textAlign = 'left';
+  ctx.fillText('y', OX + 5, 12);
+  ctx.fillStyle = g.origin;
+  ctx.font = '10px Space Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText('O', OX + 5, OY + 14);
+}
+
+function arrow(x1, y1, x2, y2, color, lw, label, dashed) {
+  const [cx1, cy1] = toC(x1, y1);
+  const [cx2, cy2] = toC(x2, y2);
+  const dx = cx2 - cx1, dy = cy2 - cy1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 3) return;
+  const ang = Math.atan2(dy, dx);
+  const hl = 14, hw = 7;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = lw || 2.5;
+  if (dashed) ctx.setLineDash([6, 4]);
+
+  // shaft (stop before arrowhead base)
+  const bx = cx2 - hl * Math.cos(ang);
+  const by = cy2 - hl * Math.sin(ang);
+  ctx.beginPath(); ctx.moveTo(cx1, cy1); ctx.lineTo(bx, by); ctx.stroke();
+
+  // arrowhead
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(cx2, cy2);
+  ctx.lineTo(bx + hw * Math.sin(ang), by - hw * Math.cos(ang));
+  ctx.lineTo(bx - hw * Math.sin(ang), by + hw * Math.cos(ang));
+  ctx.closePath(); ctx.fill();
+
+  // label at midpoint, perpendicular offset
+  if (label) {
+    const mx = (cx1 + cx2) / 2, my = (cy1 + cy2) / 2;
+    const px = -Math.sin(ang) * 17, py = Math.cos(ang) * 17;
+    ctx.font = 'bold 13px Noto Sans KR, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    ctx.fillText(label, mx + px, my + py);
+  }
+  ctx.restore();
+}
+
+function dashedLine(x1, y1, x2, y2, color, alpha) {
+  const [cx1, cy1] = toC(x1, y1);
+  const [cx2, cy2] = toC(x2, y2);
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 1;
+  ctx.setLineDash([5, 4]); ctx.globalAlpha = alpha || 0.45;
+  ctx.beginPath(); ctx.moveTo(cx1, cy1); ctx.lineTo(cx2, cy2); ctx.stroke();
+  ctx.restore();
+}
+
+function angleArc(wx, wy, angleDeg, color, r) {
+  const [cx, cy] = toC(wx, wy);
+  const rad = angleDeg * Math.PI / 180;
+  r = r || 30;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.2; ctx.globalAlpha = 0.55;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, -rad, angleDeg < 0);
+  // always draw from 0 to -rad in canvas coords (since y is flipped)
+  ctx.stroke();
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = color;
+  ctx.font = '10px Space Mono, monospace';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const midRad = rad / 2;
+  ctx.fillText(angleDeg.toFixed(0) + '°', cx + (r + 14) * Math.cos(-midRad), cy + (r + 14) * Math.sin(-midRad));
+  ctx.restore();
+}
+
+// ─── 4 Render modes ──────────────────────────────────────────────────────────
+function render0() {   // 2-vector parallelogram
+  drawGrid();
+  const ca = cmp(vecs[0]), cb = cmp(vecs[1]);
+  const rx = ca.x + cb.x, ry = ca.y + cb.y;
+
+  // parallelogram dashes
+  dashedLine(ca.x, ca.y, ca.x + cb.x, ca.y + cb.y, '#64748B');
+  dashedLine(cb.x, cb.y, cb.x + ca.x, cb.y + ca.y, '#64748B');
+
+  arrow(0, 0, ca.x, ca.y, C.v[0], 3, C.arrows[0]);
+  angleArc(0, 0, vecs[0].angle, C.v[0], 28);
+  arrow(0, 0, cb.x, cb.y, C.v[1], 3, C.arrows[1]);
+  angleArc(0, 0, vecs[1].angle, C.v[1], 40);
+  arrow(0, 0, rx, ry, C.r, 3.5, C.arrows[4]);
+}
+
+function render1() {   // tip-to-tail
+  drawGrid();
+  let hx = 0, hy = 0;
+  const comps = vecs.map(v => cmp(v));
+
+  comps.forEach((c, i) => {
+    arrow(hx, hy, hx + c.x, hy + c.y, C.v[i], 2.5, C.arrows[i]);
+    hx += c.x; hy += c.y;
+  });
+  arrow(0, 0, hx, hy, C.r, 3.5, C.arrows[4]);
+}
+
+function render2() {   // decomposition
+  drawGrid();
+  const v = vecs[0], c = cmp(v);
+  dashedLine(c.x, 0, c.x, c.y, '#64748B', 0.5);
+  dashedLine(0, c.y, c.x, c.y, '#64748B', 0.5);
+  arrow(0, 0, c.x, 0, C.x, 2.5, 'Aₓ');
+  arrow(0, 0, 0, c.y, C.y, 2.5, 'Aᵧ');
+  arrow(0, 0, c.x, c.y, C.v[0], 3, C.arrows[0]);
+  angleArc(0, 0, v.angle, C.v[0], 34);
+}
+
+function render3() {   // component addition with visibility toggles
+  drawGrid();
+  const c1 = cmp(vecs[0]), c2 = cmp(vecs[1]);
+  const rx = c1.x + c2.x, ry = c1.y + c2.y;
+
+  // guide dashes (behind everything)
+  if (vis3.guide && vis3.vecA) {
+    dashedLine(c1.x, 0, c1.x, c1.y, C.v[0], 0.4);
+    dashedLine(0, c1.y, c1.x, c1.y, C.v[0], 0.4);
+  }
+  if (vis3.guide && vis3.vecB) {
+    dashedLine(c2.x, 0, c2.x, c2.y, C.v[1], 0.4);
+    dashedLine(0, c2.y, c2.x, c2.y, C.v[1], 0.4);
+  }
+
+  // x-axis component arrows
+  if (vis3.compX) {
+    if (vis3.vecA) arrow(0, 0, c1.x, 0, C.x, 1.8, 'Aₓ');
+    if (vis3.vecB) arrow(vis3.vecA ? c1.x : 0, 0, (vis3.vecA ? c1.x : 0) + c2.x, 0, C.x, 1.8, 'Bₓ');
+  }
+
+  // y-axis component arrows
+  if (vis3.compY) {
+    if (vis3.vecA) arrow(0, 0, 0, c1.y, C.y, 1.8, 'Aᵧ');
+    if (vis3.vecB) arrow(0, vis3.vecA ? c1.y : 0, 0, (vis3.vecA ? c1.y : 0) + c2.y, C.y, 1.8, 'Bᵧ');
+  }
+
+  // main vectors
+  if (vis3.vecA) arrow(0, 0, c1.x, c1.y, C.v[0], 2.8, C.arrows[0]);
+  if (vis3.vecB) arrow(0, 0, c2.x, c2.y, C.v[1], 2.8, C.arrows[1]);
+
+  // resultant
+  if (vis3.result) {
+    if (vis3.compX) arrow(0, 0, rx, 0, C.x, 2.2, 'Rₓ');
+    if (vis3.compY) arrow(0, 0, 0, ry, C.y, 2.2, 'Rᵧ');
+    arrow(0, 0, rx, ry, C.r, 3.5, C.arrows[4]);
+  }
+}
+
+const renderers = [render0, render1, render2, render3];
+
+// ─── Controls HTML ───────────────────────────────────────────────────────────
+function vecCard(i, removable) {
+  const v = vecs[i], color = C.v[i];
+  return `
+  <div class="vec-card" style="border-left:3px solid ${color}">
+    ${removable ? `<button class="remove-btn" onclick="removeVec(${i})">×</button>` : ''}
+    <div class="vec-header">
+      <div class="vec-dot" style="background:${color}"></div>
+      <span class="vec-name" style="color:${color}">벡터 ${C.names[i]}</span>
+    </div>
+    <div class="slider-row">
+      <div class="slider-field">
+        <label>크기 (magnitude)</label>
+        <input type="range" min="1" max="10" step="0.5" value="${v.mag}"
+          oninput="upd(${i},'mag',this.value)">
+        <div class="slider-val" id="sv-${i}-m">${v.mag.toFixed(1)}</div>
+      </div>
+      <div class="slider-field">
+        <label>방향 (angle, °)</label>
+        <input type="range" min="0" max="359" step="1" value="${v.angle}"
+          oninput="upd(${i},'angle',this.value)">
+        <div class="slider-val" id="sv-${i}-a">${v.angle.toFixed(0)}°</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function chip(key, label, color) {
+  const on = vis3[key];
+  return `<button class="vis-chip ${on ? 'on' : ''}"
+    style="${on ? `background:${color};` : `color:${color};border-color:${color}40;`}"
+    onclick="toggleVis3('${key}')">${label}</button>`;
+}
+
+function buildVis3() {
+  return `
+  <div class="vis-section">
+    <div class="ctrl-label" style="margin-bottom:10px">표시 설정</div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">벡터</div>
+      <div class="vis-chips">
+        ${chip('vecA', 'A⃗', C.v[0])}
+        ${chip('vecB', 'B⃗', C.v[1])}
+      </div>
+    </div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">성분 화살표</div>
+      <div class="vis-chips">
+        ${chip('compX', 'x 성분', C.x)}
+        ${chip('compY', 'y 성분', C.y)}
+      </div>
+    </div>
+    <div class="vis-group">
+      <div class="vis-group-lbl">기타</div>
+      <div class="vis-chips">
+        ${chip('result', '합성 R⃗', C.r)}
+        ${chip('guide', '안내선', '#64748B')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildInputs() {
+  let h = '<div class="ctrl-section"><div class="ctrl-label">벡터 설정</div>';
+  const count = (mode === 0 || mode === 3) ? 2 : (mode === 2 ? 1 : vecs.length);
+  for (let i = 0; i < count; i++) h += vecCard(i, mode === 1 && i >= 2);
+  if (mode === 1 && vecs.length < 4) {
+    h += `<button class="add-btn" onclick="addVec()">+ 벡터 추가 (${vecs.length}/4)</button>`;
+  }
+  h += '</div>';
+  if (mode === 3) h += buildVis3();
+  document.getElementById('ctrl-inputs').innerHTML = h;
+}
+
+function buildResults() {
+  let h = '';
+  if (mode === 0 || mode === 1) {
+    const slice = mode === 0 ? vecs.slice(0, 2) : vecs;
+    let rx = 0, ry = 0;
+    slice.forEach(v => { const c = cmp(v); rx += c.x; ry += c.y; });
+    const rmag = Math.sqrt(rx*rx + ry*ry);
+    let rang = Math.atan2(ry, rx) * 180 / Math.PI;
+    if (rang < 0) rang += 360;
+
+    h = `<div class="ctrl-section">
+      <div class="ctrl-label">합성 벡터 R⃗</div>
+      <div class="result-grid">
+        <div class="r-card">
+          <div class="r-lbl">크기 |R⃗|</div>
+          <div class="r-val" style="color:${C.r}">${rmag.toFixed(2)}</div>
+        </div>
+        <div class="r-card">
+          <div class="r-lbl">방향 θ</div>
+          <div class="r-val" style="color:${C.r}">${rang.toFixed(1)}°</div>
+        </div>
+        <div class="r-card">
+          <div class="r-lbl">Rₓ</div>
+          <div class="r-val">${rx.toFixed(2)}</div>
+        </div>
+        <div class="r-card">
+          <div class="r-lbl">Rᵧ</div>
+          <div class="r-val">${ry.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (mode === 2) {
+    const v = vecs[0], c = cmp(v);
+    h = `<div class="ctrl-section">
+      <div class="ctrl-label">분해 결과</div>
+      <div class="formula">
+        <span style="color:${C.v[0]};font-weight:700">A⃗</span> = (<span class="hl">${c.x.toFixed(3)}</span>, <span class="hl">${c.y.toFixed(3)}</span>)<br>
+        Aₓ = |A⃗| cos θ<br>
+        &nbsp;&nbsp; = <span class="hl">${v.mag.toFixed(1)}</span> × cos <span class="hl">${v.angle}°</span><br>
+        &nbsp;&nbsp; = <span class="hl" style="color:${C.x}">${c.x.toFixed(4)}</span><br>
+        Aᵧ = |A⃗| sin θ<br>
+        &nbsp;&nbsp; = <span class="hl">${v.mag.toFixed(1)}</span> × sin <span class="hl">${v.angle}°</span><br>
+        &nbsp;&nbsp; = <span class="hl" style="color:${C.y}">${c.y.toFixed(4)}</span><br>
+        |A⃗| = √(Aₓ²+Aᵧ²) = <span class="hl">${v.mag.toFixed(2)}</span>
+      </div>
+    </div>`;
+  }
+
+  if (mode === 3) {
+    const c1 = cmp(vecs[0]), c2 = cmp(vecs[1]);
+    const rx = c1.x + c2.x, ry = c1.y + c2.y;
+    const rmag = Math.sqrt(rx*rx + ry*ry);
+    h = `<div class="ctrl-section">
+      <div class="ctrl-label">성분별 합성</div>
+      <table class="comp-table">
+        <thead><tr><th>벡터</th><th>x 성분</th><th>y 성분</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="color:${C.v[0]};font-weight:700">A⃗</td>
+            <td style="color:${C.x}">${c1.x.toFixed(3)}</td>
+            <td style="color:${C.y}">${c1.y.toFixed(3)}</td>
+          </tr>
+          <tr>
+            <td style="color:${C.v[1]};font-weight:700">B⃗</td>
+            <td style="color:${C.x}">${c2.x.toFixed(3)}</td>
+            <td style="color:${C.y}">${c2.y.toFixed(3)}</td>
+          </tr>
+          <tr class="total-row">
+            <td style="color:${C.r};font-weight:700">R⃗</td>
+            <td style="color:${C.x};font-weight:700">${rx.toFixed(3)}</td>
+            <td style="color:${C.y};font-weight:700">${ry.toFixed(3)}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="formula">
+        |R⃗| = √(Rₓ² + Rᵧ²)<br>
+        &nbsp;&nbsp;&nbsp; = √(<span class="hl">${rx.toFixed(3)}</span>² + <span class="hl">${ry.toFixed(3)}</span>²)<br>
+        &nbsp;&nbsp;&nbsp; = <span class="hl" style="color:${C.r};font-size:1rem">${rmag.toFixed(4)}</span>
+      </div>
+    </div>`;
+  }
+
+  document.getElementById('ctrl-results').innerHTML = h;
+}
+
+function buildLegend() {
+  const modeLabels = [
+    [
+      { color: C.v[0], label: '벡터 A⃗' },
+      { color: C.v[1], label: '벡터 B⃗' },
+      { color: C.r,   label: '합성벡터 R⃗' },
+      { color: '#64748B', label: '평행사변형', dashed: true }
+    ],
+    null,  // built dynamically below
+    [
+      { color: C.v[0], label: '벡터 A⃗' },
+      { color: C.x,   label: 'x 성분 Aₓ' },
+      { color: C.y,   label: 'y 성분 Aᵧ' }
+    ],
+    [
+      { color: C.v[0], label: '벡터 A⃗' },
+      { color: C.v[1], label: '벡터 B⃗' },
+      { color: C.x,   label: 'x 성분' },
+      { color: C.y,   label: 'y 성분' },
+      { color: C.r,   label: '합성벡터 R⃗' }
+    ]
+  ];
+
+  let items = modeLabels[mode];
+  if (mode === 1) {
+    items = vecs.map((_, i) => ({ color: C.v[i], label: `벡터 ${C.names[i]}⃗` }));
+    items.push({ color: C.r, label: '합성벡터 R⃗' });
+  }
+
+  document.getElementById('legend').innerHTML = items.map(it =>
+    `<div class="leg-item">
+      <div class="leg-line${it.dashed ? ' leg-dashed' : ''}" style="background:${it.dashed ? 'transparent' : it.color}; color:${it.dashed ? it.color : ''}"></div>
+      <span>${it.label}</span>
+    </div>`
+  ).join('');
+}
+
+// ─── Event handlers ──────────────────────────────────────────────────────────
+function upd(i, key, val) {
+  vecs[i][key] = parseFloat(val);
+  const mEl = document.getElementById(`sv-${i}-m`);
+  const aEl = document.getElementById(`sv-${i}-a`);
+  if (mEl) mEl.textContent = vecs[i].mag.toFixed(1);
+  if (aEl) aEl.textContent = vecs[i].angle.toFixed(0) + '°';
+  buildResults();
+  renderers[mode]();
+}
+
+function toggleVis3(key) {
+  vis3[key] = !vis3[key];
+  // Swap only the vis chips section — sliders are untouched
+  const existing = document.querySelector('.vis-section');
+  if (existing) existing.outerHTML = buildVis3();
+  render3();
+}
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === m));
+  buildInputs();
+  buildResults();
+  buildLegend();
+  renderers[mode]();
+
+  const titles = ['벡터 합성 (2개)', '다중 벡터 합성', '벡터 분해', '성분으로 합성'];
+  document.getElementById('printHead2').textContent = '벡터 학습 활동지 — ' + titles[m];
+}
+
+function addVec() {
+  if (vecs.length >= 4) return;
+  vecs.push({ mag: 3, angle: 90 * vecs.length });
+  buildInputs(); buildResults(); buildLegend(); renderers[mode]();
+}
+
+function removeVec(i) {
+  if (vecs.length <= 2) return;
+  vecs.splice(i, 1);
+  buildInputs(); buildResults(); buildLegend(); renderers[mode]();
+}
+
+function resetAll() {
+  vecs = [{ mag: 5, angle: 45 }, { mag: 4, angle: 315 }];
+  vis3 = { vecA: true, vecB: true, compX: true, compY: true, result: true, guide: true };
+  buildInputs(); buildResults(); buildLegend(); renderers[mode]();
+}
+
+function printPage() {
+  window.print();
+}
+
+// Theme reactivity
+new MutationObserver(() => renderers[mode]()).observe(
+  document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
+);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => renderers[mode]());
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+buildInputs();
+buildResults();
+buildLegend();
+render0();
+</script>
