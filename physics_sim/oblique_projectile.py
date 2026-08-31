@@ -10,14 +10,17 @@ st.markdown("""
 
 # --- 발사 조건 설정 (재생, 정지 버튼 바로 위 배치) ---
 with st.container(border=True):
-    st.markdown("### 🚀 발사 조건 설정")
-    col1, col2, col3 = st.columns(3)
+    st.markdown("### 🚀 발사 조건 및 시각화 설정")
+    col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
     with col1:
         v0 = st.number_input("초기 속도 v₀ (m/s) [5.0~50.0]", min_value=5.0, max_value=50.0, value=20.0, step=1.0)
     with col2:
         theta_deg = st.number_input("발사 각도 θ (도) [10~85]", min_value=10, max_value=85, value=45, step=1)
     with col3:
         g = st.radio("🌍 중력 가속도 g (m/s²)", options=[9.8, 10.0], index=0, horizontal=True)
+    with col4:
+        st.markdown("<p style='font-size: 0.88rem; font-weight: 600; margin-bottom: 8px;'>🏹 벡터 시각화</p>", unsafe_allow_html=True)
+        show_vectors = st.toggle("속도 벡터 표시 ($v_x, v_y$)", value=False, help="운동 중인 물체의 수평 속도(초록) 및 연직 속도(빨강) 벡터 화살표를 표시합니다.")
     st.info("💡 팁: 재생 중 Pause를 누르면 현재 위치에서 멈춥니다.")
 
 theta = np.radians(theta_deg)
@@ -48,13 +51,17 @@ def get_oblique_frame_data(t_curr):
                             marker=dict(size=18, color='orange', line=dict(width=2, color='black')), 
                             name="현재 위치")
     
-    scale = 0.5
-    trace_vx = go.Scatter(x=[curr_x, curr_x + curr_vx*scale], y=[curr_y, curr_y], 
-                          mode='lines+markers', line=dict(color='green', width=3), 
-                          marker=dict(symbol="arrow-right", size=10), name="vx")
-    trace_vy = go.Scatter(x=[curr_x, curr_x], y=[curr_y, curr_y + curr_vy*scale], 
-                          mode='lines+markers', line=dict(color='red', width=3), 
-                          marker=dict(symbol="arrow-up" if curr_vy > 0 else "arrow-down", size=10), name="vy")
+    traces = [trace_path, trace_ball]
+    
+    if show_vectors:
+        scale = 0.5
+        trace_vx = go.Scatter(x=[curr_x, curr_x + curr_vx*scale], y=[curr_y, curr_y], 
+                              mode='lines+markers', line=dict(color='green', width=3), 
+                              marker=dict(symbol="arrow-right", size=10), name="수평 속도 (vx)")
+        trace_vy = go.Scatter(x=[curr_x, curr_x], y=[curr_y, curr_y + curr_vy*scale], 
+                              mode='lines+markers', line=dict(color='red', width=3), 
+                              marker=dict(symbol="arrow-up" if curr_vy > 0 else "arrow-down", size=10), name="연직 속도 (vy)")
+        traces.extend([trace_vx, trace_vy])
     
     # --- 실시간 수치 데이터 어노테이션 (차트 내 표시용) ---
     telemetry_text = (
@@ -67,7 +74,7 @@ def get_oblique_frame_data(t_curr):
         f"합성 속도 (v): {v_total:.2f} m/s"
     )
     
-    return [trace_path, trace_ball, trace_vx, trace_vy], telemetry_text
+    return traces, telemetry_text
 
 # --- Plotly 애니메이션 구성 (재생/정지/슬라이더 복구) ---
 # 초기 데이터 및 텔레메트리
