@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 
-st.title("🏀 비스듬히 위로 던진 물체의 정밀 분석")
+st.title("🏀 비스듬히 던진 물체의 운동")
 st.markdown("""
 포물선 운동의 수평 성분과 연직 성분을 분리하여 분석합니다. 
 하단의 **Play/Pause** 버튼을 사용하여 운동 과정을 멈추어가며 관찰해 보세요!

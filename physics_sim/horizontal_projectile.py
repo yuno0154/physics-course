@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 import numpy as np
 
 
-st.title("🏹 수평으로 던진 물체의 정밀 분석")
+st.title("🏹 수평방향으로 던진 물체의 운동")
 st.markdown("""
 높은 절벽에서 수평으로 던진 물체의 운동을 분석합니다. 
 하단의 **Play/Pause** 버튼을 사용하여 자유 낙하 성분과 수평 성분의 차이를 관찰해 보세요!
