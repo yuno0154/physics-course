@@ -70,6 +70,9 @@ react_code = r"""
             const [pointC, setPointC] = useState(null);
             const [activeSlot, setActiveSlot] = useState('A'); // 현재 찍을 슬롯: 'A' | 'B' | 'C'
 
+            // 탐구 결론 숨김/펼침 상태 (기본값: 숨김)
+            const [showConclusion, setShowConclusion] = useState(false);
+
             const canvasRef = useRef(null);
             const animRef = useRef(null);
             const lastTimeRef = useRef(null);
@@ -733,65 +736,28 @@ react_code = r"""
                             </div>
                         </div>
 
-                        {/* 데이터 표 2: 활동지 양식 부호 및 변화 분석 표 */}
-                        <div>
-                            <div className="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                                <Icon name="file-text" size={15} className="text-indigo-600" />
-                                [활동지 기록용] 부호 (+, 0, -) 및 상태 분석 표
-                            </div>
-                            <div className="overflow-x-auto rounded-xl border border-slate-200">
-                                <table className="w-full text-xs text-center border-collapse">
-                                    <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                                        <tr>
-                                            <th className="p-2.5 text-left pl-4 w-1/5">위치</th>
-                                            <th className="p-2.5 w-1/6">vx</th>
-                                            <th className="p-2.5 w-1/6">vy</th>
-                                            <th className="p-2.5 w-1/6">ax</th>
-                                            <th className="p-2.5 w-1/6">ay</th>
-                                            <th className="p-2.5 text-left pl-3">운동 상태 및 특징</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        <tr className="bg-white">
-                                            <td className="p-2.5 text-left pl-4 font-bold text-slate-800">A 상승 중</td>
-                                            <td className="p-2.5 font-bold text-emerald-600">+ (일정)</td>
-                                            <td className="p-2.5 font-bold text-rose-600">+ (위쪽, 감소)</td>
-                                            <td className="p-2.5 font-bold text-slate-500">0</td>
-                                            <td className="p-2.5 font-bold text-orange-600">- (아래쪽, 일정)</td>
-                                            <td className="p-2.5 text-left pl-3 text-slate-600">수평 등속 + 연직 감속 상승 운동</td>
-                                        </tr>
-                                        <tr className="bg-slate-50/50">
-                                            <td className="p-2.5 text-left pl-4 font-bold text-slate-800">B 최고점</td>
-                                            <td className="p-2.5 font-bold text-emerald-600">+ (일정)</td>
-                                            <td className="p-2.5 font-bold text-slate-400">0 (순간 정지)</td>
-                                            <td className="p-2.5 font-bold text-slate-500">0</td>
-                                            <td className="p-2.5 font-bold text-orange-600">- (아래쪽, 일정)</td>
-                                            <td className="p-2.5 text-left pl-3 text-slate-600">연직 속도 0, 오직 수평 방향으로만 운동 (v = vx)</td>
-                                        </tr>
-                                        <tr className="bg-white">
-                                            <td className="p-2.5 text-left pl-4 font-bold text-slate-800">C 하강 중</td>
-                                            <td className="p-2.5 font-bold text-emerald-600">+ (일정)</td>
-                                            <td className="p-2.5 font-bold text-blue-600">- (아래쪽, 증가)</td>
-                                            <td className="p-2.5 font-bold text-slate-500">0</td>
-                                            <td className="p-2.5 font-bold text-orange-600">- (아래쪽, 일정)</td>
-                                            <td className="p-2.5 text-left pl-3 text-slate-600">수평 등속 + 연직 가속 낙하 운동</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* 핵심 탐구 원리 카드 */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100 text-xs space-y-2">
-                            <div className="font-bold text-blue-900 flex items-center gap-1 text-sm">
-                                <Icon name="lightbulb" size={16} className="text-amber-500" />
-                                핵심 물리 원리 탐구 결론
-                            </div>
-                            <ul className="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
-                                <li><b>수평 방향(x)</b>: 공기 저항이 없으므로 알짜힘이 0(Fx = 0)이며, 가속도는 항상 <b>ax = 0 m/s²</b>로 수평 속도는 운동 내내 <b>일정(vx = v₀cosθ)</b>합니다.</li>
-                                <li><b>연직 방향(y)</b>: 일정한 중력(Fy = -mg)이 작용하므로 가속도는 항상 <b>ay = -g m/s² (아래 방향으로 일정)</b>합니다.</li>
-                                <li><b>최고점에서의 속도</b>: 연직 속도 vy는 0이지만, 수평 속도 vx는 살아있으므로 전체 속도는 0이 아니라 <b>v = vx</b>입니다.</li>
-                            </ul>
+                        {/* 핵심 탐구 원리 카드 (접이식 / 기본 숨김) */}
+                        <div className="border border-blue-100 rounded-xl overflow-hidden text-xs">
+                            <button 
+                                onClick={() => setShowConclusion(prev => !prev)}
+                                className="w-full bg-blue-50/80 hover:bg-blue-100/80 p-3 text-left font-bold text-blue-900 flex items-center justify-between transition-colors cursor-pointer"
+                            >
+                                <span className="flex items-center gap-1.5 text-xs md:text-sm">
+                                    <Icon name="lightbulb" size={16} className="text-amber-500" />
+                                    💡 핵심 물리 원리 탐구 결론 {showConclusion ? "(클릭하여 접기)" : "(클릭하여 펼치기)"}
+                                </span>
+                                <Icon name={showConclusion ? "chevron-up" : "chevron-down"} size={16} className="text-blue-600" />
+                            </button>
+                            
+                            {showConclusion && (
+                                <div className="bg-white p-4 space-y-2 border-t border-blue-100">
+                                    <ul className="list-disc list-inside text-slate-700 space-y-1.5 leading-relaxed">
+                                        <li><b>수평 방향(x)</b>: 공기 저항이 없으므로 알짜힘이 0(Fx = 0)이며, 가속도는 항상 <b>ax = 0 m/s²</b>로 수평 속도는 운동 내내 <b>일정(vx = v₀cosθ)</b>합니다.</li>
+                                        <li><b>연직 방향(y)</b>: 일정한 중력(Fy = -mg)이 작용하므로 가속도는 항상 <b>ay = -g m/s² (아래 방향으로 일정)</b>합니다.</li>
+                                        <li><b>최고점에서의 속도</b>: 연직 속도 vy는 0이지만, 수평 속도 vx는 살아있으므로 전체 속도는 0이 아니라 <b>v = vx</b>입니다.</li>
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -805,7 +771,7 @@ react_code = r"""
 """
 
 # Streamlit에 임베드 렌더링
-components.html(react_code, height=1350, scrolling=True)
+components.html(react_code, height=1020, scrolling=True)
 
 # 하단 추가 수식 및 이론 요약
 with st.expander("📚 포물선 운동 이론 공식 학습", expanded=False):
