@@ -223,7 +223,8 @@ st.markdown("---")
 st.subheader("🛠️ 준비물 및 탐구 과정")
 st.markdown("""
 **[준비물]**
-- **동영상 분석 프로그램**: [웹 서비스 접속 (https://videoanalysis.app?key=tvavTYNBRc)](https://videoanalysis.app?key=tvavTYNBRc)
+- **동영상 분석 프로그램**: [웹 서비스 접속 (https://videoanalysis.app?key=tvaEk8HNcQ)](https://videoanalysis.app?key=tvaEk8HNcQ)
+  - 제품키 : `tvaEk8HNcQ`
 - **분석용 영상**: 야구공 또는 농구공의 포물선 운동 영상
 
 **[탐구 과정]**
