@@ -144,6 +144,14 @@ st.markdown("---")
 # (어떤 해상도나 인쇄 모드에서도 100% 잘림 없이 선명하게 비례 축소 렌더링됨)
 # =========================================================================
 
+def render_html(html_str):
+    """HTML 및 SVG 문자열의 들여쓰기를 제거하여 Markdown 코드 블록 오작동을 방지하고 st.html로 안전하게 렌더링"""
+    clean_html = "".join(line.strip() for line in html_str.splitlines())
+    if hasattr(st, "html"):
+        st.html(clean_html)
+    else:
+        st.markdown(clean_html, unsafe_allow_html=True)
+
 COMMON_SVG_DEFS = """
     <defs>
         <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -562,7 +570,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     *(단, 중력 가속도는 $10\\text{ m/s}^2$이고, 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
     
-    st.markdown(get_svg_prob1(), unsafe_allow_html=True)
+    render_html(get_svg_prob1())
 
     if is_print_mode:
         st.markdown("**1) 최고점에 도달할 때까지 걸린 시간(s)을 구하고, 풀이 과정과 답을 쓰시오.**")
@@ -613,7 +621,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
 
     col_p2_diag, col_p2_table = st.columns([1.3, 1])
     with col_p2_diag:
-        st.markdown(get_svg_prob2(), unsafe_allow_html=True)
+        render_html(get_svg_prob2())
     with col_p2_table:
         st.markdown("""
         | 지점 | 높이(m) | 수평 속력(m/s) | 연직 속력(m/s) |
@@ -631,7 +639,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
         for _ in range(2): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
 
         st.markdown("**2) (1)의 계산 결과를 바탕으로 아래 B(최고점, 3.2m), C(하강 중, 1.6m)의 에너지 막대그래프를 완성하시오.**")
-        st.markdown("""
+        render_html("""
         <div class="bar-chart-container">
             <div class="bar-chart-card">
                 <div class="bar-chart-title">B (최고점, 3.2 m)</div>
@@ -664,7 +672,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
                 </div>
             </div>
         </div>
-        """, unsafe_allow_html=True)
+        """)
 
         st.markdown("**3) 계산 결과를 근거로 하여, A에서 B까지 운동하는 동안 운동에너지와 퍼텐셜에너지가 어떻게 변하는지 서술하고, 역학적 에너지가 일정하게 유지되는 이유를 에너지 전환 관점에서 설명하시오.**")
         for _ in range(2): st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
@@ -733,7 +741,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     그림 (가), (나)는 각각 수평면과 **30°, 60°**의 각을 이루는 방향으로 속력 **$v_0, 2v_0$**으로 던져진 **동일한 물체**가 포물선 운동하는 모습을 나타낸 것이다.
     """, unsafe_allow_html=True)
 
-    st.markdown(get_svg_prob3(), unsafe_allow_html=True)
+    render_html(get_svg_prob3())
 
     if is_print_mode:
         st.markdown("**1) 물체를 던진 순간부터 최고점 도달할 때까지 걸린 시간을 비교하시오.**")
@@ -790,7 +798,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     **점 p에서 물체의 운동 에너지는?** *(단, 물체의 크기 및 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
 
-    st.markdown(get_svg_prob4(), unsafe_allow_html=True)
+    render_html(get_svg_prob4())
 
     if is_print_mode:
         st.markdown("**풀이 과정과 답을 쓰시오.**")
@@ -834,7 +842,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     *(단, 중력 가속도는 $10\\text{ m/s}^2$이고, 물체의 질량은 $m$이라 하자. 수치 계산 시 $m=1\\text{ kg}$ 기준으로 계산할 수 있다. 물체의 크기 및 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
 
-    st.markdown(get_svg_prob5(), unsafe_allow_html=True)
+    render_html(get_svg_prob5())
 
     if is_print_mode:
         q_list_p5 = [
@@ -908,7 +916,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [서술형 1] 운동의 독립성 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("🖋️ [기초 1] 운동의 독립성 이해 (자유낙하 vs 수평투사)")
-    st.markdown(get_svg_independence(), unsafe_allow_html=True)
+    render_html(get_svg_independence())
     st.markdown("동일한 높이에서 공 A(자유낙하)와 공 B(수평투사)를 동시에 발사했습니다. **왜 동시에 지면에 도달하는지 설명하시오.**")
 
     if is_print_mode:
@@ -921,7 +929,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 2] 10m/s, 30도 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("📝 [기초 2] 비스듬히 던진 물체의 정밀 분석 (10m/s, 30°)")
-    st.markdown(get_svg_q3(), unsafe_allow_html=True)
+    render_html(get_svg_q3())
     st.markdown("처음 속도 **10m/s**, 각도 **30도**로 던졌습니다. ($g=10m/s^2$) 아래 질문에 답하세요.")
 
     if is_print_mode:
@@ -941,7 +949,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 3] 수평 속도의 역추적 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("📝 [기초 3] 수평 속도의 역추적")
-    st.markdown(get_svg_q4(), unsafe_allow_html=True)
+    render_html(get_svg_q4())
     st.markdown("""
     물체를 비스듬히 던져 올렸더니 **4초 후** 수평으로 **39.2m** 떨어진 곳에 도달했습니다. 
     처음 발사 속도의 **수평 방향 성분**은 몇 m/s인가요? ($g=9.8m/s^2$)
@@ -959,7 +967,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 4] 최고점 시간 추론 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("🔥 [기초 4] 연직 변위를 통한 최고점 도달 시간 추론")
-    st.markdown(get_svg_q5(), unsafe_allow_html=True)
+    render_html(get_svg_q5())
     st.markdown("""
     비스듬히 던진 야구공이 **0초부터 1초까지** 연직 방향으로 이동한 거리(변위)가 **25m**입니다. 
     이 공이 **최고점에 도달할 때까지** 걸리는 시간은 약 몇 초인가요? ($g=9.8m/s^2$)
