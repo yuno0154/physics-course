@@ -31,6 +31,7 @@ accel_page = st.Page("physics_sim/projectile_sim.py", title="📘 [기학] 가�
 horizontal_page = st.Page("physics_sim/horizontal_projectile.py", title="🏹 [분석1] 수평방향으로 던진 물체의 운동")
 compare_page = st.Page("physics_sim/projectile_comparison.py", title="🧪 [보조] 수평 속도 비교")
 oblique_page = st.Page("physics_sim/oblique_projectile.py", title="🏹 [분석2] 비스듬히 던진 물체의 운동")
+projectile_energy_page = st.Page("physics_sim/projectile_energy_sim.py", title="⚡ [활동6] 포물선 운동의 역학적 에너지 보존")
 excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="📊 [정밀] 데이터 분석")
 video_analysis_page = st.Page("physics_sim/video_analysis.py", title="📹 [영상] 분석 보고서")
 practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [마무리] 연습 문제")
@@ -96,6 +97,7 @@ pg = st.navigation({
         horizontal_page, 
         compare_page, 
         oblique_page, 
+        projectile_energy_page,
         excel_page, 
         video_analysis_page, 
         practice_page
