@@ -340,6 +340,47 @@ react_code = r"""
                 ctx.lineTo(margin.left + plotW, height - margin.bottom);
                 ctx.stroke();
 
+                // 2-1. 발사 각도 θ 호(Arc) 및 시각적 각도 표시
+                const originX = toCanvasX(0);
+                const originY = toCanvasY(0);
+                const arcR = 46;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.arc(originX, originY, arcR, 0, -theta, true);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(originX, originY, arcR, 0, -theta, true);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 발사 방향 가이드 점선
+                const guideLen = arcR + 24;
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(originX + guideLen * Math.cos(theta), originY - guideLen * Math.sin(theta));
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 각도 라벨 (θ = 53.1°)
+                const midA = theta / 2;
+                const textR = arcR + 18;
+                const textX = originX + textR * Math.cos(midA);
+                const textY = originY - textR * Math.sin(midA);
+                ctx.fillStyle = '#b45309';
+                ctx.font = 'bold 11px Pretendard';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`θ = ${thetaDeg.toFixed(1)}°`, textX, textY);
+                ctx.restore();
+
                 // 3. 궤적
                 ctx.strokeStyle = '#93c5fd';
                 ctx.lineWidth = 2;
@@ -590,7 +631,7 @@ react_code = r"""
                                     className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <Icon name="bookmark-check" size={15} />
-                                    [문제 예시 조건 원클릭 적용] (m=1kg, vx=6, vy=8, g=10)
+                                    [문제 조건 적용] (v₀=10m/s, θ=53.1°, vx=6, vy=8, g=10)
                                 </button>
                                 <button 
                                     onClick={() => setShowVelComponents(prev => !prev)}
@@ -602,6 +643,20 @@ react_code = r"""
                                     속도 성분 (vx, vy)
                                 </button>
                             </div>
+                        </div>
+
+                        {/* 🚀 발사 조건 요약 바 (각도 θ 포함) */}
+                        <div className="flex flex-wrap items-center gap-2 text-xs bg-amber-50/70 border border-amber-200 px-3.5 py-2 rounded-xl text-slate-800">
+                            <span className="font-bold text-amber-900 flex items-center gap-1 shrink-0">
+                                <Icon name="compass" size={15} className="text-amber-600" />
+                                발사 조건:
+                            </span>
+                            <span className="bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 font-medium text-slate-800">초기 속력 <b>v₀ = {v0.toFixed(1)} m/s</b></span>
+                            <span className="bg-amber-500 text-white px-2.5 py-0.5 rounded-lg font-bold shadow-xs">발사 각도 θ = {thetaDeg.toFixed(1)}° (약 53.13°)</span>
+                            <span className="bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-emerald-700 font-medium">수평 속도 vx₀ = {vx0.toFixed(1)} m/s (cosθ = 0.6)</span>
+                            <span className="bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-rose-700 font-medium">연직 속도 vy₀ = {vy0.toFixed(1)} m/s (sinθ = 0.8)</span>
+                            <span className="bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-slate-600">중력 가속도 g = {g.toFixed(1)} m/s²</span>
+                            <span className="bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-slate-600">질량 m = {mass.toFixed(1)} kg</span>
                         </div>
 
                         {/* 💡 지점 선택 명확한 규칙 안내 배너 */}
@@ -618,13 +673,17 @@ react_code = r"""
 
                         {/* 캔버스 및 실시간 HUD */}
                         <div className="relative">
-                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-md pointer-events-none z-10 text-xs font-mono space-y-1 min-w-[200px]">
+                            <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-md pointer-events-none z-10 text-xs font-mono space-y-1 min-w-[210px]">
                                 <div className="font-bold text-slate-800 font-sans flex items-center justify-between pb-1 border-b border-slate-200">
                                     <span className="flex items-center gap-1.5">
                                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                         현재 물리 상태
                                     </span>
                                     <span className="text-[10px] text-slate-400 font-normal">t = {currentState.t.toFixed(2)}s</span>
+                                </div>
+                                <div className="text-amber-700 font-sans font-semibold pb-0.5 border-b border-slate-100 flex items-center justify-between">
+                                    <span>발사 각도 (θ):</span>
+                                    <b>{thetaDeg.toFixed(1)}° <span className="text-[10px] font-normal text-slate-500">(53.13°)</span></b>
                                 </div>
                                 <div className="text-slate-600">높이 (h): <b className="text-slate-900">{currentState.y.toFixed(2)} m</b></div>
                                 <div className="text-emerald-700">수평 속도 (vx): <b>+{currentState.vx.toFixed(2)} m/s</b></div>
