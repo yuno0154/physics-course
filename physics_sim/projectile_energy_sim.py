@@ -5,8 +5,8 @@ st.set_page_config(page_title="활동 6. 포물선 운동에서 역학적 에너
 
 st.title("⚡ [분석3 / 활동 6] 포물선 운동에서 역학적 에너지는 보존될까?")
 st.markdown(r"""
-**탐구 목표**: 포물선 운동에서 물체의 높이와 속력 변화를 이용하여 운동에너지와 위치에너지의 변화를 분석하고, 역학적 에너지 보존을 설명할 수 있다.  
-**탐구 질문**: 포물선 운동을 하는 물체는 위치에 따라 높이와 속력이 달라진다. 그렇다면 운동에너지와 위치에너지는 어떻게 변하며, 역학적 에너지는 보존될까? *(단, 공기 저항은 무시함)*
+**탐구 질문**: **포물선 운동을 하는 물체의 높이가 변할 때, 어떤 운동에너지가 퍼텐셜 에너지로 전환될까?**  
+*(조건: 공기 저항이 없는 조건에서 물체가 지점 1 → 최고점(지점 2) → 지점 3으로 운동함)*
 """)
 
 react_code = r"""
@@ -52,12 +52,17 @@ react_code = r"""
             // [1. 예측하기] 학생 선택 상태 관리
             const [predictions, setPredictions] = useState({
                 height_12: '', height_23: '',
-                speed_12: '', speed_23: '',
+                vx_12: '', vx_23: '',
+                vy_12: '', vy_23: '',
                 ek_12: '', ek_23: '',
                 ep_12: '', ep_23: '',
                 emech_12: '', emech_23: ''
             });
             const [showPredFeedback, setShowPredFeedback] = useState(false);
+            const [showPredQuestion, setShowPredQuestion] = useState(false);
+            const [showEnergyQuestion, setShowEnergyQuestion] = useState(false);
+            const [showDeltaQuestion, setShowDeltaQuestion] = useState(false);
+            const [showFillAnswer, setShowFillAnswer] = useState(false);
 
             // 발사 조건 파라미터 (기본값: 질량 1.0kg, vx0=6, vy0=8, g=10 -> v0=10, theta=53.13)
             const [mass, setMass] = useState(1.0); // kg
@@ -549,11 +554,12 @@ react_code = r"""
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 font-sans">
                                     {[
-                                        { id: 'height', label: '높이 (h)', opt1: ['증가', '감소'], opt2: ['증가', '감소'], ans1: '증가', ans2: '감소' },
-                                        { id: 'speed', label: '속력 (v)', opt1: ['증가', '감소'], opt2: ['증가', '감소'], ans1: '감소', ans2: '증가' },
-                                        { id: 'ek', label: '운동에너지 (Ek)', opt1: ['증가', '감소'], opt2: ['증가', '감소'], ans1: '감소', ans2: '증가' },
-                                        { id: 'ep', label: '위치에너지 (Ep)', opt1: ['증가', '감소'], opt2: ['증가', '감소'], ans1: '증가', ans2: '감소' },
-                                        { id: 'emech', label: '역학적 에너지 (E)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '일정', ans2: '일정' }
+                                        { id: 'height', label: '높이 (m)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '증가', ans2: '감소' },
+                                        { id: 'vx', label: '수평 속도의 크기 (m/s)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '일정', ans2: '일정' },
+                                        { id: 'vy', label: '연직 속도의 크기 (m/s)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '감소', ans2: '증가' },
+                                        { id: 'ek', label: '운동에너지 (Ek)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '감소', ans2: '증가' },
+                                        { id: 'ep', label: '위치에너지 (Ep)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '증가', ans2: '감소' },
+                                        { id: 'emech', label: '역학적 에너지 (=운동E + 위치E)', opt1: ['증가', '감소', '일정'], opt2: ['증가', '감소', '일정'], ans1: '일정', ans2: '일정' }
                                     ].map(row => (
                                         <tr key={row.id} className="hover:bg-slate-50/60">
                                             <td className="p-2.5 text-left pl-4 font-bold text-slate-700">{row.label}</td>
@@ -607,6 +613,32 @@ react_code = r"""
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+
+                        {/* 1단계 발문 카드: 퍼텐셜 에너지는 어디에서 얻은 것일까? */}
+                        <div className="bg-indigo-50/70 border border-indigo-200 rounded-xl p-3.5 text-xs space-y-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-bold text-indigo-950 flex items-center gap-1.5">
+                                    <Icon name="help-circle" size={15} className="text-indigo-600 shrink-0" />
+                                    [질문] 물체가 상승하면서 증가하는 퍼텐셜 에너지는 어디에서 얻은 것일까? 예상해 보자.
+                                </span>
+                                <button
+                                    onClick={() => setShowPredQuestion(prev => !prev)}
+                                    className="px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+                                >
+                                    {showPredQuestion ? "생각 닫기" : "💡 나의 생각 정리 & 모범 생각 보기"}
+                                </button>
+                            </div>
+                            {showPredQuestion && (
+                                <div className="bg-white p-3 rounded-lg border border-indigo-100 text-slate-700 leading-relaxed space-y-1">
+                                    <p className="font-bold text-indigo-900">
+                                        👉 모범 예상: <b>"물체가 위로 올라갈 때 연직 방향 속력이 줄어들며 감소한 ‘연직 운동에너지’가 퍼텐셜 에너지로 전환되어 얻어진 것이다."</b>
+                                    </p>
+                                    <p className="text-slate-500 text-[11px]">
+                                        (수평 방향 속도는 항상 일정하므로 수평 운동에너지는 퍼텐셜 에너지로 전환되지 않고 그대로 유지됩니다.)
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -826,17 +858,85 @@ react_code = r"""
                         </div>
                     </div>
 
-                    {/* [단계 2] 관찰하고 기록하기 (데이터 표) */}
+                    {/* [단계 2] 시뮬레이션으로 확인하기 (운동 상태 관찰 표) */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                             <div className="flex items-center gap-2">
                                 <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
-                                    <Icon name="clipboard-check" size={20} />
+                                    <Icon name="eye" size={20} />
                                 </span>
                                 <div>
-                                    <h3 className="font-bold text-slate-800 text-base">📝 2. 관찰하고 기록하기</h3>
+                                    <h3 className="font-bold text-slate-800 text-base">🔭 2. 시뮬레이션으로 확인하기 (운동 상태 관찰)</h3>
                                     <p className="text-xs text-slate-500">
-                                        물체의 질량 <b>m = {mass.toFixed(1)} kg</b>, 중력가속도 <b>g = {g.toFixed(1)} m/s²</b> 조건에서 지점 1~3의 물리량을 확인하고 에너지를 계산해 보세요.
+                                        시뮬레이션에서 선택한 <b>세 지점(1: 상승, 2: 최고점, 3: 하강)</b>의 높이와 속도 성분을 확인하고 표에 기록하세요.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={applyProblemPreset}
+                                className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Icon name="sparkles" size={14} className="text-amber-500" />
+                                ✨ 암산하기 쉬운 예쁜 정수 데이터 스냅 (h=0m, 3.2m, 1.6m)
+                            </button>
+                        </div>
+
+                        <div className="overflow-x-auto rounded-xl border border-slate-200">
+                            <table className="w-full text-xs text-center border-collapse">
+                                <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                                    <tr>
+                                        <th className="p-3 text-left pl-4">물리량</th>
+                                        <th className="p-3 text-blue-700 font-bold">지점 1 (상승 중)</th>
+                                        <th className="p-3 text-rose-700 font-bold">지점 2 (최고점 ★)</th>
+                                        <th className="p-3 text-emerald-700 font-bold">지점 3 (하강 중)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 font-mono">
+                                    <tr className="hover:bg-slate-50">
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-slate-700">높이 (m)</td>
+                                        <td className="p-3 font-semibold text-slate-800">{pointA ? `${pointA.y.toFixed(2)} m` : '-'}</td>
+                                        <td className="p-3 font-semibold text-rose-700 bg-rose-50/40">{pointB ? `${pointB.y.toFixed(2)} m (최고)` : '-'}</td>
+                                        <td className="p-3 font-semibold text-slate-800">{pointC ? `${pointC.y.toFixed(2)} m` : '-'}</td>
+                                    </tr>
+                                    <tr className="hover:bg-emerald-50/30">
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-emerald-800">
+                                            수평 속도의 크기 (m/s)
+                                        </td>
+                                        <td className="p-3 font-bold text-emerald-700">{pointA ? `${pointA.vx.toFixed(2)} m/s` : '-'}</td>
+                                        <td className="p-3 font-bold text-emerald-700 bg-emerald-50/40">{pointB ? `${pointB.vx.toFixed(2)} m/s (일정!)` : '-'}</td>
+                                        <td className="p-3 font-bold text-emerald-700">{pointC ? `${pointC.vx.toFixed(2)} m/s` : '-'}</td>
+                                    </tr>
+                                    <tr className="hover:bg-rose-50/30">
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-rose-800">
+                                            연직 속도의 크기 (m/s)
+                                        </td>
+                                        <td className="p-3 font-bold text-rose-600">{pointA ? `${Math.abs(pointA.vy).toFixed(2)} m/s` : '-'}</td>
+                                        <td className="p-3 font-bold text-rose-600 bg-rose-50/60">0.00 m/s (순간 정지)</td>
+                                        <td className="p-3 font-bold text-blue-600">{pointC ? `${Math.abs(pointC.vy).toFixed(2)} m/s` : '-'}</td>
+                                    </tr>
+                                    <tr className="hover:bg-slate-50">
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-slate-700">전체 속력 (m/s)</td>
+                                        <td className="p-3 font-semibold text-slate-800">{pointA ? `${pointA.v.toFixed(2)} m/s` : '-'}</td>
+                                        <td className="p-3 font-semibold text-rose-700 bg-rose-50/30">{pointB ? `${pointB.v.toFixed(2)} m/s (=vx)` : '-'}</td>
+                                        <td className="p-3 font-semibold text-slate-800">{pointC ? `${pointC.v.toFixed(2)} m/s` : '-'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* [단계 3] 에너지로 확인하기 (에너지 계산 및 분석 표) */}
+                    <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                            <div className="flex items-center gap-2">
+                                <span className="p-2 bg-amber-50 text-amber-600 rounded-xl">
+                                    <Icon name="zap" size={20} />
+                                </span>
+                                <div>
+                                    <h3 className="font-bold text-slate-800 text-base">⚡ 3. 에너지로 확인하기 (에너지 계산 및 분석)</h3>
+                                    <p className="text-xs text-slate-500">
+                                        물체의 질량 <b>m = {mass.toFixed(1)} kg</b>, 중력가속도 <b>g = {g.toFixed(1)} m/s²</b> 조건에서 각 지점의 에너지를 계산해 보세요.
                                     </p>
                                 </div>
                             </div>
@@ -846,12 +946,20 @@ react_code = r"""
                                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer ${
                                     showTableAnswer 
                                         ? 'bg-amber-50 text-amber-800 border-amber-300' 
-                                        : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                                        : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-blue-600'
                                 }`}
                             >
-                                <Icon name={showTableAnswer ? "eye-off" : "eye"} size={15} />
-                                {showTableAnswer ? "계산값 숨기기 (활동지 풀이 모드)" : "👁️ 계산값 및 정답 확인하기"}
+                                <Icon name={showTableAnswer ? "eye-off" : "calculator"} size={15} />
+                                {showTableAnswer ? "계산값 숨기기 (학생 풀이 모드)" : "⚡ 1초 에너지 자동 계산 & 공식 채우기"}
                             </button>
+                        </div>
+
+                        {/* 수평 운동에너지 불변 팁 배너 */}
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-center gap-2.5">
+                            <span className="px-2 py-0.5 bg-emerald-600 text-white rounded-md font-bold text-[11px] shrink-0">시간 단축 팁</span>
+                            <span className="leading-relaxed">
+                                수평 속도 <b>vx = 6.0 m/s</b>로 항상 일정하므로, <b>수평 운동에너지(½m·vx²)는 세 지점 모두 18.0 J로 동일</b>합니다! (매번 계산할 필요 없이 바로 기입)
+                            </span>
                         </div>
 
                         <div className="overflow-x-auto rounded-xl border border-slate-200">
@@ -859,123 +967,128 @@ react_code = r"""
                                 <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                                     <tr>
                                         <th className="p-3 text-left pl-4">물리량</th>
-                                        <th className="p-3 text-blue-700">지점 1 (상승 중)</th>
-                                        <th className="p-3 text-rose-700">지점 2 (최고점 ★)</th>
-                                        <th className="p-3 text-emerald-700">지점 3 (하강 중)</th>
+                                        <th className="p-3 text-blue-700 font-bold">지점 1 (상승 중)</th>
+                                        <th className="p-3 text-rose-700 font-bold">지점 2 (최고점 ★)</th>
+                                        <th className="p-3 text-emerald-700 font-bold">지점 3 (하강 중)</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 font-mono">
-                                    <tr className="hover:bg-slate-50">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-slate-700">높이 h (m)</td>
-                                        <td className="p-3 font-semibold">{pointA ? pointA.y.toFixed(2) : '-'}</td>
-                                        <td className="p-3 font-semibold text-rose-700">{pointB ? pointB.y.toFixed(2) : '-'}</td>
-                                        <td className="p-3 font-semibold">{pointC ? pointC.y.toFixed(2) : '-'}</td>
-                                    </tr>
-                                    <tr className="hover:bg-emerald-50/30">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-emerald-700 flex items-center gap-1">
-                                            수평 속도 vx (m/s)
-                                            <span className="text-[10px] text-emerald-500 font-normal">(외력=0)</span>
-                                        </td>
-                                        <td className="p-3 font-bold text-emerald-700">{pointA ? `+${pointA.vx.toFixed(2)}` : '-'}</td>
-                                        <td className="p-3 font-bold text-emerald-700">{pointB ? `+${pointB.vx.toFixed(2)}` : '-'}</td>
-                                        <td className="p-3 font-bold text-emerald-700">{pointC ? `+${pointC.vx.toFixed(2)}` : '-'}</td>
-                                    </tr>
-                                    <tr className="hover:bg-rose-50/30">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-rose-700 flex items-center gap-1">
-                                            연직 속도 vy (m/s)
-                                            <span className="text-[10px] text-rose-500 font-normal">(중력 작용)</span>
-                                        </td>
-                                        <td className="p-3 font-bold text-rose-600">{pointA ? (pointA.vy >= 0 ? `+${pointA.vy.toFixed(2)}` : pointA.vy.toFixed(2)) : '-'}</td>
-                                        <td className="p-3 font-bold text-rose-600 bg-rose-50/60">0.00 (정지)</td>
-                                        <td className="p-3 font-bold text-blue-600">{pointC ? (pointC.vy >= 0 ? `+${pointC.vy.toFixed(2)}` : pointC.vy.toFixed(2)) : '-'}</td>
-                                    </tr>
-                                    <tr className="hover:bg-slate-50">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-slate-700">전체 속력 v (m/s)</td>
-                                        <td className="p-3 font-semibold">{pointA ? pointA.v.toFixed(2) : '-'}</td>
-                                        <td className="p-3 font-semibold text-rose-700">{pointB ? `${pointB.v.toFixed(2)} (=vx)` : '-'}</td>
-                                        <td className="p-3 font-semibold">{pointC ? pointC.v.toFixed(2) : '-'}</td>
-                                    </tr>
-
-                                    {/* 에너지 계산 행들 (단위 J 명시) */}
+                                    {/* 수평방향 운동에너지 */}
                                     <tr className="hover:bg-emerald-50/40 bg-emerald-50/10">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-emerald-800">
-                                            수평 운동에너지 ½m·vx² (J)
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-emerald-900">
+                                            수평방향 운동에너지 <span className="font-normal font-mono text-[11px] text-emerald-600">(½m·vx²)</span>
                                         </td>
                                         <td className="p-3 font-bold text-emerald-700">
                                             {showTableAnswer ? (pointA ? `${pointA.Ek_x.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointA && <div className="text-[10px] text-emerald-600 font-normal">½×1×6²</div>}
                                         </td>
                                         <td className="p-3 font-bold text-emerald-700 bg-emerald-50/40">
                                             {showTableAnswer ? (pointB ? `${pointB.Ek_x.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointB && <div className="text-[10px] text-emerald-600 font-normal">½×1×6²</div>}
                                         </td>
                                         <td className="p-3 font-bold text-emerald-700">
                                             {showTableAnswer ? (pointC ? `${pointC.Ek_x.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointC && <div className="text-[10px] text-emerald-600 font-normal">½×1×6²</div>}
                                         </td>
                                     </tr>
 
+                                    {/* 연직방향 운동에너지 */}
                                     <tr className="hover:bg-rose-50/40 bg-rose-50/10">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-rose-800">
-                                            연직 운동에너지 ½m·vy² (J)
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-rose-900">
+                                            연직방향 운동에너지 <span className="font-normal font-mono text-[11px] text-rose-600">(½m·vy²)</span>
                                         </td>
                                         <td className="p-3 font-bold text-rose-600">
                                             {showTableAnswer ? (pointA ? `${pointA.Ek_y.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointA && <div className="text-[10px] text-rose-500 font-normal">½×1×8²</div>}
                                         </td>
                                         <td className="p-3 font-bold text-rose-600 bg-rose-50/40">
                                             {showTableAnswer ? '0.0 J' : '0 (J)'}
+                                            {showTableAnswer && <div className="text-[10px] text-rose-500 font-normal">½×1×0² (0)</div>}
                                         </td>
                                         <td className="p-3 font-bold text-rose-600">
                                             {showTableAnswer ? (pointC ? `${pointC.Ek_y.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointC && <div className="text-[10px] text-rose-500 font-normal">½×1×(√32)²</div>}
                                         </td>
                                     </tr>
 
+                                    {/* 위치에너지 */}
                                     <tr className="hover:bg-amber-50/40 bg-amber-50/10">
-                                        <td className="p-3 text-left pl-4 font-sans font-bold text-amber-800">
-                                            퍼텐셜 에너지 mgh (J)
+                                        <td className="p-3 text-left pl-4 font-sans font-bold text-amber-900">
+                                            위치에너지 <span className="font-normal font-mono text-[11px] text-amber-600">(mgh)</span>
                                         </td>
                                         <td className="p-3 font-bold text-amber-700">
                                             {showTableAnswer ? (pointA ? `${pointA.Ep.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointA && <div className="text-[10px] text-amber-600 font-normal">1×10×0</div>}
                                         </td>
                                         <td className="p-3 font-bold text-amber-700 bg-amber-50/40">
                                             {showTableAnswer ? (pointB ? `${pointB.Ep.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointB && <div className="text-[10px] text-amber-600 font-normal">1×10×3.2</div>}
                                         </td>
                                         <td className="p-3 font-bold text-amber-700">
                                             {showTableAnswer ? (pointC ? `${pointC.Ep.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && pointC && <div className="text-[10px] text-amber-600 font-normal">1×10×1.6</div>}
                                         </td>
                                     </tr>
 
+                                    {/* 역학적 에너지 */}
                                     <tr className="hover:bg-purple-50/50 bg-purple-50/20 border-t-2 border-purple-200">
                                         <td className="p-3 text-left pl-4 font-sans font-bold text-purple-900">
-                                            전체 역학적 에너지 E = Ek + Ep (J)
+                                            역학적 에너지 <span className="font-normal font-mono text-[11px] text-purple-600">(Ek + Ep)</span>
                                         </td>
                                         <td className="p-3 font-bold text-purple-700 text-sm">
                                             {showTableAnswer ? (pointA ? `${pointA.E_total.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && <div className="text-[10px] text-purple-500 font-normal">18+32+0</div>}
                                         </td>
                                         <td className="p-3 font-bold text-purple-700 text-sm bg-purple-50/60">
                                             {showTableAnswer ? (pointB ? `${pointB.E_total.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && <div className="text-[10px] text-purple-500 font-normal">18+0+32</div>}
                                         </td>
                                         <td className="p-3 font-bold text-purple-700 text-sm">
                                             {showTableAnswer ? (pointC ? `${pointC.E_total.toFixed(1)} J` : '-') : '? (J)'}
+                                            {showTableAnswer && <div className="text-[10px] text-purple-500 font-normal">18+16+16</div>}
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div className="text-[11px] text-slate-500 flex items-center gap-1">
-                            <Icon name="info" size={14} className="text-blue-500" />
-                            <span>표를 통해 수평 속도 <b>vx와 수평 운동에너지(½m·vx²)는 세 지점에서 완전히 일정</b>함을 먼저 확인해 보세요.</span>
+                        {/* 3단계 발문 카드: 함께 변하는 에너지 vs 변하지 않는 에너지는? */}
+                        <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 text-xs space-y-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-bold text-amber-950 flex items-center gap-1.5">
+                                    <Icon name="help-circle" size={15} className="text-amber-600 shrink-0" />
+                                    [질문] 높이가 변할 때 함께 변하는 에너지는 무엇인가? 반대로 변하지 않는 에너지는 무엇인가?
+                                </span>
+                                <button
+                                    onClick={() => setShowEnergyQuestion(prev => !prev)}
+                                    className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+                                >
+                                    {showEnergyQuestion ? "해설 닫기" : "💡 모범 분석 확인하기"}
+                                </button>
+                            </div>
+                            {showEnergyQuestion && (
+                                <div className="bg-white p-3 rounded-lg border border-amber-100 text-slate-700 leading-relaxed space-y-1.5">
+                                    <p>
+                                        • <b>함께 변하는 에너지:</b> <span className="text-rose-700 font-bold">연직방향 운동에너지(Ek,y)</span>와 <span className="text-amber-700 font-bold">위치에너지(Ep)</span> (높이가 증가하면 연직 운동E는 감소하고 위치E는 증가함)
+                                    </p>
+                                    <p>
+                                        • <b>변하지 않는 에너지:</b> <span className="text-emerald-700 font-bold">수평방향 운동에너지(Ek,x = 18.0 J)</span>와 <span className="text-purple-700 font-bold">전체 역학적 에너지(E = 50.0 J)</span>
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* [단계 3] 핵심 비교표: ΔEk,y vs ΔEp (데이터로 발견하기) */}
+                    {/* [단계 4] 변화량을 비교하여 예상 검증하기 */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
                         <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                             <span className="p-2 bg-rose-50 text-rose-600 rounded-xl">
                                 <Icon name="git-commit" size={20} />
                             </span>
                             <div>
-                                <h3 className="font-bold text-slate-800 text-base">🔍 3. 핵심 비교표: 연직 운동에너지 변화량 vs 퍼텐셜 에너지 변화량</h3>
+                                <h3 className="font-bold text-slate-800 text-base">🔍 4. 변화량을 비교하여 예상 검증하기</h3>
                                 <p className="text-xs text-slate-500">
-                                    수평 운동에너지가 일정하므로, <b>퍼텐셜 에너지의 변화량(ΔEp)은 연직 운동에너지의 변화량(ΔEk,y)과 직접 맞교환</b>됩니다.
+                                    세 에너지의 구간별 변화량(Δ)을 계산하고 비교하여 어떤 에너지가 서로 전환되는지 검증해 보세요.
                                 </p>
                             </div>
                         </div>
@@ -986,8 +1099,9 @@ react_code = r"""
                                 <thead className="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
                                     <tr>
                                         <th className="p-3 text-left pl-4">구간</th>
-                                        <th className="p-3 text-rose-700 font-bold">연직 운동에너지 변화량 ΔEk,y (J)</th>
-                                        <th className="p-3 text-emerald-700 font-bold">퍼텐셜 에너지 변화량 ΔEp (J)</th>
+                                        <th className="p-3 text-emerald-700 font-bold">수평 운동E 변화량 (ΔEk,x)</th>
+                                        <th className="p-3 text-rose-700 font-bold">연직 운동E 변화량 (ΔEk,y)</th>
+                                        <th className="p-3 text-amber-700 font-bold">퍼텐셜E 변화량 (ΔEp)</th>
                                         <th className="p-3 text-purple-700 font-bold bg-purple-50">두 변화량의 합 (ΔEk,y + ΔEp)</th>
                                     </tr>
                                 </thead>
@@ -998,10 +1112,13 @@ react_code = r"""
                                             <span className="w-2 h-2 rounded-full bg-blue-600"></span>
                                             지점 1 → 지점 2 (상승 구간)
                                         </td>
+                                        <td className="p-3 font-bold text-emerald-700 bg-emerald-50/20">
+                                            0.0 J (일정)
+                                        </td>
                                         <td className="p-3 font-bold text-rose-600">
                                             {delta12 ? `${delta12.dEky >= 0 ? `+${delta12.dEky.toFixed(1)}` : delta12.dEky.toFixed(1)} J (감소)` : '-'}
                                         </td>
-                                        <td className="p-3 font-bold text-emerald-700">
+                                        <td className="p-3 font-bold text-amber-700">
                                             {delta12 ? `${delta12.dEp >= 0 ? `+${delta12.dEp.toFixed(1)}` : delta12.dEp.toFixed(1)} J (증가)` : '-'}
                                         </td>
                                         <td className="p-3 font-bold text-purple-700 bg-purple-50/50 text-sm">
@@ -1015,10 +1132,13 @@ react_code = r"""
                                             <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
                                             지점 2 → 지점 3 (하강 구간)
                                         </td>
+                                        <td className="p-3 font-bold text-emerald-700 bg-emerald-50/20">
+                                            0.0 J (일정)
+                                        </td>
                                         <td className="p-3 font-bold text-rose-600">
                                             {delta23 ? `${delta23.dEky >= 0 ? `+${delta23.dEky.toFixed(1)}` : delta23.dEky.toFixed(1)} J (증가)` : '-'}
                                         </td>
-                                        <td className="p-3 font-bold text-emerald-700">
+                                        <td className="p-3 font-bold text-amber-700">
                                             {delta23 ? `${delta23.dEp >= 0 ? `+${delta23.dEp.toFixed(1)}` : delta23.dEp.toFixed(1)} J (감소)` : '-'}
                                         </td>
                                         <td className="p-3 font-bold text-purple-700 bg-purple-50/50 text-sm">
@@ -1029,30 +1149,69 @@ react_code = r"""
                             </table>
                         </div>
 
-                        {/* 데이터 발견 결론 카드 */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-950 space-y-1.5 leading-relaxed font-sans">
-                            <div className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
-                                <Icon name="sparkles" size={16} className="text-amber-500" />
-                                데이터에서 발견한 핵심 물리적 관계
+                        {/* 4단계 질문 1: 어떤 두 에너지의 변화량이 크기는 같고 방향은 반대인가? */}
+                        <div className="bg-rose-50/70 border border-rose-200 rounded-xl p-3.5 text-xs space-y-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-bold text-rose-950 flex items-center gap-1.5">
+                                    <Icon name="help-circle" size={15} className="text-rose-600 shrink-0" />
+                                    [질문 1] 세 에너지의 변화량을 비교해 보자. 어떤 두 에너지의 변화량이 크기는 같고 방향은 반대인가?
+                                </span>
+                                <button
+                                    onClick={() => setShowDeltaQuestion(prev => !prev)}
+                                    className="px-2.5 py-1 bg-white hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-lg text-xs font-bold transition-all cursor-pointer shadow-xs"
+                                >
+                                    {showDeltaQuestion ? "닫기" : "💡 답변 확인하기"}
+                                </button>
                             </div>
-                            <p>
-                                상승 구간에서는 <b>연직 운동에너지가 감소한 크기({delta12 ? Math.abs(delta12.dEky).toFixed(1) : 32} J)만큼 퍼텐셜 에너지가 증가({delta12 ? Math.abs(delta12.dEp).toFixed(1) : 32} J)</b>하고,
-                                하강 구간에서는 <b>퍼텐셜 에너지가 감소한 크기({delta23 ? Math.abs(delta23.dEp).toFixed(1) : 16} J)만큼 연직 운동에너지가 증가({delta23 ? Math.abs(delta23.dEky).toFixed(1) : 16} J)</b>합니다.
-                            </p>
-                            <p className="font-mono font-bold text-indigo-700 pt-1">
-                                👉 결론: ΔEk,y + ΔEp = 0  ⇔  |ΔEk,y| = |ΔEp|
-                            </p>
+                            {showDeltaQuestion && (
+                                <div className="bg-white p-3 rounded-lg border border-rose-100 text-slate-700 leading-relaxed space-y-1">
+                                    <p className="font-bold text-rose-900">
+                                        → <b>연직 방향 운동에너지 변화량(ΔEk,y)</b>과 <b>퍼텐셜 에너지 변화량(ΔEp)</b>의 크기는 같고 방향(부호)은 반대이다.
+                                    </p>
+                                    <p className="text-slate-500 font-mono text-[11px]">
+                                        수식 관계: ΔEk,y + ΔEp = 0  ⇔  |ΔEk,y| = |ΔEp| (단, ΔEk,x = 0)
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 4단계 질문 2: 활동지 총괄 빈칸 완성하기 인터랙티브 */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 text-xs text-blue-950 space-y-3 font-sans">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="font-bold text-sm text-blue-900 flex items-center gap-1.5">
+                                    <Icon name="edit-3" size={16} className="text-blue-600 shrink-0" />
+                                    [활동지 총괄 결론] 빈칸을 채워 탐구 결론을 완성해 보자!
+                                </div>
+                                <button
+                                    onClick={() => setShowFillAnswer(prev => !prev)}
+                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                                >
+                                    {showFillAnswer ? "정답 가리기" : "👁️ 정답 확인하기"}
+                                </button>
+                            </div>
+
+                            <div className="bg-white p-3.5 rounded-xl border border-blue-100 text-slate-800 leading-loose text-sm">
+                                "공기 저항이 없는 포물선 운동에서 수평 방향 운동에너지는{' '}
+                                <span className={`px-2.5 py-0.5 rounded font-bold border transition-all ${showFillAnswer ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-slate-100 text-slate-400 border-slate-300'}`}>
+                                    {showFillAnswer ? '일정 (보존)' : '____________'}
+                                </span>
+                                하고, 연직 방향 운동에너지의 감소량은 퍼텐셜 에너지의{' '}
+                                <span className={`px-2.5 py-0.5 rounded font-bold border transition-all ${showFillAnswer ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-slate-100 text-slate-400 border-slate-300'}`}>
+                                    {showFillAnswer ? '증가' : '__________'}
+                                </span>
+                                량과 같다."
+                            </div>
                         </div>
                     </div>
 
-                    {/* [단계 4] 결과 비교하기 및 해석하기 (활동지 문항 & 모범 답안) */}
+                    {/* [단계 5] 결과 비교하기 및 해석하기 (활동지 심화 문항 & 모범 답안) */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
                         <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                             <span className="p-2 bg-amber-50 text-amber-600 rounded-xl">
                                 <Icon name="file-text" size={20} />
                             </span>
                             <div>
-                                <h3 className="font-bold text-slate-800 text-base">✍️ 4. 결과 비교하기 및 해석하기</h3>
+                                <h3 className="font-bold text-slate-800 text-base">✍️ 5. 결과 비교하기 및 심화 해석</h3>
                                 <p className="text-xs text-slate-500">측정 및 계산한 데이터를 바탕으로 다음 탐구 질문에 답해 보세요. (클릭하여 모범 답안 확인)</p>
                             </div>
                         </div>
@@ -1176,14 +1335,14 @@ react_code = r"""
                         </div>
                     </div>
 
-                    {/* [단계 5] 생각 확장하기 (오개념 교정) */}
+                    {/* [단계 6] 생각 확장하기 (오개념 교정) */}
                     <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-5 shadow-sm border border-amber-200 space-y-3">
                         <div className="flex items-center gap-2 border-b border-amber-200 pb-2.5">
                             <span className="p-2 bg-amber-100 text-amber-800 rounded-xl">
                                 <Icon name="lightbulb" size={20} />
                             </span>
                             <div>
-                                <h3 className="font-bold text-amber-950 text-base">💡 5. 생각 확장하기 (오개념 타파)</h3>
+                                <h3 className="font-bold text-amber-950 text-base">💡 6. 생각 확장하기 (오개념 타파)</h3>
                                 <p className="text-xs text-amber-800">최고점에서는 연직 방향 속도가 0이 됩니다. 그렇다면 최고점에서 물체의 운동에너지도 0이라고 할 수 있을까요?</p>
                             </div>
                         </div>
@@ -1209,14 +1368,14 @@ react_code = r"""
                         </div>
                     </div>
 
-                    {/* [단계 6] 교사 개념 및 공식 정리 카드 */}
+                    {/* [단계 7] 물리 개념 및 공식 정리 카드 */}
                     <div className="bg-slate-900 text-white rounded-2xl p-5 shadow-sm space-y-3">
                         <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
                             <span className="p-2 bg-slate-800 text-blue-400 rounded-xl">
                                 <Icon name="book-open" size={20} />
                             </span>
                             <div>
-                                <h3 className="font-bold text-white text-base">📚 물리 개념 총정리 (수식 도출)</h3>
+                                <h3 className="font-bold text-white text-base">📚 7. 물리 개념 총정리 (수식 도출)</h3>
                                 <p className="text-xs text-slate-400">포물선 운동에서 역학적 에너지 보존의 성분 분해 원리</p>
                             </div>
                         </div>
@@ -1245,7 +1404,7 @@ react_code = r"""
 </html>
 """
 
-components.html(react_code, height=1700, scrolling=True)
+components.html(react_code, height=2350, scrolling=True)
 
 with st.expander("📚 활동 6 지도서 및 이론 공식 상세", expanded=False):
     st.latex(r"E_k = \frac{1}{2}m(v_x^2 + v_y^2) = \underbrace{\frac{1}{2}mv_x^2}_{\text{일정 (등속)}} + \underbrace{\frac{1}{2}mv_y^2}_{\text{변화 (등가속도)}}")
