@@ -13,3 +13,4 @@ test_write.txt
 .idea/
 .streamlit/config.toml
 admin_tools/
+*-DESKTOP-*
