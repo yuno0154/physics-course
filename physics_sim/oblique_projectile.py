@@ -776,6 +776,7 @@ react_code = r"""
                                     <p className="text-xs text-slate-500">상단의 궤적을 직접 클릭하거나 슬라이더를 움직여 <b>A(상승 중), B(최고점), C(하강 중)</b>를 지정하고 표를 확인하세요.</p>
                                 </div>
                             </div>
+                        </div>
 
                         {/* 데이터 표 1: 정밀 수치 측정값 */}
                         <div>
