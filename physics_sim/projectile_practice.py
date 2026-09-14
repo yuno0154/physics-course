@@ -6,35 +6,110 @@ import numpy as np
 st.markdown("""
     <style>
     @media print {
-        @page { margin: 10mm; }
-        .stApp { height: auto !important; overflow: visible !important; }
-        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, button, [data-testid="stRadio"] { display: none !important; }
-        .main .block-container { padding: 0 !important; }
-        .stMarkdown, .stPlotlyChart { page-break-inside: avoid; margin-bottom: 0px !important; }
-        h1 { font-size: 1.3rem !important; margin-bottom: 8px !important; }
-        h2 { font-size: 1.1rem !important; margin-top: 10px !important; margin-bottom: 6px !important; }
-        h3 { font-size: 0.95rem !important; margin-top: 5px !important; margin-bottom: 5px !important; }
-        p, li { font-size: 0.85rem !important; line-height: 1.25 !important; }
-        .stDivider { margin-top: 4px !important; margin-bottom: 4px !important; }
-        .no-print { display: none !important; }
+        @page { 
+            size: A4 portrait; 
+            margin: 12mm 12mm 15mm 12mm; 
+        }
+        html, body, .stApp { 
+            width: 100% !important; 
+            max-width: 100% !important; 
+            background: white !important;
+            overflow: visible !important; 
+        }
+        header, [data-testid="stSidebar"], [data-testid="stToolbar"], .stActionButton, button, [data-testid="stRadio"], .no-print { 
+            display: none !important; 
+        }
+        .main .block-container { 
+            max-width: 100% !important; 
+            padding: 0 !important; 
+            margin: 0 !important; 
+        }
+        .stMarkdown { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+            margin-bottom: 4px !important; 
+        }
+        .exam-box { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+            border: 1px solid #94a3b8 !important; 
+            background: white !important;
+            padding: 12px 16px !important; 
+            margin-bottom: 16px !important; 
+            box-shadow: none !important;
+        }
+        svg { 
+            max-width: 100% !important; 
+            height: auto !important; 
+            display: block !important; 
+            margin: 6px auto !important; 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+        }
+        .svg-container {
+            max-width: 100% !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        h1 { font-size: 1.25rem !important; margin-bottom: 6px !important; }
+        h2 { font-size: 1.05rem !important; margin-top: 8px !important; margin-bottom: 4px !important; }
+        h3 { font-size: 0.95rem !important; margin-top: 4px !important; margin-bottom: 4px !important; }
+        p, li { font-size: 0.85rem !important; line-height: 1.3 !important; }
+        .answer-space { 
+            border-bottom: 1px solid #64748b !important; 
+            height: 26px !important; 
+            margin-bottom: 6px !important; 
+            width: 100% !important; 
+        }
+        .bar-chart-container { 
+            page-break-inside: avoid !important; 
+            break-inside: avoid !important; 
+        }
+        .stDivider { margin: 6px 0 !important; }
     }
-    .print-header { font-size: 0.95rem; font-weight: bold; margin-bottom: 12px; border-bottom: 2px solid #1e293b; padding-bottom: 6px; }
-    .answer-space { border-bottom: 1px solid #94a3b8; height: 28px; margin-bottom: 6px; width: 100%; }
-    .exam-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px; }
+
+    .print-header { 
+        font-size: 0.95rem; 
+        font-weight: bold; 
+        margin-bottom: 12px; 
+        border-bottom: 2px solid #1e293b; 
+        padding-bottom: 6px; 
+    }
+    .answer-space { 
+        border-bottom: 1px solid #94a3b8; 
+        height: 28px; 
+        margin-bottom: 6px; 
+        width: 100%; 
+    }
+    .exam-box { 
+        background-color: #f8fafc; 
+        border: 1px solid #e2e8f0; 
+        border-radius: 12px; 
+        padding: 16px 20px; 
+        margin-bottom: 16px; 
+    }
     .badge-primary { background-color: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-success { background-color: #ecfdf5; color: #047857; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-purple { background-color: #faf5ff; color: #7e22ce; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-amber { background-color: #fffbeb; color: #b45309; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     
+    .svg-container {
+        text-align: center;
+        width: 100%;
+        max-width: 520px;
+        margin: 10px auto;
+        overflow: visible;
+    }
+
     /* 인쇄용 에너지 막대그래프 틀 */
     .bar-chart-container { display: flex; gap: 24px; justify-content: center; margin: 12px 0; }
     .bar-chart-card { border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; background: white; text-align: center; width: 220px; }
-    .bar-chart-title { font-size: 0.82rem; font-weight: bold; margin-bottom: 6px; }
+    .bar-chart-title { font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #1e293b; }
     .bar-chart-frame { height: 120px; border-left: 2px solid #334155; border-bottom: 2px solid #334155; display: flex; justify-content: space-around; align-items: flex-end; padding: 0 4px; position: relative; }
     .bar-chart-bar-outline { width: 42px; border: 1.5px dashed #64748b; height: 105px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: #64748b; font-weight: bold; background: #f8fafc; }
-    .bar-chart-labels { display: flex; justify-content: space-around; margin-top: 4px; font-size: 0.72rem; color: #475569; }
-    .tick-50 { position: absolute; top: 8px; left: -24px; font-size: 0.65rem; color: #64748b; }
-    .tick-0 { position: absolute; bottom: 0px; left: -16px; font-size: 0.65rem; color: #64748b; }
+    .bar-chart-labels { display: flex; justify-content: space-around; margin-top: 4px; font-size: 0.72rem; color: #475569; font-weight: bold; }
+    .tick-50 { position: absolute; top: 6px; left: -26px; font-size: 0.65rem; color: #64748b; font-weight: bold; }
+    .tick-0 { position: absolute; bottom: -2px; left: -18px; font-size: 0.65rem; color: #64748b; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -54,7 +129,7 @@ if is_print_mode:
     view_category = st.radio("인쇄 범위 선택", ["🎯 실전 기출 & 활동지 연계 5문항", "🌱 기초 개념 4문항", "📖 전체 9문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    본 페이지는 **기본 개념 점검 문항**부터 활동 6 연계 **에너지 막대그래프 분석**, **수능·내신 빈출 유형 심화 문항**까지 단계별로 구성되어 있습니다.
+    수능 및 내신 기출 핵심 문항과 [활동 6] 연계 **에너지 막대그래프 분석 문항**을 교과서급 정밀 벡터 일러스트와 함께 학습할 수 있습니다.
     """)
     view_category = st.radio(
         "문항 분류 선택", 
@@ -65,137 +140,366 @@ else:
 st.markdown("---")
 
 # =========================================================================
-# 벡터 도식 생성 함수군
+# 수능/EBS 교과서급 정밀 SVG 벡터 일러스트 생성 함수군
+# (어떤 해상도나 인쇄 모드에서도 100% 잘림 없이 선명하게 비례 축소 렌더링됨)
 # =========================================================================
 
-def get_diagram_independence(h=30):
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-5, y0=0, x1=50, y1=0, line=dict(color="#334155", width=2.5))
-    fig.add_shape(type="rect", x0=-2, y0=0, x1=0, y1=h, fillcolor="#e2e8f0", line=dict(color="#475569"))
-    fig.add_trace(go.Scatter(x=[0], y=[h], mode='markers', marker=dict(size=13, color='#ef4444', line=dict(width=2, color='black')), name="공 A (자유낙하)"))
-    fig.add_trace(go.Scatter(x=[0], y=[h], mode='markers', marker=dict(size=13, color='#3b82f6', line=dict(width=2, color='black')), name="공 B (수평투사)"))
-    fig.add_annotation(x=10, y=h, ax=0, ay=h, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#2563eb", arrowwidth=3)
-    t = np.linspace(0, np.sqrt(2*h/10), 20)
-    fig.add_trace(go.Scatter(x=np.zeros_like(t), y=h-0.5*10*t**2, mode='lines', line=dict(color='#ef4444', dash='dot', width=2), showlegend=False))
-    fig.add_trace(go.Scatter(x=15*t, y=h-0.5*10*t**2, mode='lines', line=dict(color='#3b82f6', dash='dot', width=2), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-10, 55]), yaxis=dict(visible=False, range=[-5, h+10]), height=180, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-    return fig
+COMMON_SVG_DEFS = """
+    <defs>
+        <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#1d4ed8"/>
+        </marker>
+        <marker id="arr-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626"/>
+        </marker>
+        <marker id="arr-dark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155"/>
+        </marker>
+        <pattern id="groundHatch" width="10" height="10" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="10" stroke="#cbd5e1" stroke-width="1.5" />
+        </pattern>
+        <radialGradient id="sphereBlue" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#bfdbfe"/>
+            <stop offset="45%" stop-color="#2563eb"/>
+            <stop offset="100%" stop-color="#1e3a8a"/>
+        </radialGradient>
+        <radialGradient id="sphereRose" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#fecdd3"/>
+            <stop offset="45%" stop-color="#e11d48"/>
+            <stop offset="100%" stop-color="#881337"/>
+        </radialGradient>
+        <radialGradient id="sphereGreen" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#bbf7d0"/>
+            <stop offset="45%" stop-color="#16a34a"/>
+            <stop offset="100%" stop-color="#14532d"/>
+        </radialGradient>
+    </defs>
+"""
 
-def get_diagram_q3(v0=10, theta_deg=30):
-    theta = np.radians(theta_deg); vx = v0 * np.cos(theta); vy = v0 * np.sin(theta)
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-5, y0=0, x1=20, y1=0, line=dict(color="#334155", width=2.5))
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=13, color='#0ea5e9', line=dict(width=2, color='black')), showlegend=False))
-    fig.add_annotation(x=vx*0.8, y=vy*0.8, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#0284c7", arrowwidth=3.5)
-    fig.add_annotation(x=vx+2.5, y=vy+1.5, text="<b>v₀=10m/s, θ=30°</b>", showarrow=False, font=dict(size=13, color="#0369a1"))
-    t_land = 2*vy/10; t = np.linspace(0, t_land, 30); fig.add_trace(go.Scatter(x=vx*t, y=vy*t-0.5*10*t**2, mode='lines', line=dict(color='#94a3b8', dash='dot', width=2), showlegend=False))
-    fig.update_layout(xaxis=dict(visible=False, range=[-5, 15]), yaxis=dict(visible=False, range=[-2, 5]), height=170, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
-    return fig
+def get_svg_prob1():
+    """문제 1: 30도 40 m/s 포물선 운동 SVG (최고점 H, 도달거리 R)"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 540 210" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 지면 및 해칭 -->
+        <rect x="25" y="160" width="490" height="12" fill="url(#groundHatch)" />
+        <line x1="20" y1="160" x2="520" y2="160" stroke="#1e293b" stroke-width="2.5"/>
+        
+        <!-- 포물선 궤적 (Q 베지어 곡선으로 물리적 포물선 완벽 일치) -->
+        <path d="M 60 160 Q 250 -30 440 160" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="5,4"/>
+        
+        <!-- 발사 지점 공 및 초기 속도 벡터 -->
+        <circle cx="60" cy="160" r="8" fill="url(#sphereBlue)"/>
+        <text x="36" y="164" font-size="13" font-weight="bold" font-style="italic" fill="#334155">2 kg</text>
+        <line x1="60" y1="160" x2="135" y2="117" stroke="#1d4ed8" stroke-width="3" marker-end="url(#arr-blue)"/>
+        <text x="142" y="112" font-size="13" font-weight="bold" fill="#1e40af">v₀ = 40 m/s</text>
+        
+        <!-- 발사 각도 호 -->
+        <path d="M 95 160 A 35 35 0 0 0 90.3 142.5" fill="none" stroke="#d97706" stroke-width="2"/>
+        <text x="102" y="152" font-size="12" font-weight="bold" fill="#b45309">30°</text>
+        
+        <!-- 최고점 및 H 치수선 -->
+        <circle cx="250" cy="65" r="4.5" fill="#dc2626"/>
+        <line x1="250" y1="65" x2="250" y2="160" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="242" y1="65" x2="258" y2="65" stroke="#dc2626" stroke-width="1.5"/>
+        <line x1="265" y1="68" x2="265" y2="157" stroke="#dc2626" stroke-width="1.5" marker-start="url(#arr-red)" marker-end="url(#arr-red)"/>
+        <text x="275" y="117" font-size="13" font-weight="bold" fill="#b91c1c">H</text>
+        <text x="250" y="52" font-size="12" font-weight="bold" fill="#0f172a" text-anchor="middle">최고점</text>
+        
+        <!-- 수평 도달 거리 R 치수선 -->
+        <line x1="60" y1="185" x2="440" y2="185" stroke="#334155" stroke-width="1.5" marker-start="url(#arr-dark)" marker-end="url(#arr-dark)"/>
+        <line x1="60" y1="178" x2="60" y2="192" stroke="#334155" stroke-width="1.5"/>
+        <line x1="440" y1="178" x2="440" y2="192" stroke="#334155" stroke-width="1.5"/>
+        <text x="250" y="202" font-size="13" font-weight="bold" fill="#1e293b" text-anchor="middle">R (수평 도달 거리)</text>
+    </svg>
+    </div>
+    """
 
-def get_diagram_q5():
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-5, y0=0, x1=30, y1=0, line=dict(color="#334155", width=2.5))
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=11, color='#f97316'), showlegend=False))
-    t = np.linspace(0, 1, 15); vx=5; v_y0=30; g=9.8; x=vx*t; y=v_y0*t-0.5*g*t**2
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='#ea580c', width=2.5), showlegend=False))
-    fig.add_annotation(x=vx*1+3.5, y=y[-1], text="<b>1초 (25m)</b>", showarrow=False, font=dict(size=13, color="#c2410c"))
-    fig.add_shape(type="line", x0=vx*1, y0=0, x1=vx*1, y1=y[-1], line=dict(color="#3b82f6", dash="dash", width=1.5))
-    fig.update_layout(xaxis=dict(visible=False, range=[-5, 30]), yaxis=dict(visible=False, range=[-5, 50]), height=170, margin=dict(l=0, r=0, t=0, b=0), plot_bgcolor="white")
-    return fig
+def get_svg_prob2():
+    """문제 2: A, B(3.2m), C(1.6m) 세 지점 궤적 좌표축 SVG"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 540 220" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 좌표축 -->
+        <line x1="50" y1="165" x2="500" y2="165" stroke="#1e293b" stroke-width="2" marker-end="url(#arr-dark)"/>
+        <line x1="70" y1="180" x2="70" y2="25" stroke="#1e293b" stroke-width="2" marker-end="url(#arr-dark)"/>
+        <text x="500" y="180" font-size="11" font-weight="bold" fill="#334155" text-anchor="end">수평 방향 (m)</text>
+        <text x="65" y="20" font-size="11" font-weight="bold" fill="#334155">높이 (m)</text>
+        <text x="58" y="178" font-size="12" font-weight="bold" fill="#64748b">0</text>
+        
+        <!-- 포물선 궤적 (A -> B -> C) -->
+        <path d="M 70 165 Q 250 -35 430 165" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="5,4"/>
+        
+        <!-- 지점 A (0, 0) -->
+        <circle cx="70" cy="165" r="7.5" fill="url(#sphereBlue)"/>
+        <text x="70" y="152" font-size="14" font-weight="bold" fill="#1e3a8a" text-anchor="middle">A</text>
+        <line x1="70" y1="165" x2="115" y2="120" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+        <text x="122" y="122" font-size="12" font-weight="bold" fill="#1e40af">v₀</text>
+        
+        <!-- 지점 B (최고점 3.2m) -->
+        <circle cx="250" cy="65" r="7.5" fill="url(#sphereRose)"/>
+        <text x="250" y="52" font-size="14" font-weight="bold" fill="#9f1239" text-anchor="middle">B (최고점)</text>
+        <line x1="250" y1="65" x2="250" y2="165" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="70" y1="65" x2="250" y2="65" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="58" y="69" font-size="11" font-weight="bold" fill="#e11d48" text-anchor="end">3.2</text>
+        <line x1="250" y1="65" x2="295" y2="65" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+        <text x="300" y="60" font-size="11" font-weight="bold" fill="#1e40af">vx=6m/s</text>
+        
+        <!-- 지점 C (1.6m) -->
+        <circle cx="377" cy="115" r="7.5" fill="url(#sphereGreen)"/>
+        <text x="390" y="110" font-size="14" font-weight="bold" fill="#166534">C</text>
+        <line x1="377" y1="115" x2="377" y2="165" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="70" y1="115" x2="377" y2="115" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="58" y="119" font-size="11" font-weight="bold" fill="#16a34a" text-anchor="end">1.6</text>
+        <line x1="377" y1="115" x2="415" y2="148" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+    </svg>
+    </div>
+    """
 
-# --- [신규 실전 문항 도식 함수] ---
+def get_svg_prob3():
+    """문제 3: (가) 30°, v0 vs (나) 60°, 2v0 비교 SVG (좌우 완벽 분할)"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 540 205" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 좌측 패널: (가) 30°, v0 -->
+        <rect x="15" y="10" width="245" height="185" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="25" y="32" font-size="13" font-weight="bold" fill="#1e40af">그림 (가) 30°, 속력 v₀</text>
+        <rect x="25" y="155" width="225" height="8" fill="url(#groundHatch)"/>
+        <line x1="20" y1="155" x2="255" y2="155" stroke="#1e293b" stroke-width="2"/>
+        
+        <!-- (가) 궤적: H1 낮음 -->
+        <path d="M 45 155 Q 135 75 225 155" fill="none" stroke="#2563eb" stroke-width="2" stroke-dasharray="4,3"/>
+        <circle cx="45" cy="155" r="7" fill="url(#sphereBlue)"/>
+        <line x1="45" y1="155" x2="95" y2="126" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+        <text x="98" y="124" font-size="11" font-weight="bold" fill="#1e40af">v₀</text>
+        <text x="32" y="159" font-size="11" font-style="italic" fill="#64748b">m</text>
+        <path d="M 70 155 A 25 25 0 0 0 66.6 142.5" fill="none" stroke="#d97706" stroke-width="1.5"/>
+        <text x="73" y="150" font-size="10" font-weight="bold" fill="#b45309">30°</text>
+        <circle cx="135" cy="115" r="3.5" fill="#1d4ed8"/>
+        <line x1="135" y1="115" x2="135" y2="155" stroke="#2563eb" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="135" y="105" font-size="11" font-weight="bold" fill="#1e40af" text-anchor="middle">H₁</text>
 
-def get_diagram_prob1():
-    """문제 1: 질량 2kg, 30도, 40m/s 도식"""
-    v0 = 40.0; theta = np.radians(30.0); g = 10.0
-    vx = v0 * np.cos(theta); vy = v0 * np.sin(theta)
-    t_h = vy / g; H = (vy**2) / (2 * g)
-    t_land = 2 * t_h; R = vx * t_land
+        <!-- 우측 패널: (나) 60°, 2v0 -->
+        <rect x="280" y="10" width="245" height="185" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="290" y="32" font-size="13" font-weight="bold" fill="#9f1239">그림 (나) 60°, 속력 2v₀</text>
+        <rect x="290" y="155" width="225" height="8" fill="url(#groundHatch)"/>
+        <line x1="285" y1="155" x2="520" y2="155" stroke="#1e293b" stroke-width="2"/>
+        
+        <!-- (나) 궤적: H2 높음 -->
+        <path d="M 310 155 Q 400 -65 490 155" fill="none" stroke="#dc2626" stroke-width="2" stroke-dasharray="4,3"/>
+        <circle cx="310" cy="155" r="7" fill="url(#sphereRose)"/>
+        <line x1="310" y1="155" x2="345" y2="94" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arr-red)"/>
+        <text x="350" y="94" font-size="11" font-weight="bold" fill="#991b1b">2v₀</text>
+        <text x="297" y="159" font-size="11" font-style="italic" fill="#64748b">m</text>
+        <path d="M 330 155 A 20 20 0 0 0 320 137.7" fill="none" stroke="#d97706" stroke-width="1.5"/>
+        <text x="333" y="148" font-size="10" font-weight="bold" fill="#b45309">60°</text>
+        <circle cx="400" cy="45" r="4" fill="#dc2626"/>
+        <line x1="400" y1="45" x2="400" y2="155" stroke="#ef4444" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="400" y="37" font-size="11" font-weight="bold" fill="#991b1b" text-anchor="middle">H₂ (12배)</text>
+    </svg>
+    </div>
+    """
 
-    t = np.linspace(0, t_land, 60)
-    x = vx * t; y = vy * t - 0.5 * g * t**2
+def get_svg_prob4():
+    """문제 4: 60°, 속력 v, 최고점, 점 p (사용자 화면에서 잘렸던 문제 - 100% 안전 마진)"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 520 190" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 지면 및 해칭 -->
+        <rect x="25" y="155" width="470" height="12" fill="url(#groundHatch)"/>
+        <line x1="20" y1="155" x2="500" y2="155" stroke="#1e293b" stroke-width="2.5"/>
+        <text x="495" y="172" font-size="11" fill="#64748b" text-anchor="end">수평면</text>
+        
+        <!-- 포물선 전체 궤적 (x: 65 ~ 425 안전 범위 안착) -->
+        <path d="M 65 155 Q 245 -55 425 155" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="4,4"/>
+        
+        <!-- 최고점 -->
+        <circle cx="245" cy="50" r="4.5" fill="#0f172a"/>
+        <text x="245" y="38" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">최고점</text>
+        
+        <!-- 던진 순간 공 (질량 m, 60도, 속력 v) -->
+        <circle cx="65" cy="155" r="8" fill="url(#sphereBlue)"/>
+        <text x="47" y="159" font-size="13" font-style="italic" font-weight="bold" fill="#334155">m</text>
+        <line x1="65" y1="155" x2="115" y2="68" stroke="#1d4ed8" stroke-width="3" marker-end="url(#arr-blue)"/>
+        <text x="122" y="75" font-size="13" font-weight="bold" fill="#1e40af">v</text>
+        <path d="M 90 155 A 25 25 0 0 0 77.5 133.3" fill="none" stroke="#d97706" stroke-width="2"/>
+        <text x="96" y="148" font-size="12" font-weight="bold" fill="#b45309">60°</text>
+        
+        <!-- 통과점 p (하강 구간, 속도 화살표 완벽 포함) -->
+        <circle cx="355" cy="105" r="8" fill="url(#sphereBlue)"/>
+        <text x="368" y="102" font-size="16" font-weight="bold" fill="#1e3a8a">p</text>
+        <line x1="355" y1="105" x2="390" y2="142" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+    </svg>
+    </div>
+    """
 
-    fig = go.Figure()
-    # 지면
-    fig.add_shape(type="line", x0=-15, y0=0, x1=R+25, y1=0, line=dict(color="#1e293b", width=3))
-    # 궤적
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='#475569', dash='dash', width=2), showlegend=False))
-    # 발사 지점 공
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=14, color='#2563eb', line=dict(width=2, color='black')), showlegend=False))
-    # 초기 속도 화살표
-    fig.add_annotation(x=vx*0.7, y=vy*0.7, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#1d4ed8", arrowwidth=3.5)
-    fig.add_annotation(x=vx*0.7+8, y=vy*0.7+2, text="<b>v₀ = 40 m/s<br>(30°)</b>", showarrow=False, font=dict(size=13, color="#1e40af"))
-    # 각도 호 (Arc)
-    arc_angles = np.linspace(0, theta, 20)
-    arc_r = 18.0
-    fig.add_trace(go.Scatter(x=arc_r*np.cos(arc_angles), y=arc_r*np.sin(arc_angles), mode='lines', line=dict(color='#d97706', width=2), showlegend=False))
-    fig.add_annotation(x=arc_r*1.3, y=arc_r*0.35, text="30°", showarrow=False, font=dict(size=12, color="#b45309", weight="bold"))
-    # 최고점 마커 및 H 표시선
-    x_H = vx * t_h
-    fig.add_trace(go.Scatter(x=[x_H], y=[H], mode='markers', marker=dict(size=10, color='#dc2626'), showlegend=False))
-    fig.add_shape(type="line", x0=x_H, y0=0, x1=x_H, y1=H, line=dict(color="#ef4444", dash="dot", width=1.5))
-    fig.add_annotation(x=x_H, y=H*0.5, text="<b>H (최고점)</b>", ax=25, ay=0, showarrow=True, arrowhead=2, arrowcolor="#dc2626", font=dict(size=12, color="#b91c1c"))
-    # 수평 도달 거리 R 표시
-    fig.add_annotation(x=R*0.5, y=-5, text="<b>R (수평 도달 거리)</b>", showarrow=False, font=dict(size=12, color="#334155"))
-    fig.add_shape(type="line", x0=0, y0=-3, x1=R, y1=-3, line=dict(color="#475569", width=1.5))
+def get_svg_prob5():
+    """문제 5: 60°, 10 m/s 다중 스트로브(점묘구) 및 1/2 H 보조선 SVG"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 540 215" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 지면 및 해칭 -->
+        <rect x="25" y="160" width="490" height="12" fill="url(#groundHatch)"/>
+        <line x1="20" y1="160" x2="520" y2="160" stroke="#1e293b" stroke-width="2.5"/>
+        
+        <!-- 포물선 점선 경로 -->
+        <path d="M 60 160 Q 250 -60 440 160" fill="none" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4"/>
+        
+        <!-- 7개 다중 스트로브 구 (핑크/로즈 3D 광택) -->
+        <circle cx="60" cy="160" r="8" fill="url(#sphereRose)"/>
+        <circle cx="102" cy="108" r="8" fill="url(#sphereRose)"/>
+        <circle cx="165" cy="69" r="8" fill="url(#sphereRose)"/>
+        <circle cx="250" cy="50" r="8.5" fill="url(#sphereRose)"/>
+        <circle cx="335" cy="69" r="8" fill="url(#sphereRose)"/>
+        <circle cx="398" cy="108" r="8" fill="url(#sphereRose)"/>
+        <circle cx="440" cy="160" r="8" fill="url(#sphereRose)"/>
+        
+        <!-- 초기 속도 벡터 (10 m/s, 60도) -->
+        <line x1="60" y1="160" x2="105" y2="82" stroke="#1d4ed8" stroke-width="3" marker-end="url(#arr-blue)"/>
+        <text x="110" y="85" font-size="12" font-weight="bold" fill="#1e40af">10 m/s</text>
+        <path d="M 85 160 A 25 25 0 0 0 72.5 138.3" fill="none" stroke="#d97706" stroke-width="2"/>
+        <text x="89" y="152" font-size="11" font-weight="bold" fill="#b45309">60°</text>
+        
+        <!-- 최고점 H 치수선 -->
+        <line x1="250" y1="50" x2="250" y2="160" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <line x1="262" y1="52" x2="262" y2="158" stroke="#e11d48" stroke-width="1.5" marker-start="url(#arr-red)" marker-end="url(#arr-red)"/>
+        <text x="272" y="108" font-size="13" font-weight="bold" fill="#9f1239">H</text>
+        
+        <!-- 1/2 H 수평 기준선 (y = 105) -->
+        <line x1="50" y1="105" x2="450" y2="105" stroke="#2563eb" stroke-width="1.2" stroke-dasharray="3,3"/>
+        <text x="456" y="109" font-size="12" font-weight="bold" fill="#1d4ed8">1/2 H</text>
+        
+        <!-- 수평 도달 거리 R 치수선 -->
+        <line x1="60" y1="185" x2="440" y2="185" stroke="#334155" stroke-width="1.5" marker-start="url(#arr-dark)" marker-end="url(#arr-dark)"/>
+        <line x1="60" y1="178" x2="60" y2="192" stroke="#334155" stroke-width="1.5"/>
+        <line x1="440" y1="178" x2="440" y2="192" stroke="#334155" stroke-width="1.5"/>
+        <text x="250" y="202" font-size="13" font-weight="bold" fill="#1e293b" text-anchor="middle">R</text>
+    </svg>
+    </div>
+    """
 
-    fig.update_layout(
-        xaxis=dict(visible=False, range=[-20, R+30]), 
-        yaxis=dict(visible=False, range=[-10, H+10]), 
-        height=220, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white"
-    )
-    return fig
+def get_svg_independence():
+    """기초 1: 운동의 독립성 (자유낙하 vs 수평투사 동시 낙하 스트로브)"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 520 200" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <!-- 발사대 타워 -->
+        <rect x="40" y="40" width="70" height="120" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+        <line x1="30" y1="160" x2="480" y2="160" stroke="#1e293b" stroke-width="2.5"/>
+        <rect x="35" y="160" width="450" height="10" fill="url(#groundHatch)"/>
+        
+        <!-- 공 B 수평 발사 화살표 -->
+        <line x1="110" y1="40" x2="160" y2="40" stroke="#1d4ed8" stroke-width="3" marker-end="url(#arr-blue)"/>
+        <text x="165" y="38" font-size="11" font-weight="bold" fill="#1e40af">v₀ (수평 발사)</text>
+        
+        <!-- 수평 동시 도달 보조 점선 및 스트로브 구 -->
+        <!-- t=0 -->
+        <line x1="110" y1="40" x2="110" y2="40" stroke="#94a3b8" stroke-dasharray="2,2"/>
+        <circle cx="110" cy="40" r="6" fill="url(#sphereRose)"/>
+        <circle cx="110" cy="40" r="6" fill="url(#sphereBlue)"/>
+        
+        <!-- t=1 -->
+        <line x1="110" y1="65" x2="190" y2="65" stroke="#cbd5e1" stroke-dasharray="2,2"/>
+        <circle cx="110" cy="65" r="6" fill="url(#sphereRose)"/>
+        <circle cx="190" cy="65" r="6" fill="url(#sphereBlue)"/>
+        
+        <!-- t=2 -->
+        <line x1="110" y1="105" x2="290" y2="105" stroke="#cbd5e1" stroke-dasharray="2,2"/>
+        <circle cx="110" cy="105" r="6" fill="url(#sphereRose)"/>
+        <circle cx="290" cy="105" r="6" fill="url(#sphereBlue)"/>
+        
+        <!-- t=3 (지면 도달) -->
+        <line x1="110" y1="160" x2="420" y2="160" stroke="#cbd5e1" stroke-dasharray="2,2"/>
+        <circle cx="110" cy="160" r="7" fill="url(#sphereRose)"/>
+        <circle cx="420" cy="160" r="7" fill="url(#sphereBlue)"/>
+        
+        <!-- 궤적 선 -->
+        <line x1="110" y1="40" x2="110" y2="160" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <path d="M 110 40 Q 265 40 420 160" fill="none" stroke="#2563eb" stroke-width="1.5" stroke-dasharray="3,3"/>
+        
+        <!-- 라벨 -->
+        <text x="75" y="100" font-size="12" font-weight="bold" fill="#9f1239" text-anchor="middle">
+            <tspan x="75" dy="0">공 A</tspan>
+            <tspan x="75" dy="16">(자유낙하)</tspan>
+        </text>
+        <text x="360" y="85" font-size="12" font-weight="bold" fill="#1e40af">공 B (수평투사)</text>
+        <text x="260" y="182" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">연직 방향으로는 동일한 중력만 작용하므로 매 순간 높이가 같고 동시에 도달!</text>
+    </svg>
+    </div>
+    """
 
-def get_diagram_prob2():
-    """문제 2: A(0m), B(3.2m), C(1.6m) 궤적 도식"""
-    # vx0 = 6, vy0 = 8, g = 10 -> t_h = 0.8s, H = 3.2m, t_land = 1.6s, R = 9.6m
-    vx = 6.0; vy0 = 8.0; g = 10.0
-    t_land = 1.6; R = 9.6
-    t = np.linspace(0, t_land, 60)
-    x = vx * t; y = vy0 * t - 0.5 * g * t**2
+def get_svg_q3():
+    """기초 2: 10 m/s, 30도 포물선 정밀 SVG"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 520 170" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <line x1="25" y1="130" x2="495" y2="130" stroke="#1e293b" stroke-width="2"/>
+        <rect x="30" y="130" width="460" height="8" fill="url(#groundHatch)"/>
+        <path d="M 60 130 Q 250 10 440 130" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="4,4"/>
+        <circle cx="60" cy="130" r="7.5" fill="url(#sphereBlue)"/>
+        <line x1="60" y1="130" x2="130" y2="90" stroke="#1d4ed8" stroke-width="2.5" marker-end="url(#arr-blue)"/>
+        <text x="135" y="88" font-size="12" font-weight="bold" fill="#1e40af">v₀=10m/s (30°)</text>
+        <path d="M 90 130 A 30 30 0 0 0 86 115" fill="none" stroke="#d97706" stroke-width="1.5"/>
+        <text x="96" y="125" font-size="11" font-weight="bold" fill="#b45309">30°</text>
+        <circle cx="250" cy="70" r="4" fill="#dc2626"/>
+        <line x1="250" y1="70" x2="250" y2="130" stroke="#ef4444" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="250" y="60" font-size="11" font-weight="bold" fill="#991b1b" text-anchor="middle">최고점</text>
+    </svg>
+    </div>
+    """
 
-    # A: t=0, x=0, y=0
-    # B: t=0.8, x=4.8, y=3.2
-    # C: y=1.6 => 8t - 5t^2 = 1.6 => 5t^2 - 8t + 1.6 = 0 => t = (8 + sqrt(64 - 32))/10 = (8 + sqrt(32))/10 = 0.8 + 0.5657 = 1.3657s
-    t_C = 0.8 + np.sqrt(32)/10; x_C = vx * t_C; y_C = 1.6
+def get_svg_q4():
+    """기초 3: 4초 후 수평 39.2m 도달 정밀 SVG"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 520 170" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <line x1="25" y1="130" x2="495" y2="130" stroke="#1e293b" stroke-width="2"/>
+        <rect x="30" y="130" width="460" height="8" fill="url(#groundHatch)"/>
+        <path d="M 60 130 Q 250 20 440 130" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="4,4"/>
+        <circle cx="60" cy="130" r="7.5" fill="url(#sphereBlue)"/>
+        <line x1="60" y1="130" x2="135" y2="130" stroke="#1d4ed8" stroke-width="3" marker-end="url(#arr-blue)"/>
+        <text x="142" y="125" font-size="12" font-weight="bold" fill="#1e40af">v_x = ? m/s</text>
+        <line x1="60" y1="130" x2="110" y2="75" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arr-dark)"/>
+        <circle cx="440" cy="130" r="6" fill="#10b981"/>
+        <text x="440" y="115" font-size="11" font-weight="bold" fill="#047857" text-anchor="middle">도달 (t = 4초)</text>
+        <line x1="60" y1="150" x2="440" y2="150" stroke="#334155" stroke-width="1.5" marker-start="url(#arr-dark)" marker-end="url(#arr-dark)"/>
+        <text x="250" y="165" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">39.2 m</text>
+    </svg>
+    </div>
+    """
 
-    fig = go.Figure()
-    # 지면 및 축
-    fig.add_shape(type="line", x0=-1, y0=0, x1=11.5, y1=0, line=dict(color="#1e293b", width=2.5))
-    fig.add_shape(type="line", x0=0, y0=0, x1=0, y1=4.0, line=dict(color="#1e293b", width=1.5))
-    # 궤적
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='#0f172a', dash='dash', width=2), showlegend=False))
-    
-    # 지점 A
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers+text', marker=dict(size=14, color='#2563eb', line=dict(width=2, color='black')), text=["<b>A</b>"], textposition="top left", textfont=dict(size=14, color="#1e3a8a"), showlegend=False))
-    fig.add_annotation(x=1.5, y=2.0, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#2563eb", arrowwidth=3)
-    fig.add_annotation(x=1.8, y=2.2, text="v₀", showarrow=False, font=dict(size=13, color="#1e40af", weight="bold"))
-
-    # 지점 B
-    fig.add_trace(go.Scatter(x=[4.8], y=[3.2], mode='markers+text', marker=dict(size=14, color='#dc2626', line=dict(width=2, color='black')), text=["<b>B</b>"], textposition="top center", textfont=dict(size=14, color="#991b1b"), showlegend=False))
-    fig.add_shape(type="line", x0=4.8, y0=0, x1=4.8, y1=3.2, line=dict(color="#ef4444", dash="dash", width=1.5))
-    fig.add_shape(type="line", x0=0, y0=3.2, x1=4.8, y1=3.2, line=dict(color="#94a3b8", dash="dot", width=1))
-    fig.add_annotation(x=4.8, y=1.6, text="<b>3.2 m</b>", ax=22, ay=0, showarrow=True, arrowhead=2, arrowcolor="#dc2626", font=dict(size=11, color="#b91c1c"))
-
-    # 지점 C
-    fig.add_trace(go.Scatter(x=[x_C], y=[y_C], mode='markers+text', marker=dict(size=14, color='#16a34a', line=dict(width=2, color='black')), text=["<b>C</b>"], textposition="top right", textfont=dict(size=14, color="#166534"), showlegend=False))
-    fig.add_shape(type="line", x0=x_C, y0=0, x1=x_C, y1=y_C, line=dict(color="#16a34a", dash="dash", width=1.5))
-    fig.add_shape(type="line", x0=0, y0=1.6, x1=x_C, y1=1.6, line=dict(color="#94a3b8", dash="dot", width=1))
-    fig.add_annotation(x=x_C, y=0.8, text="<b>1.6 m</b>", ax=22, ay=0, showarrow=True, arrowhead=2, arrowcolor="#16a34a", font=dict(size=11, color="#15803d"))
-
-    # 축 라벨
-    fig.add_annotation(x=10.5, y=-0.35, text="수평 방향 (m)", showarrow=False, font=dict(size=11, color="#334155"))
-    fig.add_annotation(x=-0.5, y=3.8, text="높이 (m)", showarrow=False, font=dict(size=11, color="#334155"))
-
-    fig.update_layout(
-        xaxis=dict(visible=True, range=[-1, 11.5], showgrid=False, zeroline=False), 
-        yaxis=dict(visible=True, range=[-0.6, 4.2], showgrid=False, zeroline=False), 
-        height=220, margin=dict(l=20, r=20, t=20, b=20), plot_bgcolor="white"
-    )
-    return fig
+def get_svg_q5():
+    """기초 4: 0~1초 연직 변위 25m 최고점 도달 시간 추론 SVG"""
+    return f"""
+    <div class="svg-container">
+    <svg viewBox="0 0 520 180" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        {COMMON_SVG_DEFS}
+        <line x1="25" y1="145" x2="495" y2="145" stroke="#1e293b" stroke-width="2"/>
+        <rect x="30" y="145" width="460" height="8" fill="url(#groundHatch)"/>
+        <path d="M 60 145 Q 260 -60 460 145" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
+        <!-- 0~1초 강조 구간 -->
+        <path d="M 60 145 Q 120 70 170 55" fill="none" stroke="#ea580c" stroke-width="3"/>
+        <circle cx="60" cy="145" r="7" fill="url(#sphereBlue)"/>
+        <circle cx="170" cy="55" r="7" fill="url(#sphereRose)"/>
+        <line x1="170" y1="55" x2="170" y2="145" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="2,2"/>
+        <text x="175" y="50" font-size="12" font-weight="bold" fill="#c2410c">1초 시점 (연직 변위 25 m)</text>
+        <!-- 최고점 -->
+        <circle cx="260" cy="42" r="4" fill="#0f172a"/>
+        <text x="260" y="32" font-size="11" font-weight="bold" fill="#0f172a" text-anchor="middle">최고점 ?초</text>
+    </svg>
+    </div>
+    """
 
 def get_energy_barchart_prob2(show_answer=True):
-    """문제 2: 지점 B와 C의 에너지 막대그래프"""
+    """문제 2: 지점 B와 C의 에너지 막대그래프 (Plotly - 인터랙티브용)"""
     fig = go.Figure()
     categories = ['B (최고점, 3.2m)', 'C (하강 중, 1.6m)']
     
@@ -232,132 +536,15 @@ def get_energy_barchart_prob2(show_answer=True):
     fig.update_layout(
         barmode='group',
         yaxis=dict(title='에너지 (J)', range=[0, 55], dtick=10),
-        height=260,
-        margin=dict(l=10, r=10, t=25, b=10),
+        height=250,
+        margin=dict(l=10, r=10, t=20, b=10),
         plot_bgcolor='#f8fafc',
         legend=dict(orientation='h', yanchor='bottom', y=1.02, xanchor='right', x=1)
     )
     return fig
 
-def get_diagram_prob3():
-    """문제 3: (가) 30°, v0 vs (나) 60°, 2v0 비교 도식"""
-    v0 = 10.0; g = 10.0
-    # (가) 30, v0
-    vx1 = v0 * np.cos(np.radians(30)); vy1 = v0 * np.sin(np.radians(30))
-    t1 = np.linspace(0, 2*vy1/g, 40)
-    x1 = vx1 * t1; y1 = vy1 * t1 - 0.5 * g * t1**2
-
-    # (나) 60, 2v0
-    vx2 = 2*v0 * np.cos(np.radians(60)); vy2 = 2*v0 * np.sin(np.radians(60))
-    t2 = np.linspace(0, 2*vy2/g, 50)
-    x2 = vx2 * t2; y2 = vy2 * t2 - 0.5 * g * t2**2
-
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-5, y0=0, x1=max(x1[-1], x2[-1])+10, y1=0, line=dict(color="#1e293b", width=2.5))
-    
-    # (가)
-    fig.add_trace(go.Scatter(x=x1, y=y1, mode='lines', line=dict(color='#2563eb', width=2.5), name='(가) v₀, 30°'))
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=12, color='#2563eb'), showlegend=False))
-    fig.add_annotation(x=vx1*0.8, y=vy1*0.8, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#2563eb", arrowwidth=2.5)
-    fig.add_annotation(x=x1[len(x1)//2], y=max(y1)+1.2, text=f"<b>(가) H₁</b>", showarrow=False, font=dict(color="#1e40af", size=11))
-
-    # (나)
-    fig.add_trace(go.Scatter(x=x2, y=y2, mode='lines', line=dict(color='#dc2626', width=2.5, dash='dash'), name='(나) 2v₀, 60°'))
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=12, color='#dc2626'), showlegend=False))
-    fig.add_annotation(x=vx2*0.8, y=vy2*0.8, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#dc2626", arrowwidth=2.5)
-    fig.add_annotation(x=x2[len(x2)//2], y=max(y2)+1.2, text=f"<b>(나) H₂ (최고점)</b>", showarrow=False, font=dict(color="#991b1b", size=11))
-
-    fig.update_layout(
-        xaxis=dict(visible=False), 
-        yaxis=dict(visible=False), 
-        height=220, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    return fig
-
-def get_diagram_prob4():
-    """문제 4: 60도, 속력 v, 최고점 및 점 p 마킹 도식"""
-    v = 15.0; theta = np.radians(60); g = 10.0
-    vx = v * np.cos(theta); vy = v * np.sin(theta)
-    t_h = vy / g; t_land = 2 * t_h
-    t = np.linspace(0, t_land, 60)
-    x = vx * t; y = vy * t - 0.5 * g * t**2
-
-    # 점 p: 하강 중 t = t_h * 1.5 지점
-    t_p = t_h * 1.45; x_p = vx * t_p; y_p = vy * t_p - 0.5 * g * t_p**2
-    vx_p = vx; vy_p = vy - g * t_p
-
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-3, y0=0, x1=x[-1]+5, y1=0, line=dict(color="#1e293b", width=2.5))
-    fig.add_trace(go.Scatter(x=x, y=y, mode='lines', line=dict(color='#475569', dash='dot', width=2), showlegend=False))
-    
-    # 발사 위치
-    fig.add_trace(go.Scatter(x=[0], y=[0], mode='markers', marker=dict(size=12, color='#3b82f6'), showlegend=False))
-    fig.add_annotation(x=vx*0.7, y=vy*0.7, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#2563eb", arrowwidth=3)
-    fig.add_annotation(x=vx*0.7+2, y=vy*0.7+1, text="<b>v (60°)</b>", showarrow=False, font=dict(size=12, color="#1e40af"))
-    
-    # 최고점
-    x_H = vx * t_h; H = vy**2 / (2*g)
-    fig.add_trace(go.Scatter(x=[x_H], y=[H], mode='markers+text', marker=dict(size=10, color='#1e293b'), text=["<b>최고점</b>"], textposition="top center", textfont=dict(size=12, color="#0f172a"), showlegend=False))
-    
-    # 점 p
-    fig.add_trace(go.Scatter(x=[x_p], y=[y_p], mode='markers+text', marker=dict(size=14, color='#2563eb', line=dict(width=2, color='black')), text=["<b>p</b>"], textposition="top right", textfont=dict(size=15, color="#1e3a8a"), showlegend=False))
-    # 점 p에서의 속도 화살표
-    fig.add_annotation(x=x_p + vx_p*0.5, y=y_p + vy_p*0.5, ax=x_p, ay=y_p, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#1d4ed8", arrowwidth=2.5)
-
-    fig.update_layout(
-        xaxis=dict(visible=False), 
-        yaxis=dict(visible=False, range=[-2, H+4]), 
-        height=200, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white"
-    )
-    return fig
-
-def get_diagram_prob5():
-    """문제 5: 60도, 10m/s 다중 스트로브(점묘) 포물선 도식"""
-    v0 = 10.0; theta = np.radians(60); g = 10.0
-    vx = v0 * np.cos(theta); vy0 = v0 * np.sin(theta)
-    t_h = vy0 / g; H = vy0**2 / (2*g)
-    t_land = 2 * t_h; R = vx * t_land
-
-    t_curve = np.linspace(0, t_land, 60)
-    x_curve = vx * t_curve; y_curve = vy0 * t_curve - 0.5 * g * t_curve**2
-
-    # 스트로브 위치 (7개 구)
-    t_strobe = np.linspace(0, t_land, 7)
-    x_strobe = vx * t_strobe; y_strobe = vy0 * t_strobe - 0.5 * g * t_strobe**2
-
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-1.5, y0=0, x1=R+2, y1=0, line=dict(color="#1e293b", width=3))
-    fig.add_trace(go.Scatter(x=x_curve, y=y_curve, mode='lines', line=dict(color='#64748b', dash='dash', width=2), showlegend=False))
-    
-    # 다중 스트로브 볼
-    fig.add_trace(go.Scatter(x=x_strobe, y=y_strobe, mode='markers', marker=dict(size=14, color='#f43f5e', line=dict(width=1.5, color='#9f1239')), showlegend=False))
-    
-    # 발사 벡터
-    fig.add_annotation(x=vx*0.7, y=vy0*0.7, ax=0, ay=0, xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=2, arrowcolor="#2563eb", arrowwidth=3)
-    fig.add_annotation(x=vx*0.7+0.8, y=vy0*0.7+0.3, text="<b>10 m/s<br>(60°)</b>", showarrow=False, font=dict(size=11, color="#1e40af"))
-
-    # 최고점 H 점선 및 화살표
-    fig.add_shape(type="line", x0=R/2, y0=0, x1=R/2, y1=H, line=dict(color="#e11d48", dash="dot", width=1.5))
-    fig.add_annotation(x=R/2, y=H*0.5, text="<b>H</b>", ax=18, ay=0, showarrow=True, arrowhead=2, arrowcolor="#e11d48", font=dict(size=13, color="#9f1239"))
-    
-    # 1/2 H 기준선
-    fig.add_shape(type="line", x0=0, y0=H/2, x1=R, y1=H/2, line=dict(color="#3b82f6", dash="dot", width=1))
-    fig.add_annotation(x=R*0.88, y=H/2 + 0.35, text="<b>1/2 H</b>", showarrow=False, font=dict(size=11, color="#2563eb"))
-
-    # 수평 도달 거리 R
-    fig.add_shape(type="line", x0=0, y0=-0.35, x1=R, y1=-0.35, line=dict(color="#334155", width=1.5))
-    fig.add_annotation(x=R/2, y=-0.8, text="<b>R</b>", showarrow=False, font=dict(size=13, color="#1e293b"))
-
-    fig.update_layout(
-        xaxis=dict(visible=False, range=[-2, R+3]), 
-        yaxis=dict(visible=False, range=[-1.2, H+1.0]), 
-        height=220, margin=dict(l=0, r=0, t=10, b=0), plot_bgcolor="white"
-    )
-    return fig
-
 # =========================================================================
-# 섹션 1: 신규 실전 기출 및 활동지 연계 문항 (5종)
+# 섹션 1: 실전 기출 및 활동지 연계 문항 (5종)
 # =========================================================================
 
 if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전체 9문항 모두 보기", "📖 전체 9문항 모두 인쇄"]:
@@ -372,10 +559,10 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     st.markdown("""
     <span class="badge-primary">기출 빈출</span> &nbsp;
     지면에서 질량이 **2 kg**인 물체를 수평면과 **30°**를 이루는 방향으로 **40 m/s**의 속력으로 던진 물체의 운동 경로를 나타낸 것이다. 
-    (단, 중력 가속도는 $10\\text{ m/s}^2$이고, 공기 저항은 무시한다.)
+    *(단, 중력 가속도는 $10\\text{ m/s}^2$이고, 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
     
-    st.plotly_chart(get_diagram_prob1(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_prob1(), unsafe_allow_html=True)
 
     if is_print_mode:
         st.markdown("**1) 최고점에 도달할 때까지 걸린 시간(s)을 구하고, 풀이 과정과 답을 쓰시오.**")
@@ -405,7 +592,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
             
             2. **최고점의 높이**:
                - $H = v_{y0}t - \\frac{1}{2}gt^2 = 20(2) - \\frac{1}{2}(10)(2^2) = 40 - 20 = \\mathbf{20\\text{ m}}$
-               - (에너지 보존: $\\frac{1}{2}m v_{y0}^2 = mgH \\implies H = \\frac{20^2}{20} = 20\\text{ m}$)
+               - *(에너지 보존: $\\frac{1}{2}m v_{y0}^2 = mgH \\implies H = \\frac{20^2}{20} = 20\\text{ m}$)*
             
             3. **수평 도달 거리**:
                - 전체 체공 시간 $T = 2t = 4\\text{초}$
@@ -424,9 +611,9 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     *(단, 공기 저항은 무시하고 중력 가속도의 크기는 $10\\text{ m/s}^2$, 지면의 중력 퍼텐셜에너지는 0으로 한다.)*
     """, unsafe_allow_html=True)
 
-    col_p2_diag, col_p2_table = st.columns([1.2, 1])
+    col_p2_diag, col_p2_table = st.columns([1.3, 1])
     with col_p2_diag:
-        st.plotly_chart(get_diagram_prob2(), use_container_width=True, config={'staticPlot': True})
+        st.markdown(get_svg_prob2(), unsafe_allow_html=True)
     with col_p2_table:
         st.markdown("""
         | 지점 | 높이(m) | 수평 속력(m/s) | 연직 속력(m/s) |
@@ -435,7 +622,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
         | **B (최고점)** | **3.2** | **6** | **0** |
         | **C (하강 중)** | **1.6** | **6** | **-** |
         """)
-        st.caption("💡 힌트: 수평 방향으로는 알짜힘이 없으므로 수평 속력은 6 m/s로 일정하게 유지됩니다.")
+        st.caption("💡 힌트: 수평 방향으로는 알짜힘이 없으므로 수평 속력은 항상 6 m/s로 일정하게 보존됩니다.")
 
     st.markdown("---")
 
@@ -546,7 +733,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     그림 (가), (나)는 각각 수평면과 **30°, 60°**의 각을 이루는 방향으로 속력 **$v_0, 2v_0$**으로 던져진 **동일한 물체**가 포물선 운동하는 모습을 나타낸 것이다.
     """, unsafe_allow_html=True)
 
-    st.plotly_chart(get_diagram_prob3(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_prob3(), unsafe_allow_html=True)
 
     if is_print_mode:
         st.markdown("**1) 물체를 던진 순간부터 최고점 도달할 때까지 걸린 시간을 비교하시오.**")
@@ -591,7 +778,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     st.markdown('</div>', unsafe_allow_html=True)
 
     # ---------------------------------------------------------------------
-    # [문제 4] 에너지 관계를 이용한 점 p에서의 운동에너지 추론
+    # [문제 4] 에너지 관계를 이용한 점 p에서의 운동에너지 추론 (잘림 없는 완벽 SVG)
     # ---------------------------------------------------------------------
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("🔍 [문제 4] 최고점을 지난 임의의 점 p에서의 운동에너지 추론")
@@ -603,7 +790,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     **점 p에서 물체의 운동 에너지는?** *(단, 물체의 크기 및 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
 
-    st.plotly_chart(get_diagram_prob4(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_prob4(), unsafe_allow_html=True)
 
     if is_print_mode:
         st.markdown("**풀이 과정과 답을 쓰시오.**")
@@ -647,7 +834,7 @@ if view_category in ["🎯 실전 기출 & 활동지 연계 5문항", "📖 전�
     *(단, 중력 가속도는 $10\\text{ m/s}^2$이고, 물체의 질량은 $m$이라 하자. 수치 계산 시 $m=1\\text{ kg}$ 기준으로 계산할 수 있다. 물체의 크기 및 공기 저항은 무시한다.)*
     """, unsafe_allow_html=True)
 
-    st.plotly_chart(get_diagram_prob5(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_prob5(), unsafe_allow_html=True)
 
     if is_print_mode:
         q_list_p5 = [
@@ -721,7 +908,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [서술형 1] 운동의 독립성 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("🖋️ [기초 1] 운동의 독립성 이해 (자유낙하 vs 수평투사)")
-    st.plotly_chart(get_diagram_independence(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_independence(), unsafe_allow_html=True)
     st.markdown("동일한 높이에서 공 A(자유낙하)와 공 B(수평투사)를 동시에 발사했습니다. **왜 동시에 지면에 도달하는지 설명하시오.**")
 
     if is_print_mode:
@@ -734,7 +921,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 2] 10m/s, 30도 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("📝 [기초 2] 비스듬히 던진 물체의 정밀 분석 (10m/s, 30°)")
-    st.plotly_chart(get_diagram_q3(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_q3(), unsafe_allow_html=True)
     st.markdown("처음 속도 **10m/s**, 각도 **30도**로 던졌습니다. ($g=10m/s^2$) 아래 질문에 답하세요.")
 
     if is_print_mode:
@@ -754,6 +941,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 3] 수평 속도의 역추적 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("📝 [기초 3] 수평 속도의 역추적")
+    st.markdown(get_svg_q4(), unsafe_allow_html=True)
     st.markdown("""
     물체를 비스듬히 던져 올렸더니 **4초 후** 수평으로 **39.2m** 떨어진 곳에 도달했습니다. 
     처음 발사 속도의 **수평 방향 성분**은 몇 m/s인가요? ($g=9.8m/s^2$)
@@ -771,7 +959,7 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     # --- [기초 4] 최고점 시간 추론 ---
     st.markdown('<div class="exam-box">', unsafe_allow_html=True)
     st.subheader("🔥 [기초 4] 연직 변위를 통한 최고점 도달 시간 추론")
-    st.plotly_chart(get_diagram_q5(), use_container_width=True, config={'staticPlot': True})
+    st.markdown(get_svg_q5(), unsafe_allow_html=True)
     st.markdown("""
     비스듬히 던진 야구공이 **0초부터 1초까지** 연직 방향으로 이동한 거리(변위)가 **25m**입니다. 
     이 공이 **최고점에 도달할 때까지** 걸리는 시간은 약 몇 초인가요? ($g=9.8m/s^2$)
@@ -792,4 +980,4 @@ if view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 �
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown("---")
-st.info("💡 모든 도표는 벡터로 직접 정밀 렌더링되었습니다. 상단의 **'🖨️ 학습지 출력 모드'**를 켜면 인쇄 및 학생용 배포 PDF 저장이 가능합니다.")
+st.info("💡 모든 도표는 교과서급 정밀 벡터 SVG로 제작되어 화면 및 인쇄(A4) 시 잘림 없이 선명하게 출력됩니다.")
