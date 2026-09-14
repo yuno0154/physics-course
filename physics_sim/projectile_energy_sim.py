@@ -180,21 +180,33 @@ react_code = r"""
 
             const currentState = useMemo(() => getStateAtTime(currentTime), [currentTime, getStateAtTime]);
 
-            // 지점 기록 핸들러
-            const captureCurrentAs = (slot) => {
-                if (slot === '1') {
-                    setPointA(currentState);
-                    setActiveSlot('2');
-                } else if (slot === '2') {
-                    setPointB(getStateAtTime(t_H));
-                    setActiveSlot('3');
-                } else if (slot === '3') {
-                    setPointC(currentState);
-                    setActiveSlot('1');
+            // 지점 1 기록 (상승 구간 체크)
+            const captureAsPoint1 = () => {
+                if (currentTime > t_H * 0.98) {
+                    alert("지점 1은 최고점에 도달하기 전인 '상승 구간'이어야 합니다. 슬라이더를 최고점(왼쪽) 이전으로 옮겨주세요.");
+                    return;
                 }
+                setPointA(currentState);
             };
 
-            // 캔버스 클릭 핸들러
+            // 지점 2 기록 (최고점 정확한 상태로 고정)
+            const captureAsPoint2 = () => {
+                const bSt = getStateAtTime(t_H);
+                setPointB(bSt);
+                setCurrentTime(t_H);
+                setIsPlaying(false);
+            };
+
+            // 지점 3 기록 (하강 구간 체크)
+            const captureAsPoint3 = () => {
+                if (currentTime < t_H * 1.02) {
+                    alert("지점 3은 최고점을 지난 '하강 구간'이어야 합니다. 슬라이더를 최고점(오른쪽) 이후로 옮겨주세요.");
+                    return;
+                }
+                setPointC(currentState);
+            };
+
+            // 캔버스 클릭 핸들러 (지능형 구간 자동 매핑: 궤적 왼쪽=지점 1, 꼭대기=지점 2, 궤적 오른쪽=지점 3)
             const handleCanvasClick = (e) => {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
@@ -208,19 +220,22 @@ react_code = r"""
 
                 const worldClickX = (clickX - margin.left) / scaleX;
                 if (worldClickX >= 0 && worldClickX <= R) {
-                    const clickT = worldClickX / vx0;
+                    const clickT = Math.max(0, Math.min(worldClickX / vx0, t_R));
                     const st = getStateAtTime(clickT);
                     setCurrentTime(clickT);
 
-                    if (activeSlot === '1') {
+                    // [명확한 물리적 규칙 자동 매핑]
+                    // 1. 최고점 이전 (상승 구간): 무조건 [지점 1]로 저장
+                    if (clickT < t_H * 0.92) {
                         setPointA(st);
-                        setActiveSlot('2');
-                    } else if (activeSlot === '2') {
-                        setPointB(st);
-                        setActiveSlot('3');
-                    } else {
+                    }
+                    // 2. 최고점 이후 (하강 구간): 무조건 [지점 3]으로 저장
+                    else if (clickT > t_H * 1.08) {
                         setPointC(st);
-                        setActiveSlot('1');
+                    }
+                    // 3. 최고점 근처: [지점 2(최고점)]로 정확히 저장
+                    else {
+                        setPointB(getStateAtTime(t_H));
                     }
                 }
             };
@@ -362,8 +377,8 @@ react_code = r"""
                 ctx.textAlign = 'center';
                 ctx.fillText(`★ 최고점 H=${H.toFixed(2)}m`, apexCanvasX, apexCanvasY - 14);
 
-                // 6. 관찰 지점(1, 2, 3) 뱃지
-                const renderBadge = (pt, label, tagColor) => {
+                // 6. 관찰 지점(1, 2, 3) 뱃지 (지점별 Y오프셋 차별화로 겹침 방지)
+                const renderBadge = (pt, label, tagColor, offsetY = 32) => {
                     if (!pt) return;
                     const px = toCanvasX(pt.x);
                     const py = toCanvasY(pt.y);
@@ -376,10 +391,10 @@ react_code = r"""
                     ctx.fill();
                     ctx.stroke();
 
-                    const tagW = 82;
+                    const tagW = 84;
                     const tagH = 22;
                     const tagX = px - tagW / 2;
-                    const tagY = py - 32;
+                    const tagY = py - offsetY;
 
                     ctx.fillStyle = tagColor;
                     ctx.beginPath();
@@ -394,9 +409,9 @@ react_code = r"""
                     ctx.fillText(`${label} (h=${pt.y.toFixed(1)}m)`, px, tagY + 15);
                 };
 
-                renderBadge(pointA, '지점 1', '#2563eb');
-                renderBadge(pointB, '지점 2 (최고점)', '#dc2626');
-                renderBadge(pointC, '지점 3', '#16a34a');
+                renderBadge(pointA, '지점 1', '#2563eb', 32);
+                renderBadge(pointB, '지점 2 (최고점)', '#dc2626', 48);
+                renderBadge(pointC, '지점 3', '#16a34a', 32);
 
                 // 7. 실시간 물체 및 속도 벡터
                 const curCanvasX = toCanvasX(currentState.x);
@@ -589,6 +604,18 @@ react_code = r"""
                             </div>
                         </div>
 
+                        {/* 💡 지점 선택 명확한 규칙 안내 배너 */}
+                        <div className="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-xs text-blue-950 flex items-start gap-2.5">
+                            <Icon name="info" size={17} className="text-blue-600 mt-0.5 shrink-0" />
+                            <div className="space-y-0.5">
+                                <div className="font-bold text-blue-900">💡 세 지점(1, 2, 3) 선택 규칙 및 방법 안내</div>
+                                <div className="text-slate-700 leading-relaxed">
+                                    • <b>방법 1 (포물선 궤적 직접 클릭)</b>: 궤적의 <b>왼쪽(상승부)</b>을 누르면 [지점 1], <b>꼭대기</b>를 누르면 [지점 2(최고점)], <b>오른쪽(하강부)</b>을 누르면 [지점 3]으로 즉시 자동 지정됩니다.<br/>
+                                    • <b>방법 2 (슬라이더 조작)</b>: 슬라이더로 원하는 순간으로 이동한 후, 아래 해당 지점 카드의 <b>[현재 위치로 확정]</b> 버튼을 누르세요.
+                                </div>
+                            </div>
+                        </div>
+
                         {/* 캔버스 및 실시간 HUD */}
                         <div className="relative">
                             <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm p-3 rounded-xl border border-slate-200 shadow-md pointer-events-none z-10 text-xs font-mono space-y-1 min-w-[200px]">
@@ -657,34 +684,84 @@ react_code = r"""
                                 />
                                 <span className="text-xs font-mono font-bold text-blue-600 w-14 text-right">{t_R.toFixed(2)}s</span>
                             </div>
+                        </div>
 
-                            {/* 지점 1, 2, 3 기록 버튼 */}
-                            <div className="flex items-center gap-1.5">
-                                <button 
-                                    onClick={() => captureCurrentAs('1')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border cursor-pointer ${
-                                        activeSlot === '1' ? 'bg-blue-600 text-white border-blue-600' : 'bg-blue-50 text-blue-700 border-blue-200'
+                        {/* 🌟 3개 지점(지점 1, 2, 3) 전용 확정 카드 (직관적인 상태 및 버튼) */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
+                            {/* 지점 1 카드 (상승 구간) */}
+                            <div className={`p-3.5 rounded-xl border transition-all ${
+                                currentTime <= t_H * 0.98 ? 'bg-blue-50/70 border-blue-300 shadow-xs' : 'bg-slate-50 border-slate-200'
+                            }`}>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="font-bold text-xs text-blue-700 flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                                        지점 1 (상승 중)
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 font-mono">0.00s ~ {t_H.toFixed(2)}s</span>
+                                </div>
+                                <div className="text-xs font-mono text-slate-700 mb-2.5">
+                                    {pointA ? `t=${pointA.t.toFixed(2)}s | h=${pointA.y.toFixed(2)}m | v=${pointA.v.toFixed(1)}m/s` : '미지정'}
+                                </div>
+                                <button
+                                    onClick={captureAsPoint1}
+                                    disabled={currentTime > t_H * 0.98}
+                                    className={`w-full py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                        currentTime <= t_H * 0.98
+                                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-xs'
+                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                     }`}
                                 >
-                                    지점 1 기록
+                                    <Icon name="pin" size={13} />
+                                    {currentTime <= t_H * 0.98 ? `현재 위치(t=${currentTime.toFixed(2)}s)를 [지점 1]로 확정` : '⚠️ 슬라이더를 상승 구간으로 이동'}
                                 </button>
-                                <button 
-                                    onClick={() => {
-                                        setPointB(getStateAtTime(t_H));
-                                        setCurrentTime(t_H);
-                                        setActiveSlot('3');
-                                    }}
-                                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                            </div>
+
+                            {/* 지점 2 카드 (최고점) */}
+                            <div className="p-3.5 rounded-xl border bg-rose-50/70 border-rose-300 shadow-xs">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="font-bold text-xs text-rose-700 flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                                        지점 2 (최고점 ★)
+                                    </span>
+                                    <span className="text-[10px] text-rose-600 font-bold font-mono">vy = 0 m/s</span>
+                                </div>
+                                <div className="text-xs font-mono text-slate-700 mb-2.5">
+                                    {pointB ? `t=${pointB.t.toFixed(2)}s | h=${pointB.y.toFixed(2)}m | v=${pointB.v.toFixed(1)}m/s` : '미지정'}
+                                </div>
+                                <button
+                                    onClick={captureAsPoint2}
+                                    className="w-full py-2 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition-all flex items-center justify-center gap-1 cursor-pointer"
                                 >
-                                    지점 2(최고점★) 자동
+                                    <Icon name="star" size={13} />
+                                    ★ 최고점으로 자동 이동 & 확정
                                 </button>
-                                <button 
-                                    onClick={() => captureCurrentAs('3')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 border cursor-pointer ${
-                                        activeSlot === '3' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            </div>
+
+                            {/* 지점 3 카드 (하강 구간) */}
+                            <div className={`p-3.5 rounded-xl border transition-all ${
+                                currentTime >= t_H * 1.02 ? 'bg-emerald-50/70 border-emerald-300 shadow-xs' : 'bg-slate-50 border-slate-200'
+                            }`}>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="font-bold text-xs text-emerald-700 flex items-center gap-1.5">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                                        지점 3 (하강 중)
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 font-mono">{t_H.toFixed(2)}s ~ {t_R.toFixed(2)}s</span>
+                                </div>
+                                <div className="text-xs font-mono text-slate-700 mb-2.5">
+                                    {pointC ? `t=${pointC.t.toFixed(2)}s | h=${pointC.y.toFixed(2)}m | v=${pointC.v.toFixed(1)}m/s` : '미지정'}
+                                </div>
+                                <button
+                                    onClick={captureAsPoint3}
+                                    disabled={currentTime < t_H * 1.02}
+                                    className={`w-full py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                        currentTime >= t_H * 1.02
+                                            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                     }`}
                                 >
-                                    지점 3 기록
+                                    <Icon name="pin" size={13} />
+                                    {currentTime >= t_H * 1.02 ? `현재 위치(t=${currentTime.toFixed(2)}s)를 [지점 3]으로 확정` : '⚠️ 슬라이더를 하강 구간으로 이동'}
                                 </button>
                             </div>
                         </div>
