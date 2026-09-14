@@ -312,6 +312,47 @@ react_code = r"""
                 ctx.lineTo(margin.left + plotW, height - margin.bottom);
                 ctx.stroke();
 
+                // 2-1. 발사 각도 θ 호(Arc) 및 각도 표시
+                const originX = toCanvasX(0);
+                const originY = toCanvasY(0);
+                const arcR = 46;
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.arc(originX, originY, arcR, 0, -theta, true);
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(245, 158, 11, 0.2)';
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.arc(originX, originY, arcR, 0, -theta, true);
+                ctx.strokeStyle = '#f59e0b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 발사 방향 가이드 점선
+                const guideLen = arcR + 24;
+                ctx.beginPath();
+                ctx.setLineDash([3, 3]);
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(originX + guideLen * Math.cos(theta), originY - guideLen * Math.sin(theta));
+                ctx.strokeStyle = '#d97706';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 각도 라벨
+                const midA = theta / 2;
+                const textR = arcR + 18;
+                const textX = originX + textR * Math.cos(midA);
+                const textY = originY - textR * Math.sin(midA);
+                ctx.fillStyle = '#b45309';
+                ctx.font = 'bold 11px Pretendard';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`θ = ${thetaDeg}°`, textX, textY);
+                ctx.restore();
+
                 // 3. 전체 포물선 궤적
                 if (showTrajectory) {
                     ctx.strokeStyle = '#93c5fd';
@@ -546,6 +587,10 @@ react_code = r"""
                             <div className="font-bold text-slate-800 font-sans flex items-center gap-1.5 text-xs pb-1 border-b border-slate-200">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                 실시간 운동 데이터
+                            </div>
+                            <div className="text-amber-700 font-sans font-semibold pb-0.5 border-b border-slate-100 flex items-center justify-between">
+                                <span>발사 각도 (θ):</span>
+                                <b>{thetaDeg}°</b>
                             </div>
                             <div className="text-slate-600">시간 (t): <b className="text-blue-600">{currentState.t.toFixed(2)} s</b></div>
                             <div className="text-slate-600">위치 (x, y): <b className="text-slate-800">({currentState.x.toFixed(2)}, {currentState.y.toFixed(2)}) m</b></div>
