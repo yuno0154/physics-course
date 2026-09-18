@@ -719,8 +719,8 @@ def run_sim():
                                     <div className="w-full bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-center">
                                         <img
                                             src={IMAGES.textbook}
-                                            alt="교과서 삽화"
-                                            className="max-h-[300px] w-auto object-contain rounded-xl shadow-sm cursor-zoom-in"
+                                            alt="행성의 운동에 대한 인식의 변화 (프톨레마이오스-코페르니쿠스-케플러)"
+                                            className="max-h-[440px] w-full object-contain rounded-xl shadow-sm cursor-zoom-in hover:brightness-105 transition-all"
                                             onClick={() => setActiveModalImg(IMAGES.textbook)}
                                         />
                                     </div>
