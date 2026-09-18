@@ -41,7 +41,9 @@ circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡
 circular_motion_adv_page = st.Page("physics_sim/circular_motion_adv.py", title="🎡 [개념2] 원운동의 표현")
 circular_motion_accel_page = st.Page("physics_sim/circular_motion_accel_vec.py", title="🎡 [분석1] 가속도와 벡터")
 circular_motion_components_page = st.Page("physics_sim/circular_motion_components.py", title="🎡 [분석2] 원성분과 파동 (업그레이드)")
+pendulum_page = st.Page("physics_sim/pendulum_sim.py", title="🕰️ [탐구] 진자의 운동과 힘 분석")
 circular_motion_practice_page = st.Page("physics_sim/circular_motion_practice.py", title="📝 [마무리] 원운동 연습 문제")
+
 
 # 5. 케플러 법칙 섹션
 kepler_sim_page = st.Page("physics_sim/kepler_sim.py", title="🪐 [분석1] 타원 궤도와 면적")
@@ -107,6 +109,7 @@ pg = st.navigation({
         circular_motion_adv_page,
         circular_motion_accel_page,
         circular_motion_components_page,
+        pendulum_page,
         circular_motion_practice_page
     ],
     "🪐 학습주제 4: 케플러 법칙": [
