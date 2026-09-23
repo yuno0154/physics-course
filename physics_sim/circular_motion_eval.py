@@ -1,5 +1,5 @@
 import streamlit as st
-import numpy as np
+import streamlit.components.v1 as components
 
 # --- 인쇄 및 스타일 CSS 설정 ---
 st.markdown("""
@@ -34,26 +34,9 @@ st.markdown("""
             border: 1px solid #94a3b8 !important; 
             background: white !important; 
             padding: 12px 16px !important; 
-            margin-bottom: 16px !important; 
+            margin-bottom: 14px !important; 
             box-shadow: none !important;
         }
-        svg { 
-            max-width: 100% !important; 
-            height: auto !important; 
-            display: block !important; 
-            margin: 6px auto !important; 
-            page-break-inside: avoid !important; 
-            break-inside: avoid !important; 
-        }
-        .svg-container {
-            max-width: 100% !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-        }
-        h1 { font-size: 1.25rem !important; margin-bottom: 6px !important; }
-        h2 { font-size: 1.05rem !important; margin-top: 8px !important; margin-bottom: 4px !important; }
-        h3 { font-size: 0.95rem !important; margin-top: 4px !important; margin-bottom: 4px !important; }
-        p, li { font-size: 0.85rem !important; line-height: 1.35 !important; }
         .answer-space { 
             border-bottom: 1px solid #64748b !important; 
             height: 28px !important; 
@@ -97,20 +80,12 @@ st.markdown("""
         border: 1px solid #e2e8f0; 
         border-radius: 12px; 
         padding: 16px 20px; 
-        margin-bottom: 16px; 
+        margin-bottom: 12px; 
     }
     .badge-primary { background-color: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-success { background-color: #ecfdf5; color: #047857; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-purple { background-color: #faf5ff; color: #7e22ce; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
     .badge-amber { background-color: #fffbeb; color: #b45309; padding: 3px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
-    
-    .svg-container {
-        text-align: center;
-        width: 100%;
-        max-width: 500px;
-        margin: 10px auto;
-        overflow: visible;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -142,7 +117,7 @@ if is_print_mode:
 else:
     st.markdown("""
     **2022 개정 교육과정 역학과 에너지** [12역학01-03] 성취기준에 따른 **원운동 형성평가 문항**입니다.
-    화면에서 인터랙티브하게 문제를 확인하고 상세 해설 및 단계별 풀이 과정을 확인할 수 있으며, 인쇄 모드를 통해 실제 시험지/학습지 형태로 출력할 수 있습니다.
+    각 문제마다 **살아 움직이는 인터랙티브 물리 시뮬레이션**이 함께 탑재되어 있어, 실시간 벡터 변화와 물리 법칙을 직접 눈으로 관찰하며 학습할 수 있습니다.
     """)
     view_category = st.radio(
         "문항 분류 선택", 
@@ -153,316 +128,708 @@ else:
 st.markdown("---")
 
 # =========================================================================
-# 정밀 SVG 벡터 일러스트 생성 함수군
+# 각 문항별 인터랙티브 시뮬레이션 컴포넌트 HTML 생성 함수군
 # =========================================================================
 
-def render_html(html_str):
-    clean_html = "".join(line.strip() for line in html_str.splitlines())
-    if hasattr(st, "html"):
-        st.html(clean_html)
-    else:
-        st.markdown(clean_html, unsafe_allow_html=True)
-
-COMMON_SVG_DEFS = """
-    <defs>
-        <marker id="arr-blue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#2563eb"/>
-        </marker>
-        <marker id="arr-red" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#dc2626"/>
-        </marker>
-        <marker id="arr-dark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#334155"/>
-        </marker>
-        <radialGradient id="sphereBlue" cx="35%" cy="35%" r="65%">
-            <stop offset="0%" stop-color="#bfdbfe"/>
-            <stop offset="45%" stop-color="#2563eb"/>
-            <stop offset="100%" stop-color="#1e3a8a"/>
-        </radialGradient>
-        <radialGradient id="sphereRose" cx="35%" cy="35%" r="65%">
-            <stop offset="0%" stop-color="#fecdd3"/>
-            <stop offset="45%" stop-color="#e11d48"/>
-            <stop offset="100%" stop-color="#881337"/>
-        </radialGradient>
-    </defs>
-"""
-
-def get_svg_prob1():
-    """문제 1: 등속 원운동 질량 2kg, r=4m, v=π m/s"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 320 230" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- 원 궤도 점선 -->
-        <circle cx="160" cy="115" r="75" fill="none" stroke="#94a3b8" stroke-width="1.8" stroke-dasharray="4,4"/>
-        
-        <!-- 원 중심 O -->
-        <circle cx="160" cy="115" r="3.5" fill="#1e293b"/>
-        <text x="145" y="119" font-size="13" font-weight="bold" fill="#1e293b">O</text>
-        
-        <!-- 반지름 4m 표시선 -->
-        <line x1="160" y1="115" x2="235" y2="115" stroke="#334155" stroke-width="1.5"/>
-        <text x="195" y="108" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">4 m</text>
-        
-        <!-- 물체 (2kg) -->
-        <circle cx="235" cy="115" r="9" fill="url(#sphereBlue)"/>
-        <text x="250" y="120" font-size="12" font-weight="bold" fill="#1e293b">2 kg</text>
-        
-        <!-- 접선 속도 벡터 π m/s -->
-        <line x1="235" y1="115" x2="235" y2="55" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arr-blue)"/>
-        <text x="242" y="55" font-size="12" font-weight="bold" fill="#2563eb">π m/s</text>
-    </svg>
+def render_sim_prob1():
+    """문제 1: 등속 원운동 시뮬레이터 (반지름 4m, 속력 π m/s, 속도 및 구심력 벡터)"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 등속 원운동 실시간 시뮬레이션</div>
+            <div>
+                <button id="btnPlay1" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+                <button id="btnReset1" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">처음으로</button>
+            </div>
+        </div>
+        <canvas id="cv1" width="560" height="230" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <div style="display:flex; justify-content:space-around; font-size:11.5px; color:#475569; margin-top:8px; font-weight:600;">
+            <span>반지름 r = 4.0 m</span>
+            <span>속력 v = π m/s (3.14 m/s)</span>
+            <span style="color:#2563eb;">접선속도 (파랑)</span>
+            <span style="color:#dc2626;">구심력 (빨강)</span>
+        </div>
     </div>
-    """
+    <script>
+    (function(){
+        const cv = document.getElementById('cv1');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay1');
+        const btnReset = document.getElementById('btnReset1');
+        
+        const cx = 280, cy = 115, R = 75;
+        let theta = 0;
+        let isRunning = true;
+        const omega = Math.PI / 4; // T = 8s
+        let lastTime = performance.now();
+        
+        function drawArrow(ctx, fromx, fromy, tox, toy, color) {
+            const headlen = 8;
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
 
-def get_svg_prob2():
-    """문제 2: 실에 매달린 단진자 A - O - B 왕복 운동"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 320 220" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- 천장 고정점 -->
-        <line x1="110" y1="20" x2="210" y2="20" stroke="#475569" stroke-width="2.5"/>
-        <circle cx="160" cy="20" r="3" fill="#1e293b"/>
+        function animate(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (isRunning) {
+                theta += omega * dt;
+            }
+            
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            
+            // 궤도
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 중심 O
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('O', cx - 14, cy - 6);
+            
+            // 반지름 선
+            const px = cx + R * Math.cos(theta);
+            const py = cy + R * Math.sin(theta);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+            
+            // 접선 속도 벡터 (파란색)
+            const vx = -Math.sin(theta) * 45;
+            const vy = Math.cos(theta) * 45;
+            drawArrow(ctx, px, py, px + vx, py + vy, '#2563eb');
+            
+            // 구심력 벡터 (빨간색 - 중심 방향)
+            const fx = -Math.cos(theta) * 40;
+            const fy = -Math.sin(theta) * 40;
+            drawArrow(ctx, px, py, px + fx, py + fy, '#dc2626');
+            
+            // 물체 (2kg)
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.arc(px, py, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('2kg', px, py);
+            
+            requestAnimationFrame(animate);
+        }
         
-        <!-- 점선 원호 궤적 -->
-        <path d="M 80 155 A 150 150 0 0 0 240 155" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
-        
-        <!-- 실 A, O, B -->
-        <line x1="160" y1="20" x2="80" y2="155" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-        <line x1="160" y1="20" x2="240" y2="155" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-        <line x1="160" y1="20" x2="160" y2="170" stroke="#334155" stroke-width="1.8"/>
-        
-        <!-- 위치 A -->
-        <circle cx="80" cy="155" r="7.5" fill="#94a3b8"/>
-        <text x="80" y="176" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">A</text>
-        
-        <!-- 위치 B -->
-        <circle cx="240" cy="155" r="7.5" fill="#94a3b8"/>
-        <text x="240" y="176" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">B</text>
-        
-        <!-- 위치 O (최하점) -->
-        <circle cx="160" cy="170" r="8.5" fill="url(#sphereBlue)"/>
-        <text x="160" y="193" font-size="14" font-weight="bold" fill="#1d4ed8" text-anchor="middle">O</text>
-    </svg>
-    </div>
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        btnReset.onclick = () => {
+            theta = 0;
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
     """
+    components.html(html, height=310)
 
-def get_svg_prob3():
-    """문제 3: 최고점 p와 최하점 O에서의 알짜힘 화살표"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 320 230" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- 천장 고정점 -->
-        <line x1="120" y1="20" x2="200" y2="20" stroke="#475569" stroke-width="2.5"/>
-        <circle cx="160" cy="20" r="3" fill="#1e293b"/>
-        
-        <!-- 원호 궤적 -->
-        <path d="M 100 170 A 160 160 0 0 0 220 170" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3,3"/>
-        
-        <!-- 실: 최하점 O 및 최고점 p -->
-        <line x1="160" y1="20" x2="160" y2="180" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3,3"/>
-        <line x1="160" y1="20" x2="220" y2="170" stroke="#334155" stroke-width="1.8"/>
-        
-        <!-- 점 O (최하점) -->
-        <circle cx="160" cy="180" r="7" fill="#94a3b8"/>
-        <text x="160" y="200" font-size="13" font-weight="bold" fill="#334155" text-anchor="middle">O</text>
-        <!-- 점 O 알짜힘 화살표 (연직 위쪽) -->
-        <line x1="160" y1="180" x2="160" y2="135" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arr-red)"/>
-        <text x="145" y="145" font-size="11" font-weight="bold" fill="#dc2626">F_net(O)</text>
-        
-        <!-- 점 p (최고점) -->
-        <circle cx="220" cy="170" r="8" fill="url(#sphereRose)"/>
-        <text x="235" y="174" font-size="13" font-weight="bold" fill="#991b1b">p (최고점)</text>
-        <!-- 점 p 알짜힘 화살표 (접선 방향) -->
-        <line x1="220" y1="170" x2="185" y2="184" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arr-red)"/>
-        <text x="175" y="205" font-size="11" font-weight="bold" fill="#dc2626">F_net(p)</text>
-    </svg>
+def render_sim_prob2_3():
+    """문제 2 & 3: 단진자의 왕복 운동 및 O점/p점 알짜힘 벡터 시뮬레이터"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 단진자의 왕복 운동과 힘 벡터 분석</div>
+            <div>
+                <button id="btnPlay2" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+                <button id="btnGoO" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; font-weight:bold; cursor:pointer;">최하점 O 정지</button>
+                <button id="btnGoP" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #dc2626; background:#fef2f2; color:#b91c1c; font-weight:bold; cursor:pointer;">최고점 p 정지</button>
+            </div>
+        </div>
+        <canvas id="cv2" width="560" height="230" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <div style="display:flex; justify-content:space-around; font-size:11.5px; color:#475569; margin-top:8px; font-weight:600;">
+            <span style="color:#2563eb;">장력 T (파랑)</span>
+            <span style="color:#64748b;">중력 mg (회색)</span>
+            <span style="color:#dc2626; font-weight:bold;">알짜힘 F_net (빨강 화살표)</span>
+        </div>
     </div>
-    """
+    <script>
+    (function(){
+        const cv = document.getElementById('cv2');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay2');
+        const btnGoO = document.getElementById('btnGoO');
+        const btnGoP = document.getElementById('btnGoP');
+        
+        const originX = 280, originY = 30, L = 140;
+        const maxTheta = 0.6; // 약 34도
+        let theta = maxTheta;
+        let omega = 0;
+        let isRunning = true;
+        const g = 9.8;
+        let lastTime = performance.now();
+        
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, width=2) {
+            const headlen = 7;
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = width;
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.fill();
+        }
 
-def get_svg_prob4():
-    """문제 4: (가) 단진자, (나) 물체의 높이-시간 h(t) 그래프"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 540 210" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- (가) 단진자 영역 -->
-        <g transform="translate(10, 0)">
-            <line x1="60" y1="20" x2="140" y2="20" stroke="#475569" stroke-width="2.5"/>
-            <circle cx="100" cy="20" r="3" fill="#1e293b"/>
+        function animate(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            lastTime = now;
             
-            <path d="M 60 140 A 130 130 0 0 0 140 140" fill="none" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="3,3"/>
-            <line x1="100" y1="20" x2="65" y2="140" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-            <line x1="100" y1="20" x2="135" y2="140" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="3,3"/>
-            <line x1="100" y1="20" x2="100" y2="150" stroke="#334155" stroke-width="1.8"/>
+            if (isRunning) {
+                // 단진자 각가속도: alpha = -(g/L)*sin(theta)
+                const alpha = -(180 / L) * Math.sin(theta);
+                omega += alpha * dt;
+                theta += omega * dt;
+            }
             
-            <circle cx="100" cy="150" r="8" fill="url(#sphereBlue)"/>
-            <text x="100" y="154" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">m</text>
-            <circle cx="65" cy="140" r="5" fill="#94a3b8"/>
-            <circle cx="135" cy="140" r="5" fill="#94a3b8"/>
+            ctx.clearRect(0, 0, cv.width, cv.height);
             
-            <text x="100" y="185" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">(가)</text>
-        </g>
+            // 천장
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(originX - 60, originY);
+            ctx.lineTo(originX + 60, originY);
+            ctx.stroke();
+            
+            // 궤적 원호
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.arc(originX, originY, L, Math.PI/2 - maxTheta - 0.05, Math.PI/2 + maxTheta + 0.05);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 기준 위치 A, O, B 표시
+            const ax = originX + L * Math.sin(-maxTheta);
+            const ay = originY + L * Math.cos(-maxTheta);
+            const bx = originX + L * Math.sin(maxTheta);
+            const by = originY + L * Math.cos(maxTheta);
+            const ox = originX;
+            const oy = originY + L;
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('A', ax - 14, ay);
+            ctx.fillText('B(p)', bx + 18, by);
+            ctx.fillText('O(최하점)', ox, oy + 22);
+            
+            // 실
+            const px = originX + L * Math.sin(theta);
+            const py = originY + L * Math.cos(theta);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(px, py);
+            ctx.stroke();
+            
+            // 힘 계산
+            // 중력: 연직 아래 40px
+            const fgY = 42;
+            drawArrow(ctx, px, py, px, py + fgY, '#64748b', 1.8);
+            
+            // 장력: T = mg*cos(theta) + m*v^2/L
+            const speedSq = Math.max(0, 2 * 9.8 * L * (Math.cos(theta) - Math.cos(maxTheta)) * 0.15);
+            const T_len = 42 * Math.cos(theta) + speedSq * 0.5;
+            const tx = -Math.sin(theta) * T_len;
+            const ty = -Math.cos(theta) * T_len;
+            drawArrow(ctx, px, py, px + tx, py + ty, '#2563eb', 1.8);
+            
+            // 알짜힘 (F_net = T + Fg)
+            const netX = tx;
+            const netY = ty + fgY;
+            drawArrow(ctx, px, py, px + netX, py + netY, '#dc2626', 3.0);
+            
+            // 추
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath();
+            ctx.arc(px, py, 9, 0, Math.PI * 2);
+            ctx.fill();
+            
+            requestAnimationFrame(animate);
+        }
         
-        <!-- (나) 높이-시간 h(t) 그래프 영역 -->
-        <g transform="translate(240, 0)">
-            <!-- 축 -->
-            <line x1="30" y1="150" x2="270" y2="150" stroke="#1e293b" stroke-width="1.8" marker-end="url(#arr-dark)"/>
-            <line x1="30" y1="150" x2="30" y2="20" stroke="#1e293b" stroke-width="1.8" marker-end="url(#arr-dark)"/>
-            <text x="270" y="166" font-size="11" font-weight="bold" fill="#334155" text-anchor="end">시간</text>
-            <text x="25" y="16" font-size="11" font-weight="bold" fill="#334155">물체의 높이</text>
-            
-            <!-- 높이 h 눈금선 -->
-            <line x1="30" y1="50" x2="250" y2="50" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3,3"/>
-            <text x="20" y="54" font-size="11" font-weight="bold" fill="#334155">h</text>
-            <text x="20" y="154" font-size="11" font-weight="bold" fill="#64748b">0</text>
-            
-            <!-- h(t) 사이클 곡선: 0에서 시작해서 t0에서 h, 2t0에서 0, 3t0에서 h -->
-            <path d="M 30 150 Q 55 50 85 50 Q 115 50 140 150 Q 165 50 195 50 Q 225 50 245 150" fill="none" stroke="#2563eb" stroke-width="2.5"/>
-            
-            <!-- 시간 눈금 t0, 2t0, 3t0 -->
-            <line x1="85" y1="50" x2="85" y2="150" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2"/>
-            <line x1="140" y1="146" x2="140" y2="154" stroke="#1e293b" stroke-width="1.5"/>
-            <line x1="195" y1="50" x2="195" y2="150" stroke="#94a3b8" stroke-width="1" stroke-dasharray="2,2"/>
-            
-            <text x="85" y="165" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">t₀</text>
-            <text x="140" y="165" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">2t₀</text>
-            <text x="195" y="165" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">3t₀</text>
-            
-            <text x="140" y="195" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">(나)</text>
-        </g>
-    </svg>
-    </div>
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        btnGoO.onclick = () => {
+            isRunning = false;
+            theta = 0;
+            omega = 0;
+            btnPlay.textContent = '재생';
+        };
+        btnGoP.onclick = () => {
+            isRunning = false;
+            theta = maxTheta;
+            omega = 0;
+            btnPlay.textContent = '재생';
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
     """
+    components.html(html, height=310)
 
-def get_svg_prob5():
-    """문제 5: (가) A, B의 xy 평면 원운동, (나) 시간-가속도 ay 그래프"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 540 220" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- (가) xy 원운동 -->
-        <g transform="translate(10, 0)">
-            <line x1="10" y1="110" x2="200" y2="110" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
-            <line x1="105" y1="200" x2="105" y2="20" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
-            <text x="200" y="125" font-size="11" font-weight="bold" fill="#334155">x(m)</text>
-            <text x="100" y="16" font-size="11" font-weight="bold" fill="#334155">y(m)</text>
-            <text x="94" y="123" font-size="11" font-weight="bold" fill="#64748b">O</text>
-            
-            <!-- 궤도 A (큰 원) -->
-            <circle cx="105" cy="110" r="70" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
-            <circle cx="35" cy="110" r="6.5" fill="url(#sphereBlue)"/>
-            <text x="22" y="105" font-size="12" font-weight="bold" fill="#1d4ed8">A</text>
-            <line x1="35" y1="110" x2="35" y2="80" stroke="#2563eb" stroke-width="2" marker-end="url(#arr-blue)"/>
-            
-            <!-- 궤도 B (작은 원) -->
-            <circle cx="105" cy="110" r="40" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,3"/>
-            <circle cx="145" cy="110" r="6.5" fill="url(#sphereRose)"/>
-            <text x="156" y="105" font-size="12" font-weight="bold" fill="#b91c1c">B</text>
-            <line x1="145" y1="110" x2="145" y2="140" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-red)"/>
-            
-            <text x="105" y="210" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">(가)</text>
-        </g>
-        
-        <!-- (나) ay - t 가속도 그래프 -->
-        <g transform="translate(250, 0)">
-            <line x1="20" y1="110" x2="260" y2="110" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
-            <line x1="35" y1="200" x2="35" y2="20" stroke="#1e293b" stroke-width="1.5" marker-end="url(#arr-dark)"/>
-            <text x="260" y="125" font-size="11" font-weight="bold" fill="#334155">t(s)</text>
-            <text x="30" y="16" font-size="11" font-weight="bold" fill="#334155">a_y (m/s²)</text>
-            
-            <text x="20" y="44" font-size="11" font-weight="bold" fill="#334155">3</text>
-            <text x="20" y="65" font-size="11" font-weight="bold" fill="#334155">2</text>
-            <text x="23" y="114" font-size="11" font-weight="bold" fill="#64748b">0</text>
-            <text x="14" y="180" font-size="11" font-weight="bold" fill="#334155">-3</text>
-            
-            <!-- 곡선 P (A에 해당: 진폭 3, 주기 6π, t=0에서 아래로) -->
-            <!-- 0 -> 1.5π(최저-3) -> 3π(0) -> 4.5π(최고3) -> 6π(0) -->
-            <path d="M 35 110 Q 80 190 125 110 Q 170 30 215 110" fill="none" stroke="#2563eb" stroke-width="2.2"/>
-            <text x="222" y="102" font-size="11" font-weight="bold" fill="#2563eb">P</text>
-            
-            <!-- 곡선 Q (B에 해당: 진폭 2, 주기 3π, t=0에서 위로) -->
-            <path d="M 35 110 Q 57 55 80 110 Q 102 165 125 110 Q 147 55 170 110 Q 192 165 215 110" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="4,2"/>
-            <text x="222" y="122" font-size="11" font-weight="bold" fill="#dc2626">Q</text>
-            
-            <!-- 눈금 표시 -->
-            <text x="125" y="125" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">3π</text>
-            <text x="215" y="125" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">6π</text>
-            
-            <text x="140" y="210" font-size="12" font-weight="bold" fill="#1e293b" text-anchor="middle">(나)</text>
-        </g>
-    </svg>
+def render_sim_prob4():
+    """문제 4: 단진자의 높이-시간 h(t) 실시간 동기화 시뮬레이터"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 단진자 진동과 높이-시간 h(t) 그래프 실시간 연동</div>
+            <div>
+                <button id="btnPlay4" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+            </div>
+        </div>
+        <canvas id="cv4" width="560" height="210" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
     </div>
+    <script>
+    (function(){
+        const cv = document.getElementById('cv4');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay4');
+        let isRunning = true;
+        let t = 0;
+        let lastTime = performance.now();
+        
+        function animate(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (isRunning) {
+                t += dt * 1.5;
+            }
+            
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            
+            // 좌측: 단진자 (가)
+            const cx = 100, cy = 25, L = 110;
+            const maxAngle = 0.55;
+            const curAngle = maxAngle * Math.cos(t);
+            const bx = cx + L * Math.sin(curAngle);
+            const by = cy + L * Math.cos(curAngle);
+            
+            // 천장
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx - 40, cy);
+            ctx.lineTo(cx + 40, cy);
+            ctx.stroke();
+            
+            // 궤적
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, L, Math.PI/2 - maxAngle, Math.PI/2 + maxAngle);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 실 & 추
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(bx, by);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.arc(bx, by, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillStyle = '#1e293b';
+            ctx.fillText('(가) 단진자', cx - 28, 175);
+            
+            // 우측: h(t) 그래프 (나)
+            const gx = 250, gy = 145, gw = 280, gh = 95;
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(gx, gy);
+            ctx.lineTo(gx + gw, gy); // 시간축
+            ctx.moveTo(gx, gy);
+            ctx.lineTo(gx, gy - gh); // 높이축
+            ctx.stroke();
+            
+            ctx.fillStyle = '#334155';
+            ctx.font = '11px sans-serif';
+            ctx.fillText('시간(t)', gx + gw - 35, gy + 15);
+            ctx.fillText('높이(h)', gx - 20, gy - gh - 5);
+            ctx.fillText('h', gx - 12, gy - gh + 10);
+            ctx.fillText('0', gx - 12, gy + 4);
+            
+            // h(t) 파형 그리기 (h는 cos^2 형태)
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            for (let x = 0; x < gw - 20; x++) {
+                const simT = x * 0.05;
+                // 높이 h = L * (1 - cos(theta)) 비례
+                const val = Math.pow(Math.cos(simT), 2);
+                const pyPlot = gy - val * (gh - 15);
+                if (x === 0) ctx.moveTo(gx + x, pyPlot);
+                else ctx.lineTo(gx + x, pyPlot);
+            }
+            ctx.stroke();
+            
+            // 현재 시각 점 트레이싱
+            const curPlotX = (t % (Math.PI * 4)) / 0.05;
+            if (curPlotX < gw - 20) {
+                const curVal = Math.pow(Math.cos(t % (Math.PI * 4)), 2);
+                const curPlotY = gy - curVal * (gh - 15);
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(gx + curPlotX, curPlotY, 5, 0, Math.PI*2);
+                ctx.fill();
+            }
+            
+            ctx.font = 'bold 12px sans-serif';
+            ctx.fillStyle = '#1e293b';
+            ctx.fillText('(나) 높이-시간 h(t)', gx + 80, 175);
+            
+            requestAnimationFrame(animate);
+        }
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
     """
+    components.html(html, height=280)
 
-def get_svg_prob6():
-    """문제 6: 시계방향 등속 원운동 vx-t 속도 성분 그래프"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 380 200" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- 축 -->
-        <line x1="30" y1="100" x2="350" y2="100" stroke="#1e293b" stroke-width="1.8" marker-end="url(#arr-dark)"/>
-        <line x1="50" y1="180" x2="50" y2="20" stroke="#1e293b" stroke-width="1.8" marker-end="url(#arr-dark)"/>
-        <text x="350" y="115" font-size="11" font-weight="bold" fill="#334155">시간(s)</text>
-        <text x="45" y="16" font-size="11" font-weight="bold" fill="#334155">v_x (m/s)</text>
-        
-        <text x="34" y="44" font-size="11" font-weight="bold" fill="#1e293b">5</text>
-        <text x="38" y="104" font-size="11" font-weight="bold" fill="#64748b">0</text>
-        <text x="26" y="164" font-size="11" font-weight="bold" fill="#1e293b">-5</text>
-        
-        <!-- 코사인 곡선: (50, 40) -> (110, 100) -> (170, 160) -> (230, 100) -> (290, 40) -->
-        <path d="M 50 40 Q 80 40 110 100 Q 140 160 170 160 Q 200 160 230 100 Q 260 40 290 40 Q 320 40 335 100" fill="none" stroke="#2563eb" stroke-width="2.5"/>
-        
-        <!-- 눈금선 및 시간 2, 4, 6 -->
-        <line x1="50" y1="40" x2="310" y2="40" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2,2"/>
-        <line x1="50" y1="160" x2="310" y2="160" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="2,2"/>
-        
-        <line x1="170" y1="96" x2="170" y2="104" stroke="#1e293b" stroke-width="1.5"/>
-        <line x1="290" y1="96" x2="290" y2="104" stroke="#1e293b" stroke-width="1.5"/>
-        
-        <text x="170" y="116" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">2</text>
-        <text x="290" y="116" font-size="11" font-weight="bold" fill="#1e293b" text-anchor="middle">4</text>
-    </svg>
+def render_sim_prob5():
+    """문제 5: 물체 A, B의 xy 원운동과 ay 가속도 곡선 비교 시뮬레이터"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 두 물체 A, B의 등속 원운동과 ay 가속도 비교</div>
+            <div>
+                <button id="btnPlay5" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+            </div>
+        </div>
+        <canvas id="cv5" width="560" height="220" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <div style="display:flex; justify-content:space-around; font-size:11.5px; margin-top:8px; font-weight:600;">
+            <span style="color:#2563eb;">물체 A (곡선 P: 주기 6π, 진폭 3)</span>
+            <span style="color:#dc2626;">물체 B (곡선 Q: 주기 3π, 진폭 2)</span>
+        </div>
     </div>
+    <script>
+    (function(){
+        const cv = document.getElementById('cv5');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay5');
+        let isRunning = true;
+        let t = 0;
+        let lastTime = performance.now();
+        
+        function animate(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (isRunning) t += dt * 1.8;
+            
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            
+            // 좌측: xy 평면 원운동
+            const ox = 110, oy = 110;
+            const rA = 65, rB = 35;
+            
+            // 좌표축
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(15, oy); ctx.lineTo(205, oy);
+            ctx.moveTo(ox, 15); ctx.lineTo(ox, 205);
+            ctx.stroke();
+            
+            // 궤도 A, B
+            ctx.strokeStyle = '#94a3b8';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.arc(ox, oy, rA, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(ox, oy, rB, 0, Math.PI*2); ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 각속도: omega_A = 1/3, omega_B = 2/3 (B가 2배 빠름)
+            // A는 t=0에 (-rA, 0)에서 +y로 회전 -> thetaA = Math.PI - (1/3)*t
+            // B는 t=0에 (+rB, 0)에서 -y로 회전 -> thetaB = -(2/3)*t
+            const thetaA = Math.PI - (1/3) * t;
+            const thetaB = -(2/3) * t;
+            
+            const ax = ox + rA * Math.cos(thetaA);
+            const ay = oy + rA * Math.sin(thetaA);
+            const bx = ox + rB * Math.cos(thetaB);
+            const by = oy + rB * Math.sin(thetaB);
+            
+            // 물체 A
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath(); ctx.arc(ax, ay, 7, 0, Math.PI*2); ctx.fill();
+            ctx.font = 'bold 11px sans-serif'; ctx.fillText('A', ax - 14, ay - 6);
+            
+            // 물체 B
+            ctx.fillStyle = '#dc2626';
+            ctx.beginPath(); ctx.arc(bx, by, 7, 0, Math.PI*2); ctx.fill();
+            ctx.fillText('B', bx + 8, by - 6);
+            
+            // 우측: ay(t) 가속도 그래프
+            const gx = 250, gy = 110, gw = 280, gh = 80;
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(gx, gy); ctx.lineTo(gx + gw, gy);
+            ctx.moveTo(gx, gy - gh); ctx.lineTo(gx, gy + gh);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#475569';
+            ctx.font = '10px sans-serif';
+            ctx.fillText('t(s)', gx + gw - 25, gy + 15);
+            ctx.fillText('a_y', gx - 20, gy - gh + 10);
+            
+            // 곡선 P (A: 파랑, 진폭 35, 주기 60px)
+            ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.0;
+            ctx.beginPath();
+            for(let x=0; x<gw-20; x++){
+                const val = -Math.sin(x * 0.04);
+                const py = gy + val * 45;
+                if(x===0) ctx.moveTo(gx+x, py); else ctx.lineTo(gx+x, py);
+            }
+            ctx.stroke();
+            
+            // 곡선 Q (B: 빨강, 진폭 25, 주기 30px)
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 1.8; ctx.setLineDash([4, 2]);
+            ctx.beginPath();
+            for(let x=0; x<gw-20; x++){
+                const val = Math.sin(x * 0.08);
+                const py = gy + val * 30;
+                if(x===0) ctx.moveTo(gx+x, py); else ctx.lineTo(gx+x, py);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            requestAnimationFrame(animate);
+        }
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
     """
+    components.html(html, height=290)
 
-def get_svg_prob7():
-    """문제 7: 막대 p, q에 연결된 물체 A(2m), B(m)"""
-    return f"""
-    <div class="svg-container">
-    <svg viewBox="0 0 380 180" style="width:100%; height:auto; display:block; margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-        {COMMON_SVG_DEFS}
-        <!-- 회전 중심 O -->
-        <circle cx="50" cy="90" r="4.5" fill="#1e293b"/>
-        <text x="45" y="75" font-size="13" font-weight="bold" fill="#1e293b">O</text>
-        
-        <!-- 막대 p (길이 2r) -->
-        <rect x="50" y="87" width="140" height="6" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
-        <text x="120" y="80" font-size="12" font-weight="bold" fill="#475569" text-anchor="middle">막대 p</text>
-        <line x1="50" y1="115" x2="190" y2="115" stroke="#334155" stroke-width="1" marker-start="url(#arr-dark)" marker-end="url(#arr-dark)"/>
-        <text x="120" y="130" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">2r</text>
-        
-        <!-- 물체 A (2m) -->
-        <circle cx="190" cy="90" r="13" fill="url(#sphereBlue)"/>
-        <text x="190" y="70" font-size="13" font-weight="bold" fill="#1d4ed8" text-anchor="middle">A</text>
-        <text x="190" y="94" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">2m</text>
-        
-        <!-- 막대 q (길이 r) -->
-        <rect x="190" y="87" width="90" height="6" fill="#cbd5e1" stroke="#64748b" stroke-width="1"/>
-        <text x="235" y="80" font-size="12" font-weight="bold" fill="#475569" text-anchor="middle">막대 q</text>
-        <line x1="190" y1="115" x2="280" y2="115" stroke="#334155" stroke-width="1" marker-start="url(#arr-dark)" marker-end="url(#arr-dark)"/>
-        <text x="235" y="130" font-size="11" font-weight="bold" fill="#334155" text-anchor="middle">r</text>
-        
-        <!-- 물체 B (m) -->
-        <circle cx="280" cy="90" r="10" fill="url(#sphereRose)"/>
-        <text x="280" y="70" font-size="13" font-weight="bold" fill="#b91c1c" text-anchor="middle">B</text>
-        <text x="280" y="94" font-size="11" font-weight="bold" fill="#fff" text-anchor="middle">m</text>
-    </svg>
+def render_sim_prob6():
+    """문제 6: 시계 방향 등속 원운동과 vx(t) 코사인 속도 성분 시뮬레이터"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 시계 방향 등속 원운동과 속도 x성분(vx) 실시간 연동</div>
+            <div>
+                <button id="btnPlay6" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+            </div>
+        </div>
+        <canvas id="cv6" width="560" height="210" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
     </div>
+    <script>
+    (function(){
+        const cv = document.getElementById('cv6');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay6');
+        let isRunning = true;
+        let t = 0;
+        let lastTime = performance.now();
+        
+        function animate(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (isRunning) t += dt * (Math.PI / 2); // 주기 T = 4s
+            
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            
+            // 좌측: 시계 방향 원운동 (최상단 (0, r)에서 시작, +x 속도)
+            const ox = 110, oy = 110, R = 60;
+            const theta = t - Math.PI / 2; // t=0일 때 theta = -pi/2 (최상단)
+            const px = ox + R * Math.cos(theta);
+            const py = oy + R * Math.sin(theta);
+            
+            // 궤도
+            ctx.strokeStyle = '#94a3b8'; ctx.setLineDash([3,3]);
+            ctx.beginPath(); ctx.arc(ox, oy, R, 0, Math.PI*2); ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 속도 벡터 (시계 방향 접선)
+            const vx = -Math.sin(theta) * 35;
+            const vy = Math.cos(theta) * 35;
+            
+            // 접선 속도 (파랑)
+            ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + vx, py + vy); ctx.stroke();
+            
+            // 수평 vx 성분 (초록)
+            ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + vx, py); ctx.stroke();
+            
+            // 물체
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2); ctx.fill();
+            
+            // 우측: vx(t) 그래프
+            const gx = 250, gy = 110, gw = 280, gh = 65;
+            ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(gx, gy); ctx.lineTo(gx + gw, gy);
+            ctx.moveTo(gx, gy - gh); ctx.lineTo(gx, gy + gh);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#475569'; ctx.font = '10px sans-serif';
+            ctx.fillText('시간(s)', gx + gw - 30, gy + 15);
+            ctx.fillText('v_x (5 m/s)', gx - 35, gy - gh + 5);
+            ctx.fillText('-5', gx - 20, gy + gh);
+            
+            // vx 코사인 곡선
+            ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            for(let x=0; x<gw-20; x++){
+                const val = Math.cos(x * 0.05);
+                const cyPlot = gy - val * (gh - 10);
+                if(x===0) ctx.moveTo(gx+x, cyPlot); else ctx.lineTo(gx+x, cyPlot);
+            }
+            ctx.stroke();
+            
+            requestAnimationFrame(animate);
+        }
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
     """
+    components.html(html, height=280)
+
+def render_sim_prob7():
+    """문제 7: 막대 p, q 연결 이체 원운동 동축 회전계 시뮬레이터"""
+    html = """
+    <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 동축 막대 연결 이체 원운동과 장력(구심력) 분석</div>
+            <div>
+                <button id="btnPlay7" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+            </div>
+        </div>
+        <canvas id="cv7" width="560" height="220" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <div style="display:flex; justify-content:space-around; font-size:11.5px; color:#334155; margin-top:8px; font-weight:600;">
+            <span>A: 질량 2m, 반경 2r (속도 2v₀)</span>
+            <span>B: 질량 m, 반경 3r (속도 3v₀)</span>
+            <span style="color:#2563eb;">막대 p 장력: 7mrω²</span>
+            <span style="color:#dc2626;">막대 q 장력: 3mrω²</span>
+        </div>
+    </div>
+    <script>
+    (function(){
+        const cv = document.getElementById('cv7');
+        const ctx = cv.getContext('2d');
+        const btnPlay = document.getElementById('btnPlay7');
+        let isRunning = true;
+        let theta = 0;
+        let lastTime = performance.now();
+        const ox = 280, oy = 110;
+        const rA = 55, rB = 85;
+        
+        function animate(now) {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            if (isRunning) theta += dt * 1.5;
+            
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            
+            // 궤도 A, B
+            ctx.strokeStyle = '#cbd5e1'; ctx.setLineDash([3,3]);
+            ctx.beginPath(); ctx.arc(ox, oy, rA, 0, Math.PI*2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(ox, oy, rB, 0, Math.PI*2); ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 막대 p (0 ~ rA) & 막대 q (rA ~ rB)
+            const ax = ox + rA * Math.cos(theta);
+            const ay = oy + rA * Math.sin(theta);
+            const bx = ox + rB * Math.cos(theta);
+            const by = oy + rB * Math.sin(theta);
+            
+            // 막대 p (파랑)
+            ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 4.0;
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ax, ay); ctx.stroke();
+            
+            // 막대 q (빨강)
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3.0;
+            ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+            
+            // 중심 회전축 O
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath(); ctx.arc(ox, oy, 5, 0, Math.PI*2); ctx.fill();
+            ctx.font = 'bold 12px sans-serif'; ctx.fillText('O', ox - 15, oy - 6);
+            
+            // 물체 A (질량 2m)
+            ctx.fillStyle = '#1d4ed8';
+            ctx.beginPath(); ctx.arc(ax, ay, 11, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('2m', ax, ay);
+            
+            // 물체 B (질량 m)
+            ctx.fillStyle = '#b91c1c';
+            ctx.beginPath(); ctx.arc(bx, by, 8, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 9px sans-serif';
+            ctx.fillText('m', bx, by);
+            
+            requestAnimationFrame(animate);
+        }
+        btnPlay.onclick = () => {
+            isRunning = !isRunning;
+            btnPlay.textContent = isRunning ? '일시정지' : '재생';
+        };
+        requestAnimationFrame(animate);
+    })();
+    </script>
+    """
+    components.html(html, height=290)
 
 # =========================================================================
 # 문항 렌더링 루틴
@@ -482,7 +849,8 @@ if show_p1:
         <p style="margin-top:6px;">그림과 같이 질량이 2kg인 물체가 점 O를 중심으로 반지름이 4m인 원 궤도를 따라 π m/s의 속력으로 등속 원운동을 한다.</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob1())
+    
+    render_sim_prob1()
 
     if is_print_mode:
         st.markdown("**（1） 각속도의 크기는?**")
@@ -515,7 +883,8 @@ if show_p1:
         <p style="margin-top:6px;">그림과 같이 실에 매달린 물체를 점 A에 가만히 놓았더니, 점 O를 중심으로 A와 B 사이를 왕복 운동한다.</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob2())
+    
+    render_sim_prob2_3()
 
     if is_print_mode:
         st.markdown("**（1） 물체의 속력이 최대인 지점은?**")
@@ -553,10 +922,9 @@ if show_p1:
     st.markdown("""
     <div class="exam-box">
         <span class="badge-purple">문제 3</span> &nbsp; <b>단진자의 최하점과 최고점에서의 알짜힘 벡터 도시</b>
-        <p style="margin-top:6px;">그림은 추가 실에 매달려 점 O를 중심으로 왕복 운동하는 모습을 나타낸 것이다. 점 p는 추의 최고점이다. O, p점에서 추에 작용하는 알짜힘의 방향을 각각 화살표로 나타내시오. (단, 실의 질량, 모든 마찰과 공기 저항은 무시한다.)</p>
+        <p style="margin-top:6px;">그림은 추가 실에 매달려 점 O를 중심으로 왕복 운동하는 모습을 나타낸 것이다. 점 p는 추의 최고점이다. O, p점에서 추에 작용하는 알짜힘의 방향을 각각 화살표로 나타내시오. (위 시뮬레이션에서 '최하점 O 정지' 및 '최고점 p 정지' 버튼을 눌러 확인해 보세요.)</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob3())
 
     if is_print_mode:
         st.markdown("**（1） 최하점 O에서 추에 작용하는 알짜힘의 방향:**")
@@ -585,7 +953,8 @@ if show_p1:
         <p style="margin-top:6px;">그림 (가)는 질량이 m인 물체가 길이가 l인 실에 매달려 왕복 운동하는 모습을 나타낸 것이다. 그림 (나)는 물체의 최하점으로부터 물체의 높이를 시간에 따라 나타낸 것이다.</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob4())
+    
+    render_sim_prob4()
 
     if is_print_mode:
         st.markdown("**（1） 가속도의 크기가 가장 큰 순간을 모두 쓰시오.**")
@@ -617,7 +986,8 @@ if show_p2:
         <p style="margin-top:6px;">그림 (가)는 xy평면에서 원점 O를 중심으로 등속 원운동을 하는 물체 A, B가 시간 t=0일 때 각각 x축을 지나는 모습을 나타낸 것이다. 그림 (나)는 시간 t에 따른 물체 A, B의 y축 방향 가속도 a_y를 순서 없이 P, Q로 나타낸 것이다. (단, 물체의 크기는 무시한다.)</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob5())
+    
+    render_sim_prob5()
 
     if is_print_mode:
         st.markdown("**（1） (나)에서 각속도의 크기는 P가 Q의 몇 배인지 풀이과정과 함께 쓰시오.**")
@@ -670,7 +1040,8 @@ if show_p2:
         <p style="margin-top:6px;">그림은 xy평면에서 원점을 중심으로 시계 방향으로 등속 원운동을 하는 물체의 속도의 x성분 v_x를 시간에 따라 나타낸 것이다.</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob6())
+    
+    render_sim_prob6()
 
     if is_print_mode:
         st.markdown("**（1） 원 궤도의 반지름을 구하시오.**")
@@ -720,7 +1091,8 @@ if show_p2:
         <p style="margin-top:6px;">그림은 막대 p, q에 연결된 물체 A, B가 점 O를 중심으로 각각 등속 원운동을 하는 모습을 나타낸 것이다. p, q의 길이는 각각 2r, r이고, A, B의 질량은 각각 2m, m이다. (단, p와 q는 일직선을 이루며, 막대의 질량, 물체의 크기는 무시한다.)</p>
     </div>
     """, unsafe_allow_html=True)
-    render_html(get_svg_prob7())
+    
+    render_sim_prob7()
 
     if is_print_mode:
         st.markdown("**（1） A와 B의 각속도의 크기를 비교하시오.**")
