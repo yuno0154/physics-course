@@ -34,7 +34,7 @@ oblique_page = st.Page("physics_sim/oblique_projectile.py", title="🏹 [분석2
 projectile_energy_page = st.Page("physics_sim/projectile_energy_sim.py", title="⚡ [활동6] 포물선 운동의 역학적 에너지 보존")
 excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="📊 [정밀] 데이터 분석")
 video_analysis_page = st.Page("physics_sim/video_analysis.py", title="📹 [영상] 분석 보고서")
-practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [마무리] 연습 문제")
+practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [과제] 포물선운동 문제풀이")
 
 # 4. 등속 원운동 섹션
 circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념1] 원운동의 기초")
