@@ -662,25 +662,25 @@ def render_sim_prob12():
             <!-- 카드 1: Tp 분해 -->
             <div style="border:1px solid #bfdbfe; background:#eff6ff; border-radius:6px; padding:6px;">
                 <div style="font-size:11px; font-weight:bold; color:#1e40af; margin-bottom:4px;">① 실 p: Tp 직교 성분 분해</div>
-                <canvas id="cv_f12_p" width="280" height="135" style="width:100%; border:1px solid #dbeafe; border-radius:4px; background:#ffffff;"></canvas>
+                <canvas id="cv_f12_p" width="280" height="125" style="width:100%; border:1px solid #dbeafe; border-radius:4px; background:#ffffff;"></canvas>
             </div>
 
             <!-- 카드 2: Tq 분해 -->
             <div style="border:1px solid #fecdd3; background:#fff1f2; border-radius:6px; padding:6px;">
                 <div style="font-size:11px; font-weight:bold; color:#9f1239; margin-bottom:4px;">② 실 q: Tq 직교 성분 분해</div>
-                <canvas id="cv_f12_q" width="280" height="135" style="width:100%; border:1px solid #ffe4e6; border-radius:4px; background:#ffffff;"></canvas>
+                <canvas id="cv_f12_q" width="280" height="125" style="width:100%; border:1px solid #ffe4e6; border-radius:4px; background:#ffffff;"></canvas>
             </div>
 
             <!-- 카드 3: 수평 평형 -->
             <div style="border:1px solid #bbf7d0; background:#f0fdf4; border-radius:6px; padding:6px;">
                 <div style="font-size:11px; font-weight:bold; color:#166534; margin-bottom:4px;">③ x성분 평형: 수평 방향 (상쇄)</div>
-                <canvas id="cv_f12_x" width="280" height="135" style="width:100%; border:1px solid #dcfce7; border-radius:4px; background:#ffffff;"></canvas>
+                <canvas id="cv_f12_x" width="280" height="125" style="width:100%; border:1px solid #dcfce7; border-radius:4px; background:#ffffff;"></canvas>
             </div>
 
             <!-- 카드 4: 연직 평형 with mg -->
             <div style="border:1px solid #fed7aa; background:#fff7ed; border-radius:6px; padding:6px;">
                 <div style="font-size:11px; font-weight:bold; color:#9a3412; margin-bottom:4px;">④ y성분 평형: 연직 방향 (with mg)</div>
-                <canvas id="cv_f12_y" width="280" height="135" style="width:100%; border:1px solid #ffedd5; border-radius:4px; background:#ffffff;"></canvas>
+                <canvas id="cv_f12_y" width="280" height="125" style="width:100%; border:1px solid #ffedd5; border-radius:4px; background:#ffffff;"></canvas>
             </div>
         </div>
 
@@ -775,17 +775,17 @@ def render_sim_prob12():
         const cvP = document.getElementById('cv_f12_p');
         if (cvP) {
             const ctx = cvP.getContext('2d');
-            const ox = 180, oy = 105;
+            const ox = 180, oy = 95;
 
             // 기준 점선 축 (연직 위, 수평 왼쪽)
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
-            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 80); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 75); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(ox + 10, oy); ctx.lineTo(ox - 85, oy); ctx.stroke();
             ctx.setLineDash([]);
 
-            const L = 72;
-            const tpx = L * Math.sin(Math.PI / 6); // 36
-            const tpy = L * Math.cos(Math.PI / 6); // 62.35
+            const L = 68;
+            const tpx = L * Math.sin(Math.PI / 6); // 34
+            const tpy = L * Math.cos(Math.PI / 6); // 58.89
 
             // 점선 분해 사각형
             ctx.strokeStyle = '#93c5fd'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
@@ -800,9 +800,9 @@ def render_sim_prob12():
 
             // 각도 호 (30도)
             ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.2;
-            ctx.beginPath(); ctx.arc(ox, oy, 28, -Math.PI/2 - Math.PI/6, -Math.PI/2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(ox, oy, 26, -Math.PI/2 - Math.PI/6, -Math.PI/2); ctx.stroke();
             ctx.fillStyle = '#b45309'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('30°', ox - 14, oy - 32);
+            ctx.fillText('30°', ox - 13, oy - 30);
 
             // 수평 분력 (왼쪽)
             drawArrow(ctx, ox, oy, ox - tpx, oy, '#1d4ed8', 2.4, 5);
@@ -824,17 +824,17 @@ def render_sim_prob12():
         const cvQ = document.getElementById('cv_f12_q');
         if (cvQ) {
             const ctx = cvQ.getContext('2d');
-            const ox = 100, oy = 105;
+            const ox = 100, oy = 95;
 
             // 기준 점선 축 (연직 위, 수평 오른쪽)
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
-            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 80); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 75); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(ox - 10, oy); ctx.lineTo(ox + 85, oy); ctx.stroke();
             ctx.setLineDash([]);
 
-            const L = 41.57; // 36 / sin(60) = 41.57 -> 수평 성분이 정확히 36!
-            const tqx = L * Math.sin(Math.PI / 3); // 36.0
-            const tqy = L * Math.cos(Math.PI / 3); // 20.78
+            const L = 39.26; // 34 / sin(60) = 39.26 -> 수평 성분이 정확히 34!
+            const tqx = L * Math.sin(Math.PI / 3); // 34.0
+            const tqy = L * Math.cos(Math.PI / 3); // 19.63
 
             // 점선 분해 사각형
             ctx.strokeStyle = '#fca5a5'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
@@ -849,9 +849,9 @@ def render_sim_prob12():
 
             // 각도 호 (60도)
             ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.2;
-            ctx.beginPath(); ctx.arc(ox, oy, 24, -Math.PI/2, -Math.PI/2 + Math.PI/3); ctx.stroke();
+            ctx.beginPath(); ctx.arc(ox, oy, 22, -Math.PI/2, -Math.PI/2 + Math.PI/3); ctx.stroke();
             ctx.fillStyle = '#b45309'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('60°', ox + 15, oy - 28);
+            ctx.fillText('60°', ox + 14, oy - 26);
 
             // 수평 분력 (오른쪽)
             drawArrow(ctx, ox, oy, ox + tqx, oy, '#b91c1c', 2.4, 5);
@@ -873,7 +873,7 @@ def render_sim_prob12():
         const cvX = document.getElementById('cv_f12_x');
         if (cvX) {
             const ctx = cvX.getContext('2d');
-            const ox = 140, oy = 65;
+            const ox = 140, oy = 55;
 
             // 수평선 축
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
@@ -892,7 +892,7 @@ def render_sim_prob12():
             ctx.fillText('Tq sin 60°', ox + lenX/2, oy - 9);
 
             // 크기 같음 표시
-            ctx.fillStyle = '#059669'; ctx.font = 'bold 11px sans-serif';
+            ctx.fillStyle = '#059669'; ctx.font = 'bold 10.5px sans-serif';
             ctx.fillText('크기 같고 방향 반대 (=)', ox, oy + 18);
 
             // 핵심 결론
@@ -909,16 +909,16 @@ def render_sim_prob12():
         const cvY = document.getElementById('cv_f12_y');
         if (cvY) {
             const ctx = cvY.getContext('2d');
-            const ox = 110, oy = 72;
+            const ox = 105, oy = 60;
 
             // 연직선 축
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
-            ctx.beginPath(); ctx.moveTo(ox, 12); ctx.lineTo(ox, 130); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox, 8); ctx.lineTo(ox, 118); ctx.stroke();
             ctx.setLineDash([]);
 
-            const h1 = 36; // Tp 연직 성분
-            const h2 = 12; // Tq 연직 성분
-            const totalH = h1 + h2; // 48
+            const h1 = 32; // Tp 연직 성분
+            const h2 = 11; // Tq 연직 성분
+            const totalH = h1 + h2; // 43
 
             // 위쪽 1: Tp cos 30° (파랑)
             drawArrow(ctx, ox, oy, ox, oy - h1, '#2563eb', 2.4, 5);
@@ -930,9 +930,9 @@ def render_sim_prob12():
             ctx.fillStyle = '#b91c1c';
             ctx.fillText('+ Tq cos 60°', ox - 6, oy - h1 - h2/2);
 
-            // 아래쪽 중력 mg (길이 정확히 totalH = 48과 일치!)
+            // 아래쪽 중력 mg (길이 정확히 totalH = 43과 일치!)
             drawArrow(ctx, ox, oy, ox, oy + totalH, '#334155', 2.6, 6);
-            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10.5px sans-serif'; ctx.textAlign = 'right';
             ctx.fillText('mg (중력)', ox - 6, oy + totalH/2 + 3);
 
             // 우측 평형 브래킷 및 결론
@@ -947,10 +947,10 @@ def render_sim_prob12():
             ctx.fillStyle = '#059669'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
             ctx.fillText('위쪽 합 = mg', ox + 18, oy - totalH/2 + 3);
 
-            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10.5px sans-serif';
-            ctx.fillText('Tp cos 30° + Tq cos 60° = mg', ox + 18, oy + 25);
-            ctx.fillStyle = '#64748b'; ctx.font = '9.5px sans-serif';
-            ctx.fillText('(상하 방향 알짜힘 = 0)', ox + 18, oy + 40);
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10px sans-serif';
+            ctx.fillText('Tp cos 30° + Tq cos 60° = mg', ox + 18, oy + 22);
+            ctx.fillStyle = '#64748b'; ctx.font = '9px sans-serif';
+            ctx.fillText('(상하 방향 알짜힘 = 0)', ox + 18, oy + 36);
 
             // 원점
             ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI*2); ctx.fill();
@@ -958,7 +958,7 @@ def render_sim_prob12():
     })();
     </script>
     """
-    components.html(html, height=540)
+    components.html(html, height=650)
 
 def render_sim_prob13():
     """문제 13: 경사각 60°, 30° 양쪽 빗면 연결계와 실 절단 전후 가속도 2배 다이어그램 & 시뮬레이터"""
