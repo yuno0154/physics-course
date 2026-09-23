@@ -646,30 +646,61 @@ def render_sim_prob11():
     components.html(html, height=290)
 
 def render_sim_prob12():
-    """문제 12: 두 줄 p(30°), q(60°)로 매달린 물체의 힘의 평형 정밀 다이어그램 & 직교 성분 분해"""
+    """문제 12: 두 줄 p(30°), q(60°) 힘의 평형 - 원본 및 4단계 독립 성분 분해/평형 다이어그램"""
     html = """
     <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:640px; margin:0 auto; font-family:sans-serif;">
-        <div style="font-size:13px; font-weight:bold; color:#1e293b; margin-bottom:8px;">🎬 [시험지 원본 재현] 두 실 p(30°), q(60°) 천장 매달림과 힘의 직교 성분 분해 평형</div>
-        <canvas id="cv_f12" width="600" height="230" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <!-- [1] 상단: 시험지 원본 문제 상황 단독 표시 -->
+        <div style="font-size:13px; font-weight:bold; color:#1e293b; margin-bottom:6px;">🎬 [시험지 원본] 두 실 p, q로 천장에 연결된 물체 m의 정지 상태</div>
+        <canvas id="cv_f12_main" width="580" height="135" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+
+        <!-- [2] 하단: 4개의 분할 카드 (Tp 분해, Tq 분해, 수평 평형, 연직 평형) -->
+        <div style="font-size:12.5px; font-weight:bold; color:#1e293b; margin-top:12px; margin-bottom:8px;">
+            🔍 [단계별 분해 및 평형 분석] <span style="font-size:11px; font-weight:normal; color:#64748b;">(복잡함을 줄이기 위해 각 성분을 독립적으로 분리)</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <!-- 카드 1: Tp 분해 -->
+            <div style="border:1px solid #bfdbfe; background:#eff6ff; border-radius:6px; padding:6px;">
+                <div style="font-size:11px; font-weight:bold; color:#1e40af; margin-bottom:4px;">① 실 p: Tp 직교 성분 분해</div>
+                <canvas id="cv_f12_p" width="280" height="135" style="width:100%; border:1px solid #dbeafe; border-radius:4px; background:#ffffff;"></canvas>
+            </div>
+
+            <!-- 카드 2: Tq 분해 -->
+            <div style="border:1px solid #fecdd3; background:#fff1f2; border-radius:6px; padding:6px;">
+                <div style="font-size:11px; font-weight:bold; color:#9f1239; margin-bottom:4px;">② 실 q: Tq 직교 성분 분해</div>
+                <canvas id="cv_f12_q" width="280" height="135" style="width:100%; border:1px solid #ffe4e6; border-radius:4px; background:#ffffff;"></canvas>
+            </div>
+
+            <!-- 카드 3: 수평 평형 -->
+            <div style="border:1px solid #bbf7d0; background:#f0fdf4; border-radius:6px; padding:6px;">
+                <div style="font-size:11px; font-weight:bold; color:#166534; margin-bottom:4px;">③ x성분 평형: 수평 방향 (상쇄)</div>
+                <canvas id="cv_f12_x" width="280" height="135" style="width:100%; border:1px solid #dcfce7; border-radius:4px; background:#ffffff;"></canvas>
+            </div>
+
+            <!-- 카드 4: 연직 평형 with mg -->
+            <div style="border:1px solid #fed7aa; background:#fff7ed; border-radius:6px; padding:6px;">
+                <div style="font-size:11px; font-weight:bold; color:#9a3412; margin-bottom:4px;">④ y성분 평형: 연직 방향 (with mg)</div>
+                <canvas id="cv_f12_y" width="280" height="135" style="width:100%; border:1px solid #ffedd5; border-radius:4px; background:#ffffff;"></canvas>
+            </div>
+        </div>
+
+        <!-- 하단 요약 -->
         <div style="display:flex; justify-content:space-around; font-size:11.5px; color:#334155; margin-top:8px; font-weight:600; background:#f8fafc; padding:6px; border-radius:6px;">
-            <span style="color:#2563eb;">수평 평형: Tp sin 30° = Tq sin 60° (크기 같고 방향 반대)</span>
-            <span style="color:#dc2626;">연직 평형: Tp cos 30° + Tq cos 60° = mg (두 성분 합 = mg)</span>
-            <span style="color:#16a34a; font-weight:bold;">Tp / Tq = √3 (약 1.732)</span>
+            <span style="color:#2563eb;">수평 평형: Tp sin 30° = Tq sin 60°</span>
+            <span style="color:#dc2626;">연직 평형: Tp cos 30° + Tq cos 60° = mg</span>
+            <span style="color:#16a34a; font-weight:bold;">장력 비: Tp / Tq = √3 (약 1.732)</span>
         </div>
     </div>
     <script>
     (function(){
-        const cv = document.getElementById('cv_f12');
-        const ctx = cv.getContext('2d');
-
-        function drawHatch(x1, y, x2) {
+        function drawHatch(ctx, x1, y, x2) {
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
             for(let hx = x1; hx <= x2; hx += 8) {
                 ctx.beginPath(); ctx.moveTo(hx, y); ctx.lineTo(hx - 5, y - 8); ctx.stroke();
             }
         }
 
-        function drawArrow(x1, y1, x2, y2, color, width, headLen = 6) {
+        function drawArrow(ctx, x1, y1, x2, y2, color, width, headLen = 6) {
             const dx = x2 - x1, dy = y2 - y1;
             const angle = Math.atan2(dy, dx);
             ctx.strokeStyle = color; ctx.lineWidth = width;
@@ -682,156 +713,252 @@ def render_sim_prob12():
             ctx.closePath(); ctx.fill();
         }
 
-        // ================= [ 좌측: 시험지 원본 천장 매달림 다이어그램 ] =================
-        const topY = 30;
-        const mx = 165, my = 145; // 물체 m 위치
+        // =========================================================================
+        // [1] 상단 원본 다이어그램 (cv_f12_main)
+        // =========================================================================
+        const cvM = document.getElementById('cv_f12_main');
+        if (cvM) {
+            const ctx = cvM.getContext('2d');
+            const topY = 22, mx = 270, my = 95;
 
-        // 연직 점선 (위로)
-        ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.3; ctx.setLineDash([4, 3]);
-        ctx.beginPath(); ctx.moveTo(mx, topY - 5); ctx.lineTo(mx, my + 38); ctx.stroke();
-        ctx.setLineDash([]);
+            // 천장
+            ctx.strokeStyle = '#334155'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.moveTo(60, topY); ctx.lineTo(500, topY); ctx.stroke();
+            drawHatch(ctx, 60, topY, 500);
 
-        // 실 p 고정점: 연직각 30도 -> 천장 교점 x = mx - (my - topY)*tan(30) = 165 - 115*0.577 = 98.6
-        const fixPx = mx - (my - topY) * Math.tan(Math.PI / 6);
-        // 실 q 고정점: 연직각 60도 -> 천장 교점 x = mx + (my - topY)*tan(60) = 165 + 115*1.732 = 364.2
-        const fixQx = Math.min(310, mx + (my - topY) * Math.tan(Math.PI / 3));
+            // 연직 점선
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(mx, topY - 5); ctx.lineTo(mx, my + 32); ctx.stroke();
+            ctx.setLineDash([]);
 
-        // 천장 수평선
-        ctx.strokeStyle = '#334155'; ctx.lineWidth = 2.5;
-        ctx.beginPath(); ctx.moveTo(40, topY); ctx.lineTo(320, topY); ctx.stroke();
-        drawHatch(40, topY, 320);
+            // 실 p 고정점 (30도)
+            const fixPx = mx - (my - topY) * Math.tan(Math.PI / 6); // 270 - 73*0.577 = 227.8
+            // 실 q 고정점 (60도)
+            const fixQx = mx + (my - topY) * Math.tan(Math.PI / 3); // 270 + 73*1.732 = 396.4
 
-        // 실 p (파랑)
-        ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.2;
-        ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(fixPx, topY); ctx.stroke();
-        ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 12px sans-serif';
-        ctx.fillText('p', fixPx + (mx - fixPx)/2 - 15, topY + (my - topY)/2);
+            // 실 p
+            ctx.strokeStyle = '#2563eb'; ctx.lineWidth = 2.2;
+            ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(fixPx, topY); ctx.stroke();
+            ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 12px sans-serif';
+            ctx.fillText('p', (mx + fixPx)/2 - 14, (my + topY)/2);
 
-        // 실 q (빨강)
-        ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2.2;
-        ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(fixQx, topY); ctx.stroke();
-        ctx.fillStyle = '#b91c1c'; ctx.font = 'bold 12px sans-serif';
-        ctx.fillText('q', mx + (fixQx - mx)/2 + 8, topY + (my - topY)/2 - 4);
+            // 실 q
+            ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2.2;
+            ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(fixQx, topY); ctx.stroke();
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillText('q', (mx + fixQx)/2 + 8, (my + topY)/2);
 
-        // 각도 호: p와 연직선 (30도)
-        ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.4;
-        ctx.beginPath(); ctx.arc(mx, my, 36, -Math.PI/2 - Math.PI/6, -Math.PI/2); ctx.stroke();
-        ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('30°', mx - 20, my - 40);
+            // 각도 호
+            ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.3;
+            ctx.beginPath(); ctx.arc(mx, my, 32, -Math.PI/2 - Math.PI/6, -Math.PI/2); ctx.stroke();
+            ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif';
+            ctx.fillText('30°', mx - 20, my - 36);
 
-        // 각도 호: q와 연직선 (60도)
-        ctx.beginPath(); ctx.arc(mx, my, 32, -Math.PI/2, -Math.PI/2 + Math.PI/3); ctx.stroke();
-        ctx.fillText('60°', mx + 16, my - 36);
+            ctx.beginPath(); ctx.arc(mx, my, 28, -Math.PI/2, -Math.PI/2 + Math.PI/3); ctx.stroke();
+            ctx.fillText('60°', mx + 14, my - 32);
 
-        // 물체 m (블록)
-        ctx.fillStyle = '#334155'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5;
-        ctx.fillRect(mx - 12, my, 24, 20); ctx.strokeRect(mx - 12, my, 24, 20);
-        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px sans-serif';
-        ctx.fillText('m', mx, my + 14);
+            // 물체 m
+            ctx.fillStyle = '#334155'; ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.5;
+            ctx.fillRect(mx - 11, my, 22, 18); ctx.strokeRect(mx - 11, my, 22, 18);
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('m', mx, my + 13);
 
-        // 중력 mg 화살표 (물체 아래)
-        drawArrow(mx, my + 20, mx, my + 52, '#64748b', 1.8);
-        ctx.fillStyle = '#475569'; ctx.font = '10px sans-serif';
-        ctx.fillText('mg', mx + 15, my + 44);
+            // 중력 mg
+            drawArrow(ctx, mx, my + 18, mx, my + 38, '#64748b', 1.8);
+            ctx.fillStyle = '#475569'; ctx.font = '10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('mg', mx + 8, my + 32);
+        }
 
+        // =========================================================================
+        // [2] 카드 1: Tp 분해 (cv_f12_p)
+        // =========================================================================
+        const cvP = document.getElementById('cv_f12_p');
+        if (cvP) {
+            const ctx = cvP.getContext('2d');
+            const ox = 180, oy = 105;
 
-        // ================= [ 우측: Tp, Tq 직교 성분 분해와 힘의 평형 ] =================
-        const ox = 465, oy = 118; // 작용점 중심
+            // 기준 점선 축 (연직 위, 수평 왼쪽)
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 80); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox + 10, oy); ctx.lineTo(ox - 85, oy); ctx.stroke();
+            ctx.setLineDash([]);
 
-        ctx.fillStyle = '#1e293b'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('[힘의 직교 성분 분해 & 평형]', ox, 22);
+            const L = 72;
+            const tpx = L * Math.sin(Math.PI / 6); // 36
+            const tpy = L * Math.cos(Math.PI / 6); // 62.35
 
-        // 1. 기준 축 (점선)
-        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
-        // 수평축 x
-        ctx.beginPath(); ctx.moveTo(ox - 90, oy); ctx.lineTo(ox + 90, oy); ctx.stroke();
-        // 연직축 y
-        ctx.beginPath(); ctx.moveTo(ox, oy - 92); ctx.lineTo(ox, oy + 92); ctx.stroke();
-        ctx.setLineDash([]);
+            // 점선 분해 사각형
+            ctx.strokeStyle = '#93c5fd'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+            ctx.beginPath(); ctx.moveTo(ox - tpx, oy - tpy); ctx.lineTo(ox - tpx, oy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox - tpx, oy - tpy); ctx.lineTo(ox, oy - tpy); ctx.stroke();
+            ctx.setLineDash([]);
 
-        // 물리적 크기 스케일 (mg = 80px)
-        const mgScale = 80;
-        // Tp = mg * cos(30도) = 80 * 0.8660 = 69.28
-        // Tpx = Tp * sin(30도) = 69.28 * 0.5 = 34.64 (왼쪽)
-        // Tpy = Tp * cos(30도) = 69.28 * 0.8660 = 60.0 (위쪽)
-        const tpx = 34.64, tpy = 60.0;
+            // 원래 벡터 Tp (파랑 대각선)
+            drawArrow(ctx, ox, oy, ox - tpx, oy - tpy, '#2563eb', 2.2, 6);
+            ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('Tp', ox - tpx - 4, oy - tpy + 2);
 
-        // Tq = mg * cos(60도) = 80 * 0.5 = 40.0
-        // Tqx = Tq * sin(60도) = 40 * 0.8660 = 34.64 (오른쪽) -> Tpx와 완벽 동일!
-        // Tqy = Tq * cos(60도) = 40 * 0.5 = 20.0 (위쪽) -> Tpy + Tqy = 60 + 20 = 80.0 = mg와 완벽 동일!
-        const tqx = 34.64, tqy = 20.0;
+            // 각도 호 (30도)
+            ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.arc(ox, oy, 28, -Math.PI/2 - Math.PI/6, -Math.PI/2); ctx.stroke();
+            ctx.fillStyle = '#b45309'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('30°', ox - 14, oy - 32);
 
-        // 2. 원래 벡터 Tp (파랑)
-        drawArrow(ox, oy, ox - tpx, oy - tpy, '#2563eb', 2.2, 7);
-        ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
-        ctx.fillText('Tp', ox - tpx - 4, oy - tpy + 2);
+            // 수평 분력 (왼쪽)
+            drawArrow(ctx, ox, oy, ox - tpx, oy, '#1d4ed8', 2.4, 5);
+            ctx.font = 'bold 9.5px sans-serif';
+            ctx.fillText('Tp sin 30°', ox - tpx/2, oy + 13);
 
-        // 3. 원래 벡터 Tq (빨강)
-        drawArrow(ox, oy, ox + tqx, oy - tqy, '#dc2626', 2.0, 7);
-        ctx.fillStyle = '#b91c1c'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText('Tq', ox + tqx + 4, oy - tqy + 2);
+            // 연직 분력 (위쪽)
+            drawArrow(ctx, ox, oy, ox, oy - tpy, '#1d4ed8', 2.4, 5);
+            ctx.textAlign = 'left';
+            ctx.fillText('Tp cos 30°', ox + 4, oy - tpy/2);
 
-        // 4. 성분 분해 보조선 (점선)
-        ctx.strokeStyle = '#93c5fd'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
-        // Tp 분해 수선의 발
-        ctx.beginPath(); ctx.moveTo(ox - tpx, oy - tpy); ctx.lineTo(ox - tpx, oy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(ox - tpx, oy - tpy); ctx.lineTo(ox, oy - tpy); ctx.stroke();
+            // 원점
+            ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI*2); ctx.fill();
+        }
 
-        ctx.strokeStyle = '#fca5a5';
-        // Tq 분해 수선의 발
-        ctx.beginPath(); ctx.moveTo(ox + tqx, oy - tqy); ctx.lineTo(ox + tqx, oy); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(ox + tqx, oy - tqy); ctx.lineTo(ox, oy - tqy); ctx.stroke();
-        ctx.setLineDash([]);
+        // =========================================================================
+        // [3] 카드 2: Tq 분해 (cv_f12_q)
+        // =========================================================================
+        const cvQ = document.getElementById('cv_f12_q');
+        if (cvQ) {
+            const ctx = cvQ.getContext('2d');
+            const ox = 100, oy = 105;
 
-        // 5. 수평 방향 성분 (크기 같고 방향 반대)
-        // 왼쪽 Tpx
-        drawArrow(ox, oy, ox - tpx, oy, '#1d4ed8', 2.4, 6);
-        ctx.fillStyle = '#1e40af'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText('Tp sin 30°', ox - tpx/2, oy + 14);
+            // 기준 점선 축 (연직 위, 수평 오른쪽)
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(ox, oy + 12); ctx.lineTo(ox, oy - 80); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox - 10, oy); ctx.lineTo(ox + 85, oy); ctx.stroke();
+            ctx.setLineDash([]);
 
-        // 오른쪽 Tqx
-        drawArrow(ox, oy, ox + tqx, oy, '#b91c1c', 2.4, 6);
-        ctx.fillStyle = '#991b1b';
-        ctx.fillText('Tq sin 60°', ox + tqx/2, oy + 14);
+            const L = 41.57; // 36 / sin(60) = 41.57 -> 수평 성분이 정확히 36!
+            const tqx = L * Math.sin(Math.PI / 3); // 36.0
+            const tqy = L * Math.cos(Math.PI / 3); // 20.78
 
-        // 수평 평형 표시 (크기 같음 기호)
-        ctx.fillStyle = '#059669'; ctx.font = 'bold 11px sans-serif';
-        ctx.fillText('◀── [ 크기 같음 (=) ] ──▶', ox, oy - 6);
+            // 점선 분해 사각형
+            ctx.strokeStyle = '#fca5a5'; ctx.lineWidth = 1; ctx.setLineDash([2, 2]);
+            ctx.beginPath(); ctx.moveTo(ox + tqx, oy - tqy); ctx.lineTo(ox + tqx, oy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox + tqx, oy - tqy); ctx.lineTo(ox, oy - tqy); ctx.stroke();
+            ctx.setLineDash([]);
 
-        // 6. 연직 방향 성분 (두 벡터 합 = mg)
-        // Tp의 연직 성분 (파랑, 길이 60)
-        drawArrow(ox - 4, oy, ox - 4, oy - tpy, '#2563eb', 2.2, 5);
-        ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'right';
-        ctx.fillText('Tp cos 30°', ox - 8, oy - tpy/2);
+            // 원래 벡터 Tq (빨강 대각선)
+            drawArrow(ctx, ox, oy, ox + tqx, oy - tqy, '#dc2626', 2.0, 6);
+            ctx.fillStyle = '#b91c1c'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('Tq', ox + tqx + 4, oy - tqy + 2);
 
-        // Tq의 연직 성분 (빨강, 길이 20)
-        drawArrow(ox + 4, oy, ox + 4, oy - tqy, '#dc2626', 2.2, 5);
-        ctx.fillStyle = '#b91c1c'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText('Tq cos 60°', ox + 8, oy - tqy/2);
+            // 각도 호 (60도)
+            ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.arc(ox, oy, 24, -Math.PI/2, -Math.PI/2 + Math.PI/3); ctx.stroke();
+            ctx.fillStyle = '#b45309'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('60°', ox + 15, oy - 28);
 
-        // 위쪽 두 성분의 합 괄호 브래킷
-        ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.3;
-        ctx.beginPath();
-        ctx.moveTo(ox + 2, oy - (tpy + tqy));
-        ctx.lineTo(ox + 6, oy - (tpy + tqy));
-        ctx.lineTo(ox + 6, oy);
-        ctx.lineTo(ox + 2, oy);
-        ctx.stroke();
-        ctx.fillStyle = '#059669'; ctx.font = 'bold 10.5px sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText('합 = mg', ox + 9, oy - (tpy + tqy)/2);
+            // 수평 분력 (오른쪽)
+            drawArrow(ctx, ox, oy, ox + tqx, oy, '#b91c1c', 2.4, 5);
+            ctx.font = 'bold 9.5px sans-serif';
+            ctx.fillText('Tq sin 60°', ox + tqx/2, oy + 13);
 
-        // 7. 아래쪽 중력 mg (길이 80 = tpy + tqy)
-        drawArrow(ox, oy, ox, oy + mgScale, '#334155', 2.5, 7);
-        ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11.5px sans-serif'; ctx.textAlign = 'left';
-        ctx.fillText('mg (중력)', ox + 8, oy + mgScale/2 + 4);
+            // 연직 분력 (위쪽)
+            drawArrow(ctx, ox, oy, ox, oy - tqy, '#b91c1c', 2.4, 5);
+            ctx.textAlign = 'right';
+            ctx.fillText('Tq cos 60°', ox - 4, oy - tqy/2);
 
-        // 작용점 O 점
-        ctx.fillStyle = '#1e293b';
-        ctx.beginPath(); ctx.arc(ox, oy, 3.5, 0, Math.PI * 2); ctx.fill();
+            // 원점
+            ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI*2); ctx.fill();
+        }
+
+        // =========================================================================
+        // [4] 카드 3: 수평 평형 (cv_f12_x)
+        // =========================================================================
+        const cvX = document.getElementById('cv_f12_x');
+        if (cvX) {
+            const ctx = cvX.getContext('2d');
+            const ox = 140, oy = 65;
+
+            // 수평선 축
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(25, oy); ctx.lineTo(255, oy); ctx.stroke();
+            ctx.setLineDash([]);
+
+            const lenX = 55;
+            // 왼쪽 Tp sin 30°
+            drawArrow(ctx, ox, oy, ox - lenX, oy, '#2563eb', 2.4, 6);
+            ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Tp sin 30°', ox - lenX/2, oy - 9);
+
+            // 오른쪽 Tq sin 60°
+            drawArrow(ctx, ox, oy, ox + lenX, oy, '#dc2626', 2.4, 6);
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillText('Tq sin 60°', ox + lenX/2, oy - 9);
+
+            // 크기 같음 표시
+            ctx.fillStyle = '#059669'; ctx.font = 'bold 11px sans-serif';
+            ctx.fillText('크기 같고 방향 반대 (=)', ox, oy + 18);
+
+            // 핵심 결론
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10.5px sans-serif';
+            ctx.fillText('Tp (1/2) = Tq (√3/2) ⟹ Tp/Tq = √3', ox, oy + 42);
+
+            // 원점
+            ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI*2); ctx.fill();
+        }
+
+        // =========================================================================
+        // [5] 카드 4: 연직 평형 with mg (cv_f12_y)
+        // =========================================================================
+        const cvY = document.getElementById('cv_f12_y');
+        if (cvY) {
+            const ctx = cvY.getContext('2d');
+            const ox = 110, oy = 72;
+
+            // 연직선 축
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(ox, 12); ctx.lineTo(ox, 130); ctx.stroke();
+            ctx.setLineDash([]);
+
+            const h1 = 36; // Tp 연직 성분
+            const h2 = 12; // Tq 연직 성분
+            const totalH = h1 + h2; // 48
+
+            // 위쪽 1: Tp cos 30° (파랑)
+            drawArrow(ctx, ox, oy, ox, oy - h1, '#2563eb', 2.4, 5);
+            ctx.fillStyle = '#1d4ed8'; ctx.font = 'bold 9.5px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('Tp cos 30°', ox - 6, oy - h1/2);
+
+            // 위쪽 2: Tq cos 60° (빨강, 그 위에 직렬 연결)
+            drawArrow(ctx, ox, oy - h1, ox, oy - totalH, '#dc2626', 2.4, 5);
+            ctx.fillStyle = '#b91c1c';
+            ctx.fillText('+ Tq cos 60°', ox - 6, oy - h1 - h2/2);
+
+            // 아래쪽 중력 mg (길이 정확히 totalH = 48과 일치!)
+            drawArrow(ctx, ox, oy, ox, oy + totalH, '#334155', 2.6, 6);
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('mg (중력)', ox - 6, oy + totalH/2 + 3);
+
+            // 우측 평형 브래킷 및 결론
+            ctx.strokeStyle = '#059669'; ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(ox + 8, oy - totalH);
+            ctx.lineTo(ox + 14, oy - totalH);
+            ctx.lineTo(ox + 14, oy);
+            ctx.lineTo(ox + 8, oy);
+            ctx.stroke();
+
+            ctx.fillStyle = '#059669'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('위쪽 합 = mg', ox + 18, oy - totalH/2 + 3);
+
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 10.5px sans-serif';
+            ctx.fillText('Tp cos 30° + Tq cos 60° = mg', ox + 18, oy + 25);
+            ctx.fillStyle = '#64748b'; ctx.font = '9.5px sans-serif';
+            ctx.fillText('(상하 방향 알짜힘 = 0)', ox + 18, oy + 40);
+
+            // 원점
+            ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI*2); ctx.fill();
+        }
     })();
     </script>
     """
-    components.html(html, height=295)
+    components.html(html, height=540)
 
 def render_sim_prob13():
     """문제 13: 경사각 60°, 30° 양쪽 빗면 연결계와 실 절단 전후 가속도 2배 다이어그램 & 시뮬레이터"""
