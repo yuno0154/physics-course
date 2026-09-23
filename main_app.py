@@ -25,6 +25,7 @@ home_page = st.Page("home.py", title="🏠 홈 (Home)", default=True)
 vector_decomp_page = st.Page("physics_sim/vector_sim.py", title="📍 [기학] 벡터의 합성과 분해")
 position_vector_page = st.Page("physics_sim/position_vector_sim.py", title="📍 [기학] 위치 벡터와 변위")
 velocity_page = st.Page("physics_sim/velocity_sim.py", title="🚀 [기학] 평균 속도 탐구")
+force_motion_eval_page = st.Page("physics_sim/force_motion_eval.py", title="📝 [과제] 힘의 합성과 운동 예측 문제 풀이")
 
 # 2. 가속도와 포물선 운동 섹션
 accel_page = st.Page("physics_sim/projectile_sim.py", title="📘 [기학] 가속도의 정의")
@@ -95,7 +96,12 @@ transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] 
 # 네비게이션 구성
 pg = st.navigation({
     "🏠 메인": [home_page],
-    "📍 학습 주제1: 힘의 합성과 운동 예측": [vector_decomp_page, position_vector_page, velocity_page],
+    "📍 학습 주제1: 힘의 합성과 운동 예측": [
+        vector_decomp_page, 
+        position_vector_page, 
+        velocity_page,
+        force_motion_eval_page
+    ],
     "🏀 학습주제 2: 포물선 운동": [
         accel_page, 
         horizontal_page, 
