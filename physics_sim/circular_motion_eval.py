@@ -1,5 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import os
+import base64
+from pathlib import Path
+
+try:
+    from streamlit_pdf_viewer import pdf_viewer
+    HAS_PDF_VIEWER = True
+except ImportError:
+    HAS_PDF_VIEWER = False
 
 # --- 인쇄 및 스타일 CSS 설정 ---
 st.markdown("""
@@ -89,7 +98,35 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🎯 원운동 형성평가 문제 풀이")
+# --- 상단 타이틀 및 원문 PDF 다운로드 ---
+pdf_file_name = "원운동 과제.pdf"
+pdf_path = Path(__file__).parent.parent / pdf_file_name
+
+col_title, col_pdf = st.columns([2.5, 1.2])
+with col_title:
+    st.title("📝 원운동 과제 문제 풀이")
+    st.caption("2022 개정 교육과정 역학과 에너지 [12역학01-03] · 등속 원운동 및 단진자의 역학 분석")
+with col_pdf:
+    if os.path.exists(pdf_path):
+        with open(pdf_path, "rb") as f:
+            pdf_data = f.read()
+        st.download_button(
+            label="📥 원문 과제 PDF 다운로드",
+            data=pdf_data,
+            file_name="원운동_과제_학습지.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+
+# 원문 PDF 펼쳐보기 expander
+if os.path.exists(pdf_path):
+    with st.expander("📖 원문 과제 PDF 원본 펼쳐보기", expanded=False):
+        if HAS_PDF_VIEWER:
+            pdf_viewer(str(pdf_path), width=750)
+        else:
+            base64_pdf = base64.b64encode(pdf_data).decode('utf-8')
+            pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800" type="application/pdf">'
+            st.markdown(pdf_display, unsafe_allow_html=True)
 
 # --- 출력 모드 선택 ---
 col_mode1, col_mode2 = st.columns([1.8, 1])
@@ -101,7 +138,7 @@ with col_mode2:
             st.components.v1.html("<script>parent.window.print()</script>", height=0)
 
 if is_print_mode:
-    st.markdown('<div class="print-header">📝 원운동 형성평가 학습지 &nbsp; [ 학년: 2 &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ &nbsp; 점수: ______ ]</div>', unsafe_allow_html=True)
+    st.markdown('<div class="print-header">📝 원운동 과제 학습지 &nbsp; [ 학년: 2 &nbsp; 반: ____ &nbsp; 번호: ____ &nbsp; 이름: __________ &nbsp; 점수: ______ ]</div>', unsafe_allow_html=True)
     st.markdown("""
     <table class="meta-table">
         <tr>
@@ -116,7 +153,7 @@ if is_print_mode:
     view_category = st.radio("인쇄 범위 선택", ["📄 1페이지: 원운동 기본 및 단진자 (4문항)", "📄 2페이지: 그래프 및 다체 원운동 (3문항)", "📖 전체 7문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    **2022 개정 교육과정 역학과 에너지** [12역학01-03] 성취기준에 따른 **원운동 형성평가 문항**입니다.
+    **2022 개정 교육과정 역학과 에너지** [12역학01-03] 성취기준에 따른 **원운동 과제 문항**입니다.
     각 문제마다 **살아 움직이는 인터랙티브 물리 시뮬레이션**이 함께 탑재되어 있어, 실시간 벡터 변화와 물리 법칙을 직접 눈으로 관찰하며 학습할 수 있습니다.
     """)
     view_category = st.radio(
@@ -840,7 +877,7 @@ show_p2 = (view_category in ["📄 2페이지: 그래프 및 다체 원운동 (3
 
 # ==================== [PAGE 1] ====================
 if show_p1:
-    st.markdown("### 📄 [형성평가 1페이지] 원운동 기본 물리량 및 단진자의 역학적 에너지")
+    st.markdown("### 📄 [과제 1페이지] 원운동 기본 물리량 및 단진자의 역학적 에너지")
 
     # ---------- [문제 1] ----------
     st.markdown("""
@@ -977,7 +1014,7 @@ if show_p1:
 
 # ==================== [PAGE 2] ====================
 if show_p2:
-    st.markdown("### 📄 [형성평가 2페이지] 원운동 가속도·속도 그래프 및 다체 원운동 구심력")
+    st.markdown("### 📄 [과제 2페이지] 원운동 가속도·속도 그래프 및 다체 원운동 구심력")
 
     # ---------- [문제 5] ----------
     st.markdown("""
