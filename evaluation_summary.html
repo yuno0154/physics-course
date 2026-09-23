@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 2학기 역학과 에너지 평가 계획 슬라이드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --wrks-viz-font-family: Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --wrks-viz-primary:#2563eb; --wrks-viz-bg:#ffffff; --wrks-viz-fg:#111827;
+  --wrks-viz-border:#d1d5db; --wrks-viz-radius:8px;
+  --muted:#6b7280; --soft:#f3f4f6; --line:#e5e7eb;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--wrks-viz-font-family);color:var(--wrks-viz-fg);background:var(--wrks-viz-bg);padding:14px}
+.wrap{max-width:960px;margin:0 auto}
+.head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--wrks-viz-fg);padding-bottom:8px;margin-bottom:10px;flex-wrap:wrap;gap:6px}
+.head h1{font-size:16px;margin:0;letter-spacing:-.2px}
+.head .sub{font-size:12px;color:var(--muted)}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.tabs label{font-size:12px;padding:6px 10px;border:1px solid var(--wrks-viz-border);border-radius:6px;cursor:pointer;background:#fff;color:#374151;white-space:nowrap;transition:all .2s ease}
+.tabs label:hover{background:var(--soft)}
+input[name=slide]{display:none}
+.slide{display:none}
+.snum{font-size:11px;color:var(--muted);letter-spacing:.5px}
+.stitle{font-size:15px;font-weight:700;margin:2px 0 12px}
+#s1:checked~.tabs label[for=s1],#s2:checked~.tabs label[for=s2],#s3:checked~.tabs label[for=s3],#s4:checked~.tabs label[for=s4],#s5:checked~.tabs label[for=s5],#s6:checked~.tabs label[for=s6]{background:var(--wrks-viz-primary);color:#fff;border-color:var(--wrks-viz-primary);font-weight:600}
+#s1:checked~#p1,#s2:checked~#p2,#s3:checked~#p3,#s4:checked~#p4,#s5:checked~#p5,#s6:checked~#p6{display:block}
+.grid{display:grid;gap:10px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.card{border:1px solid var(--wrks-viz-border);border-radius:var(--wrks-viz-radius);padding:12px;background:#fff}
+.card .lab{font-size:12px;color:var(--muted)}
+.card .num{font-size:28px;font-weight:700;margin-top:4px}
+.card .u{font-size:13px;color:var(--muted);font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{background:var(--soft);font-weight:600;font-size:12px}
+td.n,th.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.c,th.c{text-align:center;white-space:nowrap}
+.badge{display:inline-block;font-size:11px;padding:2px 6px;border-radius:4px;background:var(--soft);color:#374151;border:1px solid var(--line)}
+.pri{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+.note{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.warn{border-left:3px solid #d97706;background:#fffbeb;padding:8px 10px;border-radius:4px;font-size:11.5px;color:#92400e;margin-top:10px}
+.rub th:first-child{width:26%}
+.rub th.n{width:9%}
+.small{font-size:12px;line-height:1.55}
+ul.tl{list-style:none;padding:0;margin:0;font-size:12.5px}
+ul.tl li{padding:6px 0;border-bottom:1px solid var(--line);display:flex;gap:8px}
+ul.tl li:last-child{border-bottom:none}
+ul.tl .k{color:var(--wrks-viz-primary);font-weight:600;min-width:44px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
+.foot{font-size:10.5px;color:var(--muted);margin-top:14px;border-top:1px solid var(--line);padding-top:8px}
+@media (max-width: 640px) {
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .g2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <h1>2026학년도 2학기 · 역학과 에너지 — 평가 계획</h1>
+    <div class="sub">사곡고 2학년 · 지도교사 최연호 · 평가 핵심 요약</div>
+  </div>
+
+  <input type="radio" name="slide" id="s1" checked>
+  <input type="radio" name="slide" id="s2">
+  <input type="radio" name="slide" id="s3">
+  <input type="radio" name="slide" id="s4">
+  <input type="radio" name="slide" id="s5">
+  <input type="radio" name="slide" id="s6">
+
+  <div class="tabs">
+    <label for="s1">1. 평가 개요</label>
+    <label for="s2">2. 종류·비율·시기</label>
+    <label for="s3">3. 성취도 기준</label>
+    <label for="s4">4. 수행평가 ① 채점(최고수준)</label>
+    <label for="s5">5. 수행평가 ② 채점(최고수준)</label>
+    <label for="s6">6. 운영·유의사항</label>
+  </div>
+
+  <!-- S1 -->
+  <section class="slide" id="p1">
+    <div class="snum">SLIDE 1 / 6</div>
+    <div class="stitle">평가 개요 — 반영 비율</div>
+    <div class="grid g4">
+      <div class="card"><div class="lab">정기시험</div><div class="num">60<span class="u">%</span></div><div class="note">1차 30% + 2차 30% · 선택형</div></div>
+      <div class="card"><div class="lab">수행평가</div><div class="num">40<span class="u">%</span></div><div class="note">각 영역 20% (2개 영역)</div></div>
+      <div class="card"><div class="lab">서·논술형 (수행 내 포함)</div><div class="num">20<span class="u">%</span></div><div class="note">사고를 글로 측정하는 요소</div></div>
+      <div class="card"><div class="lab">합계</div><div class="num">100<span class="u">%</span></div><div class="note">정기 60 + 수행 40</div></div>
+    </div>
+    <div class="note">평가 원칙: 정기시험 60% + 수행평가 40%(서·논술형 평가 20% 포함)로 실시한다. 수업과 연계한 과정 중심 평가를 지향하며, 각 평가의 시기·비율·채점기준을 사전 예고한다.</div>
+  </section>
+
+  <!-- S2 -->
+  <section class="slide" id="p2">
+    <div class="snum">SLIDE 2 / 6</div>
+    <div class="stitle">평가 종류 · 반영 비율 · 시기 · 동점자 순위</div>
+    <table>
+      <thead>
+        <tr><th>평가 유형</th><th>방법</th><th class="n">만점(반영)</th><th class="c">시기</th><th class="c">동점 순위</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>정기시험 1차</td><td>선택형</td><td class="n">100 (30%)</td><td class="c">10월</td><td class="c">2</td></tr>
+        <tr><td>정기시험 2차</td><td>선택형</td><td class="n">100 (30%)</td><td class="c">12월</td><td class="c"><span class="badge pri">1</span></td></tr>
+        <tr><td>수행 ① 위성 임무 궤도 설계 탐구</td><td>실험·실습 / 서·논술형</td><td class="n">100 (20%)</td><td class="c">9월</td><td class="c">3</td></tr>
+        <tr><td>수행 ② 모빌리티 음향·파동 제어 탐구</td><td>실험·실습 / 서·논술형</td><td class="n">100 (20%)</td><td class="c">11월</td><td class="c">4</td></tr>
+      </tbody>
+    </table>
+    <div class="note">동점자 처리 1순위는 <b>2차 정기시험</b> → 1차 정기시험 → 수행 ① → 수행 ② 순. 진행 순서(시기): 수행①(9월) → 정기1차(10월) → 수행②(11월) → 정기2차(12월).</div>
+  </section>
+
+  <!-- S3 -->
+  <section class="slide" id="p3">
+    <div class="snum">SLIDE 3 / 6</div>
+    <div class="stitle">기준 성취율과 성취도 (A~E)</div>
+    <div class="grid g2">
+      <table>
+        <thead><tr><th>성취율(원점수)</th><th class="c">성취도</th></tr></thead>
+        <tbody>
+          <tr><td>90% 이상 ~ 100%</td><td class="c"><span class="dot" style="background:#2563eb"></span>A</td></tr>
+          <tr><td>80% 이상 ~ 90% 미만</td><td class="c"><span class="dot" style="background:#3b82f6"></span>B</td></tr>
+          <tr><td>70% 이상 ~ 80% 미만</td><td class="c"><span class="dot" style="background:#60a5fa"></span>C</td></tr>
+          <tr><td>60% 이상 ~ 70% 미만</td><td class="c"><span class="dot" style="background:#93c5fd"></span>D</td></tr>
+          <tr><td>60% 미만</td><td class="c"><span class="dot" style="background:#cbd5e1"></span>E</td></tr>
+        </tbody>
+      </table>
+      <div class="card small">
+        <b>산출 방식</b><br>
+        성취도는 성취수준별 <b>추정 분할점수</b>로 산출한다. 정기시험·수행평가의 반영 비율 환산 점수 합계(성취율)에 따라 A~E로 평정한다.
+        <div style="height:8px"></div>
+        <b>최소 성취 보장</b><br>
+        학기말 성취율 <b>40% 미도달자</b>는 본교 최소성취수준 보장지도 계획에 따라 지도한다.
+      </div>
+    </div>
+  </section>
+
+  <!-- S4 -->
+  <section class="slide" id="p4">
+    <div class="snum">SLIDE 4 / 6</div>
+    <div class="stitle">수행평가 ① 채점기준 — 각 요소의 최고 수준만 (9월 · 100점 · 반영 20%)</div>
+    <div class="note" style="margin-top:0;margin-bottom:8px">주제: 역학과 에너지로 증명하는 최적의 위성 임무 궤도 설계 탐구 [12역학01-02·04·05]</div>
+    <table class="rub">
+      <thead><tr><th>평가 요소 (방법)</th><th>최고 수준 채점기준</th><th class="n">배점</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>지표면 역학 분석<br><span class="badge">실험·보고서 · 모둠</span></td>
+          <td class="small">측정값을 수평·연직별 표·그래프로 나타내고 연직 가속도를 직접 산출해 수평 등속·연직 등가속 운동의 <b>독립성을 수식·계산과 함께 오류 없이 정량적으로 입증</b>, 이론값·실험값 오차 원인을 물리적 요인(공기 저항 등)과 연계해 논리적으로 서술.</td>
+          <td class="n">30</td>
+        </tr>
+        <tr>
+          <td>케플러 법칙·궤도 관계식 유도<br><span class="badge">서술형 · 개별</span></td>
+          <td class="small">중력·구심 조건 관계를 기호로 표현하고 <b>공전 주기–궤도 반지름 거듭제곱 비례식을 단계별 오류 없이 유도</b>, 상수의 의미·보편성 서술. 원 궤도 유지 원인이 중력임을 설명하고 반지름 변화에 따른 속도·주기 관계를 논증.</td>
+          <td class="n">20</td>
+        </tr>
+        <tr>
+          <td>실제 인공위성 궤도 데이터 분석·검증<br><span class="badge">서술형 · 개별</span></td>
+          <td class="small">인공위성·ISS 관측 데이터(반지름·주기·속력)를 표로 바르게 작성하고 <b>정량적 관계를 계산 과정으로 정확히 입증</b>, 수치 경향성을 근거로 궤도 반지름과 주기·속력의 상관관계를 논리적으로 설명.</td>
+          <td class="n">20</td>
+        </tr>
+        <tr>
+          <td>위성 임무 궤도 선정·역학적 에너지<br><span class="badge">서술형 · 개별</span></td>
+          <td class="small">임무 환경 제약 조건을 모두 추출해 최적 궤도를 선정, 기준(정지궤도) 위성과 비교해 목표 고도·역학적 에너지(위치+운동)의 크기·전환 관계를 <b>역학적 에너지 보존 법칙으로 오류 없이 논리적 설명</b>.</td>
+          <td class="n">20</td>
+        </tr>
+        <tr>
+          <td>로켓 발사·궤도 전이 논증<br><span class="badge">서술형 · 개별</span></td>
+          <td class="small">다단 로켓 발사(연소·단분리)의 <b>운동량 보존을 명확히 서술</b>, 타원→목표 원 궤도 전이·속도 조정 과정에 <b>역학적 에너지 보존을 적용해 유기적으로 논증</b>(개념 오류·논리 비약 없음).</td>
+          <td class="n">20</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- S5 -->
+  <section class="slide" id="p5">
+    <div class="snum">SLIDE 5 / 6</div>
+    <div class="stitle">수행평가 ② 채점기준 — 각 요소의 최고 수준만 (11월 · 100점 · 반영 20%)</div>
+    <div class="note" style="margin-top:0;margin-bottom:8px">주제: 탄성파와 소리 원리를 적용한 미래형 모빌리티 음향 역학 및 파동 제어 탐구 [12역학03-03·04·05]</div>
+    <table class="rub">
+      <thead><tr><th>평가 요소 (방법)</th><th>최고 수준 채점기준</th><th class="n">배점</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>정상파 공명 데이터 분석·차내 음속 산출<br><span class="badge">실험 · 모둠</span></td>
+          <td class="small">관 경계 조건(막힌 끝 마디·열린 끝 배)과 입자 진동으로 파장 변화를 정량 설명, 스마트 기기로 <b>차내 음속을 비약·오류 없이 정량 산출</b>, 실측·이론 음속 오차 요인(개구단 보정·온도 등)이 측정값에 미친 영향을 인과적으로 서술.</td>
+          <td class="n">40</td>
+        </tr>
+        <tr>
+          <td>도플러 효과 파면 압축·긴급차량 상대속도 역산<br><span class="badge">실험 · 모둠</span></td>
+          <td class="small">파원 운동에 따른 파면 압축 기하로 <b>도플러 관측 진동수 관계식을 논리적으로 유도</b>, 다가오는 긴급차량의 상대 속도를 정량적으로 완성. <span class="badge" style="background:#fffbeb;border-color:#fde68a;color:#92400e">원문 채점문구 오류 있음</span></td>
+          <td class="n">30</td>
+        </tr>
+        <tr>
+          <td>에너지 최적화 설계 (ANC 소음 제어)<br><span class="badge">서술형 · 개별</span></td>
+          <td class="small">파동 중첩·간섭을 정확히 설명하고 <b>상쇄 간섭 조건(반대 위상, ΔL=λ/2)을 파장·경로차 관계로 정량 유도</b>해 최적 경로차 산출, 차내 소음을 능동 소음 제어(ANC)로 소멸시키는 작동 메커니즘을 인과적으로 완벽히 논증.</td>
+          <td class="n">30</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="warn"><b>원문 확인 요망</b> — ②의 ‘도플러 효과 상대속도 역산(30점)’ 칸 최고수준 문구가 원본 문서에는 “전기 에너지–열량 전환 효율 분석”(열효율 실험) 내용으로 잘못 들어가 있습니다. 위 슬라이드에는 <b>평가요소명 기준의 올바른 도플러 채점 취지</b>로 정리했으니, 배포 전 원문 채점기준 문구를 반드시 교정하세요.</div>
+  </section>
+
+  <!-- S6 -->
+  <section class="slide" id="p6">
+    <div class="snum">SLIDE 6 / 6</div>
+    <div class="stitle">평가 운영 원칙 · 유의사항 · 결시 처리</div>
+    <div class="grid g2">
+      <div class="card">
+        <b class="small">운영 원칙</b>
+        <ul class="tl">
+          <li><span class="k">절차</span>채점기준 예고 → 평가 → 채점 → 성적 공개 → 이의신청 → 정정 → 적용</li>
+          <li><span class="k">사전</span>시기·비율·채점기준을 반드시 학생에게 예고</li>
+          <li><span class="k">수업</span>수행평가는 수업 중 실시 원칙, 과제형(가정) 수행평가 미실시</li>
+          <li><span class="k">AI</span>AI 도구 활용 시 공정성·신뢰성 훼손 방지, 사전 유의사항 안내</li>
+          <li><span class="k">공개</span>채점 완료 즉시 결과 공개·확인, 일람표 서명, 이의신청 기간 운영</li>
+        </ul>
+      </div>
+      <div class="card">
+        <b class="small">결시·학적 변동자 처리</b>
+        <ul class="tl">
+          <li><span class="k">정기</span>정기시험 결시: 학업성적관리규정에 따라 성적 부여</li>
+          <li><span class="k">수행</span>수행평가 결시: 추가 평가 1회 제공, 정당 사유 없이 불응 시 0점</li>
+          <li><span class="k">전입</span>원적교 유사 영역 성적 있으면 비율 환산 반영, 없으면 추가 평가</li>
+          <li><span class="k">미인정</span>장기 미인정 결석 등 미응시: 영역별 최하점의 차하점(-1) 부여</li>
+          <li><span class="k">기타</span>교과협의회·학업성적관리규정에 따라 결정</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot">출처: 2026학년도 사곡고 2학기 2학년 역학과 에너지 과목 교수학습·평가계획. 각 채점기준은 원문의 최상위 배점 수준만 발췌·요약했습니다.</div>
+</div>
+<script>
+function rz(){
+  if(window.parent){
+    window.parent.postMessage({type:'wrks:viz:resize',height:document.documentElement.scrollHeight},'*');
+  }
+}
+window.addEventListener('load',rz);
+document.querySelectorAll('input[name=slide]').forEach(function(r){
+  r.addEventListener('change',function(){setTimeout(rz,0);});
+});
+window.addEventListener('resize',rz);
+</script>
+</body>
+</html>
