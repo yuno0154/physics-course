@@ -826,20 +826,23 @@ def render_sim_prob13():
         function drawScene() {
             ctx.clearRect(0, 0, cv.width, cv.height);
 
-            const baseY = 185;
-            const topX = 250, topY = 45;
+            // ================= 1. 완벽한 기하학적 기준 좌표 설정 =================
+            const baseY = 190;
+            const topX = 255, topY = 60; // 빗면 정점 T
 
-            // 바닥 수평선
+            const th1 = Math.PI / 3; // 60도
+            const th2 = Math.PI / 6; // 30도
+
+            const H = baseY - topY; // 130
+            const pBaseX = topX - H / Math.tan(th1); // 255 - 130/1.73205 = 179.9
+            const qBaseX = topX + H / Math.tan(th2); // 255 + 130*1.73205 = 480.2
+
+            // 바닥 수평면 지면
             ctx.strokeStyle = '#64748b'; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(30, baseY); ctx.lineTo(570, baseY); ctx.stroke();
             drawHatch(30, baseY, 570);
 
-            // 좌측 60도 경사면 바닥점: dx = (185 - 45) / tan(60도) = 140 / 1.732 = 80.8
-            const pBaseX = topX - 140 / Math.tan(Math.PI / 3); // 250 - 80.8 = 169.2
-            // 우측 30도 경사면 바닥점: dx = 140 / tan(30도) = 140 / 0.577 = 242.5
-            const qBaseX = topX + 140 / Math.tan(Math.PI / 6); // 250 + 242.5 = 492.5
-
-            // 양면 빗면 본체
+            // 양면 빗면 본체 (정점 내각 = 180 - (60+30) = 90도 직각)
             ctx.fillStyle = '#f1f5f9'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(pBaseX, baseY);
@@ -848,105 +851,193 @@ def render_sim_prob13():
             ctx.closePath();
             ctx.fill(); ctx.stroke();
 
-            // 꼭대기 도르래
-            ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.arc(topX, topY - 3, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-            ctx.beginPath(); ctx.arc(topX, topY - 3, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#334155'; ctx.fill();
-
             // 각도 호 (왼쪽 60도)
             ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.4;
-            ctx.beginPath(); ctx.arc(pBaseX, baseY, 32, -Math.PI/3, 0); ctx.stroke();
-            ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('60°', pBaseX + 36, baseY - 10);
-            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 13px sans-serif'; ctx.fillText('p', pBaseX - 15, baseY + 18);
+            ctx.beginPath(); ctx.arc(pBaseX, baseY, 32, -th1, 0); ctx.stroke();
+            ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText('60°', pBaseX + 36, baseY - 8);
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('p', pBaseX - 15, baseY + 18);
 
             // 각도 호 (오른쪽 30도)
             ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.4;
-            ctx.beginPath(); ctx.arc(qBaseX, baseY, 40, Math.PI, Math.PI + Math.PI/6); ctx.stroke();
-            ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif'; ctx.fillText('30°', qBaseX - 52, baseY - 10);
-            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 13px sans-serif'; ctx.fillText('q', qBaseX + 15, baseY + 18);
+            ctx.beginPath(); ctx.arc(qBaseX, baseY, 40, Math.PI, Math.PI + th2); ctx.stroke();
+            ctx.fillStyle = '#b45309'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('30°', qBaseX - 44, baseY - 8);
+            ctx.fillStyle = '#1e293b'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('q', qBaseX + 15, baseY + 18);
 
-            // 물체 A (3m) - 60도 빗면 위
-            const distA = 70;
-            const ax = topX - distA * Math.cos(Math.PI / 3);
-            const ay = topY + distA * Math.sin(Math.PI / 3);
+            // ================= 2. 단위 벡터 및 법선 벡터 =================
+            // v1: 정점 T -> 바닥 P 방향 (빗면 아래 방향)
+            const v1x = -Math.cos(th1); // -0.5
+            const v1y = Math.sin(th1);  // 0.8660
+            // n1: 빗면 법선 (바깥 공중 방향)
+            const n1x = -Math.sin(th1); // -0.8660
+            const n1y = -Math.cos(th1); // -0.5
+
+            // v2: 정점 T -> 바닥 Q 방향 (빗면 아래 방향)
+            const v2x = Math.cos(th2);  // 0.8660
+            const v2y = Math.sin(th2);  // 0.5
+            // n2: 빗면 법선 (바깥 공중 방향)
+            const n2x = Math.sin(th2);  // 0.5
+            const n2y = -Math.cos(th2); // -0.8660
+
+            // ================= 3. 실 높이 d와 도르래 완벽 접선 계산 =================
+            const d = 11; // 빗면으로부터 실의 높이
+            const R = 10; // 도르래 반경
+            const D = d + R; // 21
+
+            // 두 빗면 선에서 법선 거리 D만큼 떨어진 도르래 중심:
+            const pcx = topX + D * n1x + D * n2x;
+            const pcy = topY + D * n1y + D * n2y;
+
+            // 도르래 브래킷 지지대 (정점에서 도르래 축으로)
+            ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(topX, topY); ctx.lineTo(pcx, pcy); ctx.stroke();
+            ctx.lineCap = 'butt';
+
+            // 도르래 휠 본체
+            ctx.fillStyle = '#94a3b8'; ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.8;
+            ctx.beginPath(); ctx.arc(pcx, pcy, R, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            // 도르래 중심 핀
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath(); ctx.arc(pcx, pcy, 2.5, 0, Math.PI * 2); ctx.fill();
+
+            // 도르래 접점 (실이 도르래에 접하는 지점):
+            // 왼쪽 접점 T1: 중심에서 왼쪽 빗면 방향 접선
+            const t1x = pcx - R * n1x;
+            const t1y = pcy - R * n1y;
+            // 오른쪽 접점 T2: 중심에서 오른쪽 빗면 방향 접선
+            const t2x = pcx - R * n2x;
+            const t2y = pcy - R * n2y;
+
+            // ================= 4. 물체 A (3m) 렌더링 =================
+            const distA = 65; // 정점으로부터 거리
+            const LA = 32, HA = 22; // 빗면 방향 길이, 높이
+            // 물체 A의 밑면 접촉점 중심
+            const aBaseX = topX + distA * v1x;
+            const aBaseY = topY + distA * v1y;
+
+            // 물체 A 박스 (빗면에 밀착하여 회전)
             ctx.save();
-            ctx.translate(ax, ay);
-            ctx.rotate(-Math.PI / 3);
+            ctx.translate(aBaseX, aBaseY);
+            ctx.rotate(-th1); // 빗면 경사 방향과 일치
             ctx.fillStyle = '#bfdbfe'; ctx.strokeStyle = '#1d4ed8'; ctx.lineWidth = 1.6;
-            ctx.fillRect(-16, -22, 32, 22); ctx.strokeRect(-16, -22, 32, 22);
+            ctx.fillRect(-LA/2, -HA, LA, HA);
+            ctx.strokeRect(-LA/2, -HA, LA, HA);
             ctx.fillStyle = '#1e3a8a'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('A', 0, -10);
-            ctx.font = '10px sans-serif'; ctx.fillText('3m', 0, 2);
+            ctx.fillText('A', 0, -HA/2 - 2);
+            ctx.font = '10px sans-serif'; ctx.fillText('3m', 0, -HA/2 + 9);
             ctx.restore();
 
-            // 물체 B (m) - 30도 빗면 위
-            const distB = 100;
-            const bx = topX + distB * Math.cos(Math.PI / 6);
-            const by = topY + distB * Math.sin(Math.PI / 6);
+            // 물체 A의 실 연결점: 빗면 쪽 상단 모서리 중심 (높이 d)
+            const aRopeX = aBaseX - (LA/2) * v1x + d * n1x;
+            const aRopeY = aBaseY - (LA/2) * v1y + d * n1y;
+
+            // ================= 5. 물체 B (m) 렌더링 =================
+            const distB = 95; // 정점으로부터 거리
+            const LB = 26, HB = 22;
+            const bBaseX = topX + distB * v2x;
+            const bBaseY = topY + distB * v2y;
+
             ctx.save();
-            ctx.translate(bx, by);
-            ctx.rotate(Math.PI / 6);
+            ctx.translate(bBaseX, bBaseY);
+            ctx.rotate(th2);
             ctx.fillStyle = '#fecdd3'; ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 1.5;
-            ctx.fillRect(-12, -18, 24, 18); ctx.strokeRect(-12, -18, 24, 18);
+            ctx.fillRect(-LB/2, -HB, LB, HB);
+            ctx.strokeRect(-LB/2, -HB, LB, HB);
             ctx.fillStyle = '#881337'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('B', 0, -8);
-            ctx.font = '10px sans-serif'; ctx.fillText('m', 0, 3);
+            ctx.fillText('B', 0, -HB/2 - 2);
+            ctx.font = '10px sans-serif'; ctx.fillText('m', 0, -HB/2 + 9);
             ctx.restore();
 
-            // 실 연결 or 절단
+            // 물체 B의 실 연결점: 꼭대기 쪽 모서리 중심 (높이 d)
+            const bRopeX = bBaseX - (LB/2) * v2x + d * n2x;
+            const bRopeY = bBaseY - (LB/2) * v2y + d * n2y;
+
+            // ================= 6. 실(줄) 그리기 (완벽한 평행 직선) =================
             if (currentMode === 1) {
-                // 실 연결 상태
-                ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.6;
+                // 1) 왼쪽 실: A에서 T1까지 (빗면과 완벽한 평행 직선!)
+                ctx.strokeStyle = '#334155'; ctx.lineWidth = 1.8;
                 ctx.beginPath();
-                ctx.moveTo(ax + 10 * Math.sin(Math.PI/3), ay - 10 * Math.cos(Math.PI/3));
-                ctx.lineTo(topX - 6, topY - 10);
-                ctx.lineTo(topX + 6, topY - 10);
-                ctx.lineTo(bx - 8 * Math.sin(Math.PI/6), by - 8 * Math.cos(Math.PI/6));
+                ctx.moveTo(aRopeX, aRopeY);
+                ctx.lineTo(t1x, t1y);
+                // 2) 도르래 호: T1에서 T2까지 도르래 윗면을 따라 감음
+                const ang1 = Math.atan2(t1y - pcy, t1x - pcx);
+                const ang2 = Math.atan2(t2y - pcy, t2x - pcx);
+                ctx.arc(pcx, pcy, R, ang1, ang2, false);
+                // 3) 오른쪽 실: T2에서 B까지 (오른쪽 빗면과 완벽한 평행 직선!)
+                ctx.lineTo(bRopeX, bRopeY);
                 ctx.stroke();
 
-                // 가속도 a1 표시
                 ctx.fillStyle = '#2563eb'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
-                ctx.fillText('가속도 a₁ (연결계 전체 가속)', 30, 30);
+                ctx.fillText('가속도 a₁ (연결계 전체 등가속도 운동)', 30, 28);
             } else {
                 // 실 절단 상태
+                // 왼쪽 실 (A에서 중간까지)
                 ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.3; ctx.setLineDash([3, 3]);
+                const midX = (aRopeX + t1x) / 2;
+                const midY = (aRopeY + t1y) / 2;
                 ctx.beginPath();
-                ctx.moveTo(ax + 10 * Math.sin(Math.PI/3), ay - 10 * Math.cos(Math.PI/3));
-                ctx.lineTo(topX - 15, topY + 8);
+                ctx.moveTo(aRopeX, aRopeY);
+                ctx.lineTo(midX - 10 * (-v1x), midY - 10 * (-v1y));
                 ctx.stroke();
+
+                // 오른쪽 실 (B에서 중간까지)
+                const mid2X = (bRopeX + t2x) / 2;
+                const mid2Y = (bRopeY + t2y) / 2;
                 ctx.beginPath();
-                ctx.moveTo(topX + 15, topY + 8);
-                ctx.lineTo(bx - 8 * Math.sin(Math.PI/6), by - 8 * Math.cos(Math.PI/6));
+                ctx.moveTo(bRopeX, bRopeY);
+                ctx.lineTo(mid2X - 10 * (-v2x), mid2Y - 10 * (-v2y));
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // 가위 / 절단 마크
-                ctx.fillStyle = '#dc2626'; ctx.font = 'bold 14px sans-serif'; ctx.textAlign = 'center';
-                ctx.fillText('✂️ 실 절단!', topX, topY - 18);
+                // 가위 / 절단 표시
+                ctx.fillStyle = '#dc2626'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('✂️ 실 절단!', topX, topY - 26);
                 ctx.fillStyle = '#dc2626'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'left';
-                ctx.fillText('실 끊음 직후: A의 가속도 a₂ = 2 a₁ (2배 급가속)', 30, 30);
+                ctx.fillText('실 끊음 직후: A의 가속도 a₂ = 2 a₁ (2배 급가속 하강)', 30, 28);
             }
 
-            // A에 작용하는 힘 화살표들
-            // 1. 운동 방향 (빗면 아래 화살표)
-            ctx.strokeStyle = '#16a34a'; ctx.fillStyle = '#16a34a'; ctx.lineWidth = 1.8;
-            const vLen = currentMode === 1 ? 28 : 42;
-            const v1x = ax - 18 * Math.cos(Math.PI/3);
-            const v1y = ay + 18 * Math.sin(Math.PI/3);
-            const v2x = v1x - vLen * Math.cos(Math.PI/3);
-            const v2y = v1y + vLen * Math.sin(Math.PI/3);
-            ctx.beginPath(); ctx.moveTo(v1x, v1y); ctx.lineTo(v2x, v2y); ctx.stroke();
-            ctx.beginPath(); ctx.arc(v2x, v2y, 2.5, 0, Math.PI*2); ctx.fill();
-            ctx.font = 'bold 10.5px sans-serif'; ctx.fillText(currentMode === 1 ? '운동 방향 (v)' : '가속도 a₂ (2배)', v2x - 30, v2y + 16);
+            // ================= 7. 힘 및 운동 화살표 (실과 겹치지 않게 분리) =================
+            // 1) 마찰력 f 화살표: 물체 A의 빗면 접촉면 바로 위에서 꼭대기 방향(-v1)으로 직선 화살표
+            const fStartX = aBaseX - 3 * n1x;
+            const fStartY = aBaseY - 3 * n1y;
+            const fLen = 30;
+            const fEndX = fStartX - fLen * v1x;
+            const fEndY = fStartY - fLen * v1y;
 
-            // 2. 마찰력 f 화살표 (빗면 위쪽)
-            ctx.strokeStyle = '#dc2626'; ctx.fillStyle = '#dc2626'; ctx.lineWidth = 1.8;
-            const f1x = ax + 14 * Math.cos(Math.PI/3);
-            const f1y = ay - 14 * Math.sin(Math.PI/3);
-            const f2x = f1x + 24 * Math.cos(Math.PI/3);
-            const f2y = f1y - 24 * Math.sin(Math.PI/3);
-            ctx.beginPath(); ctx.moveTo(f1x, f1y); ctx.lineTo(f2x, f2y); ctx.stroke();
-            ctx.font = 'bold 11px sans-serif'; ctx.fillText('마찰력 f', f2x - 28, f2y - 6);
+            ctx.strokeStyle = '#dc2626'; ctx.fillStyle = '#dc2626'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(fStartX, fStartY); ctx.lineTo(fEndX, fEndY); ctx.stroke();
+            // 화살촉
+            const arrW = 4, arrL = 7;
+            ctx.beginPath();
+            ctx.moveTo(fEndX, fEndY);
+            ctx.lineTo(fEndX + arrL * v1x + arrW * n1x, fEndY + arrL * v1y + arrW * n1y);
+            ctx.lineTo(fEndX + arrL * v1x - arrW * n1x, fEndY + arrL * v1y - arrW * n1y);
+            ctx.closePath(); ctx.fill();
+
+            ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText('마찰력 f', fEndX - 6, fEndY - 4);
+
+            // 2) 운동 방향 v 화살표: 물체 A 앞쪽(빗면 아래 방향 v1)으로 직선 화살표
+            const vStartX = aBaseX + (LA/2 + 6) * v1x;
+            const vStartY = aBaseY + (LA/2 + 6) * v1y;
+            const vLen = currentMode === 1 ? 28 : 42;
+            const vEndX = vStartX + vLen * v1x;
+            const vEndY = vStartY + vLen * v1y;
+
+            ctx.strokeStyle = '#16a34a'; ctx.fillStyle = '#16a34a'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(vStartX, vStartY); ctx.lineTo(vEndX, vEndY); ctx.stroke();
+            // 화살촉
+            ctx.beginPath();
+            ctx.moveTo(vEndX, vEndY);
+            ctx.lineTo(vEndX - arrL * v1x + arrW * n1x, vEndY - arrL * v1y + arrW * n1y);
+            ctx.lineTo(vEndX - arrL * v1x - arrW * n1x, vEndY - arrL * v1y - arrW * n1y);
+            ctx.closePath(); ctx.fill();
+
+            ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'right';
+            ctx.fillText(currentMode === 1 ? '운동 방향 (v)' : '가속도 a₂ (2배)', vEndX - 6, vEndY + 14);
         }
 
         window.setMode13 = function(mode) {
@@ -970,6 +1061,7 @@ def render_sim_prob13():
     </script>
     """
     components.html(html, height=295)
+
 
 def render_sim_prob14():
     """문제 14: 수평면 A(m), 빗면 B(3m), 연직 C(2m) 3체 연결계 및 실 p, q 절단 실험 다이어그램"""
