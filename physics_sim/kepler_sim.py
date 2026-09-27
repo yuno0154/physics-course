@@ -3,11 +3,13 @@ import streamlit.components.v1 as components
 
 def run_sim():
     
-    st.title("🪐 케플러 제1, 2법칙: 타원 궤도와 면적 속도 일정 법칙")
+    st.title("🪐 케플러 제1법칙: 타원 궤도와 원운동 근사 분석")
     st.markdown("""
-    행성은 태양을 한 초점으로 하는 **타원 궤도(케플러 제1법칙)**를 따라 공전하며, 태양과 행성을 잇는 선분이 같은 시간 동안 훑고 지나가는 **면적은 항상 일정(케플러 제2법칙)**합니다.
+    행성은 태양을 한 초점으로 하는 **타원 궤도(케플러 제1법칙)**를 따라 공전합니다.
     
     실제 태양계 행성들의 공전 궤도 이심률($e$) 데이터를 직접 시뮬레이터에 적용해 보고, **"태양계 행성의 이심률은 매우 작아서 근사적으로 원운동으로 볼 수 있다"**는 물리학적 명제의 수학적 구조와 과학사적·물리학적 의미를 심층 탐구해 보세요.
+    
+    > 💡 **케플러 제2법칙(면적 속도 일정 법칙)** 및 **근일점·원일점 물리량 비교**는 왼쪽 메뉴의 **[제2법칙] 면적 속도와 역학적 에너지** 페이지에서 전용으로 탐구하실 수 있습니다.
     """)
 
     react_code = r"""
@@ -163,11 +165,10 @@ def run_sim():
                 const [semiMajorAxis, setSemiMajorAxis] = useState(140);
                 const [isPlaying, setIsPlaying] = useState(false);
                 const [showAxes, setShowAxes] = useState(true);
-                const [showAreas, setShowAreas] = useState(false);
                 const [showCircleComp, setShowCircleComp] = useState(false);
-                const [timeFraction, setTimeFraction] = useState(8);
                 const [planetPos, setPlanetPos] = useState({ x: 0, y: 0, angle: 0 });
                 const [selectedPlanetName, setSelectedPlanetName] = useState('가상 타원');
+                const [isCounterClockwise, setIsCounterClockwise] = useState(true); // 천문학 표준: 반시계 방향 (황도 북극 조망 서→동)
                 const canvasRef = useRef(null);
 
                 // 시뮬레이션 물리 파라미터 계산
@@ -179,6 +180,7 @@ def run_sim():
                 const distanceRatio = (1 + e) / Math.max(0.01, (1 - e));
                 const shapeSimilarity = (bOverA * 100).toFixed(2);
                 const baseSpeed = 100;
+                const dirSign = isCounterClockwise ? 1 : -1;
 
                 // 행성 프리셋 선택 함수
                 const handleSelectPlanet = (planet) => {
@@ -205,8 +207,8 @@ def run_sim():
                                 const r = a * (1 - e * e) / (1 + e * Math.cos(prev.angle));
                                 const deltaAngle = (baseSpeed / (r * r)) * 10; 
                                 const newAngle = prev.angle + deltaAngle;
-                                const x = -focusOffset + r * Math.cos(newAngle + Math.PI);
-                                const y = r * Math.sin(newAngle + Math.PI);
+                                const x = -focusOffset - r * Math.cos(newAngle);
+                                const y = dirSign * r * Math.sin(newAngle);
                                 return { x, y, angle: newAngle };
                             });
                             animationFrame = requestAnimationFrame(animate);
@@ -214,16 +216,16 @@ def run_sim():
                         animate();
                     }
                     return () => cancelAnimationFrame(animationFrame);
-                }, [isPlaying, e, a]);
+                }, [isPlaying, e, a, isCounterClockwise]);
 
                 useEffect(() => {
                     setPlanetPos(prev => {
                         const r = a * (1 - e * e) / (1 + e * Math.cos(prev.angle));
-                        const x = -focusOffset + r * Math.cos(prev.angle + Math.PI);
-                        const y = r * Math.sin(prev.angle + Math.PI);
+                        const x = -focusOffset - r * Math.cos(prev.angle);
+                        const y = dirSign * r * Math.sin(prev.angle);
                         return { ...prev, x, y };
                     });
-                }, [e, a]);
+                }, [e, a, isCounterClockwise]);
 
                 useEffect(() => {
                     const canvas = canvasRef.current;
@@ -311,51 +313,7 @@ def run_sim():
                         ctx.fillStyle = '#10b981'; ctx.fillText(`단반경 b: ${b.toFixed(1)} (${(bOverA * 100).toFixed(1)}%)`, centerX + 10, centerY - b/2);
                     }
 
-                    // 5. 면적 속도 일정 법칙 시각화 (동일 시간 구간 2개 표시)
-                    if (showAreas) {
-                        const solveKepler = (M, eVal) => {
-                            let E = M;
-                            for (let i = 0; i < 15; i++) {
-                                E = E - (E - eVal * Math.sin(E) - M) / (1 - eVal * Math.cos(E));
-                            }
-                            return E;
-                        };
-                        const getTrueAnomaly = (M, eVal) => {
-                            const E = solveKepler(M, eVal);
-                            return 2 * Math.atan2(Math.sqrt(1 + eVal) * Math.sin(E / 2), Math.sqrt(Math.max(0.0001, 1 - eVal)) * Math.cos(E / 2));
-                        };
-
-                        const drawSector = (startM, color, label) => {
-                            ctx.beginPath();
-                            ctx.fillStyle = color;
-                            ctx.globalAlpha = 0.45;
-                            ctx.moveTo(centerX - focusOffset, centerY);
-                            
-                            const dM = (Math.PI * 2) / timeFraction; 
-                            const numSteps = 60;
-                            
-                            for(let i = 0; i <= numSteps; i++) {
-                                const currentM = startM + (dM * i) / numSteps;
-                                const theta = getTrueAnomaly(currentM, e);
-                                const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
-                                const x = -focusOffset + r * Math.cos(theta + Math.PI);
-                                const y = r * Math.sin(theta + Math.PI);
-                                ctx.lineTo(centerX + x, centerY + y);
-                            }
-                            
-                            ctx.lineTo(centerX - focusOffset, centerY);
-                            ctx.fill();
-                            ctx.globalAlpha = 1.0;
-                            ctx.strokeStyle = color;
-                            ctx.lineWidth = 1.6;
-                            ctx.stroke();
-                        };
-
-                        drawSector(-(Math.PI / timeFraction), '#ef4444', '근일점 구역'); 
-                        drawSector(Math.PI - (Math.PI / timeFraction), '#3b82f6', '원일점 구역');
-                    }
-
-                    // 6. 태양 (한 초점에 위치)
+                    // 5. 태양 (한 초점에 위치)
                     ctx.beginPath();
                     ctx.arc(centerX - focusOffset, centerY, 15, 0, Math.PI * 2);
                     ctx.fillStyle = '#fbbf24';
@@ -364,7 +322,7 @@ def run_sim():
                     ctx.fill();
                     ctx.shadowBlur = 0;
 
-                    // 7. 행성 연결선 및 행성 본체
+                    // 6. 행성 연결선 및 행성 본체
                     ctx.beginPath();
                     ctx.moveTo(centerX - focusOffset, centerY);
                     ctx.lineTo(centerX + planetPos.x, centerY + planetPos.y);
@@ -380,7 +338,7 @@ def run_sim():
                     ctx.lineWidth = 2.5; 
                     ctx.stroke();
 
-                }, [planetPos, e, a, showAxes, showAreas, showCircleComp]);
+                }, [planetPos, e, a, showAxes, showCircleComp]);
 
                 return (
                     <div className="max-w-7xl mx-auto p-2 sm:p-4 flex flex-col gap-6 text-slate-800">
@@ -450,6 +408,13 @@ def run_sim():
                                         <div className="px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[11px] text-slate-300 font-medium">
                                             단반경 비율 <span className="text-emerald-400 font-bold font-mono">b/a = {shapeSimilarity}%</span> (원운동 일치율)
                                         </div>
+                                        <div className="px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
+                                            <Icon name="rotate-ccw" size={13} className="text-cyan-400" />
+                                            <span>공전 방향:</span>
+                                            <span className="text-cyan-400 font-bold font-mono">
+                                                {isCounterClockwise ? '반시계 방향 (황도 북극 조망 서→동 표준)' : '시계 방향'}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     {/* 하단 범례 오버레이 */}
@@ -459,42 +424,42 @@ def run_sim():
                                         {showCircleComp && (
                                             <div className="flex items-center gap-1.5 text-cyan-400"><div className="w-3 h-3 border-2 border-dashed border-cyan-400 rounded-full"></div> 원 궤도 (r=a)</div>
                                         )}
-                                        {showAreas && (
-                                            <>
-                                                <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-red-400/50 border border-red-400 rounded-sm"></div> 근일점 구역</div>
-                                                <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-blue-400/50 border border-blue-400 rounded-sm"></div> 원일점 구역</div>
-                                            </>
+                                        {showAxes && (
+                                            <div className="flex items-center gap-1.5 text-slate-300"><div className="w-3 h-0.5 bg-red-500"></div> 장반경 a / <div className="w-3 h-0.5 bg-emerald-500"></div> 단반경 b</div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* 면적 속도 일정 비교 대시보드 */}
-                                {showAreas && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-bottom-3 duration-300">
-                                        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-md flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 shrink-0 border border-red-100 italic font-black text-lg">A</div>
-                                            <div>
-                                                <h5 className="font-extrabold text-slate-800 text-sm mb-0.5">근일점 구역 (Perihelion)</h5>
-                                                <p className="text-xs text-slate-500 leading-relaxed">거리는 가깝지만 공전 속력이 빨라 <span className="text-red-600 font-bold">넓고 얇은 부채꼴</span>을 형성합니다.</p>
-                                            </div>
-                                            <div className="ml-auto text-right">
-                                                <span className="text-[10px] text-slate-400 uppercase font-black block">훑고 간 면적</span>
-                                                <span className="text-base font-black text-slate-800 font-mono">100.0%</span>
-                                            </div>
+                                {/* 케플러 제1법칙 기하학 대시보드 & 제2법칙 연결 안내 */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-md flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-black">
+                                            <Icon name="orbit" size={24} />
                                         </div>
-                                        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-md flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500 shrink-0 border border-blue-100 italic font-black text-lg">B</div>
-                                            <div>
-                                                <h5 className="font-extrabold text-slate-800 text-sm mb-0.5">원일점 구역 (Aphelion)</h5>
-                                                <p className="text-xs text-slate-500 leading-relaxed">거리는 멀지만 공전 속력이 느려 <span className="text-blue-600 font-bold">좁고 긴 부채꼴</span>을 형성합니다.</p>
-                                            </div>
-                                            <div className="ml-auto text-right">
-                                                <span className="text-[10px] text-slate-400 uppercase font-black block">훑고 간 면적</span>
-                                                <span className="text-base font-black text-slate-800 font-mono">100.0%</span>
-                                            </div>
+                                        <div>
+                                            <h5 className="font-extrabold text-slate-800 text-sm">타원 궤도 기하학 분석 (제1법칙)</h5>
+                                            <p className="text-xs text-slate-500">장반경 a={a}px, 단반경 b={b.toFixed(1)}px (원형 일치도 {shapeSimilarity}%)</p>
+                                        </div>
+                                        <div className="ml-auto text-right">
+                                            <span className="text-[10px] text-slate-400 font-bold block">초점 편위</span>
+                                            <span className="text-sm font-extrabold text-amber-600 font-mono">c = {focusOffset.toFixed(1)}px</span>
                                         </div>
                                     </div>
-                                )}
+                                    <div className="bg-gradient-to-r from-red-50 via-pink-50 to-indigo-50 p-5 rounded-3xl border border-red-100 shadow-md flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center font-black">
+                                                <Icon name="pie-chart" size={22} />
+                                            </div>
+                                            <div>
+                                                <h5 className="font-extrabold text-slate-800 text-sm">케플러 제2법칙 전용 탐구실</h5>
+                                                <p className="text-xs text-slate-600">부채꼴 면적 비교 및 근일점·원일점 물리량 비교는 <strong>[제2법칙]</strong> 메뉴에서 확인하세요.</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs font-bold text-red-600 whitespace-nowrap bg-white px-3 py-1.5 rounded-xl border border-red-200 shadow-sm">
+                                            제2법칙 분리 완료
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* 컨트롤 사이드바 */}
@@ -560,7 +525,25 @@ def run_sim():
                                             />
                                         </div>
 
-                                        {/* 원 궤도 비교 & 토글 버튼 그룹 */}
+                                        {/* 공전 방향 선택 토글 */}
+                                        <div className="space-y-1">
+                                            <button 
+                                                onClick={() => setIsCounterClockwise(!isCounterClockwise)} 
+                                                className={`w-full p-3 rounded-2xl border-2 transition-all flex items-center justify-between font-bold text-xs ${
+                                                    isCounterClockwise ? 'border-cyan-500 bg-cyan-50 text-cyan-800 shadow-sm' : 'border-amber-500 bg-amber-50 text-amber-800 shadow-sm'
+                                                }`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <Icon name="rotate-ccw" size={16} /> 
+                                                    공전 방향: {isCounterClockwise ? '반시계 방향 (천문학 표준)' : '시계 방향'}
+                                                </span>
+                                                <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold ${isCounterClockwise ? 'bg-cyan-600 text-white' : 'bg-amber-600 text-white'}`}>
+                                                    {isCounterClockwise ? '표준 CCW' : 'CW'}
+                                                </span>
+                                            </button>
+                                        </div>
+
+                                        {/* 제1법칙 궤도 기하 분석 토글 버튼 그룹 */}
                                         <div className="space-y-2.5 pt-1">
                                             <button 
                                                 onClick={() => setShowCircleComp(!showCircleComp)} 
@@ -571,53 +554,27 @@ def run_sim():
                                                 }`}
                                             >
                                                 <span className="flex items-center gap-2">
-                                                    <Icon name="circle" size={16} /> 원 궤도 비교 가이드 (r=a)
+                                                    <Icon name="circle" size={16} /> 원 궤도 비교 가이드 (r = a)
                                                 </span>
                                                 <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${showCircleComp ? 'bg-cyan-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
                                                     {showCircleComp ? 'ON' : 'OFF'}
                                                 </span>
                                             </button>
 
-                                            <div className="grid grid-cols-2 gap-2.5">
-                                                <button 
-                                                    onClick={() => setShowAxes(!showAxes)} 
-                                                    className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 font-bold text-[11px] ${
-                                                        showAxes ? 'border-blue-600 bg-blue-50 text-blue-600' : 'border-slate-100 text-slate-400 hover:border-slate-200'
-                                                    }`}
-                                                >
-                                                    <Icon name="maximize" size={16} /> 장/단반경 {showAxes ? 'ON' : 'OFF'}
-                                                </button>
-                                                <button 
-                                                    onClick={() => setShowAreas(!showAreas)} 
-                                                    className={`p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 font-bold text-[11px] ${
-                                                        showAreas ? 'border-red-600 bg-red-50 text-red-600' : 'border-slate-100 text-slate-400 hover:border-slate-200'
-                                                    }`}
-                                                >
-                                                    <Icon name="pie-chart" size={16} /> 면적 속도 {showAreas ? 'ON' : 'OFF'}
-                                                </button>
-                                            </div>
+                                            <button 
+                                                onClick={() => setShowAxes(!showAxes)} 
+                                                className={`w-full p-3.5 rounded-2xl border-2 transition-all flex items-center justify-between font-bold text-xs ${
+                                                    showAxes ? 'border-blue-600 bg-blue-50 text-blue-600 shadow-sm' : 'border-slate-100 text-slate-400 hover:border-slate-200'
+                                                }`}
+                                            >
+                                                <span className="flex items-center gap-2">
+                                                    <Icon name="maximize" size={16} /> 장반경(a) 및 단반경(b) 축 표시
+                                                </span>
+                                                <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold ${showAxes ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                                    {showAxes ? 'ON' : 'OFF'}
+                                                </span>
+                                            </button>
                                         </div>
-
-                                        {/* 관측 시간 조절 */}
-                                        {showAreas && (
-                                            <div className="space-y-2 p-3 bg-red-50/60 rounded-2xl border border-red-100 animate-in fade-in duration-200">
-                                                <div className="flex justify-between items-center">
-                                                    <label className="text-[11px] font-black text-red-700 uppercase tracking-wider flex items-center gap-1">
-                                                        <Icon name="clock" size={13} /> 관측 시간 (주기 T 기준)
-                                                    </label>
-                                                    <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-md font-mono font-black text-xs">T / {timeFraction}</span>
-                                                </div>
-                                                <input 
-                                                    type="range" 
-                                                    min="4" 
-                                                    max="24" 
-                                                    step="1" 
-                                                    value={timeFraction} 
-                                                    onChange={(ev) => setTimeFraction(parseInt(ev.target.value))} 
-                                                    className="w-full h-1.5 bg-red-200 rounded-xl appearance-none cursor-pointer" 
-                                                />
-                                            </div>
-                                        )}
 
                                         {/* 실시간 기하 지표 요약 카드 */}
                                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 text-xs">
