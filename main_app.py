@@ -49,9 +49,10 @@ circular_motion_eval_page = st.Page("physics_sim/circular_motion_eval.py", title
 
 # 5. 케플러 법칙 섹션
 kepler_history_page = st.Page("physics_sim/kepler_history_sim.py", title="📜 [도입] 행성 운동의 과학사적 변천")
-kepler_sim_page = st.Page("physics_sim/kepler_sim.py", title="🪐 [분석1] 타원 궤도와 면적")
-kepler_derivation_page = st.Page("physics_sim/kepler_derivation.py", title="🪐 [증명] 제3법칙의 수학적 유도")
-kepler_data_page = st.Page("physics_sim/kepler_data.py", title="🪐 [분석2] 조화의 법칙 데이터")
+kepler_sim_page = st.Page("physics_sim/kepler_sim.py", title="🪐 [제1법칙] 타원 궤도와 원운동 근사")
+kepler_area_page = st.Page("physics_sim/kepler_area_sim.py", title="🪐 [제2법칙] 면적 속도와 역학적 에너지")
+kepler_derivation_page = st.Page("physics_sim/kepler_derivation.py", title="🪐 [제3법칙] 조화의 법칙 수학적 유도")
+kepler_data_page = st.Page("physics_sim/kepler_data.py", title="🪐 [분석] 조화의 법칙 데이터")
 kepler_gravity_page = st.Page("physics_sim/gravity_sim.py", title="🔭 [탐구] 중력 물리 계산기")
 kepler_practice_page = st.Page("physics_sim/kepler_practice.py", title="📝 [마무리] 케플러 법칙 연습")
 kepler_project_page = st.Page("physics_sim/kepler_project.py", title="🚀 [평가] 화성 탐사 설계")
@@ -124,6 +125,7 @@ pg = st.navigation({
     "🪐 학습주제 4: 케플러 법칙": [
         kepler_history_page,
         kepler_sim_page,
+        kepler_area_page,
         kepler_derivation_page,
         kepler_data_page,
         kepler_gravity_page,
