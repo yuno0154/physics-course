@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import streamlit.components.v1 as components
 
 def run_sim():
@@ -42,12 +42,14 @@ const STARS = Array.from({length:180},()=>({
 const getPeriod = r => Math.pow(r, 1.5);
 
 /* ─── Canvas 시뮬레이션 ─── */
-const SimCanvas = ({ orbitalRadius, scaleRef }) => {
+const SimCanvas = ({ orbitalRadius, scaleRef, isCounterClockwise = true }) => {
     const canvasRef = useRef(null);
     const animRef   = useRef(null);
     const angleRef  = useRef(0);
     const rRef      = useRef(orbitalRadius);
+    const dirRef    = useRef(isCounterClockwise);
     rRef.current    = orbitalRadius;
+    dirRef.current  = isCounterClockwise;
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -83,7 +85,9 @@ const SimCanvas = ({ orbitalRadius, scaleRef }) => {
             last = ts;
             const r = rRef.current;
             const T = getPeriod(r);
-            angleRef.current += (2 * Math.PI / (T * 25)) * dt * 60;
+            // 공전 방향: 반시계 방향(dirRef.current=true -> -1) / 시계 방향(+1)
+            const dirSign = dirRef.current ? -1 : 1;
+            angleRef.current += dirSign * (2 * Math.PI / (T * 25)) * dt * 60;
 
             const w = canvas.width, h = canvas.height;
             if (!w || !h) { animRef.current = requestAnimationFrame(draw); return; }
@@ -145,8 +149,8 @@ const SimCanvas = ({ orbitalRadius, scaleRef }) => {
             /* HUD */
             ctx.fillStyle='rgba(148,163,184,0.85)';
             ctx.font='14px "Space Mono",monospace';
-            ctx.fillText(`a = ${r.toFixed(2)} AU`, 18, 30);
-            ctx.fillText(`T = ${T.toFixed(3)} yr`, 18, 52);
+            ctx.fillText(`a = ${r.toFixed(2)} AU`, 18, 128);
+            ctx.fillText(`T = ${T.toFixed(3)} yr`, 18, 148);
             ctx.fillStyle='rgba(99,102,241,0.6)';
             ctx.font='12px sans-serif';
             ctx.fillText('🖱 휠: 확대/축소', w-120, h-14);
@@ -382,6 +386,7 @@ const QnA = ({ items }) => {
 const App = () => {
     const [radius, setRadius]   = useState(1.0);
     const [dataLog, setDataLog] = useState([{no:1,r:1.00,t:1.00,k:1.000}]);
+    const [isCounterClockwise, setIsCounterClockwise] = useState(true);
     const scaleRef              = useRef(1.0);
 
     const period = getPeriod(radius);
@@ -410,17 +415,24 @@ const App = () => {
 
             {/* ── 시뮬레이션 캔버스 (전체 너비, 높이 큼) ── */}
             <div style={{background:'#070b14',borderRadius:18,overflow:'hidden',border:'1px solid #1e293b',position:'relative',height:520,marginBottom:16}}>
-                <div style={{position:'absolute',top:16,left:16,zIndex:10,background:'rgba(7,11,20,0.75)',padding:'10px 14px',borderRadius:10,backdropFilter:'blur(6px)'}}>
+                <div style={{position:'absolute',top:16,left:16,zIndex:10,background:'rgba(7,11,20,0.85)',padding:'10px 14px',borderRadius:12,backdropFilter:'blur(8px)',border:'1px solid rgba(255,255,255,0.08)'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:7,fontSize:14}}>
                         <div style={{width:14,height:14,borderRadius:'50%',background:'#fbbf24'}}></div>
                         <span style={{color:'#94a3b8'}}>태양 (M)</span>
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:8,fontSize:14}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,fontSize:14,marginBottom:9}}>
                         <div style={{width:14,height:14,borderRadius:'50%',background:'#3b82f6'}}></div>
                         <span style={{color:'#94a3b8'}}>행성 (m)</span>
                     </div>
+                    <button 
+                        onClick={()=>setIsCounterClockwise(!isCounterClockwise)} 
+                        className="planet-btn" 
+                        style={{padding:'4px 10px',fontSize:11,width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:5,borderColor:isCounterClockwise?'#6366f1':'#f59e0b',color:isCounterClockwise?'#c7d2fe':'#fde68a'}}
+                    >
+                        <span>{isCounterClockwise ? '🔄 반시계 방향' : '🔄 시계 방향'}</span>
+                    </button>
                 </div>
-                <SimCanvas orbitalRadius={radius} scaleRef={scaleRef}/>
+                <SimCanvas orbitalRadius={radius} scaleRef={scaleRef} isCounterClockwise={isCounterClockwise}/>
             </div>
 
             {/* ── 컨트롤 바 ── */}
