@@ -294,19 +294,33 @@ def render_sim_prob2_3():
     """문제 2 & 3: 단진자의 왕복 운동 및 O점/p점 알짜힘 벡터 시뮬레이터"""
     html = """
     <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:10px; padding:12px; max-width:600px; margin:0 auto; font-family:sans-serif;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
             <div style="font-size:13px; font-weight:bold; color:#1e293b;">🎬 [가상실험] 단진자의 왕복 운동과 힘 벡터 분석</div>
-            <div>
-                <button id="btnPlay2" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
-                <button id="btnGoO" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; font-weight:bold; cursor:pointer;">최하점 O 정지</button>
-                <button id="btnGoP" style="padding:4px 10px; font-size:12px; border-radius:5px; border:1px solid #dc2626; background:#fef2f2; color:#b91c1c; font-weight:bold; cursor:pointer;">최고점 p 정지</button>
+            <div style="display:flex; align-items:center; gap:6px;">
+                <button id="btnPlay2" style="padding:4px 9px; font-size:12px; border-radius:5px; border:1px solid #94a3b8; background:#f8fafc; cursor:pointer;">일시정지</button>
+                <button id="btnGoO" style="padding:4px 9px; font-size:12px; border-radius:5px; border:1px solid #2563eb; background:#eff6ff; color:#1d4ed8; font-weight:bold; cursor:pointer;">최하점 O 정지</button>
+                <button id="btnGoP" style="padding:4px 9px; font-size:12px; border-radius:5px; border:1px solid #dc2626; background:#fef2f2; color:#b91c1c; font-weight:bold; cursor:pointer;">최고점 p 정지</button>
             </div>
         </div>
-        <canvas id="cv2" width="560" height="230" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
-        <div style="display:flex; justify-content:space-around; font-size:11.5px; color:#475569; margin-top:8px; font-weight:600;">
-            <span style="color:#2563eb;">장력 T (파랑)</span>
-            <span style="color:#64748b;">중력 mg (회색)</span>
-            <span style="color:#dc2626; font-weight:bold;">알짜힘 F_net (빨강 화살표)</span>
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:6px;">
+            <label style="font-size:11.5px; display:inline-flex; align-items:center; gap:4px; cursor:pointer; color:#475569; user-select:none;">
+                <input type="checkbox" id="chkComponents" style="cursor:pointer;"> <b>구심력·복원력 성분 분해 보기</b>
+            </label>
+        </div>
+        <canvas id="cv2" width="560" height="235" style="width:100%; border:1px solid #e2e8f0; border-radius:6px; background:#fafafa;"></canvas>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:6px 10px; margin-top:8px; font-size:11.5px;">
+            <div style="display:flex; gap:10px; font-weight:600; flex-wrap:wrap; align-items:center;">
+                <span style="color:#2563eb;">■ 장력 T</span>
+                <span style="color:#64748b;">■ 중력 mg</span>
+                <span style="color:#dc2626; font-weight:bold;">■ 알짜힘 F_net (합력)</span>
+                <span id="compLegend" style="display:none; gap:8px;">
+                    <span style="color:#ea580c;">■ 구심력 Fc</span>
+                    <span style="color:#16a34a;">■ 접선 복원력 Ft</span>
+                </span>
+            </div>
+            <div id="statBadge" style="font-size:11px; font-weight:700; white-space:nowrap;">
+                <!-- 실시간 수치 및 상태 표시 -->
+            </div>
         </div>
     </div>
     <script>
@@ -316,46 +330,64 @@ def render_sim_prob2_3():
         const btnPlay = document.getElementById('btnPlay2');
         const btnGoO = document.getElementById('btnGoO');
         const btnGoP = document.getElementById('btnGoP');
+        const chkComponents = document.getElementById('chkComponents');
+        const compLegend = document.getElementById('compLegend');
+        const statBadge = document.getElementById('statBadge');
         
-        const originX = 280, originY = 30, L = 140;
-        const maxTheta = 0.6; // 약 34도
+        chkComponents.onchange = () => {
+            compLegend.style.display = chkComponents.checked ? 'inline-flex' : 'none';
+        };
+        
+        const originX = 280, originY = 26, L = 135;
+        const maxTheta = 0.55; // 약 31.5도 진폭
         let theta = maxTheta;
         let omega = 0;
         let isRunning = true;
-        const g = 9.8;
+        const g_sim = 220; // 시뮬레이션 중력가속도
+        const mg = 45;     // 중력 벡터 픽셀 길이 (mg = 45px 기준)
         let lastTime = performance.now();
         
-        function drawArrow(ctx, fromx, fromy, tox, toy, color, width=2) {
+        function drawArrow(ctx, fromx, fromy, tox, toy, color, width=2, dash=[]) {
             const headlen = 7;
             const angle = Math.atan2(toy - fromy, tox - fromx);
+            ctx.save();
             ctx.strokeStyle = color;
             ctx.fillStyle = color;
             ctx.lineWidth = width;
+            ctx.setLineDash(dash);
             ctx.beginPath();
             ctx.moveTo(fromx, fromy);
             ctx.lineTo(tox, toy);
             ctx.stroke();
+            ctx.setLineDash([]);
             ctx.beginPath();
             ctx.moveTo(tox, toy);
             ctx.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
             ctx.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
             ctx.fill();
+            ctx.restore();
         }
 
         function animate(now) {
-            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            const dt = Math.min((now - lastTime) / 1000, 0.04);
             lastTime = now;
             
             if (isRunning) {
                 // 단진자 각가속도: alpha = -(g/L)*sin(theta)
-                const alpha = -(180 / L) * Math.sin(theta);
+                const alpha = -(g_sim / L) * Math.sin(theta);
                 omega += alpha * dt;
                 theta += omega * dt;
+                
+                // 진폭 초과 방지
+                if (Math.abs(theta) > maxTheta) {
+                    theta = Math.sign(theta) * maxTheta;
+                    omega = 0;
+                }
             }
             
             ctx.clearRect(0, 0, cv.width, cv.height);
             
-            // 천장
+            // 1. 천장 지지대
             ctx.strokeStyle = '#334155';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -363,7 +395,7 @@ def render_sim_prob2_3():
             ctx.lineTo(originX + 60, originY);
             ctx.stroke();
             
-            // 궤적 원호
+            // 2. 궤적 원호
             ctx.strokeStyle = '#cbd5e1';
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
@@ -371,7 +403,7 @@ def render_sim_prob2_3():
             ctx.stroke();
             ctx.setLineDash([]);
             
-            // 기준 위치 A, O, B 표시
+            // 3. 기준 위치 A, O, B 표시
             const ax = originX + L * Math.sin(-maxTheta);
             const ay = originY + L * Math.cos(-maxTheta);
             const bx = originX + L * Math.sin(maxTheta);
@@ -386,7 +418,7 @@ def render_sim_prob2_3():
             ctx.fillText('B(p)', bx + 18, by);
             ctx.fillText('O(최하점)', ox, oy + 22);
             
-            // 실
+            // 4. 실
             const px = originX + L * Math.sin(theta);
             const py = originY + L * Math.cos(theta);
             ctx.strokeStyle = '#475569';
@@ -396,34 +428,92 @@ def render_sim_prob2_3():
             ctx.lineTo(px, py);
             ctx.stroke();
             
-            // 힘 계산
-            // 중력: 연직 아래 40px
-            const fgY = 42;
-            drawArrow(ctx, px, py, px, py + fgY, '#64748b', 1.8);
+            // 5. 정확한 물리 법칙에 따른 힘 계산
+            // - 역학적 에너지 보존: v^2/L = 2*g*(cos(theta) - cos(maxTheta))
+            // - 구심력 F_c = m*v^2/L = 2*mg*(cos(theta) - cos(maxTheta))
+            const cosDiff = Math.max(0, Math.cos(theta) - Math.cos(maxTheta));
+            const Fc = 2 * mg * cosDiff;
             
-            // 장력: T = mg*cos(theta) + m*v^2/L
-            const speedSq = Math.max(0, 2 * 9.8 * L * (Math.cos(theta) - Math.cos(maxTheta)) * 0.15);
-            const T_len = 42 * Math.cos(theta) + speedSq * 0.5;
+            // - 장력 크기: T = mg*cos(theta) + F_c
+            const T_len = mg * Math.cos(theta) + Fc;
             const tx = -Math.sin(theta) * T_len;
             const ty = -Math.cos(theta) * T_len;
-            drawArrow(ctx, px, py, px + tx, py + ty, '#2563eb', 1.8);
             
-            // 알짜힘 (F_net = T + Fg)
-            const netX = tx;
-            const netY = ty + fgY;
+            // - 중력 크기: Fg = mg (연직 아래)
+            const gx = 0;
+            const gy = mg;
+            
+            // - 알짜힘: F_net = T + Fg (두 힘의 엄밀한 벡터 합성)
+            const netX = tx + gx;
+            const netY = ty + gy;
+            const Fnet_len = Math.sqrt(netX * netX + netY * netY);
+            
+            // 6. 평행사변형 점선 (벡터 합성 시각화)
+            ctx.save();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.2;
+            ctx.setLineDash([2, 2]);
+            ctx.beginPath();
+            ctx.moveTo(px + tx, py + ty);
+            ctx.lineTo(px + netX, py + netY);
+            ctx.moveTo(px + gx, py + gy);
+            ctx.lineTo(px + netX, py + netY);
+            ctx.stroke();
+            ctx.restore();
+            
+            // 7. 장력 벡터 (파랑)
+            drawArrow(ctx, px, py, px + tx, py + ty, '#2563eb', 2.0);
+            
+            // 8. 중력 벡터 (회색)
+            drawArrow(ctx, px, py, px + gx, py + gy, '#64748b', 2.0);
+            
+            // 9. 성분 분해 (체크 시: 구심력 주황, 복원력 초록)
+            if (chkComponents && chkComponents.checked) {
+                // 구심력 성분 (원 중심 방향)
+                const fcX = -Math.sin(theta) * Fc;
+                const fcY = -Math.cos(theta) * Fc;
+                if (Fc > 1.0) {
+                    drawArrow(ctx, px, py, px + fcX, py + fcY, '#ea580c', 1.8, [3, 2]);
+                }
+                // 접선 복원력 성분 (원호 접선 방향, O점을 향함)
+                const Ft_mag = mg * Math.abs(Math.sin(theta));
+                const ftX = -Math.sign(theta) * Math.cos(theta) * Ft_mag;
+                const ftY = Math.sign(theta) * Math.sin(theta) * Ft_mag;
+                if (Ft_mag > 1.0) {
+                    drawArrow(ctx, px, py, px + ftX, py + ftY, '#16a34a', 1.8, [3, 2]);
+                }
+            }
+            
+            // 10. 알짜힘 벡터 (빨강)
             drawArrow(ctx, px, py, px + netX, py + netY, '#dc2626', 3.0);
             
-            // 추
+            // 11. 추 (Bob)
             ctx.fillStyle = '#1d4ed8';
             ctx.beginPath();
             ctx.arc(px, py, 9, 0, Math.PI * 2);
             ctx.fill();
+            
+            // 12. 실시간 상태 배지 업데이트
+            if (statBadge) {
+                const T_ratio = (T_len / mg).toFixed(2);
+                const Fnet_ratio = (Fnet_len / mg).toFixed(2);
+                if (Math.abs(theta) < 0.03) {
+                    statBadge.innerHTML = '<span style="color:#1d4ed8; background:#eff6ff; border:1px solid #bfdbfe; padding:2px 8px; border-radius:4px;">📍 최하점 O: 장력 최대(' + T_ratio + 'mg) · <b>알짜힘 최소(' + Fnet_ratio + 'mg, 연직위 ↑)</b></span>';
+                } else if (Math.abs(Math.abs(theta) - maxTheta) < 0.03) {
+                    statBadge.innerHTML = '<span style="color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; padding:2px 8px; border-radius:4px;">📍 최고점 p: 장력 최소(' + T_ratio + 'mg) · <b>알짜힘 최대(' + Fnet_ratio + 'mg, 접선 ↙)</b></span>';
+                } else {
+                    statBadge.innerHTML = '<span style="color:#334155;">장력 T: <b>' + T_ratio + ' mg</b> &nbsp;|&nbsp; 알짜힘: <b>' + Fnet_ratio + ' mg</b></span>';
+                }
+            }
             
             requestAnimationFrame(animate);
         }
         
         btnPlay.onclick = () => {
             isRunning = !isRunning;
+            if (isRunning && Math.abs(theta) < 0.001 && Math.abs(omega) < 0.001) {
+                omega = Math.sqrt(2 * (g_sim / L) * (1 - Math.cos(maxTheta)));
+            }
             btnPlay.textContent = isRunning ? '일시정지' : '재생';
         };
         btnGoO.onclick = () => {
@@ -442,7 +532,7 @@ def render_sim_prob2_3():
     })();
     </script>
     """
-    components.html(html, height=310)
+    components.html(html, height=350)
 
 def render_sim_prob4():
     """문제 4: 단진자의 높이-시간 h(t) 실시간 동기화 시뮬레이터"""
@@ -942,13 +1032,15 @@ if show_p1:
             * **(1) 속력이 최대인 지점**: **O점 (최하점)**
               * 중력 퍼텐셜 에너지가 최저가 되면서 역학적 에너지 보존에 의해 운동 에너지(속력)가 최대가 됩니다.
             * **(2) 알짜힘의 크기가 최소인 지점**: **O점 (최하점)**
-              * 진동 운동의 복원력(접선 방향 알짜힘 $F_t = mg\\sin\\theta$) 관점에서 최하점($\\theta = 0$)일 때 $F_t = 0$으로 최소가 됩니다.
+              * **진동 복원력(접선 성분) 관점**: 접선 방향 복원력 $F_t = mg\\sin\\theta$이므로 $\\theta = 0$인 최하점에서 $F_t = 0$으로 최소가 됩니다.
+              * **실제 2차원 전체 알짜힘($\\vec{T} + m\\vec{g}$) 관점**: 최하점에서 속력이 최대이므로 연직 위쪽 구심 알짜힘($F_{net} = T - mg = \\frac{mv^2}{l} = 2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$)이 작용합니다. 이 값은 최고점에서의 알짜힘($mg\\sin\\theta_{max} \\approx 0.52mg$)보다 훨씬 작습니다.
+              * 따라서 **어느 관점으로 보아도 단진자 왕복 운동 중 알짜힘의 크기가 가장 작은(최소인) 지점은 최하점 O**입니다.
             * **(3) 알짜힘의 크기가 최대인 지점**: **A, B점 (양 끝점 / 최고점)**
-              * 진폭의 양 끝점에서 변위각 $\\theta$가 최대이므로 접선 복원력 $F_t = mg\\sin\\theta_{max}$가 최대가 됩니다.
+              * 진폭의 양 끝점에서 변위각 $\\theta$가 최대이므로 접선 복원력 $F_t = mg\\sin\\theta_{max}$ 및 2차원 전체 알짜힘의 크기가 모두 최대가 됩니다.
             * **(4) 장력이 가장 큰 지점과 작은 지점**:
               * 실의 장력 공식: $$T = mg\\cos\\theta + \\frac{mv^2}{l}$$
-              * **가장 큰 지점**: **O점 (최하점)** ($\\theta=0$이므로 $\\cos\\theta=1$, 속력 $v$ 최대 $\\implies T_{max} = mg + mv^2/l$)
-              * **가장 작은 지점**: **A, B점 (양 끝점)** ($v=0$, $\\cos\\theta < 1 \\implies T_{min} = mg\\cos\\theta_{max}$)
+              * **가장 큰 지점**: **O점 (최하점)** ($\\theta=0$이므로 $\\cos\\theta=1$, 속력 $v$ 최대 $\\implies T_{max} = mg + mv^2/l \\approx 1.30mg$)
+              * **가장 작은 지점**: **A, B점 (양 끝점)** ($v=0$, $\\cos\\theta < 1 \\implies T_{min} = mg\\cos\\theta_{max} \\approx 0.85mg$)
             * **(5) 운동 에너지가 최대인 지점**: **O점 (최하점)** ($E_k = \\frac{1}{2}mv^2$ 최대)
             * **(6) 퍼텐셜 에너지가 최대인 지점**: **A, B점 (양 끝점)** (기준면 대비 높이 $h$가 최대)
             """)
@@ -974,11 +1066,13 @@ if show_p1:
             * **O점 (최하점)에서의 알짜힘 방향**: **연직 위쪽 (원의 중심 방향, ↑)**
               * 최하점에서 물체는 $v \\neq 0$으로 원운동 궤적을 그리며 지나갑니다.
               * 따라서 실 방향으로 구심 가속도 $a_c = \\frac{v^2}{l}$가 필요하므로 실의 장력 $T$가 중력 $mg$보다 큽니다 ($T > mg$).
-              * 알짜힘 $\\vec{F}_{net} = T - mg$는 **연직 위쪽(원 중심 방향)**을 향합니다.
+              * 알짜힘 $\\vec{F}_{net} = T - mg = \\frac{mv^2}{l}$는 **연직 위쪽(원 중심 방향)**을 향합니다.
+              * *(참고: 이때 최하점 알짜힘의 크기는 $2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$로, 최고점 $p$에서의 알짜힘 $0.52mg$보다 작아 운동 중 **최소값**을 갖습니다.)*
             * **p점 (최고점)에서의 알짜힘 방향**: **궤도 원호의 접선 방향 (점 O 쪽을 향하는 접선 방향, ↙)**
               * 최고점에서는 순간 속도 $v = 0$이므로 구심력 성분($mv^2/l$)은 0입니다.
               * 실 방향으로는 장력과 중력의 지름 성분이 평형을 이룹니다 ($T = mg\\cos\\theta$).
               * 따라서 남는 힘은 중력의 접선 성분 $mg\\sin\\theta$뿐이므로, 알짜힘은 **원호의 접선 방향**을 향합니다.
+              * *(참고: 이때 최고점 알짜힘의 크기는 $mg\\sin\\theta_{max} \\approx 0.52mg$로 단진자 운동 중 **최대값**을 갖습니다.)*
             """)
 
     st.divider()
