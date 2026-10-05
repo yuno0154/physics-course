@@ -55,6 +55,7 @@ kepler_derivation_page = st.Page("physics_sim/kepler_derivation.py", title="🪐
 kepler_data_page = st.Page("physics_sim/kepler_data.py", title="🪐 [분석] 조화의 법칙 데이터")
 kepler_gravity_page = st.Page("physics_sim/gravity_sim.py", title="🔭 [탐구] 중력 물리 계산기")
 kepler_practice_page = st.Page("physics_sim/kepler_practice.py", title="📝 [마무리] 케플러 법칙 연습")
+kepler_eval_page = st.Page("physics_sim/kepler_eval.py", title="📝 [과제] 케플러 법칙 문제 풀이")
 kepler_project_page = st.Page("physics_sim/kepler_project.py", title="🚀 [평가] 화성 탐사 설계")
 kepler_report_page  = st.Page("physics_sim/kepler_report.py",  title="📑 [보고서] 연구보고서 작성")
 
@@ -130,6 +131,7 @@ pg = st.navigation({
         kepler_data_page,
         kepler_gravity_page,
         kepler_practice_page,
+        kepler_eval_page,
         kepler_project_page,
         kepler_report_page
     ],
