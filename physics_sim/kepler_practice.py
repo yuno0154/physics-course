@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import streamlit.components.v1 as components
 
 def run_practice():
@@ -155,7 +155,7 @@ def run_practice():
                     id: 'q6',
                     type: 'multiple_sub_questions',
                     title: '행성의 궤도와 물리량 분석',
-                    text: '그림은 태양 주위를 도는 지구와 목성의 질량과 공전 궤도의 반지름을 간략하게 나타낸 것입니다.',
+                    text: '그림은 태양(질량 M) 주위를 공전하는 지구(질량 m)와 목성(질량 300m)의 질량과 공전 궤도의 반지름을 간략하게 나타낸 것입니다. (단, 태양의 질량은 M, 지구의 질량은 m, 목성의 질량은 300m이다.)',
                     view: 'sun_earth_jupiter',
                     items: [
                         {
@@ -189,7 +189,7 @@ def run_practice():
                 q3: "훑고 지나간 면적이 S로 같다면 어느 지점이든 걸린 시간은 T로 항상 같습니다. 만약 지나간 면적이 2S가 되었다면 걸린 시간도 정확히 2배(2T)가 됩니다.",
                 q4: "인공위성의 속력은 v = √(GM/r)이므로 중심 행성의 질량(M)과 궤도 반지름(r)에만 영향을 받습니다. 거리가 가까운 A가 중력이 크고(1/r²), 가속도가 크고(1/r²), 속력이 빠르고(1/√r), 주기가 짧습니다.",
                 q5: "반지름 비가 r:4r=1:4 입니다. v는 1/√r에 비례하므로 속력비는 √4 : √1 = 2:1 입니다. 주기는 r^(3/2)에 비례하므로 1:8 입니다.",
-                q6: "ㄱ. 중력의 크기 F = G(Mm/R²)입니다. 지구에 작용하는 힘은 m/r²에 비례하고 목성은 300m/25r² = 12m/r²에 비례하므로 목성이 더 큽니다. (O)\\n ㄴ. 구심 가속도 a = GM/R² 로 행성의 질량(m)과 무관하며 거리가 짧은 지구가 더 큽니다. (O)\\n ㄷ. 제3법칙(T² ∝ R³)에 의해 주기의 제곱은 125배입니다. 주기는 25배가 아니라 √125 ≈ 11.18배입니다. (X)",
+                q6: "ㄱ. 태양(질량 M)과 행성 사이의 만유인력 크기는 F = G(M·m행성/R²)입니다. 지구에 작용하는 힘은 G(M·m/r²)이고, 목성에 작용하는 힘은 G(M·300m/(5r)²) = (300/25)·G(Mm/r²) = 12·G(Mm/r²)이므로 목성이 지구보다 12배 더 큽니다. (O)\\n ㄴ. 구심 가속도 a = F/m행성 = GM/R²로 행성의 질량과 무관하며 태양과의 거리 제곱에 반비례합니다. 따라서 거리가 더 가까운 지구가 목성보다 25배 더 큽니다. (O)\\n ㄷ. 케플러 제3법칙(T² ∝ R³)에 의해 궤도 반지름이 5배이면 주기의 제곱은 5³ = 125배가 됩니다. 따라서 주기는 25배가 아니라 √125 ≈ 11.18배입니다. (X)",
                 q7: "T² ∝ r³ 입니다. 궤도 반지름이 2배가 되면 주기의 제곱은 8배가 됩니다. 따라서 주기는 √8 배(혹은 2√2 배)가 됩니다."
             };
 
@@ -203,6 +203,8 @@ def run_practice():
                 if (type === 'none') return null;
                 
                 let svgInner = null;
+                let viewBox = "0 0 350 200";
+                let extraContent = null;
                 if (type === 'ellipse_ab') {
                     svgInner = (
                         <g>
@@ -282,30 +284,75 @@ def run_practice():
                         </g>
                     );
                 } else if (type === 'sun_earth_jupiter') {
+                    viewBox = "0 0 460 180";
                     svgInner = (
-                        <g transform="translate(280, 80)">
-                            <circle cx="0" cy="0" r="50" fill="none" stroke="#60a5fa" strokeWidth="1.5" />
-                            <circle cx="0" cy="0" r="12" fill="#f59e0b" />
-                            <circle cx="50" cy="0" r="6" fill="#10b981" />
-                            <text x="65" y="4" fontSize="12" fontWeight="bold">지구</text>
-                            <line x1="0" y1="0" x2="50" y2="0" stroke="#94a3b8" strokeDasharray="2,2" />
-                            <text x="25" y="-5" fontSize="12" fontWeight="bold">r</text>
-                            <path d="M -160 -60 Q -190 0 -160 60" fill="none" stroke="#22c55e" strokeWidth="1.5" markerStart="url(#arrow_green)" markerEnd="url(#arrow_green)"/>
-                            <circle cx="-174" cy="0" r="10" fill="#f97316" />
-                            <text x="-174" y="25" fontSize="12" textAnchor="middle" fontWeight="bold">목성</text>
-                            <line x1="-174" y1="0" x2="0" y2="0" stroke="#94a3b8" strokeDasharray="2,2" />
-                            <text x="-87" y="-5" fontSize="12" fontWeight="bold">5r</text>
+                        <g>
+                            {/* Jupiter Orbit Arc (Green) */}
+                            <path d="M 98 25 Q 72 95 98 165" fill="none" stroke="#22c55e" strokeWidth="1.8" markerStart="url(#arrow_green)" markerEnd="url(#arrow_green)" />
+                            
+                            {/* Dashed distance line from Jupiter to Sun and Sun to Earth */}
+                            <line x1="85" y1="95" x2="295" y2="95" stroke="#94a3b8" strokeDasharray="3,3" strokeWidth="1.2" />
+                            <line x1="295" y1="95" x2="350" y2="95" stroke="#94a3b8" strokeDasharray="3,3" strokeWidth="1.2" />
+                            
+                            {/* Distance Labels */}
+                            <rect x="175" y="73" width="30" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+                            <text x="190" y="86" fontSize="12" fontWeight="bold" textAnchor="middle" fill="#334155">5r</text>
+                            
+                            <rect x="313" y="73" width="20" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+                            <text x="323" y="86" fontSize="12" fontWeight="bold" textAnchor="middle" fill="#334155">r</text>
+                            
+                            {/* Earth Orbit (Blue Circle around Sun) */}
+                            <circle cx="295" cy="95" r="55" fill="none" stroke="#60a5fa" strokeWidth="1.5" strokeDasharray="4,4" />
+                            
+                            {/* Jupiter */}
+                            <circle cx="85" cy="95" r="12" fill="url(#jupiterGrad)" stroke="#c2410c" strokeWidth="1.5" />
+                            <text x="85" y="65" fontSize="13" fontWeight="bold" textAnchor="middle" fill="#ea580c">목성</text>
+                            <rect x="42" y="115" width="86" height="20" rx="10" fill="#ffedd5" stroke="#fed7aa" strokeWidth="1" />
+                            <text x="85" y="129" fontSize="11" fontWeight="bold" textAnchor="middle" fill="#c2410c">질량: 300m</text>
+                            
+                            {/* Sun */}
+                            <circle cx="295" cy="95" r="20" fill="rgba(245, 158, 11, 0.15)" />
+                            <circle cx="295" cy="95" r="14" fill="url(#sunGrad)" stroke="#d97706" strokeWidth="1.5" />
+                            <text x="295" y="65" fontSize="13" fontWeight="bold" textAnchor="middle" fill="#d97706">태양</text>
+                            <rect x="264" y="115" width="62" height="20" rx="10" fill="#fef3c7" stroke="#fde68a" strokeWidth="1" />
+                            <text x="295" y="129" fontSize="11" fontWeight="bold" textAnchor="middle" fill="#b45309">질량: M</text>
+                            
+                            {/* Earth */}
+                            <circle cx="350" cy="95" r="7" fill="#0284c7" stroke="#38bdf8" strokeWidth="1.5" />
+                            <text x="350" y="65" fontSize="13" fontWeight="bold" textAnchor="middle" fill="#0284c7">지구</text>
+                            <rect x="323" y="115" width="54" height="20" rx="10" fill="#e0f2fe" stroke="#bae6fd" strokeWidth="1" />
+                            <text x="350" y="129" fontSize="11" fontWeight="bold" textAnchor="middle" fill="#0369a1">질량: m</text>
                         </g>
+                    );
+                    extraContent = (
+                        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 mt-3 pt-3 border-t border-slate-200 text-xs font-medium text-slate-700 w-full">
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 rounded-lg border border-amber-200 text-amber-800">
+                                <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                                태양: 질량 <strong className="font-bold">M</strong>
+                            </span>
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-sky-50 rounded-lg border border-sky-200 text-sky-800">
+                                <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                                지구: 질량 <strong className="font-bold">m</strong>, 궤도 반지름 <strong className="font-bold">r</strong>
+                            </span>
+                            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-orange-50 rounded-lg border border-orange-200 text-orange-800">
+                                <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                                목성: 질량 <strong className="font-bold">300m</strong>, 궤도 반지름 <strong className="font-bold">5r</strong>
+                            </span>
+                        </div>
                     );
                 }
                 
                 return (
-                    <div className="bg-slate-50 p-6 rounded-3xl flex items-center justify-center border border-slate-100 overflow-hidden mb-6">
-                        <svg viewBox="0 0 350 200" className="w-full max-w-[450px]">
+                    <div className="bg-slate-50 p-6 rounded-3xl flex flex-col items-center justify-center border border-slate-100 overflow-hidden mb-6">
+                        <svg viewBox={viewBox} className="w-full max-w-[480px]">
                             <defs>
                                 <radialGradient id="sunGrad">
                                     <stop offset="0%" stopColor="#fde047" />
                                     <stop offset="100%" stopColor="#f59e0b" />
+                                </radialGradient>
+                                <radialGradient id="jupiterGrad">
+                                    <stop offset="0%" stopColor="#fdba74" />
+                                    <stop offset="100%" stopColor="#ea580c" />
                                 </radialGradient>
                                 <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
                                     <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
@@ -316,6 +363,7 @@ def run_practice():
                             </defs>
                             {svgInner}
                         </svg>
+                        {extraContent}
                     </div>
                 );
             };
