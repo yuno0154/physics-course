@@ -153,9 +153,11 @@ if is_print_mode:
     view_category = st.radio("인쇄 범위 선택", ["📄 1페이지: 원운동 기본 및 단진자 (4문항)", "📄 2페이지: 그래프 및 다체 원운동 (3문항)", "📖 전체 7문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    **2022 개정 교육과정 역학과 에너지** [12역학01-03] 성취기준에 따른 **원운동 과제 문항**입니다.
-    각 문제마다 **살아 움직이는 인터랙티브 물리 시뮬레이션**이 함께 탑재되어 있어, 실시간 벡터 변화와 물리 법칙을 직접 눈으로 관찰하며 학습할 수 있습니다.
-    """)
+    <p style="font-size: 1.05rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
+        <b>2022 개정 교육과정 역학과 에너지</b> [12역학01-03] 성취기준에 따른 <b>원운동 과제 문항</b>입니다.<br>
+        각 문제마다 살아 움직이는 인터랙티브 물리 시뮬레이션이 함께 탑재되어 있어, 실시간 벡터 변화와 물리 법칙을 직접 눈으로 관찰하며 학습할 수 있습니다.
+    </p>
+    """, unsafe_allow_html=True)
     view_category = st.radio(
         "문항 분류 선택", 
         ["📄 1페이지: 원운동 기본 및 단진자 (4문항)", "📄 2페이지: 그래프 및 다체 원운동 (3문항)", "📖 전체 7문항 모두 보기"], 
@@ -980,24 +982,24 @@ if show_p1:
     render_sim_prob1()
 
     if is_print_mode:
-        st.markdown("**（1） 각속도의 크기는?**")
+        st.markdown("<b>（1） 각속도의 크기는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 주기는?**")
+        st.markdown("<b>（2） 주기는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 구심 가속도의 크기는?**")
+        st.markdown("<b>（3） 구심 가속도의 크기는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 구심력의 크기는?**")
+        st.markdown("<b>（4） 구심력의 크기는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 1 정답 및 단계별 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 각속도의 크기**:
+            • (1) 각속도의 크기:
               $$v = r\\omega \\implies \\omega = \\frac{v}{r} = \\frac{\\pi}{4}\\,\\text{rad/s} = \\mathbf{0.25\\pi\\,\\text{rad/s}}$$
-            * **(2) 주기**:
+            • (2) 주기:
               $$T = \\frac{2\\pi r}{v} = \\frac{2\\pi}{\\omega} = \\frac{2\\pi \\times 4}{\\pi} = \\mathbf{8\\,\\text{s}}$$
-            * **(3) 구심 가속도의 크기**:
+            • (3) 구심 가속도의 크기:
               $$a_c = \\frac{v^2}{r} = r\\omega^2 = \\frac{\\pi^2}{4}\\,\\text{m/s}^2 = \\mathbf{0.25\\pi^2\\,\\text{m/s}^2}$$
-            * **(4) 구심력의 크기**:
+            • (4) 구심력의 크기:
               $$F_c = m a_c = 2\\,\\text{kg} \\times \\frac{\\pi^2}{4}\\,\\text{m/s}^2 = \\frac{\\pi^2}{2}\\,\\text{N} = \\mathbf{0.5\\pi^2\\,\\text{N}}$$
             """)
 
@@ -1014,35 +1016,35 @@ if show_p1:
     render_sim_prob2_3()
 
     if is_print_mode:
-        st.markdown("**（1） 물체의 속력이 최대인 지점은?**")
+        st.markdown("<b>（1） 물체의 속력이 최대인 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체에 작용하는 알짜힘의 크기가 최소인 지점은?**")
+        st.markdown("<b>（2） 물체에 작용하는 알짜힘의 크기가 최소인 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 물체에 작용하는 알짜힘의 크기가 최대인 지점은?**")
+        st.markdown("<b>（3） 물체에 작용하는 알짜힘의 크기가 최대인 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 장력이 가장 큰 지점과 작은 지점은?**")
+        st.markdown("<b>（4） 장력이 가장 큰 지점과 작은 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（5） 운동 에너지가 최대인 지점은?**")
+        st.markdown("<b>（5） 운동 에너지가 최대인 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（6） 퍼텐셜 에너지가 최대인 지점은?**")
+        st.markdown("<b>（6） 퍼텐셜 에너지가 최대인 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 2 정답 및 물리적 원리 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 속력이 최대인 지점**: **O점 (최하점)**
+            • (1) 속력이 최대인 지점: O점 (최하점)
               * 중력 퍼텐셜 에너지가 최저가 되면서 역학적 에너지 보존에 의해 운동 에너지(속력)가 최대가 됩니다.
-            * **(2) 알짜힘의 크기가 최소인 지점**: **O점 (최하점)**
-              * **진동 복원력(접선 성분) 관점**: 접선 방향 복원력 $F_t = mg\\sin\\theta$이므로 $\\theta = 0$인 최하점에서 $F_t = 0$으로 최소가 됩니다.
-              * **실제 2차원 전체 알짜힘($\\vec{T} + m\\vec{g}$) 관점**: 최하점에서 속력이 최대이므로 연직 위쪽 구심 알짜힘($F_{net} = T - mg = \\frac{mv^2}{l} = 2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$)이 작용합니다. 이 값은 최고점에서의 알짜힘($mg\\sin\\theta_{max} \\approx 0.52mg$)보다 훨씬 작습니다.
-              * 따라서 **어느 관점으로 보아도 단진자 왕복 운동 중 알짜힘의 크기가 가장 작은(최소인) 지점은 최하점 O**입니다.
-            * **(3) 알짜힘의 크기가 최대인 지점**: **A, B점 (양 끝점 / 최고점)**
+            • (2) 알짜힘의 크기가 최소인 지점: O점 (최하점)
+              * 진동 복원력(접선 성분) 관점: 접선 방향 복원력 $F_t = mg\\sin\\theta$이므로 $\\theta = 0$인 최하점에서 $F_t = 0$으로 최소가 됩니다.
+              * 실제 2차원 전체 알짜힘($\\vec{T} + m\\vec{g}$) 관점: 최하점에서 속력이 최대이므로 연직 위쪽 구심 알짜힘($F_{net} = T - mg = \\frac{mv^2}{l} = 2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$)이 작용합니다. 이 값은 최고점에서의 알짜힘($mg\\sin\\theta_{max} \\approx 0.52mg$)보다 훨씬 작습니다.
+              * 따라서 어느 관점으로 보아도 단진자 왕복 운동 중 알짜힘의 크기가 가장 작은(최소인) 지점은 최하점 O입니다.
+            • (3) 알짜힘의 크기가 최대인 지점: A, B점 (양 끝점 / 최고점)
               * 진폭의 양 끝점에서 변위각 $\\theta$가 최대이므로 접선 복원력 $F_t = mg\\sin\\theta_{max}$ 및 2차원 전체 알짜힘의 크기가 모두 최대가 됩니다.
-            * **(4) 장력이 가장 큰 지점과 작은 지점**:
+            • (4) 장력이 가장 큰 지점과 작은 지점:
               * 실의 장력 공식: $$T = mg\\cos\\theta + \\frac{mv^2}{l}$$
-              * **가장 큰 지점**: **O점 (최하점)** ($\\theta=0$이므로 $\\cos\\theta=1$, 속력 $v$ 최대 $\\implies T_{max} = mg + mv^2/l \\approx 1.30mg$)
-              * **가장 작은 지점**: **A, B점 (양 끝점)** ($v=0$, $\\cos\\theta < 1 \\implies T_{min} = mg\\cos\\theta_{max} \\approx 0.85mg$)
-            * **(5) 운동 에너지가 최대인 지점**: **O점 (최하점)** ($E_k = \\frac{1}{2}mv^2$ 최대)
-            * **(6) 퍼텐셜 에너지가 최대인 지점**: **A, B점 (양 끝점)** (기준면 대비 높이 $h$가 최대)
+              * 가장 큰 지점: O점 (최하점) ($\\theta=0$이므로 $\\cos\\theta=1$, 속력 $v$ 최대 $\\implies T_{max} = mg + mv^2/l \\approx 1.30mg$)
+              * 가장 작은 지점: A, B점 (양 끝점) ($v=0$, $\\cos\\theta < 1 \\implies T_{min} = mg\\cos\\theta_{max} \\approx 0.85mg$)
+            • (5) 운동 에너지가 최대인 지점: O점 (최하점) ($E_k = \\frac{1}{2}mv^2$ 최대)
+            • (6) 퍼텐셜 에너지가 최대인 지점: A, B점 (양 끝점) (기준면 대비 높이 $h$가 최대)
             """)
 
     st.divider()
@@ -1056,23 +1058,23 @@ if show_p1:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 최하점 O에서 추에 작용하는 알짜힘의 방향:**")
+        st.markdown("<b>（1） 최하점 O에서 추에 작용하는 알짜힘의 방향:</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 최고점 p에서 추에 작용하는 알짜힘의 방향:**")
+        st.markdown("<b>（2） 최고점 p에서 추에 작용하는 알짜힘의 방향:</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 3 정답 및 힘 벡터 분석 확인하기", expanded=False):
             st.markdown("""
-            * **O점 (최하점)에서의 알짜힘 방향**: **연직 위쪽 (원의 중심 방향, ↑)**
+            * O점 (최하점)에서의 알짜힘 방향: 연직 위쪽 (원의 중심 방향, ↑)
               * 최하점에서 물체는 $v \\neq 0$으로 원운동 궤적을 그리며 지나갑니다.
               * 따라서 실 방향으로 구심 가속도 $a_c = \\frac{v^2}{l}$가 필요하므로 실의 장력 $T$가 중력 $mg$보다 큽니다 ($T > mg$).
-              * 알짜힘 $\\vec{F}_{net} = T - mg = \\frac{mv^2}{l}$는 **연직 위쪽(원 중심 방향)**을 향합니다.
-              * *(참고: 이때 최하점 알짜힘의 크기는 $2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$로, 최고점 $p$에서의 알짜힘 $0.52mg$보다 작아 운동 중 **최소값**을 갖습니다.)*
-            * **p점 (최고점)에서의 알짜힘 방향**: **궤도 원호의 접선 방향 (점 O 쪽을 향하는 접선 방향, ↙)**
+              * 알짜힘 $\\vec{F}_{net} = T - mg = \\frac{mv^2}{l}$는 연직 위쪽(원 중심 방향)을 향합니다.
+              * *(참고: 이때 최하점 알짜힘의 크기는 $2mg(1-\\cos\\theta_{max}) \\approx 0.30mg$로, 최고점 $p$에서의 알짜힘 $0.52mg$보다 작아 운동 중 최소값을 갖습니다.)*
+            * p점 (최고점)에서의 알짜힘 방향: 궤도 원호의 접선 방향 (점 O 쪽을 향하는 접선 방향, ↙)
               * 최고점에서는 순간 속도 $v = 0$이므로 구심력 성분($mv^2/l$)은 0입니다.
               * 실 방향으로는 장력과 중력의 지름 성분이 평형을 이룹니다 ($T = mg\\cos\\theta$).
-              * 따라서 남는 힘은 중력의 접선 성분 $mg\\sin\\theta$뿐이므로, 알짜힘은 **원호의 접선 방향**을 향합니다.
-              * *(참고: 이때 최고점 알짜힘의 크기는 $mg\\sin\\theta_{max} \\approx 0.52mg$로 단진자 운동 중 **최대값**을 갖습니다.)*
+              * 따라서 남는 힘은 중력의 접선 성분 $mg\\sin\\theta$뿐이므로, 알짜힘은 원호의 접선 방향을 향합니다.
+              * *(참고: 이때 최고점 알짜힘의 크기는 $mg\\sin\\theta_{max} \\approx 0.52mg$로 단진자 운동 중 최대값을 갖습니다.)*
             """)
 
     st.divider()
@@ -1088,22 +1090,22 @@ if show_p1:
     render_sim_prob4()
 
     if is_print_mode:
-        st.markdown("**（1） 가속도의 크기가 가장 큰 순간을 모두 쓰시오.**")
+        st.markdown("<b>（1） 가속도의 크기가 가장 큰 순간을 모두 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 속력이 증가하는 구간을 시각으로 나타내시오.**")
+        st.markdown("<b>（2） 속력이 증가하는 구간을 시각으로 나타내시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 운동 에너지가 가장 큰 순간과 퍼텐셜 에너지가 가장 큰 순간을 각각 쓰시오.**")
+        st.markdown("<b>（3） 운동 에너지가 가장 큰 순간과 퍼텐셜 에너지가 가장 큰 순간을 각각 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 4 정답 및 그래프 해석 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 가속도의 크기가 가장 큰 순간**: **$t_0, 3t_0$**
+            • (1) 가속도의 크기가 가장 큰 순간: $t_0, 3t_0$
               * 높이가 최고점 $h$에 도달했을 때 진폭 각도 $\\theta$가 최대이며, 중력의 접선 가속도 $a_t = g\\sin\\theta$가 최대가 됩니다.
-            * **(2) 속력이 증가하는 구간**: **$t_0 \\sim 2t_0$** (또는 $3t_0 \\sim 4t_0$)
+            • (2) 속력이 증가하는 구간: $t_0 \\sim 2t_0$ (또는 $3t_0 \\sim 4t_0$)
               * 최고점(높이 $h$)에서 최하점(높이 $0$)으로 내려오는 구간에서는 중력 퍼텐셜 에너지가 운동 에너지로 전환되므로 속력이 점차 증가합니다.
-            * **(3) 운동 에너지 및 퍼텐셜 에너지가 가장 큰 순간**:
-              * **운동 에너지가 가장 큰 순간**: **$0, 2t_0, 4t_0$** (최하점을 통과하는 순간, 높이 0, 속력 최대)
-              * **퍼텐셜 에너지가 가장 큰 순간**: **$t_0, 3t_0$** (최고점에 도달하는 순간, 높이 $h$ 최대)
+            • (3) 운동 에너지 및 퍼텐셜 에너지가 가장 큰 순간:
+              * 운동 에너지가 가장 큰 순간: $0, 2t_0, 4t_0$ (최하점을 통과하는 순간, 높이 0, 속력 최대)
+              * 퍼텐셜 에너지가 가장 큰 순간: $t_0, 3t_0$ (최고점에 도달하는 순간, 높이 $h$ 최대)
             """)
 
 # ==================== [PAGE 2] ====================
@@ -1121,45 +1123,45 @@ if show_p2:
     render_sim_prob5()
 
     if is_print_mode:
-        st.markdown("**（1） (나)에서 각속도의 크기는 P가 Q의 몇 배인지 풀이과정과 함께 쓰시오.**")
+        st.markdown("<b>（1） (나)에서 각속도의 크기는 P가 Q의 몇 배인지 풀이과정과 함께 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） t = 0 일 때 A의 운동 방향은?**")
+        st.markdown("<b>（2） t = 0 일 때 A의 운동 방향은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） t = 3π 일 때, B의 운동 방향은?**")
+        st.markdown("<b>（3） t = 3π 일 때, B의 운동 방향은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） t = 0일 때와 t = 6π일 때 A와 B의 거리를 풀이과정과 함께 쓰시오.**")
+        st.markdown("<b>（4） t = 0일 때와 t = 6π일 때 A와 B의 거리를 풀이과정과 함께 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 5 정답 및 상세 유도 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 각속도의 크기 비교**:
+            • (1) 각속도의 크기 비교:
               * (나) 그래프에서 주기 확인:
                 * 곡선 P의 주기 $T_P = 6\\pi\\,\\text{s}$
                 * 곡선 Q의 주기 $T_Q = 3\\pi\\,\\text{s}$
               * 각속도 공식 $\\omega = \\frac{2\\pi}{T}$ 적용:
                 $$\\omega_P = \\frac{2\\pi}{6\\pi} = \\frac{1}{3}\\,\\text{rad/s}, \\quad \\omega_Q = \\frac{2\\pi}{3\\pi} = \\frac{2}{3}\\,\\text{rad/s}$$
-              * 따라서 P의 각속도는 Q의 **$\\mathbf{\\frac{1}{2}}$배 (0.5배)**입니다.
-            * **(2) $t=0$일 때 A의 운동 방향**:
-              * **곡선 매칭**: 구심 가속도 $a = r\\omega^2 \\implies r = \\frac{a}{\\omega^2}$
+              * 따라서 P의 각속도는 Q의 $\\mathbf{\\frac{1}{2}}$배 (0.5배)입니다.
+            • (2) $t=0$일 때 A의 운동 방향:
+              * 곡선 매칭: 구심 가속도 $a = r\\omega^2 \\implies r = \\frac{a}{\\omega^2}$
                 * 곡선 P: $a_P = 3, \\omega_P = 1/3 \\implies r_P = \\frac{3}{(1/3)^2} = 27\\,\\text{m}$
                 * 곡선 Q: $a_Q = 2, \\omega_Q = 2/3 \\implies r_Q = \\frac{2}{(2/3)^2} = 4.5\\,\\text{m}$
-                * 그림 (가)에서 반지름 $r_A > r_B$이므로 **P가 A**, **Q가 B**입니다.
-              * **운동 방향 추론**:
+                * 그림 (가)에서 반지름 $r_A > r_B$이므로 P가 A, Q가 B입니다.
+              * 운동 방향 추론:
                 * A(P)는 $t=0$에 $(-r_A, 0)$에 위치합니다.
                 * 곡선 P에서 $t=0$ 직후 $a_y < 0$ (음의 방향)이 됩니다.
                 * 구심 가속도는 항상 중심(원점)을 향하므로 $a_y$가 음(-)이 되려면 물체의 $y$위치는 양($+y$)이어야 합니다.
-                * 따라서 물체 A는 $(-r_A, 0)$에서 $+y$ 방향(시계 방향)으로 회전하므로, $t=0$일 때 운동 방향은 **$\\mathbf{+y}$ 방향 (연직 위쪽)**입니다.
-            * **(3) $t=3\\pi$일 때 B의 운동 방향**:
+                * 따라서 물체 A는 $(-r_A, 0)$에서 $+y$ 방향(시계 방향)으로 회전하므로, $t=0$일 때 운동 방향은 $\\mathbf{+y}$ 방향 (연직 위쪽)입니다.
+            • (3) $t=3\\pi$일 때 B의 운동 방향:
               * B(Q)의 주기는 $T_Q = 3\\pi\\,\\text{s}$입니다.
-              * 따라서 $t=3\\pi$는 B의 **정확히 1주기 회전 완료 시점**이므로 $t=0$일 때의 위치 및 운동 방향과 완벽히 같습니다.
+              * 따라서 $t=3\\pi$는 B의 정확히 1주기 회전 완료 시점이므로 $t=0$일 때의 위치 및 운동 방향과 완벽히 같습니다.
               * $t=0$일 때 B는 $(r_B, 0)$에 있고 곡선 Q에서 $t=0$ 직후 $a_y > 0$이므로, $y$좌표는 음수 영역으로 이동해야 중심 방향 구심 가속도가 $+y$가 됩니다.
-              * 따라서 $t=3\\pi$일 때 B의 운동 방향은 **$\\mathbf{-y}$ 방향 (연직 아래쪽)**입니다.
-            * **(4) $t=0$과 $t=6\\pi$일 때 A와 B의 상대 거리**:
+              * 따라서 $t=3\\pi$일 때 B의 운동 방향은 $\\mathbf{-y}$ 방향 (연직 아래쪽)입니다.
+            • (4) $t=0$과 $t=6\\pi$일 때 A와 B의 상대 거리:
               * $t=0$일 때: A는 $(-r_A, 0)$, B는 $(r_B, 0)$에 있으므로 거리 $d_0 = r_A + r_B = 27 + 4.5 = \\mathbf{31.5\\,\\text{m}}$.
               * $t=6\\pi$일 때:
                 * A는 주기 $6\\pi$이므로 정확히 1회전하여 다시 $(-r_A, 0)$에 도달.
                 * B는 주기 $3\\pi$이므로 정확히 2회전하여 다시 $(r_B, 0)$에 도달.
-              * 따라서 두 시각 모두 위치가 같으므로 거리는 **$\\mathbf{r_A + r_B = 31.5\\,\\text{m}}$로 동일**합니다.
+              * 따라서 두 시각 모두 위치가 같으므로 거리는 $\\mathbf{r_A + r_B = 31.5\\,\\text{m}}$로 동일합니다.
             """)
 
     st.divider()
@@ -1175,42 +1177,42 @@ if show_p2:
     render_sim_prob6()
 
     if is_print_mode:
-        st.markdown("**（1） 원 궤도의 반지름을 구하시오.**")
+        st.markdown("<b>（1） 원 궤도의 반지름을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 각속도를 구하시오.**")
+        st.markdown("<b>（2） 각속도를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 3초일 때, 물체의 운동 방향을 쓰시오.**")
+        st.markdown("<b>（3） 3초일 때, 물체의 운동 방향을 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 구심 가속도의 크기를 풀이 과정과 함께 구하시오.**")
+        st.markdown("<b>（4） 구심 가속도의 크기를 풀이 과정과 함께 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（5） 2초일 때 구심가속도의 방향은?**")
+        st.markdown("<b>（5） 2초일 때 구심가속도의 방향은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（6） 4초일 때 구심력의 방향은?**")
+        st.markdown("<b>（6） 4초일 때 구심력의 방향은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 6 정답 및 단계별 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **기본 물리량 파악**:
+            * 기본 물리량 파악:
               * $v_x-t$ 그래프에서 최대 속력 $v = 5\\,\\text{m/s}$, 주기 $T = 4\\,\\text{s}$.
-              * 문제 조건: **시계 방향** 등속 원운동.
-            * **(1) 원 궤도의 반지름**:
+              * 문제 조건: 시계 방향 등속 원운동.
+            • (1) 원 궤도의 반지름:
               $$v = \\frac{2\\pi r}{T} \\implies r = \\frac{v T}{2\\pi} = \\frac{5 \\times 4}{2\\pi} = \\mathbf{\\frac{10}{\\pi}\\,\\text{m}} \\approx 3.18\\,\\text{m}$$
-            * **(2) 각속도**:
+            • (2) 각속도:
               $$\\omega = \\frac{2\\pi}{T} = \\frac{2\\pi}{4} = \\mathbf{\\frac{\\pi}{2}\\,\\text{rad/s}} = \\mathbf{0.5\\pi\\,\\text{rad/s}}$$
-            * **(3) 3초일 때 물체의 운동 방향**:
+            • (3) 3초일 때 물체의 운동 방향:
               * $t=0$에서 $v_x = +5$ (시계 방향에서 $+x$ 속도를 갖는 위치는 최상단 $(0, r)$).
               * $t=1\\,\\text{s}$ (1/4주기) $\\implies$ 위치 $(r, 0)$, 속도 방향 $-y$.
               * $t=2\\,\\text{s}$ (1/2주기) $\\implies$ 위치 $(0, -r)$, 속도 방향 $-x$ ($v_x = -5$).
-              * $t=3\\,\\text{s}$ (3/4주기) $\\implies$ 위치 $(-r, 0)$, 속도 방향은 **$\\mathbf{+y}$ 방향 (연직 위쪽)**입니다.
-            * **(4) 구심 가속도의 크기**:
+              * $t=3\\,\\text{s}$ (3/4주기) $\\implies$ 위치 $(-r, 0)$, 속도 방향은 $\\mathbf{+y}$ 방향 (연직 위쪽)입니다.
+            • (4) 구심 가속도의 크기:
               $$a_c = v \\omega = 5 \\times \\frac{\\pi}{2} = \\mathbf{\\frac{5\\pi}{2}\\,\\text{m/s}^2} = \\mathbf{2.5\\pi\\,\\text{m/s}^2} \\approx 7.85\\,\\text{m/s}^2$$
               *(또는 $a_c = \\frac{v^2}{r} = \\frac{25}{10/\\pi} = \\frac{2.5\\pi}\\,\\text{m/s}^2$)*
-            * **(5) 2초일 때 구심가속도의 방향**:
+            • (5) 2초일 때 구심가속도의 방향:
               * $t=2\\,\\text{s}$에서 물체는 최하단 $(0, -r)$에 위치합니다.
-              * 구심 가속도는 항상 중심(원점)을 향하므로 방향은 **$\\mathbf{+y}$ 방향 (연직 위쪽 / 원점 방향)**입니다.
-            * **(6) 4초일 때 구심력의 방향**:
+              * 구심 가속도는 항상 중심(원점)을 향하므로 방향은 $\\mathbf{+y}$ 방향 (연직 위쪽 / 원점 방향)입니다.
+            • (6) 4초일 때 구심력의 방향:
               * $t=4\\,\\text{s}$는 1주기 완료 시점으로 최상단 $(0, r)$에 위치합니다.
-              * 구심력은 항상 중심(원점)을 향하므로 방향은 **$\\mathbf{-y}$ 방향 (연직 아래쪽 / 원점 방향)**입니다.
+              * 구심력은 항상 중심(원점)을 향하므로 방향은 $\\mathbf{-y}$ 방향 (연직 아래쪽 / 원점 방향)입니다.
             """)
 
     st.divider()
@@ -1226,38 +1228,38 @@ if show_p2:
     render_sim_prob7()
 
     if is_print_mode:
-        st.markdown("**（1） A와 B의 각속도의 크기를 비교하시오.**")
+        st.markdown("<b>（1） A와 B의 각속도의 크기를 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） A와 B의 속도의 크기를 비교하시오.**")
+        st.markdown("<b>（2） A와 B의 속도의 크기를 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 막대 q가 B에 작용하는 구심력의 크기를 구하시오.**")
+        st.markdown("<b>（3） 막대 q가 B에 작용하는 구심력의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 물체 A의 구심력(알짜힘)의 크기를 구하시오.**")
+        st.markdown("<b>（4） 물체 A의 구심력(알짜힘)의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（5） 막대 p가 A에 작용하는 힘의 크기를 구하시오.**")
+        st.markdown("<b>（5） 막대 p가 A에 작용하는 힘의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 7 정답 및 다체 구심력/장력 유도 확인하기", expanded=False):
             st.markdown("""
-            * **회전 조건 파악**:
+            * 회전 조건 파악:
               * 물체 A: 질량 $m_A = 2m$, 회전 반지름 $r_A = 2r$
               * 물체 B: 질량 $m_B = m$, 회전 반지름 $r_B = 2r + r = 3r$
               * 동일 회전축 O에 일직선 막대로 연결되어 함께 회전하므로 회전 각속도 $\\omega$는 동일합니다.
-            * **(1) A와 B의 각속도 비교**:
-              * 회전 주기와 초당 회전 각도가 같으므로 **$\\mathbf{\\omega_A = \\omega_B}$ (서로 같다, $1 : 1$)**
-            * **(2) A와 B의 속도(선속력) 비교**:
+            • (1) A와 B의 각속도 비교:
+              * 회전 주기와 초당 회전 각도가 같으므로 $\\mathbf{\\omega_A = \\omega_B}$ (서로 같다, $1 : 1$)
+            • (2) A와 B의 속도(선속력) 비교:
               $$v = r\\omega \\implies v_A = 2r\\omega, \\quad v_B = 3r\\omega$$
-              * 따라서 **$\\mathbf{v_A : v_B = 2 : 3}$ ($v_B$가 $v_A$의 $1.5$배)**
-            * **(3) 막대 q가 B에 작용하는 구심력(장력 $T_q$)의 크기**:
+              * 따라서 $\\mathbf{v_A : v_B = 2 : 3}$ ($v_B$가 $v_A$의 $1.5$배)
+            • (3) 막대 q가 B에 작용하는 구심력(장력 $T_q$)의 크기:
               * 물체 B에 작용하는 유일한 수평 힘은 막대 q가 당기는 장력 $T_q$입니다.
               $$F_{c,B} = T_q = m_B r_B \\omega^2 = m(3r)\\omega^2 = \\mathbf{3mr\\omega^2}$$
-            * **(4) 물체 A의 알짜 구심력의 크기**:
+            • (4) 물체 A의 알짜 구심력의 크기:
               $$F_{c,A} = m_A r_A \\omega^2 = (2m)(2r)\\omega^2 = \\mathbf{4mr\\omega^2}$$
-            * **(5) 막대 p가 A에 작용하는 힘($T_p$)의 크기**:
+            • (5) 막대 p가 A에 작용하는 힘($T_p$)의 크기:
               * 물체 A에는 막대 p가 안쪽(원점)으로 당기는 힘 $T_p$와, 막대 q가 바깥쪽으로 당기는 반작용력 $T_q$가 함께 작용합니다.
               * A의 원운동 알짜 구심력 방정식:
                 $$F_{c,A} = T_p - T_q \\implies T_p = F_{c,A} + T_q$$
               * 앞서 구한 값 대입:
                 $$T_p = 4mr\\omega^2 + 3mr\\omega^2 = \\mathbf{7mr\\omega^2}$$
-              * 따라서 막대 p가 A에 작용하는 힘의 크기는 **$\\mathbf{7mr\\omega^2}$**입니다.
+              * 따라서 막대 p가 A에 작용하는 힘의 크기는 $\\mathbf{7mr\\omega^2}$입니다.
             """)

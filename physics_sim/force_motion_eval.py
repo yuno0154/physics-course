@@ -154,9 +154,11 @@ if is_print_mode:
     view_category = st.radio("인쇄 범위 선택", ["📄 1페이지: 힘의 기본 개념과 합성 (4문항)", "📄 2페이지: 힘의 성분 분해와 빗면 운동 (6문항)", "📄 3페이지: 심화 연결계와 도르래 운동 (4문항)", "📖 전체 14문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    **2022 개정 교육과정 역학과 에너지** [12역학01-01] 성취기준에 따른 **힘의 합성과 운동 예측 과제 문항**입니다.
-    문제마다 **살아 움직이는 인터랙티브 시뮬레이션**과 **정밀 물리 다이어그램**을 통해 힘의 합성, 분해, 빗면 마찰, 도르래 연결계의 운동 원리를 직접 체감하며 학습할 수 있습니다.
-    """)
+    <p style="font-size: 1.05rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
+        <b>2022 개정 교육과정 역학과 에너지</b> [12역학01-01] 성취기준에 따른 <b>힘의 합성과 운동 예측 과제 문항</b>입니다.<br>
+        문제마다 살아 움직이는 인터랙티브 시뮬레이션과 정밀 물리 다이어그램을 통해 힘의 합성, 분해, 빗면 마찰, 도르래 연결계의 운동 원리를 직접 체감하며 학습할 수 있습니다.
+    </p>
+    """, unsafe_allow_html=True)
     view_category = st.radio(
         "문항 분류 선택", 
         ["📄 1페이지: 힘의 기본 개념과 합성 (4문항)", "📄 2페이지: 힘의 성분 분해와 빗면 운동 (6문항)", "📄 3페이지: 심화 연결계와 도르래 운동 (4문항)", "📖 전체 14문항 모두 보기"], 
@@ -1434,20 +1436,20 @@ if show_p1:
     render_sim_prob1()
 
     if is_print_mode:
-        st.markdown("**（1） 알짜힘의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（1） 알짜힘의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 12 + 7 = 19 N으로 계산하면 안 되는 이유를 힘의 방향을 이용하여 설명하시오.**")
+        st.markdown("<b>（2） 12 + 7 = 19 N으로 계산하면 안 되는 이유를 힘의 방향을 이용하여 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 1 정답 및 개념 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 알짜힘의 크기와 방향**:
+            • (1) 알짜힘의 크기와 방향:
               * 오른쪽 방향을 (+)로 두면:
                 $$F_{net} = +12\\,\\text{N} + (-7\\,\\text{N}) = \\mathbf{+5\\,\\text{N}}$$
-              * 따라서 알짜힘의 크기는 **$5\\,\\text{N}$**, 방향은 **오른쪽**입니다.
-            * **(2) 12 + 7 = 19 N으로 계산하면 안 되는 이유**:
-              * 힘은 크기뿐만 아니라 **방향을 갖는 벡터(Vector) 물리량**이기 때문입니다.
-              * 작용하는 두 힘의 방향이 서로 정반대(180°)이므로 크기만을 더하는 스칼라 합이 아니라, 방향 부호를 고려한 **벡터 합($12 - 7 = 5\\,\\text{N}$)**으로 계산해야 합니다.
+              * 따라서 알짜힘의 크기는 $5\\,\\text{N}$, 방향은 오른쪽입니다.
+            • (2) 12 + 7 = 19 N으로 계산하면 안 되는 이유:
+              * 힘은 크기뿐만 아니라 방향을 갖는 벡터(Vector) 물리량이기 때문입니다.
+              * 작용하는 두 힘의 방향이 서로 정반대(180°)이므로 크기만을 더하는 스칼라 합이 아니라, 방향 부호를 고려한 벡터 합($12 - 7 = 5\\,\\text{N}$)으로 계산해야 합니다.
             """)
 
     st.divider()
@@ -1461,16 +1463,16 @@ if show_p1:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 5초 후 물체의 운동 상태를 판단하시오.**")
+        st.markdown("<b>（1） 5초 후 물체의 운동 상태를 판단하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 그 이유를 알짜힘, 가속도, 속도의 관계를 이용하여 설명하시오.**")
+        st.markdown("<b>（2） 그 이유를 알짜힘, 가속도, 속도의 관계를 이용하여 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 2 정답 및 뉴턴 운동 법칙 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 5초 후 물체의 운동 상태**:
-              * **오른쪽으로 $4\\,\\text{m/s}$의 일정한 속력으로 등속 직선 운동을 한다.**
-            * **(2) 관계를 이용한 설명**:
+            • (1) 5초 후 물체의 운동 상태:
+              * 오른쪽으로 $4\\,\\text{m/s}$의 일정한 속력으로 등속 직선 운동을 한다.
+            • (2) 관계를 이용한 설명:
               * 뉴턴 제2법칙($F_{net} = ma$)에 따라 물체에 작용하는 알짜힘 $F_{net} = 0\\,\\text{N}$이면 가속도 $a = 0\\,\\text{m/s}^2$입니다.
               * 가속도는 단위 시간당 속도의 변화량이므로, $a = 0$이면 속도의 크기와 방향이 전혀 변하지 않습니다.
               * 따라서 5초 후에도 처음 운동 상태 그대로 오른쪽 $4\\,\\text{m/s}$의 등속도 운동을 유지합니다.
@@ -1487,17 +1489,17 @@ if show_p1:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 이 물체에 작용한 알짜힘의 크기를 구하시오.**")
+        st.markdown("<b>（1） 이 물체에 작용한 알짜힘의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 그렇게 판단한 이유를 알짜힘과 가속도의 관계를 이용하여 설명하시오.**")
+        st.markdown("<b>（2） 그렇게 판단한 이유를 알짜힘과 가속도의 관계를 이용하여 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 3 정답 및 마찰력 평형 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 알짜힘의 크기**: **$0\\,\\text{N}$**
-            * **(2) 판단 근거**:
+            • (1) 알짜힘의 크기: $0\\,\\text{N}$
+            • (2) 판단 근거:
               * 1초 동안 물체의 속력이 $4\\,\\text{m/s}$로 일정하게 유지되었으므로 속도의 변화량 $\\Delta v = 0$이며, 가속도 $a = \\frac{\\Delta v}{\\Delta t} = 0\\,\\text{m/s}^2$입니다.
-              * $F_{net} = ma$에 의해 가속도가 0이므로 물체에 작용하는 **알짜힘은 반드시 $0\\,\\text{N}$**이어야 합니다.
+              * $F_{net} = ma$에 의해 가속도가 0이므로 물체에 작용하는 알짜힘은 반드시 $0\\,\\text{N}$이어야 합니다.
               * *(참고: 오른쪽 외력 $2\\,\\text{N}$과 운동을 방해하는 마찰력 $2\\,\\text{N}$이 힘의 평형을 이루고 있습니다.)*
             """)
 
@@ -1514,24 +1516,24 @@ if show_p1:
     render_sim_prob4()
 
     if is_print_mode:
-        st.markdown("**（1） 물체에 작용하는 알짜힘의 크기를 구하시오.**")
+        st.markdown("<b>（1） 물체에 작용하는 알짜힘의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체의 가속도의 크기를 구하시오.**")
+        st.markdown("<b>（2） 물체의 가속도의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 물체의 가속도 방향을 동쪽과 북쪽을 기준으로 말로 설명하시오.**")
+        st.markdown("<b>（3） 물체의 가속도 방향을 동쪽과 북쪽을 기준으로 말로 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 4 정답 및 피타고라스 벡터 합성 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 알짜힘의 크기**:
+            • (1) 알짜힘의 크기:
               * 두 힘이 $90^\\circ$를 이루므로 피타고라스 정리에 의해:
                 $$F_{net} = \\sqrt{6^2 + 8^2} = \\sqrt{36 + 64} = \\sqrt{100} = \\mathbf{10\\,\\text{N}}$$
-            * **(2) 가속도의 크기**:
+            • (2) 가속도의 크기:
               $$a = \\frac{F_{net}}{m} = \\frac{10\\,\\text{N}}{2\\,\\text{kg}} = \\mathbf{5\\,\\text{m/s}^2}$$
-            * **(3) 가속도의 방향**:
+            • (3) 가속도의 방향:
               * 가속도의 방향은 알짜힘의 방향과 같습니다.
               * $\\tan\\theta = \\frac{F_y}{F_x} = \\frac{8}{6} = \\frac{4}{3} \\approx 1.33$
-              * 따라서 **동쪽을 기준으로 북쪽으로 약 $53^\\circ$ 기울어진 방향** (북동쪽)입니다.
+              * 따라서 동쪽을 기준으로 북쪽으로 약 $53^\\circ$ 기울어진 방향 (북동쪽)입니다.
             """)
 
 # ==================== [PAGE 2] ====================
@@ -1541,7 +1543,7 @@ if show_p2:
     # ---------- [문제 5] ----------
     st.markdown("""
     <div class="exam-box">
-        <span class="badge-primary">[보통] 문제 5</span> &nbsp; <b>비슴듬한 힘(10N, 30°)의 직교 분해</b>
+        <span class="badge-primary">[보통] 문제 5</span> &nbsp; <b>비스듬한 힘(10N, 30°)의 직교 분해</b>
         <p style="margin-top:6px;">크기 10 N인 힘이 수평면에서 오른쪽 방향을 기준으로 위쪽으로 30° 기울어진 방향으로 작용하고 있다.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -1549,17 +1551,17 @@ if show_p2:
     render_sim_prob5()
 
     if is_print_mode:
-        st.markdown("**（1） 이 힘의 수평 성분 Fx 와 수직 성분 Fy를 각각 구하시오.**")
+        st.markdown("<b>（1） 이 힘의 수평 성분 Fx 와 수직 성분 Fy를 각각 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） Fx + Fy의 값이 원래 힘의 크기인 10 N과 같지 않은 이유를 벡터의 성분과 합성의 관점에서 설명하시오.**")
+        st.markdown("<b>（2） Fx + Fy의 값이 원래 힘의 크기인 10 N과 같지 않은 이유를 벡터의 성분과 합성의 관점에서 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 5 정답 및 삼각비 분해 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 수평 및 수직 성분 크기**:
+            • (1) 수평 및 수직 성분 크기:
               * 수평 성분: $$F_x = 10\\cos 30^\\circ = 10 \\times \\frac{\\sqrt{3}}{2} = \\mathbf{5\\sqrt{3}\\,\\text{N}} \\approx 8.66\\,\\text{N}$$
               * 수직 성분: $$F_y = 10\\sin 30^\\circ = 10 \\times \\frac{1}{2} = \\mathbf{5\\,\\text{N}}$$
-            * **(2) Fx + Fy ≠ 10 N 인 이유**:
+            • (2) Fx + Fy ≠ 10 N 인 이유:
               * $F_x$와 $F_y$는 서로 수직($90^\\circ$)인 방향을 가지므로 단순 대수적 합산(스칼라 합 $5\\sqrt{3} + 5 \\approx 13.66\\,\\text{N}$)을 할 수 없습니다.
               * 직각삼각형에서 빗변의 길이는 두 변의 합보다 작으며, 벡터 합성 공식 $F = \\sqrt{F_x^2 + F_y^2} = \\sqrt{(5\\sqrt{3})^2 + 5^2} = \\sqrt{75 + 25} = 10\\,\\text{N}$으로 합성되기 때문입니다.
             """)
@@ -1577,23 +1579,23 @@ if show_p2:
     render_sim_prob6_8()
 
     if is_print_mode:
-        st.markdown("**（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.**")
+        st.markdown("<b>（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체의 가속도의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（2） 물체의 가속도의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 물체에 작용하는 중력의 크기는 20 N인데 가속도의 크기가 10 m/s²가 아닌 이유를 알짜힘의 관점에서 설명하시오.**")
+        st.markdown("<b>（3） 물체에 작용하는 중력의 크기는 20 N인데 가속도의 크기가 10 m/s²가 아닌 이유를 알짜힘의 관점에서 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 6 정답 및 빗면 수직항력 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 중력의 빗면 나란한 성분**:
+            • (1) 중력의 빗면 나란한 성분:
               $$F_\\parallel = mg\\sin 30^\\circ = 2\\,\\text{kg} \\times 10\\,\\text{m/s}^2 \\times \\frac{1}{2} = \\mathbf{10\\,\\text{N}}$$
-            * **(2) 물체의 가속도**:
+            • (2) 물체의 가속도:
               * 마찰이 없으므로 알짜힘 $F_{net} = 10\\,\\text{N}$ (빗면 아래 방향)
               * 크기: $a = \\frac{10\\,\\text{N}}{2\\,\\text{kg}} = \\mathbf{5\\,\\text{m/s}^2}$
-              * 방향: **빗면 아래쪽 방향**
-            * **(3) 가속도가 10 m/s²가 아닌 이유**:
-              * 물체에는 중력($20\\,\\text{N}$) 외에도 빗면이 물체를 수직으로 떠받치는 **수직항력($N = mg\\cos 30^\\circ = 10\\sqrt{3}\\,\\text{N}$)**이 작용합니다.
+              * 방향: 빗면 아래쪽 방향
+            • (3) 가속도가 10 m/s²가 아닌 이유:
+              * 물체에는 중력($20\\,\\text{N}$) 외에도 빗면이 물체를 수직으로 떠받치는 수직항력($N = mg\\cos 30^\\circ = 10\\sqrt{3}\\,\\text{N}$)이 작용합니다.
               * 중력의 빗면 수직 성분과 수직항력이 상쇄되어 빗면 수직 방향으로는 가속되지 않고, 오직 빗면에 나란한 분력($mg\\sin 30^\\circ = 10\\,\\text{N}$)만이 알짜힘으로 작용하므로 가속도는 $g$가 아니라 $g\\sin 30^\\circ = 5\\,\\text{m/s}^2$가 됩니다.
             """)
 
@@ -1608,21 +1610,21 @@ if show_p2:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.**")
+        st.markdown("<b>（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체에 작용하는 알짜힘의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（2） 물체에 작용하는 알짜힘의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 물체에 작용하는 중력의 크기는 20 N인데, 알짜힘이 20 N이 아닌 이유를 설명하시오.**")
+        st.markdown("<b>（3） 물체에 작용하는 중력의 크기는 20 N인데, 알짜힘이 20 N이 아닌 이유를 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 7 정답 및 정지 마찰 평형 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 중력의 빗면 나란한 성분**:
+            • (1) 중력의 빗면 나란한 성분:
               $$F_\\parallel = mg\\sin 30^\\circ = 2 \\times 10 \\times \\frac{1}{2} = \\mathbf{10\\,\\text{N}}$$
-            * **(2) 알짜힘의 크기와 방향**:
-              * 물체가 계속 정지해 있으므로 가속도 $a = 0$이며, 알짜힘은 **$0\\,\\text{N}$** (방향 없음)입니다.
-            * **(3) 알짜힘이 20 N이 아닌 이유**:
-              * 중력($20\\,\\text{N}$) 외에 빗면이 물체에 작용하는 **수직항력($10\\sqrt{3}\\,\\text{N}$)**과 빗면 위쪽 방향의 **정지 마찰력($10\\,\\text{N}$)**이 함께 작용하여 세 힘의 벡터 합이 정확히 상쇄($F_{net} = 0$)되기 때문입니다.
+            • (2) 알짜힘의 크기와 방향:
+              * 물체가 계속 정지해 있으므로 가속도 $a = 0$이며, 알짜힘은 $0\\,\\text{N}$ (방향 없음)입니다.
+            • (3) 알짜힘이 20 N이 아닌 이유:
+              * 중력($20\\,\\text{N}$) 외에 빗면이 물체에 작용하는 수직항력($10\\sqrt{3}\\,\\text{N}$)과 빗면 위쪽 방향의 정지 마찰력($10\\,\\text{N}$)이 함께 작용하여 세 힘의 벡터 합이 정확히 상쇄($F_{net} = 0$)되기 때문입니다.
             """)
 
     st.divider()
@@ -1636,20 +1638,20 @@ if show_p2:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.**")
+        st.markdown("<b>（1） 중력의 빗면에 나란한 성분의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체에 작용하는 알짜힘의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（2） 물체에 작용하는 알짜힘의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 물체의 가속도의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（3） 물체의 가속도의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 8 정답 및 운동 마찰력 계산 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 중력의 빗면 나란 성분**:
+            • (1) 중력의 빗면 나란 성분:
               $$F_\\parallel = mg\\sin 30^\\circ = 2 \\times 10 \\times \\frac{1}{2} = \\mathbf{10\\,\\text{N}}$$ (빗면 아래쪽 방향)
-            * **(2) 알짜힘의 크기와 방향**:
+            • (2) 알짜힘의 크기와 방향:
               $$F_{net} = F_\\parallel - f = 10\\,\\text{N} - 6\\,\\text{N} = \\mathbf{4\\,\\text{N}}, \\quad \\text{방향: 빗면 아래쪽}$$
-            * **(3) 물체의 가속도 크기와 방향**:
+            • (3) 물체의 가속도 크기와 방향:
               $$a = \\frac{F_{net}}{m} = \\frac{4\\,\\text{N}}{2\\,\\text{kg}} = \\mathbf{2\\,\\text{m/s}^2}, \\quad \\text{방향: 빗면 아래쪽}$$
             """)
 
@@ -1664,18 +1666,18 @@ if show_p2:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 이 순간 물체의 가속도 방향을 말하시오.**")
+        st.markdown("<b>（1） 이 순간 물체의 가속도 방향을 말하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 직후 물체의 속력은 증가하는지 감소하는지 설명하시오.**")
+        st.markdown("<b>（2） 직후 물체의 속력은 증가하는지 감소하는지 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 왼쪽 방향의 알짜힘이 계속 작용한다면 충분한 시간이 지난 후 물체의 운동 방향은 어떻게 되는지 설명하시오.**")
+        st.markdown("<b>（3） 왼쪽 방향의 알짜힘이 계속 작용한다면 충분한 시간이 지난 후 물체의 운동 방향은 어떻게 되는지 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 9 정답 및 속도 반전 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 가속도 방향**: **왼쪽 방향** (가속도의 방향은 항상 알짜힘의 방향과 일치합니다.)
-            * **(2) 속력의 변화**: **감소한다.** 운동 방향(오른쪽)과 가속도 방향(왼쪽)이 반대이므로 속력이 점점 줄어듭니다.
-            * **(3) 충분한 시간이 지난 후 운동 방향**: 속력이 줄어들어 순간 정지($v=0$)한 후, 알짜힘의 방향인 **왼쪽 방향으로 운동 방향이 바뀌어 속력이 점점 증가**합니다.
+            • (1) 가속도 방향: 왼쪽 방향 (가속도의 방향은 항상 알짜힘의 방향과 일치합니다.)
+            • (2) 속력의 변화: 감소한다. 운동 방향(오른쪽)과 가속도 방향(왼쪽)이 반대이므로 속력이 점점 줄어듭니다.
+            • (3) 충분한 시간이 지난 후 운동 방향: 속력이 줄어들어 순간 정지($v=0$)한 후, 알짜힘의 방향인 왼쪽 방향으로 운동 방향이 바뀌어 속력이 점점 증가합니다.
             """)
 
     st.divider()
@@ -1689,21 +1691,21 @@ if show_p2:
     """, unsafe_allow_html=True)
 
     if is_print_mode:
-        st.markdown("**（1） 물체의 가속도의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（1） 물체의 가속도의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 물체에 작용한 알짜힘의 크기와 방향을 구하시오.**")
+        st.markdown("<b>（2） 물체에 작용한 알짜힘의 크기와 방향을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 위 정보만으로 물체에 작용하는 각각의 힘을 모두 알 수 있는지 판단하고, 그 이유를 설명하시오.**")
+        st.markdown("<b>（3） 위 정보만으로 물체에 작용하는 각각의 힘을 모두 알 수 있는지 판단하고, 그 이유를 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 10 정답 및 알짜힘의 본질 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 가속도의 크기와 방향**:
+            • (1) 가속도의 크기와 방향:
               $$a = \\frac{\\Delta v}{\\Delta t} = \\frac{4 - 2}{1} = \\mathbf{2\\,\\text{m/s}^2}, \\quad \\text{방향: 운동 방향}$$
-            * **(2) 알짜힘의 크기와 방향**:
+            • (2) 알짜힘의 크기와 방향:
               $$F_{net} = ma = 4\\,\\text{kg} \\times 2\\,\\text{m/s}^2 = \\mathbf{8\\,\\text{N}}, \\quad \\text{방향: 운동 방향(가속도 방향)}$$
-            * **(3) 각각의 힘을 모두 알 수 있는지 여부**:
-              * **알 수 없다.** 가속도와 질량 정보를 통해 구할 수 있는 것은 물체에 작용하는 모든 외력들의 벡터 합인 **'알짜힘(8 N)'뿐**입니다. 하나의 8 N 힘이 작용하는지, 10 N과 반대 2 N이 작용하는지, 수직 방향 힘들이 상쇄되고 있는지 등 개별 힘들의 구성은 알 수 없습니다.
+            • (3) 각각의 힘을 모두 알 수 있는지 여부:
+              * 알 수 없다. 가속도와 질량 정보를 통해 구할 수 있는 것은 물체에 작용하는 모든 외력들의 벡터 합인 '알짜힘(8 N)'뿐입니다. 하나의 8 N 힘이 작용하는지, 10 N과 반대 2 N이 작용하는지, 수직 방향 힘들이 상쇄되고 있는지 등 개별 힘들의 구성은 알 수 없습니다.
             """)
 
 # ==================== [PAGE 3] ====================
@@ -1721,23 +1723,23 @@ if show_p3:
     render_sim_prob11()
 
     if is_print_mode:
-        st.markdown("**（나）에서 A의 가속도의 크기를 풀이 과정과 함께 구하시오.**")
+        st.markdown("<b>（나）에서 A의 가속도의 크기를 풀이 과정과 함께 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 11 정답 및 단계별 유도 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **질량 설정**: B의 질량을 $m$이라 하면, A의 질량은 $3m$입니다.
-            * **1단계: (가)의 정지 조건으로부터 빗면 각도 $\\theta$ 산출**:
+            * 질량 설정: B의 질량을 $m$이라 하면, A의 질량은 $3m$입니다.
+            * 1단계: (가)의 정지 조건으로부터 빗면 각도 $\\theta$ 산출:
               * (가)에서 물체 B(질량 $m$)는 연직으로 매달려 있으므로 실의 장력 $T = mg$입니다.
               * 물체 A(질량 $3m$)는 빗면에서 정지해 있으므로:
                 $$3mg \\sin\\theta = T = mg \\implies \\sin\\theta = \\mathbf{\\frac{1}{3}}$$
-            * **2단계: (나)에서 계의 알짜힘 산출**:
+            * 2단계: (나)에서 계의 알짜힘 산출:
               * 위치를 바꾸면 A(질량 $3m$)가 연직 매달리고, B(질량 $m$)가 빗면에 놓입니다.
               * A를 아래로 당기는 중력: $3mg$
               * B의 빗면 나란 성분: $mg\\sin\\theta = mg \\left(\\frac{1}{3}\\right) = \\frac{1}{3}mg$
               * 전체 계의 알짜힘:
                 $$F_{net} = 3mg - \\frac{1}{3}mg = \\mathbf{\\frac{8}{3}mg}$$
-            * **3단계: 가속도 계산**:
+            * 3단계: 가속도 계산:
               * 계 전체 질량 $M = 3m + m = 4m$
               $$a = \\frac{F_{net}}{M} = \\frac{\\frac{8}{3}mg}{4m} = \\mathbf{\\frac{2}{3}g}$$
             """)
@@ -1755,16 +1757,16 @@ if show_p3:
     render_sim_prob12()
 
     if is_print_mode:
-        st.markdown("**Tp / Tq 의 값을 풀이 과정과 함께 구하시오.**")
+        st.markdown("<b>Tp / Tq 의 값을 풀이 과정과 함께 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 12 정답 및 직교 성분 분해 평형 유도 확인하기", expanded=False):
             st.markdown("""
-            * **1. 수평 방향 힘의 평형 (두 성분의 크기가 같고 방향 반대)**:
+            • 1. 수평 방향 힘의 평형 (두 성분의 크기가 같고 방향 반대):
               * 물체가 정지해 있으므로 좌우 알짜힘은 0입니다.
               $$T_p \\sin 30^\\circ = T_q \\sin 60^\\circ$$
               $$T_p \\times \\frac{1}{2} = T_q \\times \\frac{\\sqrt{3}}{2} \\implies T_p = \\sqrt{3} T_q \\implies \\mathbf{\\frac{T_p}{T_q} = \\sqrt{3}}$$
-            * **2. 연직 방향 힘의 평형 (두 위쪽 성분의 합 = 아래쪽 중력 mg)**:
+            • 2. 연직 방향 힘의 평형 (두 위쪽 성분의 합 = 아래쪽 중력 mg):
               * 위쪽을 향하는 두 장력의 연직 성분의 합이 아래쪽 중력 $mg$와 완벽하게 같습니다.
               $$T_p \\cos 30^\\circ + T_q \\cos 60^\\circ = mg$$
               * 위에서 구한 $T_p = \\sqrt{3} T_q$를 대입하면:
@@ -1785,29 +1787,29 @@ if show_p3:
     render_sim_prob13()
 
     if is_print_mode:
-        st.markdown("**1. A와 B를 하나의 계로 보았을 때, 계에 작용하는 알짜힘을 m, g, f를 사용하여 표현하시오. (A가 내려가는 방향을 +로 가정)**")
+        st.markdown("<b>1. A와 B를 하나의 계로 보았을 때, 계에 작용하는 알짜힘을 m, g, f를 사용하여 표현하시오. (A가 내려가는 방향을 +로 가정)</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**2. 1에서 구한 알짜힘과 뉴턴 제 2법칙을 이용하여, 실을 끊기 전 계의 가속도 a를 표현하는 식을 세우시오.**")
+        st.markdown("<b>2. 1에서 구한 알짜힘과 뉴턴 제 2법칙을 이용하여, 실을 끊기 전 계의 가속도 a를 표현하는 식을 세우시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**3. 실이 끊어진 직후, 물체 A에 작용하는 알짜힘과 A의 질량을 이용하여, 실을 끊은 후 A의 가속도를 표현하는 식을 세우시오.**")
+        st.markdown("<b>3. 실이 끊어진 직후, 물체 A에 작용하는 알짜힘과 A의 질량을 이용하여, 실을 끊은 후 A의 가속도를 표현하는 식을 세우시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**4. 2에서 구한 가속도와 3에서 구한 가속도 식을 조건에 맞게 대입하여 마찰력 f를 구하시오.**")
+        st.markdown("<b>4. 2에서 구한 가속도와 3에서 구한 가속도 식을 조건에 맞게 대입하여 마찰력 f를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 13 정답 및 4단계 체계적 유도 확인하기", expanded=False):
             st.markdown("""
-            * **1. 실 끊기 전 계의 알짜힘**:
+            • 1. 실 끊기 전 계의 알짜힘:
               * A의 빗면 중력 성분: $3mg\\sin 60^\\circ = \\frac{3\\sqrt{3}}{2}mg$
               * B의 빗면 중력 성분: $mg\\sin 30^\\circ = \\frac{1}{2}mg$
               * A의 마찰력: 운동 반대 방향 $f$
               $$F_{net,1} = \\mathbf{\\left(\\frac{3\\sqrt{3}-1}{2}\\right)mg - f}$$
-            * **2. 실 끊기 전 계의 가속도 $a_1$**:
+            • 2. 실 끊기 전 계의 가속도 $a_1$:
               * 전체 질량 $3m + m = 4m$
               $$a_1 = \\mathbf{\\frac{\\left(\\frac{3\\sqrt{3}-1}{2}\\right)mg - f}{4m}}$$
-            * **3. 실 끊은 후 A의 가속도 $a_2$**:
+            • 3. 실 끊은 후 A의 가속도 $a_2$:
               * 실이 끊어지면 A(질량 $3m$)는 자신의 중력 성분과 마찰력만 받음:
               $$F_{net,A} = \\frac{3\\sqrt{3}}{2}mg - f \\implies a_2 = \\mathbf{\\frac{\\frac{3\\sqrt{3}}{2}mg - f}{3m}}$$
-            * **4. 마찰력 $f$ 계산 ($a_2 = 2 a_1$)**:
+            • 4. 마찰력 $f$ 계산 ($a_2 = 2 a_1$):
               $$\\frac{\\frac{3\\sqrt{3}}{2}mg - f}{3m} = 2 \\times \\frac{\\left(\\frac{3\\sqrt{3}-1}{2}\\right)mg - f}{4m} = \\frac{\\left(\\frac{3\\sqrt{3}-1}{2}\\right)mg - f}{2m}$$
               * 양변에 $6m$을 곱하여 정리:
                 $$2\\left(\\frac{3\\sqrt{3}}{2}mg - f\\right) = 3\\left(\\frac{3\\sqrt{3}-1}{2}mg - f\\right)$$
@@ -1831,35 +1833,35 @@ if show_p3:
     st.markdown("""
     | 끊은 실 | A의 가속도 크기 |
     | :---: | :---: |
-    | **p만 끊음** | $a_1$ |
-    | **q만 끊음** | $a_2$ |
+    | p만 끊음 | $a_1$ |
+    | q만 끊음 | $a_2$ |
     """)
 
     if is_print_mode:
-        st.markdown("**1. 빗면이 B에 작용하는 힘(수직항력)의 크기를 쓰시오.**")
+        st.markdown("<b>1. 빗면이 B에 작용하는 힘(수직항력)의 크기를 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**2. a₁과 a₂의 비를 구하시오.**")
+        st.markdown("<b>2. a₁과 a₂의 비를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**3. p만 끊었을 때 q가 C를 당기는 힘의 크기를 구하시오.**")
+        st.markdown("<b>3. p만 끊었을 때 q가 C를 당기는 힘의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 14 정답 및 3체 역학 유도 확인하기", expanded=False):
             st.markdown("""
-            * **정지 상태 힘의 평형을 통한 빗면각 $\\theta$ 산출**:
+            * 정지 상태 힘의 평형을 통한 빗면각 $\\theta$ 산출:
               * C(질량 $2m$)가 당기는 장력: $T_q = 2mg$
               * B(질량 $3m$)가 빗면으로 당기는 장력: $T_p = 3mg\\sin\\theta$
               * A가 정지해 있으므로 $T_p = T_q \\implies 3mg\\sin\\theta = 2mg \\implies \\mathbf{\\sin\\theta = \\frac{2}{3}}$
               * 따라서 $\\cos\\theta = \\sqrt{1 - (2/3)^2} = \\frac{\\sqrt{5}}{3}$
-            * **1. 빗면이 B에 작용하는 힘(수직항력 $N$)**:
+            • 1. 빗면이 B에 작용하는 힘(수직항력 $N$):
               $$N = m_B g \\cos\\theta = 3m g \\times \\frac{\\sqrt{5}}{3} = \\mathbf{\\sqrt{5}mg}$$
-            * **2. $a_1$과 $a_2$의 비**:
-              * **p만 끊었을 때 ($a_1$)**: A($m$)와 C($2m$)가 가속:
+            • 2. $a_1$과 $a_2$의 비:
+              * p만 끊었을 때 ($a_1$): A($m$)와 C($2m$)가 가속:
                 $$a_1 = \\frac{m_C g}{m_A + m_C} = \\frac{2mg}{m + 2m} = \\mathbf{\\frac{2}{3}g}$$
-              * **q만 끊었을 때 ($a_2$)**: A($m$)와 B($3m$)가 가속:
+              * q만 끊었을 때 ($a_2$): A($m$)와 B($3m$)가 가속:
                 $$a_2 = \\frac{m_B g \\sin\\theta}{m_A + m_B} = \\frac{3mg(2/3)}{m + 3m} = \\frac{2mg}{4m} = \\mathbf{\\frac{1}{2}g}$$
               * 가속도 비:
                 $$\\mathbf{a_1 : a_2 = \\frac{2}{3} : \\frac{1}{2} = 4 : 3} \\quad \\left(\\frac{a_1}{a_2} = \\frac{4}{3}\\right)$$
-            * **3. p만 끊었을 때 q가 C를 당기는 힘 (장력 $T_q'$)**:
+            • 3. p만 끊었을 때 q가 C를 당기는 힘 (장력 $T_q'$):
               * A의 운동방정식 적용:
                 $$T_q' = m_A a_1 = m \\times \\frac{2}{3}g = \\mathbf{\\frac{2}{3}mg}$$
             """)

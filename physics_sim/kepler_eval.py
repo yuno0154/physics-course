@@ -153,9 +153,11 @@ if is_print_mode:
     view_category = st.radio("인쇄 범위 선택", ["📄 1페이지: 타원 궤도와 면적 속도 일정 법칙 (3문항)", "📄 2페이지: 뉴턴 중력과 인공위성 궤도 운동 (4문항)", "📖 전체 7문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    **2022 개정 교육과정 역학과 에너지** [12역학01-04] 성취기준에 따른 **케플러 법칙 과제 문항**입니다.
-    각 문항마다 **인터랙티브 시뮬레이션 및 다이어그램**이 탑재되어 있어, 타원 궤도의 면적 속도, 근일점/원일점 물리량 변화, 만유인력과 구심력의 역학적 관계를 직접 관찰하며 학습할 수 있습니다.
-    """)
+    <p style="font-size: 1.05rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
+        <b>2022 개정 교육과정 역학과 에너지</b> [12역학01-04] 성취기준에 따른 <b>케플러 법칙 과제 문항</b>입니다.<br>
+        각 문항마다 인터랙티브 시뮬레이션 및 다이어그램이 탑재되어 있어, 타원 궤도의 면적 속도, 근일점/원일점 물리량 변화, 만유인력과 구심력의 역학적 관계를 직접 관찰하며 학습할 수 있습니다.
+    </p>
+    """, unsafe_allow_html=True)
     view_category = st.radio(
         "문항 분류 선택", 
         ["📄 1페이지: 타원 궤도와 면적 속도 일정 법칙 (3문항)", "📄 2페이지: 뉴턴 중력과 인공위성 궤도 운동 (4문항)", "📖 전체 7문항 모두 보기"], 
@@ -805,44 +807,44 @@ if show_p1:
     render_sim_prob1()
 
     if is_print_mode:
-        st.markdown("**（1） 케플러 제2법칙(면적 속도 일정 법칙)에 따라 일정한 시간 동안 태양과 행성을 연결하는 선분이 만든 ㉠ ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )은 같다. 따라서 행성이 a에서 b까지 이동하는 데 걸린 시간이 t일 때, c에서 d까지 이동하는 데 걸린 시간은 ㉡ ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )이다.**")
+        st.markdown("<b>（1） 케플러 제2법칙(면적 속도 일정 법칙)에 따라 일정한 시간 동안 태양과 행성을 연결하는 선분이 만든 ㉠ ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )은 같다. 따라서 행성이 a에서 b까지 이동하는 데 걸린 시간이 t일 때, c에서 d까지 이동하는 데 걸린 시간은 ㉡ ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )이다.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 행성이 c에서 어떤 점까지 이동하는 동안 행성과 태양을 연결한 선분이 지나간 면적이 2S가 될 때 이동하는 데 걸린 시간은 a에서 b까지 이동하는 데 걸린 시간의 몇 배가 되는지 쓰시오.**")
+        st.markdown("<b>（2） 행성이 c에서 어떤 점까지 이동하는 동안 행성과 태양을 연결한 선분이 지나간 면적이 2S가 될 때 이동하는 데 걸린 시간은 a에서 b까지 이동하는 데 걸린 시간의 몇 배가 되는지 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 행성의 공전 주기가 T이고 타원 궤도의 긴반지름이 a라고 할 때, 공전 주기가 8T인 행성의 긴반지름은 얼마인지 구하시오.**")
+        st.markdown("<b>（3） 행성의 공전 주기가 T이고 타원 궤도의 긴반지름이 a라고 할 때, 공전 주기가 8T인 행성의 긴반지름은 얼마인지 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 행성의 속력이 가장 빠른 지점은?**")
+        st.markdown("<b>（4） 행성의 속력이 가장 빠른 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（5） 행성에 작용하는 중력의 크기가 가장 큰 지점은?**")
+        st.markdown("<b>（5） 행성에 작용하는 중력의 크기가 가장 큰 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（6） 가속도가 가장 큰 지점은?**")
+        st.markdown("<b>（6） 가속도가 가장 큰 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（7） 운동 에너지가 가장 큰 지점은?**")
+        st.markdown("<b>（7） 운동 에너지가 가장 큰 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（8） 중력에 의한 위치 에너지가 가장 큰 지점은?**")
+        st.markdown("<b>（8） 중력에 의한 위치 에너지가 가장 큰 지점은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 1 정답 및 고교 눈높이 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) ㉠과 ㉡**: **㉠ 면적, ㉡ $t$**
-              * 케플러 제2법칙(면적 속도 일정 법칙)에 따라 행성과 태양을 잇는 선분이 같은 시간 동안 쓸고 지나가는 **면적**은 항상 같습니다.
-              * 따라서 지나간 면적이 $S$로 서로 같으므로 걸린 시간도 **$t$**로 동일합니다.
-            * **(2) 면적이 2S일 때 걸린 시간의 배수**: **2배 ($2t$)**
+            • (1) ㉠과 ㉡: ㉠ 면적, ㉡ $t$
+              * 케플러 제2법칙(면적 속도 일정 법칙)에 따라 행성과 태양을 잇는 선분이 같은 시간 동안 쓸고 지나가는 면적은 항상 같습니다.
+              * 따라서 지나간 면적이 $S$로 서로 같으므로 걸린 시간도 $t$로 동일합니다.
+            • (2) 면적이 2S일 때 걸린 시간의 배수: 2배 ($2t$)
               * 면적 속도($\\Delta S / \\Delta t$)가 일정하므로 쓸고 간 면적과 걸린 시간은 정비례합니다 ($S \\propto t$).
               * 면적이 $S$에서 $2S$로 2배가 되었으므로 이동하는 데 걸린 시간도 2배($2t$)가 됩니다.
-            * **(3) 공전 주기가 8T인 행성의 긴반지름**: **$4a$**
+            • (3) 공전 주기가 8T인 행성의 긴반지름: $4a$
               * 케플러 제3법칙(조화의 법칙)에 따라 주기의 제곱은 타원 궤도 긴반지름의 세제곱에 비례합니다 ($T^2 \\propto a^3$).
               * 주기가 8배가 되면 주기의 제곱은 $8^2 = 64$배가 됩니다. 어떤 값의 세제곱이 64가 되려면 해당 값은 4가 되어야 합니다 ($4^3 = 64$).
-              * 따라서 긴반지름은 원래의 **$4a$**가 됩니다.
-            * **(4) 속력이 가장 빠른 지점**: **a점 (근일점)**
+              * 따라서 긴반지름은 원래의 $4a$가 됩니다.
+            • (4) 속력이 가장 빠른 지점: a점 (근일점)
               * 태양과 가장 가까운 근일점에서 행성의 공전 속력이 최대이고, 가장 먼 원일점에서 최소입니다.
-            * **(5) 중력의 크기가 가장 큰 지점**: **a점 (근일점)**
+            • (5) 중력의 크기가 가장 큰 지점: a점 (근일점)
               * 만유인력 $F = G\\frac{Mm}{r^2}$에 의해 태양과의 거리 $r$이 가장 짧은 근일점에서 중력이 가장 큽니다.
-            * **(6) 가속도가 가장 큰 지점**: **a점 (근일점)**
+            • (6) 가속도가 가장 큰 지점: a점 (근일점)
               * 뉴턴 운동 제2법칙에 의해 가속도 $a = \\frac{F}{m} = \\frac{GM}{r^2}$이므로 중력이 가장 큰 근일점에서 가속도 역시 최대입니다.
-            * **(7) 운동 에너지가 가장 큰 지점**: **a점 (근일점)**
+            • (7) 운동 에너지가 가장 큰 지점: a점 (근일점)
               * 운동 에너지 $E_k = \\frac{1}{2}mv^2$이므로 속력이 가장 빠른 근일점에서 운동 에너지가 최대입니다.
-            * **(8) 중력에 의한 위치 에너지가 가장 큰 지점**: **c점 (원일점)**
+            • (8) 중력에 의한 위치 에너지가 가장 큰 지점: c점 (원일점)
               * 역학적 에너지 보존 법칙($E = E_k + E_p = \\text{일정}$)에 의해 운동 에너지가 최소인 원일점에서 중력 퍼텐셜 에너지(위치 에너지)는 최대가 됩니다.
             """)
 
@@ -859,31 +861,31 @@ if show_p1:
     render_sim_prob2()
 
     if is_print_mode:
-        st.markdown("**（1） S₁과 S₂의 면적을 비교하시오.**")
+        st.markdown("<b>（1） S₁과 S₂의 면적을 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 행성의 공전 주기를 구하시오.**")
+        st.markdown("<b>（2） 행성의 공전 주기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 속력이 가장 빠른 지점과 느린 지점을 각각 쓰시오.**")
+        st.markdown("<b>（3） 속력이 가장 빠른 지점과 느린 지점을 각각 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 중력이 가장 큰 지점과 가장 작은 지점을 각각 쓰시오.**")
+        st.markdown("<b>（4） 중력이 가장 큰 지점과 가장 작은 지점을 각각 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 2 정답 및 물리적 원리 해설 확인하기", expanded=False):
             st.markdown("""
-            * **(1) S₁과 S₂의 면적 비교**: **$S_1 = S_2$ (서로 같다)**
+            • (1) S₁과 S₂의 면적 비교: $S_1 = S_2$ (서로 같다)
               * 케플러 제2법칙(면적 속도 일정 법칙)에 따라 행성이 같은 시간($T$) 동안 휩쓸고 지나간 면적은 항상 같으므로 $S_1 = S_2$입니다.
-            * **(2) 행성의 공전 주기**: **$4T$**
+            • (2) 행성의 공전 주기: $4T$
               * 근일점 p에서 원일점 r까지 선분을 연결하면 타원의 장축(대칭축)이 됩니다.
-              * 따라서 p에서 r까지 이동하는 구간은 **타원 궤도의 정확히 절반(반 타원)**에 해당합니다.
+              * 따라서 p에서 r까지 이동하는 구간은 타원 궤도의 정확히 절반(반 타원)에 해당합니다.
               * 근일점 p에서 원일점 r까지 가는 데 걸린 시간은 $T + T = 2T$입니다.
               * 타원은 장축을 기준으로 위아래가 대칭이므로, 나머지 반 바퀴(원일점 r에서 근일점 p로 돌아오는 구간)를 도는 데 걸리는 시간도 똑같이 $2T$입니다.
-              * 따라서 행성이 타원 궤도를 한 바퀴 온전히 도는 **공전 주기는 $2T + 2T = \\mathbf{4T}$**입니다.
-            * **(3) 속력이 가장 빠른 지점과 느린 지점**:
-              * **가장 빠른 지점**: **p점 (근일점)** (태양과 거리가 가장 가까움)
-              * **가장 느린 지점**: **r점 (원일점)** (태양과 거리가 가장 멂)
-            * **(4) 중력이 가장 큰 지점과 가장 작은 지점**:
-              * **가장 큰 지점**: **p점 (근일점)** ($F = G\\frac{Mm}{r^2}$에서 거리가 가장 작으므로 중력 최대)
-              * **가장 작은 지점**: **r점 (원일점)** (거리가 가장 크므로 중력 최소)
+              * 따라서 행성이 타원 궤도를 한 바퀴 온전히 도는 공전 주기는 $2T + 2T = \\mathbf{4T}$입니다.
+            • (3) 속력이 가장 빠른 지점과 느린 지점:
+              * 가장 빠른 지점: p점 (근일점) (태양과 거리가 가장 가까움)
+              * 가장 느린 지점: r점 (원일점) (태양과 거리가 가장 멂)
+            • (4) 중력이 가장 큰 지점과 가장 작은 지점:
+              * 가장 큰 지점: p점 (근일점) ($F = G\\frac{Mm}{r^2}$에서 거리가 가장 작으므로 중력 최대)
+              * 가장 작은 지점: r점 (원일점) (거리가 가장 크므로 중력 최소)
             """)
 
     st.divider()
@@ -899,23 +901,23 @@ if show_p1:
     render_sim_prob3()
 
     if is_print_mode:
-        st.markdown("**（1） c에서 d까지 운동하는 데 걸린 시간을 구하시오.**")
+        st.markdown("<b>（1） c에서 d까지 운동하는 데 걸린 시간을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） d에서 a까지 운동하는 데 걸린 시간을 구하시오.**")
+        st.markdown("<b>（2） d에서 a까지 운동하는 데 걸린 시간을 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 공전 주기를 구하시오.**")
+        st.markdown("<b>（3） 공전 주기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 3 정답 및 단계별 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **(1) c에서 d까지 운동하는 데 걸린 시간**: **$\\frac{5}{2}T$ (또는 $2.5T$)**
+            • (1) c에서 d까지 운동하는 데 걸린 시간: $\\frac{5}{2}T$ (또는 $2.5T$)
               * 케플러 제2법칙에 의해 쓸고 지나간 면적은 걸린 시간에 정비례합니다.
-              * 면적이 $S$일 때 걸린 시간이 $T$이므로, 쓸고 간 면적이 $\\frac{5}{2}S$인 c에서 d까지 걸린 시간은 **$\\frac{5}{2}T$**입니다.
-            * **(2) d에서 a까지 운동하는 데 걸린 시간**: **$T$**
+              * 면적이 $S$일 때 걸린 시간이 $T$이므로, 쓸고 간 면적이 $\\frac{5}{2}S$인 c에서 d까지 걸린 시간은 $\\frac{5}{2}T$입니다.
+            • (2) d에서 a까지 운동하는 데 걸린 시간: $T$
               * 타원은 장축 ac를 기준으로 상하 완전 대칭입니다.
               * 따라서 d에서 a까지 이동할 때 태양과 연결한 선분이 쓸고 지나간 면적은 a에서 b까지 쓸고 지나간 면적 $S$와 대칭으로 완전히 같습니다.
-              * 면적이 $S$로 같으므로 걸린 시간도 **$T$**입니다.
-            * **(3) 공전 주기**: **$7T$**
+              * 면적이 $S$로 같으므로 걸린 시간도 $T$입니다.
+            • (3) 공전 주기: $7T$
               * 장축 대칭성에 의해 각 4구간의 면적과 이동 시간은 다음과 같습니다:
                 * $a \\to b$: 면적 $S$, 걸린 시간 $T$
                 * $b \\to c$: 면적 $\\frac{5}{2}S$ ($c \\to d$와 대칭), 걸린 시간 $\\frac{5}{2}T$
@@ -948,19 +950,19 @@ if show_p2:
     render_sim_prob4()
 
     if is_print_mode:
-        st.markdown("**（1） ㉠에 들어갈 식:**")
+        st.markdown("<b>（1） ㉠에 들어갈 식:</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） ㉡에 들어갈 식:**")
+        st.markdown("<b>（2） ㉡에 들어갈 식:</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 4 정답 및 수식 유도 과정 확인하기", expanded=False):
             st.markdown("""
-            * **㉠에 들어갈 식**: **$\\sqrt{\\frac{GM}{r}}$**
+            * ㉠에 들어갈 식: $\\sqrt{\\frac{GM}{r}}$
               * 행성에 작용하는 만유인력이 곧 원운동을 유지시키는 구심력 역할을 합니다:
                 $$G\\frac{Mm}{r^2} = \\frac{mv^2}{r}$$
               * 양변에서 행성의 질량 $m$을 소거하고 양변에 $r$을 곱하면:
                 $$v^2 = \\frac{GM}{r} \\implies \\mathbf{v = \\sqrt{\\frac{GM}{r}}}$$
-            * **㉡에 들어갈 식**: **$\\frac{4\\pi^2}{GM}$**
+            * ㉡에 들어갈 식: $\\frac{4\\pi^2}{GM}$
               * 등속 원운동의 주기 $T$와 궤도 반지름 $r$, 속력 $v$의 관계는 $v = \\frac{2\\pi r}{T} \\implies T = \\frac{2\\pi r}{v}$입니다.
               * 양변을 제곱하면:
                 $$T^2 = \\frac{4\\pi^2 r^2}{v^2}$$
@@ -982,37 +984,37 @@ if show_p2:
     render_sim_prob5()
 
     if is_print_mode:
-        st.markdown("**• A 위성에 작용하는 구심력 :**")
+        st.markdown("<b>• A 위성에 작용하는 구심력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• A 위성에 작용하는 중력 :**")
+        st.markdown("<b>• A 위성에 작용하는 중력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• A 위성의 속력 :**")
+        st.markdown("<b>• A 위성의 속력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• B 위성에 작용하는 구심력 :**")
+        st.markdown("<b>• B 위성에 작용하는 구심력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• B 위성에 작용하는 중력 :**")
+        st.markdown("<b>• B 위성에 작용하는 중력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• B 위성의 속력 :**")
+        st.markdown("<b>• B 위성의 속력 :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**• 최종 속력의 비 (vA : vB) :**")
+        st.markdown("<b>• 최종 속력의 비 (vA : vB) :</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 5 정답 및 단계별 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **지구 질량을 $M$이라 할 때 단계별 유도**:
-              * **A 위성에 작용하는 구심력**:
+            * 지구 질량을 $M$이라 할 때 단계별 유도:
+              * A 위성에 작용하는 구심력:
                 $$F_{c,A} = \\mathbf{\\frac{m v_A^2}{r}}$$
-              * **A 위성에 작용하는 중력**:
+              * A 위성에 작용하는 중력:
                 $$F_{g,A} = \\mathbf{G\\frac{Mm}{r^2}}$$
-              * **A 위성의 속력**:
+              * A 위성의 속력:
                 $$\\frac{m v_A^2}{r} = G\\frac{Mm}{r^2} \\implies v_A^2 = \\frac{GM}{r} \\implies \\mathbf{v_A = \\sqrt{\\frac{GM}{r}}}$$
-              * **B 위성에 작용하는 구심력**:
+              * B 위성에 작용하는 구심력:
                 $$F_{c,B} = \\frac{(2m) v_B^2}{4r} = \\mathbf{\\frac{m v_B^2}{2r}}$$
-              * **B 위성에 작용하는 중력**:
+              * B 위성에 작용하는 중력:
                 $$F_{g,B} = G\\frac{M(2m)}{(4r)^2} = G\\frac{2Mm}{16r^2} = \\mathbf{G\\frac{Mm}{8r^2}}$$
-              * **B 위성의 속력**:
+              * B 위성의 속력:
                 $$\\frac{2m v_B^2}{4r} = G\\frac{2Mm}{16r^2} \\implies v_B^2 = \\frac{GM}{4r} \\implies \\mathbf{v_B = \\sqrt{\\frac{GM}{4r}} = \\frac{1}{2}\\sqrt{\\frac{GM}{r}}}$$
-            * **최종 속력의 비 ($v_A : v_B$)**:
+            * 최종 속력의 비 ($v_A : v_B$):
               $$v_A : v_B = \\sqrt{\\frac{GM}{r}} : \\frac{1}{2}\\sqrt{\\frac{GM}{r}} = 1 : \\frac{1}{2} = \\mathbf{2 : 1}$$
             * *(핵심 개념: 인공위성의 궤도 속력 $v = \\sqrt{GM/r}$은 위성 자신의 질량과는 아무런 관련이 없으며, 오직 궤도 반지름의 제곱근에 반비례합니다!)*
             """)
@@ -1030,27 +1032,27 @@ if show_p2:
     render_sim_prob6()
 
     if is_print_mode:
-        st.markdown("**（1） A와 B의 구심력의 크기를 비교하시오.**")
+        st.markdown("<b>（1） A와 B의 구심력의 크기를 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） A의 속력과 B의 속력을 비교하시오.**")
+        st.markdown("<b>（2） A의 속력과 B의 속력을 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） A와 B의 공전 주기를 비교하시오.**")
+        st.markdown("<b>（3） A와 B의 공전 주기를 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 6 정답 및 수식 비교 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **(1) A와 B의 구심력의 크기 비교**: **$F_A : F_B = 12 : 1$ (A가 B의 12배)**
+            • (1) A와 B의 구심력의 크기 비교: $F_A : F_B = 12 : 1$ (A가 B의 12배)
               * 인공위성의 구심력은 지구가 당기는 중력과 같습니다 ($F_c = F_g = G\\frac{M m_{위성}}{R^2}$):
                 $$F_A = G\\frac{M(3m)}{r^2} = 3\\frac{GMm}{r^2}$$
                 $$F_B = G\\frac{Mm}{(2r)^2} = \\frac{1}{4}\\frac{GMm}{r^2}$$
               * 두 힘의 비:
                 $$\\frac{F_A}{F_B} = \\frac{3}{\\frac{1}{4}} = \\mathbf{12} \\quad \\implies \\mathbf{F_A = 12 F_B}$$
-            * **(2) A와 B의 속력 비교**: **$v_A : v_B = \\sqrt{2} : 1$ (A가 B의 $\\sqrt{2}$배 또는 약 1.41배)**
+            • (2) A와 B의 속력 비교: $v_A : v_B = \\sqrt{2} : 1$ (A가 B의 $\\sqrt{2}$배 또는 약 1.41배)
               * 인공위성의 속력 $v = \\sqrt{\\frac{GM}{R}}$은 위성 질량과 무관하며 궤도 반지름 $R$에만 의존합니다:
                 $$v_A = \\sqrt{\\frac{GM}{r}}, \\quad v_B = \\sqrt{\\frac{GM}{2r}} = \\frac{1}{\\sqrt{2}}\\sqrt{\\frac{GM}{r}}$$
               * 두 속력의 비:
                 $$\\frac{v_A}{v_B} = \\frac{1}{\\frac{1}{\\sqrt{2}}} = \\mathbf{\\sqrt{2}} \\quad \\implies \\mathbf{v_A = \\sqrt{2} v_B}$$
-            * **(3) A와 B의 공전 주기 비교**: **$T_A : T_B = 1 : 2\\sqrt{2}$ (B가 A의 $2\\sqrt{2}$배 또는 약 2.83배)**
+            • (3) A와 B의 공전 주기 비교: $T_A : T_B = 1 : 2\\sqrt{2}$ (B가 A의 $2\\sqrt{2}$배 또는 약 2.83배)
               * 케플러 제3법칙에 의해 $T^2 \\propto R^3 \\implies T \\propto R^{3/2}$입니다 (위성 질량과 무관):
                 $$\\frac{T_B}{T_A} = \\left(\\frac{2r}{r}\\right)^{3/2} = 2^{3/2} = \\sqrt{2^3} = \\mathbf{2\\sqrt{2} \\approx 2.83} \\quad \\implies \\mathbf{T_B = 2\\sqrt{2} T_A}$$
             """)
@@ -1071,27 +1073,27 @@ if show_p2:
     render_sim_prob7()
 
     if is_print_mode:
-        st.markdown("**（1） FA : FB 는?**")
+        st.markdown("<b>（1） FA : FB 는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） TA : TB 는?**")
+        st.markdown("<b>（2） TA : TB 는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） vA : vB 는?**")
+        st.markdown("<b>（3） vA : vB 는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 7 정답 및 상세 계산 과정 확인하기", expanded=False):
             st.markdown("""
-            * **[핵심 출발점] 각 인공위성의 '중심으로부터의 궤도 반지름' 계산**:
-              * 만유인력 공식의 거리 $r$은 행성 표면이 아니라 **행성의 중심으로부터의 거리**입니다:
+            • [핵심 출발점] 각 인공위성의 '중심으로부터의 궤도 반지름' 계산:
+              * 만유인력 공식의 거리 $r$은 행성 표면이 아니라 행성의 중심으로부터의 거리입니다:
                 * 위성 A의 궤도 반지름: $r_A = (\\text{행성 P 반지름 } 2R) + (\\text{고도 } 3R) = \\mathbf{5R}$ (행성 질량 $M_P = M$)
                 * 위성 B의 궤도 반지름: $r_B = (\\text{행성 Q 반지름 } R) + (\\text{고도 } 5R) = \\mathbf{6R}$ (행성 질량 $M_Q = 2M$)
               * 위성 A와 B의 질량은 $m$으로 동일합니다.
-            * **(1) 중력의 크기 비 ($F_A : F_B$)**: **$18 : 25$**
+            • (1) 중력의 크기 비 ($F_A : F_B$): $18 : 25$
               * 중력 공식 $F = G\\frac{M_{\\text{행성}} m}{r^2}$:
                 $$F_A = G\\frac{M \\cdot m}{(5R)^2} = \\frac{1}{25}\\frac{GMm}{R^2}$$
                 $$F_B = G\\frac{2M \\cdot m}{(6R)^2} = \\frac{2}{36}\\frac{GMm}{R^2} = \\frac{1}{18}\\frac{GMm}{R^2}$$
               * 두 힘의 비:
                 $$F_A : F_B = \\frac{1}{25} : \\frac{1}{18} = \\mathbf{18 : 25}$$
-            * **(2) 공전 주기의 비 ($T_A : T_B$)**: **$5\\sqrt{5} : 6\\sqrt{3}$ (또는 $\\sqrt{125} : \\sqrt{108}$)**
+            • (2) 공전 주기의 비 ($T_A : T_B$): $5\\sqrt{5} : 6\\sqrt{3}$ (또는 $\\sqrt{125} : \\sqrt{108}$)
               * 조화의 법칙 유도식 $T = 2\\pi \\sqrt{\\frac{r^3}{GM_{\\text{행성}}}}$ 또는 $T^2 \\propto \\frac{r^3}{M_{\\text{행성}}}$:
                 $$T_A^2 \\propto \\frac{(5R)^3}{M} = \\frac{125 R^3}{M}$$
                 $$T_B^2 \\propto \\frac{(6R)^3}{2M} = \\frac{216 R^3}{2M} = \\frac{108 R^3}{M}$$
@@ -1099,7 +1101,7 @@ if show_p2:
                 $$T_A^2 : T_B^2 = 125 : 108$$
               * 양변에 제곱근을 취하면:
                 $$T_A : T_B = \\sqrt{125} : \\sqrt{108} = \\mathbf{5\\sqrt{5} : 6\\sqrt{3}} \\quad (\\approx 11.18 : 10.39)$$
-            * **(3) 속력의 비 ($v_A : v_B$)**: **$\\sqrt{3} : \\sqrt{5}$ (또는 $3 : \\sqrt{15}$)**
+            • (3) 속력의 비 ($v_A : v_B$): $\\sqrt{3} : \\sqrt{5}$ (또는 $3 : \\sqrt{15}$)
               * 속력 공식 $v = \\sqrt{\\frac{GM_{\\text{행성}}}{r}}$:
                 $$v_A = \\sqrt{\\frac{GM}{5R}} = \\frac{1}{\\sqrt{5}}\\sqrt{\\frac{GM}{R}}$$
                 $$v_B = \\sqrt{\\frac{G(2M)}{6R}} = \\sqrt{\\frac{GM}{3R}} = \\frac{1}{\\sqrt{3}}\\sqrt{\\frac{GM}{R}}$$

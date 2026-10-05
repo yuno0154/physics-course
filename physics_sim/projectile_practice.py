@@ -151,15 +151,17 @@ if is_print_mode:
         </tr>
     </table>
     """, unsafe_allow_html=True)
-    view_category = st.radio("인쇄 범위 선택", ["🎯 과제 실전 핵심 5문항", "🌱 기초 개념 4문항", "📖 전체 9문항 모두 인쇄"], horizontal=True)
+    view_category = st.radio("인쇄 범위 선택", ["🎯 과제 실전 핵심 5문항", "🌱 보충 기초 개념 (2문항)", "📖 전체 9문항 모두 인쇄"], horizontal=True)
 else:
     st.markdown("""
-    **2022 개정 교육과정 역학과 에너지** [12역학01-02] 성취기준에 따른 **포물선운동 과제 문항**입니다.
-    문제에 들어가는 정적 이미지 대신 **살아 움직이는 인터랙티브 시뮬레이션**을 통해 실시간 궤적, 속도 벡터 분해, 에너지 막대그래프의 변화를 직접 조작하며 학습할 수 있습니다.
-    """)
+    <p style="font-size: 1.05rem; color: #334155; line-height: 1.6; margin-bottom: 1rem;">
+        <b>2022 개정 교육과정 역학과 에너지</b> [12역학01-02] 성취기준에 따른 <b>포물선운동 과제 문항</b>입니다.<br>
+        문제에 들어가는 정적 이미지 대신 살아 움직이는 인터랙티브 시뮬레이션을 통해 실시간 궤적, 속도 벡터 분해, 에너지 막대그래프의 변화를 직접 조작하며 학습할 수 있습니다.
+    </p>
+    """, unsafe_allow_html=True)
     view_category = st.radio(
         "문항 분류 선택", 
-        ["🎯 과제 실전 핵심 5문항", "🌱 기초 개념 4문항", "📖 전체 9문항 모두 보기"], 
+        ["🎯 과제 실전 핵심 5문항", "🌱 보충 기초 개념 (2문항)", "📖 전체 9문항 모두 보기"], 
         horizontal=True
     )
 
@@ -716,7 +718,7 @@ def render_sim_prob5():
 # =========================================================================
 
 show_real = (view_category in ["🎯 과제 실전 핵심 5문항", "📖 전체 9문항 모두 보기", "📖 전체 9문항 모두 인쇄"])
-show_basic = (view_category in ["🌱 기초 개념 4문항", "📖 전체 9문항 모두 보기", "📖 전체 9문항 모두 인쇄"])
+show_basic = (view_category in ["🌱 보충 기초 개념 (2문항)", "📖 전체 9문항 모두 보기", "📖 전체 9문항 모두 인쇄"])
 
 if show_real:
     st.markdown("### 🎯 과제 실전 핵심 심화 문제 (5문항)")
@@ -732,29 +734,29 @@ if show_real:
     render_sim_prob1()
 
     if is_print_mode:
-        st.markdown("**（1） 1초 후의 속도의 크기를 구하고, 풀이 과정과 함께 답을 쓰시오.**")
+        st.markdown("<b>（1） 1초 후의 속도의 크기를 구하고, 풀이 과정과 함께 답을 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 최고점의 높이를 구하고, 풀이 과정과 답을 쓰시오.**")
+        st.markdown("<b>（2） 최고점의 높이를 구하고, 풀이 과정과 답을 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 수평 도달 거리를 구하고, 풀이 과정과 답을 쓰시오.**")
+        st.markdown("<b>（3） 수평 도달 거리를 구하고, 풀이 과정과 답을 쓰시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 1 정답 및 단계별 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **초기 속도 분해**:
+            * 초기 속도 분해:
               * 수평 방향 속도: $v_{0x} = 40\\cos 30^\\circ = 40 \\times \\frac{\\sqrt{3}}{2} = 20\\sqrt{3}\\,\\text{m/s}$
               * 연직 방향 속도: $v_{0y} = 40\\sin 30^\\circ = 40 \\times \\frac{1}{2} = 20\\,\\text{m/s}$
-            * **(1) 1초 후의 속도의 크기**:
+            • (1) 1초 후의 속도의 크기:
               * $t=1\\,\\text{s}$일 때:
                 * $v_x = 20\\sqrt{3}\\,\\text{m/s}$ (수평 등속 운동)
                 * $v_y = v_{0y} - gt = 20 - 10(1) = 10\\,\\text{m/s}$ (연직 등가속도 운동)
               * 속도의 크기 $v$:
                 $$v = \\sqrt{v_x^2 + v_y^2} = \\sqrt{(20\\sqrt{3})^2 + 10^2} = \\sqrt{1200 + 100} = \\sqrt{1300} = \\mathbf{10\\sqrt{13}\\,\\text{m/s}} \\approx 36.06\\,\\text{m/s}$$
-            * **(2) 최고점의 높이 $H$**:
+            • (2) 최고점의 높이 $H$:
               * 최고점 도달 시간: $v_y = 0 \\implies t_{top} = \\frac{v_{0y}}{g} = \\frac{20}{10} = 2\\,\\text{s}$
               * 최고점 높이:
                 $$H = v_{0y}t_{top} - \\frac{1}{2}gt_{top}^2 = 20(2) - \\frac{1}{2}(10)(2)^2 = 40 - 20 = \\mathbf{20\\,\\text{m}}$$
-            * **(3) 수평 도달 거리 $R$**:
+            • (3) 수평 도달 거리 $R$:
               * 총 비행 시간 $T = 2 t_{top} = 4\\,\\text{s}$
               * 수평 도달 거리:
                 $$R = v_x \\times T = 20\\sqrt{3} \\times 4 = \\mathbf{80\\sqrt{3}\\,\\text{m}} \\approx 138.56\\,\\text{m}$$
@@ -775,41 +777,41 @@ if show_real:
     st.markdown("""
     | 지점 | 높이(m) | 수평 방향 속력(m/s) | 연직 방향 속력(m/s) |
     | :---: | :---: | :---: | :---: |
-    | **A (출발점)** | 0 | 6 | 8 |
-    | **B (최고점)** | 3.2 | 6 | 0 |
-    | **C (하강점)** | 1.6 | 6 | - |
+    | A (출발점) | 0 | 6 | 8 |
+    | B (최고점) | 3.2 | 6 | 0 |
+    | C (하강점) | 1.6 | 6 | - |
     """)
 
     if is_print_mode:
-        st.markdown("**（1） A와 B에서 공의 운동에너지, 중력에 의한 퍼텐셜에너지, 역학적 에너지를 각각 구하시오.**")
+        st.markdown("<b>（1） A와 B에서 공의 운동에너지, 중력에 의한 퍼텐셜에너지, 역학적 에너지를 각각 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） (1)의 계산 결과를 바탕으로 에너지 막대그래프(B, C 지점)를 완성하시오.**")
+        st.markdown("<b>（2） (1)의 계산 결과를 바탕으로 에너지 막대그래프(B, C 지점)를 완성하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） A에서 B까지 운동하는 동안 운동에너지와 퍼텐셜에너지가 어떻게 변하는지 서술하고, 역학적 에너지가 일정하게 유지되는 이유를 에너지 전환 관점에서 설명하시오.**")
+        st.markdown("<b>（3） A에서 B까지 운동하는 동안 운동에너지와 퍼텐셜에너지가 어떻게 변하는지 서술하고, 역학적 에너지가 일정하게 유지되는 이유를 에너지 전환 관점에서 설명하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） C에서의 역학적 에너지를 계산 없이 예측하고, 그 근거를 서술하시오.**")
+        st.markdown("<b>（4） C에서의 역학적 에너지를 계산 없이 예측하고, 그 근거를 서술하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 2 정답 및 에너지 분석 확인하기", expanded=False):
             st.markdown("""
-            * **(1) A와 B에서의 에너지**:
-              * **A 지점 (지면)**:
+            • (1) A와 B에서의 에너지:
+              * A 지점 (지면):
                 * $E_k = \\frac{1}{2}m v_A^2 = \\frac{1}{2}(1.0)(6^2 + 8^2) = \\frac{1}{2}(100) = \\mathbf{50\\,\\text{J}}$
                 * $E_p = mgh = 1.0 \\times 10 \\times 0 = \\mathbf{0\\,\\text{J}}$
                 * 역학적 에너지 $E = E_k + E_p = \\mathbf{50\\,\\text{J}}$
-              * **B 지점 (최고점)**:
+              * B 지점 (최고점):
                 * $E_k = \\frac{1}{2}m v_{Bx}^2 = \\frac{1}{2}(1.0)(6^2) = \\mathbf{18\\,\\text{J}}$
                 * $E_p = mgh = 1.0 \\times 10 \\times 3.2 = \\mathbf{32\\,\\text{J}}$
                 * 역학적 에너지 $E = 18 + 32 = \\mathbf{50\\,\\text{J}}$
-            * **(2) 에너지 막대그래프**:
-              * **B 지점**: 운동에너지 18J, 위치에너지 32J, 역학적 에너지 50J
-              * **C 지점**: 위치에너지 $E_p = 1.0 \\times 10 \\times 1.6 = 16\\,\\text{J}$, 운동에너지 $E_k = 50 - 16 = 34\\,\\text{J}$, 역학적 에너지 50J
-            * **(3) 에너지 전환 관점 서술**:
-              * A에서 B로 올라가는 동안 공의 속력이 감소하여 **운동에너지는 50J에서 18J로 32J 감소**하고, 높이가 높아져 **퍼텐셜에너지는 0J에서 32J로 32J 증가**합니다.
-              * 공기 저항이 없을 때 운동에너지의 감소량이 그대로 퍼텐셜에너지 증가량으로 100% 전환되므로, 둘의 합인 **역학적 에너지는 50J로 보존**됩니다.
-            * **(4) C에서의 역학적 에너지 예측**:
-              * **정답**: **50 J**
-              * **근거**: 외력(공기 저항 등)이 작용하지 않고 중력(보존력)만 작용하는 계이므로, 궤적 상의 모든 지점(A, B, C 등)에서 역학적 에너지는 항상 일정하게 보존되기 때문입니다.
+            • (2) 에너지 막대그래프:
+              * B 지점: 운동에너지 18J, 위치에너지 32J, 역학적 에너지 50J
+              * C 지점: 위치에너지 $E_p = 1.0 \\times 10 \\times 1.6 = 16\\,\\text{J}$, 운동에너지 $E_k = 50 - 16 = 34\\,\\text{J}$, 역학적 에너지 50J
+            • (3) 에너지 전환 관점 서술:
+              * A에서 B로 올라가는 동안 공의 속력이 감소하여 운동에너지는 50J에서 18J로 32J 감소하고, 높이가 높아져 퍼텐셜에너지는 0J에서 32J로 32J 증가합니다.
+              * 공기 저항이 없을 때 운동에너지의 감소량이 그대로 퍼텐셜에너지 증가량으로 100% 전환되므로, 둘의 합인 역학적 에너지는 50J로 보존됩니다.
+            • (4) C에서의 역학적 에너지 예측:
+              * 정답: 50 J
+              * 근거: 외력(공기 저항 등)이 작용하지 않고 중력(보존력)만 작용하는 계이므로, 궤적 상의 모든 지점(A, B, C 등)에서 역학적 에너지는 항상 일정하게 보존되기 때문입니다.
             """)
 
     st.divider()
@@ -825,26 +827,26 @@ if show_real:
     render_sim_prob3()
 
     if is_print_mode:
-        st.markdown("**（1） 물체를 던진 순간부터 최고점에 도달할 때까지 걸린 시간을 비교하시오.**")
+        st.markdown("<b>（1） 물체를 던진 순간부터 최고점에 도달할 때까지 걸린 시간을 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 최고점에서 중력에 의한 위치 에너지를 비교하시오.**")
+        st.markdown("<b>（2） 최고점에서 중력에 의한 위치 에너지를 비교하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） (나)에서 최고점에서 물체의 중력에 의한 위치 에너지는 운동에너지의 몇 배인지 구하시오.**")
+        st.markdown("<b>（3） (나)에서 최고점에서 물체의 중력에 의한 위치 에너지는 운동에너지의 몇 배인지 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 3 정답 및 비교 유도 확인하기", expanded=False):
             st.markdown("""
-            * **(1) 최고점 도달 시간 비교 ($t_1 : t_2$)**:
+            • (1) 최고점 도달 시간 비교 ($t_1 : t_2$):
               * $t_{top} = \\frac{v_{0y}}{g}$
               * (가): $v_{1y} = v_0 \\sin 30^\\circ = 0.5 v_0 \\implies t_1 = \\frac{0.5 v_0}{g}$
               * (나): $v_{2y} = 2v_0 \\sin 60^\\circ = 2v_0 \\times \\frac{\\sqrt{3}}{2} = \\sqrt{3}v_0 \\implies t_2 = \\frac{\\sqrt{3}v_0}{g}$
-              * 따라서 **$t_1 : t_2 = 1 : 2\\sqrt{3}$** (즉, (나)가 (가)의 **$2\\sqrt{3}$배** 걸림).
-            * **(2) 최고점에서의 위치 에너지 비교 ($E_{p1} : E_{p2}$)**:
+              * 따라서 $t_1 : t_2 = 1 : 2\\sqrt{3}$ (즉, (나)가 (가)의 $2\\sqrt{3}$배 걸림).
+            • (2) 최고점에서의 위치 에너지 비교 ($E_{p1} : E_{p2}$):
               * 최고점 높이 $H = \\frac{v_y^2}{2g}$이므로 위치 에너지 $E_p = mgH = \\frac{1}{2}m v_y^2$
               * $E_{p1} \\propto (v_{1y})^2 = (0.5 v_0)^2 = 0.25 v_0^2$
               * $E_{p2} \\propto (v_{2y})^2 = (\\sqrt{3} v_0)^2 = 3 v_0^2$
-              * 비례식: $E_{p1} : E_{p2} = 0.25 : 3 = \\mathbf{1 : 12}$ (즉, (나)가 (가)의 **12배**).
-            * **(3) (나)의 최고점에서 위치에너지는 운동에너지의 몇 배인가**:
+              * 비례식: $E_{p1} : E_{p2} = 0.25 : 3 = \\mathbf{1 : 12}$ (즉, (나)가 (가)의 12배).
+            • (3) (나)의 최고점에서 위치에너지는 운동에너지의 몇 배인가:
               * (나)의 초기 역학적 에너지: $E_0 = \\frac{1}{2}m (2v_0)^2 = 2mv_0^2$
               * 최고점에서의 속력: 수평 성분만 남으므로 $v_x = 2v_0 \\cos 60^\\circ = v_0$
               * 최고점 운동에너지: $E_k = \\frac{1}{2}m v_x^2 = \\frac{1}{2}mv_0^2$
@@ -865,20 +867,20 @@ if show_real:
     render_sim_prob4()
 
     if is_print_mode:
-        st.markdown("**p에서 물체의 운동 에너지를 v와 m으로 나타내시오.**")
+        st.markdown("<b>p에서 물체의 운동 에너지를 v와 m으로 나타내시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 4 정답 및 역학적 에너지 유도 확인하기", expanded=False):
             st.markdown("""
-            * **던져진 순간의 역학적 에너지 ($E_0$)**:
+            * 던져진 순간의 역학적 에너지 ($E_0$):
               * $E_0 = E_{k0} = \\frac{1}{2}mv^2$ (지면 위치에너지 0)
-            * **최고점에서의 운동 에너지 및 위치 에너지**:
+            * 최고점에서의 운동 에너지 및 위치 에너지:
               * 최고점 수평 속도: $v_x = v\\cos 60^\\circ = \\frac{1}{2}v$
               * 최고점 운동 에너지: $E_{k,top} = \\frac{1}{2}m\\left(\\frac{1}{2}v\\right)^2 = \\frac{1}{8}mv^2 = \\frac{1}{4}E_0$
-            * **조건 해석**:
+            * 조건 해석:
               * "던져진 순간 운동 에너지($E_0$)는 최고점에서 p까지 위치 에너지 감소량($\\Delta E_p$)의 2배이다."
               * $E_0 = 2\\Delta E_p \\implies \\Delta E_p = \\frac{1}{2}E_0$
-            * **p점에서의 운동 에너지 ($E_{k,p}$)**:
+            * p점에서의 운동 에너지 ($E_{k,p}$):
               * 최고점에서 p까지 내려오는 동안 위치 에너지 감소량 $\\Delta E_p$가 그대로 운동 에너지 증가량으로 전환됩니다.
               $$E_{k,p} = E_{k,top} + \\Delta E_p = \\frac{1}{4}E_0 + \\frac{1}{2}E_0 = \\frac{3}{4}E_0$$
               * $E_0 = \\frac{1}{2}mv^2$ 대입:
@@ -898,43 +900,43 @@ if show_real:
     render_sim_prob5()
 
     if is_print_mode:
-        st.markdown("**（1） 속력 10 m/s로 비스듬히 던져진 물체가 최고점에 도달할 때까지 걸린 시간은?**")
+        st.markdown("<b>（1） 속력 10 m/s로 비스듬히 던져진 물체가 최고점에 도달할 때까지 걸린 시간은?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（2） 최고점의 높이는?**")
+        st.markdown("<b>（2） 최고점의 높이는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（3） 수평 도달 거리는?**")
+        st.markdown("<b>（3） 수평 도달 거리는?</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（4） 물체를 던진 순간의 역학적 에너지는? (m을 포함하여 표현)**")
+        st.markdown("<b>（4） 물체를 던진 순간의 역학적 에너지는? (m을 포함하여 표현)</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（5） 최고점에서 운동에너지는? (m을 포함하여 표현)**")
+        st.markdown("<b>（5） 최고점에서 운동에너지는? (m을 포함하여 표현)</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（6） 1/2 H 지점에서의 운동에너지와 위치에너지를 각각 구하시오.**")
+        st.markdown("<b>（6） 1/2 H 지점에서의 운동에너지와 위치에너지를 각각 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
-        st.markdown("**（7） 1/2 H 지점에서의 속도의 크기를 구하시오.**")
+        st.markdown("<b>（7） 1/2 H 지점에서의 속도의 크기를 구하시오.</b>", unsafe_allow_html=True)
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
     else:
         with st.expander("💡 문제 5 정답 및 종합 풀이 확인하기", expanded=False):
             st.markdown("""
-            * **초기 속도 성분**:
+            * 초기 속도 성분:
               * $v_{0x} = 10\\cos 60^\\circ = 5\\,\\text{m/s}$
               * $v_{0y} = 10\\sin 60^\\circ = 5\\sqrt{3}\\,\\text{m/s}$
-            * **(1) 최고점 도달 시간**:
+            • (1) 최고점 도달 시간:
               $$t_{top} = \\frac{v_{0y}}{g} = \\frac{5\\sqrt{3}}{10} = \\mathbf{\\frac{\\sqrt{3}}{2}\\,\\text{s}} \\approx 0.866\\,\\text{s}$$
-            * **(2) 최고점의 높이 $H$**:
+            • (2) 최고점의 높이 $H$:
               $$H = \\frac{v_{0y}^2}{2g} = \\frac{(5\\sqrt{3})^2}{20} = \\frac{75}{20} = \\mathbf{3.75\\,\\text{m}}$$
-            * **(3) 수평 도달 거리 $R$**:
+            • (3) 수평 도달 거리 $R$:
               $$R = v_x \\times (2t_{top}) = 5 \\times \\sqrt{3} = \\mathbf{5\\sqrt{3}\\,\\text{m}} \\approx 8.66\\,\\text{m}$$
-            * **(4) 던진 순간의 역학적 에너지 $E$**:
+            • (4) 던진 순간의 역학적 에너지 $E$:
               $$E = \\frac{1}{2}m v_0^2 = \\frac{1}{2}m (10)^2 = \\mathbf{50m\\,\\text{J}}$$
-            * **(5) 최고점에서의 운동에너지 $E_{k,top}$**:
+            • (5) 최고점에서의 운동에너지 $E_{k,top}$:
               $$E_{k,top} = \\frac{1}{2}m v_x^2 = \\frac{1}{2}m (5)^2 = \\mathbf{12.5m\\,\\text{J}} \\quad \\left(=\\frac{1}{4}E\\right)$$
-            * **(6) 1/2 H 지점에서의 운동 및 위치에너지**:
+            • (6) 1/2 H 지점에서의 운동 및 위치에너지:
               * 최고점 위치에너지: $E_{p,top} = E - E_{k,top} = 50m - 12.5m = 37.5m\\,\\text{J}$
               * $1/2 H$ 지점의 위치에너지:
                 $$E_p = \\frac{1}{2} E_{p,top} = \\mathbf{18.75m\\,\\text{J}}$$
               * $1/2 H$ 지점의 운동에너지:
                 $$E_k = E - E_p = 50m - 18.75m = \\mathbf{31.25m\\,\\text{J}}$$
-            * **(7) 1/2 H 지점에서의 속도의 크기 $v$**:
+            • (7) 1/2 H 지점에서의 속도의 크기 $v$:
               $$\\frac{1}{2}mv^2 = 31.25m \\implies v^2 = 62.5 \\implies v = \\sqrt{62.5} = \\mathbf{\\frac{5\\sqrt{10}}{2}\\,\\text{m/s}} \\approx 7.91\\,\\text{m/s}$$
             """)
 
@@ -980,11 +982,11 @@ if show_basic:
     if not is_print_mode:
         with st.expander("💡 기초 1 정답 및 개념 해설 확인하기"):
             st.markdown("""
-            * **정답**:
-              1. **지면 도달 시간은 두 물체가 서로 같다** ($t = \\sqrt{2h/g}$).
-              2. **지면에 도달하는 순간의 연직 방향 속도는 서로 같다** ($v_y = gt = \\sqrt{2gh}$).
-              3. **지면에 도달하는 순간의 속력은 B가 A보다 크다** ($v_B = \\sqrt{v_0^2 + v_y^2} > v_A = v_y$).
-              4. **운동하는 동안 두 물체가 받는 알짜힘(중력)과 가속도(g)는 같다**.
+            * 정답:
+              1. 지면 도달 시간은 두 물체가 서로 같다 ($t = \\sqrt{2h/g}$).
+              2. 지면에 도달하는 순간의 연직 방향 속도는 서로 같다 ($v_y = gt = \\sqrt{2gh}$).
+              3. 지면에 도달하는 순간의 속력은 B가 A보다 크다 ($v_B = \\sqrt{v_0^2 + v_y^2} > v_A = v_y$).
+              4. 운동하는 동안 두 물체가 받는 알짜힘(중력)과 가속도(g)는 같다.
             """)
     else:
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
@@ -1001,12 +1003,12 @@ if show_basic:
     if not is_print_mode:
         with st.expander("💡 기초 2 정답 및 개념 해설 확인하기"):
             st.markdown("""
-            * **속도**:
+            * 속도:
               * 크기: $v = v_0\\cos\\theta$ (연직 속도는 0이지만, 수평 방향 속도는 유지됨)
-              * 방향: **수평 방향**
-            * **가속도**:
+              * 방향: 수평 방향
+            * 가속도:
               * 크기: $g = 9.8\\,\\text{m/s}^2$ (또는 $10\\,\\text{m/s}^2$) 로 일정함 (0이 아님!)
-              * 방향: **연직 아래 방향 (지구 중심 방향)**
+              * 방향: 연직 아래 방향 (지구 중심 방향)
             """)
     else:
         st.markdown('<div class="answer-space"></div>', unsafe_allow_html=True)
