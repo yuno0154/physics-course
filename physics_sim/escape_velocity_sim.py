@@ -232,8 +232,14 @@ function SimTab() {
       }
 
       const objSX = Math.min(toSX(s.r), INF_X - 5);
-      const Ek = Math.max(0, 0.5 * s.v * s.v);
+
+      /* 실시간 속력 계산 (에너지 보존: v² = 2*(E0 + GM/r)) */
+      const curV2 = 2 * (s.E0 + GM_NORM / s.r);
+      const curV = curV2 > 0 ? Math.sqrt(curV2) : 0;
+      s.v = curV;
+      const Ek = 0.5 * curV * curV;
       const Ep = -GM_NORM / s.r;
+      const Et = s.E0; // 물리적으로 완벽히 보존되는 총 역학적 에너지 (Ek + Ep = E0)
 
       /* 궤적 (탈출=노랑, 귀환=빨강) */
       if (!done) {
@@ -343,9 +349,9 @@ function SimTab() {
       ctx.fillStyle='rgba(15,23,42,0.92)'; ctx.strokeStyle='rgba(51,65,85,0.8)'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.roundRect(bX-18,bY-34,bW*4+36,bH+52,10); ctx.fill(); ctx.stroke();
       ctx.fillStyle='#cbd5e1'; ctx.font='bold 11px Noto Sans KR'; ctx.textAlign='center';
-      ctx.fillText('에너지 변화',bX+bW*1.5+18,bY-14);
-      const midY=bY+bH*0.45, sc=bH*0.4/E_REF, Et=Ek+Ep;
-      [[0,'#22c55e','Eₖ',Ek],[1,'#ef4444','Eₚ',Ep],[2,'#a78bfa','합계',Et]].forEach(([idx,cl,lb,val])=>{
+      ctx.fillText('역학적 에너지 보존',bX+bW*1.5+18,bY-14);
+      const midY=bY+bH*0.45, sc=bH*0.4/E_REF;
+      [[0,'#22c55e','Eₖ',Ek],[1,'#ef4444','Eₚ',Ep],[2,'#a78bfa','E역학',Et]].forEach(([idx,cl,lb,val])=>{
         const x=bX+idx*(bW+10);
         const bh=Math.min(Math.abs(val)*sc,bH*0.44);
         ctx.fillStyle=cl+'33'; ctx.strokeStyle=cl; ctx.lineWidth=1;
@@ -355,7 +361,8 @@ function SimTab() {
         ctx.fillStyle=cl; ctx.font='bold 10px Space Mono'; ctx.textAlign='center';
         ctx.fillText(lb,x+bW/2,bY+bH+16);
         ctx.fillStyle='#94a3b8'; ctx.font='9px Space Mono';
-        ctx.fillText(val.toFixed(0),x+bW/2,val>=0?midY-bh-4:midY+bh+13);
+        const signStr = val > 0.05 ? '+' : '';
+        ctx.fillText(signStr + val.toFixed(0),x+bW/2,val>=0?midY-bh-4:midY+bh+13);
       });
       ctx.strokeStyle='rgba(148,163,184,0.45)'; ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(bX-14,midY); ctx.lineTo(bX+bW*3+22,midY); ctx.stroke();
@@ -565,9 +572,9 @@ function SimTab() {
           <span>v₀ = <strong style={{color:'#fbbf24',fontFamily:'Space Mono'}}>{(launchKms??0).toFixed(3)}</strong> km/s</span>
           <span>v탈출 = <strong style={{color:'#4ade80',fontFamily:'Space Mono'}}>{vEsc.toFixed(3)}</strong> km/s</span>
           <span>비율 v₀/v탈출 = <strong style={{color: canEscape?'#4ade80':'#f87171',fontFamily:'Space Mono'}}>{vFrac.toFixed(3)}</strong></span>
-          <span>총 에너지 = <strong style={{color:canEscape?'#4ade80':'#f87171',fontFamily:'Space Mono'}}>
-            {(0.5*vFrac*vFrac - 1).toFixed(3)} (정규화)
-          </strong></span>
+          <span>총 역학적 E = <strong style={{color:canEscape?'#4ade80':'#f87171',fontFamily:'Space Mono'}}>
+            {(vFrac*vFrac - 1 >= 0 ? '+' : '')}{(vFrac*vFrac - 1).toFixed(3)} E₀
+          </strong> <span style={{color:'#64748b',fontSize:11}}>(E₀=GMm/R)</span></span>
         </div>
       </div>
 
