@@ -67,7 +67,7 @@ const Eq = ({ f, display=false, color='#93c5fd' }) => {
    메인 애플리케이션 컴포넌트
 ══════════════════════════════════════════════════ */
 function App() {
-  const [activeTab, setActiveTab] = useState('sim'); // sim | rocket | report
+  const [activeTab, setActiveTab] = useState('sim'); // sim | rocket | rocket2 | report
 
   return (
     <div>
@@ -77,7 +77,10 @@ function App() {
           🛒 [디지털 해보기] MBL 무선 수레 실험
         </button>
         <button className={`tab-btn ${activeTab==='rocket'?'active':''}`} onClick={()=>setActiveTab('rocket')}>
-          🚀 [원리 탐구] 발사체 추진과 운동량 보존
+          🚀 [원리 탐구 1] 그림 I-23 정지계 발사체 추진
+        </button>
+        <button className={`tab-btn ${activeTab==='rocket2'?'active':''}`} onClick={()=>setActiveTab('rocket2')}>
+          🌌 [원리 탐구 2] 그림 I-24 질량감소 & 속도증가
         </button>
         <button className={`tab-btn ${activeTab==='report'?'active':''}`} onClick={()=>setActiveTab('report')}>
           📝 [탐구 보고서] 실험 데이터 & 문제 풀이
@@ -86,6 +89,7 @@ function App() {
 
       {activeTab === 'sim' && <CartSimTab />}
       {activeTab === 'rocket' && <RocketPrincipleTab />}
+      {activeTab === 'rocket2' && <RocketMotionPrincipleTab />}
       {activeTab === 'report' && <ReportTab />}
     </div>
   );
@@ -815,25 +819,513 @@ function RocketPrincipleTab() {
   const [rocketMass, setRocketMass] = useState(850); // 로켓 본체 질량 (kg)
   const [gasVel, setGasVel] = useState(2400); // 가스 분출 속도 (m/s)
   
-  const [isFiring, setIsFiring] = useState(false);
-  const [vRocket, setVRocket] = useState(0);
+  // 물리 벡터 오버레이 토글
+  const [showForceVec, setShowForceVec] = useState(true);
+  const [showVelVec, setShowVelVec] = useState(true);
+  const [showMomVec, setShowMomVec] = useState(true);
 
-  // 로켓 획득 속도: V = (m_gas / M_rocket) * v_gas
+  // 시뮬레이션 상태: 'ready'(발사대기) | 'firing'(가스 분출 가속 중) | 'cruising'(분출 완료 후 등속 순항)
+  const [simStatus, setSimStatus] = useState('ready');
+  const [curV, setCurV] = useState(0);
+  const [curFuelPct, setCurFuelPct] = useState(100);
+  const [launchSummary, setLaunchSummary] = useState(null);
+
+  // 이론값 계산
   const theoryV = (gasMass / rocketMass) * gasVel;
+  const theoryP_gas = gasMass * gasVel;
+  const theoryP_rocket = rocketMass * theoryV;
 
-  const triggerRocketLaunch = () => {
-    setIsFiring(true);
-    setVRocket(0);
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 0.05;
-      setVRocket(+(theoryV * Math.min(1, progress)).toFixed(1));
-      if (progress >= 1.0) {
-        clearInterval(interval);
-        setTimeout(() => setIsFiring(false), 800);
-      }
-    }, 40);
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const simRef = useRef({
+    x: 220, // 로켓 중심 X 좌표 (px)
+    y: 120, // 로켓 중심 Y 좌표 (px)
+    v: 0,
+    progress: 0,
+    fuelPct: 100,
+    burnTime: 2.2, // 총 분출 소요 시간 (초)
+    distKm: 0,
+    bgOffset: 0,
+    particles: [],
+    stars: Array.from({ length: 65 }, (_, i) => ({
+      x: (i * 39 + 17) % 800,
+      y: (i * 23 + 7) % 230 + 5,
+      r: (i % 4 === 0 ? 1.8 : (i % 2 === 0 ? 1.2 : 0.8)),
+      brightness: 0.35 + ((i * 19) % 65) / 100
+    }))
+  });
+
+  // 화살표 그리기 헬퍼 함수
+  const drawArrow = (ctx, fromX, fromY, toX, toY, color, labelText, offsetLabelY = -6) => {
+    if (Math.abs(toX - fromX) < 4 && Math.abs(toY - fromY) < 4) return;
+    const headLen = 7;
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.4;
+
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    if (labelText) {
+      ctx.font = 'bold 9px Space Mono, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelText, (fromX + toX) / 2, fromY + offsetLabelY);
+    }
   };
+
+  // 캔버스 프레임 렌더링 함수
+  const renderCanvas = () => {
+    const cvs = canvasRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    const W = cvs.width, H = cvs.height;
+    const s = simRef.current;
+
+    // 1. 깊은 우주 배경 클리어
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, '#040714');
+    bgGrad.addColorStop(0.5, '#080d22');
+    bgGrad.addColorStop(1, '#050a18');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. 우주 성운 글로우 효과
+    const neb1 = ctx.createRadialGradient(W * 0.75, 40, 10, W * 0.75, 40, 180);
+    neb1.addColorStop(0, 'rgba(14, 165, 233, 0.15)');
+    neb1.addColorStop(1, 'rgba(14, 165, 233, 0)');
+    ctx.fillStyle = neb1;
+    ctx.fillRect(0, 0, W, H);
+
+    const neb2 = ctx.createRadialGradient(W * 0.2, H * 0.75, 10, W * 0.2, H * 0.75, 160);
+    neb2.addColorStop(0, 'rgba(168, 85, 247, 0.12)');
+    neb2.addColorStop(1, 'rgba(168, 85, 247, 0)');
+    ctx.fillStyle = neb2;
+    ctx.fillRect(0, 0, W, H);
+
+    // 3. 우주 배경 별무리 (패럴랙스 이동)
+    s.stars.forEach(st => {
+      const curStarX = (st.x - s.bgOffset * 0.4) % W;
+      const finalX = curStarX < 0 ? curStarX + W : curStarX;
+      ctx.fillStyle = `rgba(226, 232, 240, ${st.brightness})`;
+      ctx.beginPath();
+      ctx.arc(finalX, st.y, st.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 4. 하단 우주 공간 기준선 및 거리 눈금자 (스크롤 연동)
+    const axisY = 215;
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(20, axisY);
+    ctx.lineTo(W - 20, axisY);
+    ctx.stroke();
+
+    const tickSpacing = 80;
+    const offsetMod = (s.bgOffset * 1.2) % tickSpacing;
+    for (let tx = 20 - offsetMod; tx <= W - 20; tx += tickSpacing) {
+      if (tx >= 20) {
+        ctx.strokeStyle = '#334155';
+        ctx.beginPath();
+        ctx.moveTo(tx, axisY - 4);
+        ctx.lineTo(tx, axisY + 4);
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = '#64748b';
+    ctx.font = '8px Space Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText('우주 기준 좌표계 (정지계 관측)', 25, axisY - 8);
+    ctx.textAlign = 'right';
+    ctx.fillText(`누적 항행 거리: ${(s.distKm).toFixed(2)} km`, W - 25, axisY - 8);
+
+    // 5. 배기가스 분출 파티클 렌더링
+    s.particles.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // 6. 로켓 본체 렌더링
+    const rx = s.x;
+    // 분출 가속 중일 때 미세한 추진 엔진 진동(rumble)
+    const ry = s.y + (s.progress > 0 && s.progress < 1.0 ? (Math.random() - 0.5) * 2.2 : 0);
+
+    const bodyW = 90;
+    const bodyH = 26;
+    const nozzleX = rx - bodyW / 2;
+    const noseX = rx + bodyW / 2;
+
+    // (1) 엔진 화염 제트 (가스 분출 중일 때)
+    if (s.progress > 0 && s.progress < 1.0) {
+      const flameLen = 45 + (gasVel / 4000) * 45 + Math.random() * 14;
+      const flameH = 14 + (gasMass / 400) * 10;
+
+      // 외부 오렌지/옐로 화염
+      const flameGrad = ctx.createLinearGradient(nozzleX, ry, nozzleX - flameLen, ry);
+      flameGrad.addColorStop(0, '#ffffff');
+      flameGrad.addColorStop(0.2, '#38bdf8');
+      flameGrad.addColorStop(0.45, '#f59e0b');
+      flameGrad.addColorStop(0.8, '#ef4444');
+      flameGrad.addColorStop(1, 'rgba(239,68,68,0)');
+
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath();
+      ctx.moveTo(nozzleX - 4, ry - flameH / 2);
+      ctx.quadraticCurveTo(nozzleX - flameLen * 0.6, ry - flameH * 0.8, nozzleX - flameLen, ry);
+      ctx.quadraticCurveTo(nozzleX - flameLen * 0.6, ry + flameH * 0.8, nozzleX - 4, ry + flameH / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      // 내부 초고온 청색 마하 다이아몬드 코어
+      const coreLen = flameLen * 0.45;
+      const coreGrad = ctx.createLinearGradient(nozzleX, ry, nozzleX - coreLen, ry);
+      coreGrad.addColorStop(0, '#ffffff');
+      coreGrad.addColorStop(0.6, '#38bdf8');
+      coreGrad.addColorStop(1, 'rgba(56,189,248,0)');
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.moveTo(nozzleX - 4, ry - flameH * 0.3);
+      ctx.lineTo(nozzleX - coreLen, ry);
+      ctx.lineTo(nozzleX - 4, ry + flameH * 0.3);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // (2) 로켓 날개 핀 (위/아래)
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1;
+    // 상단 핀
+    ctx.beginPath();
+    ctx.moveTo(nozzleX + 4, ry - bodyH / 2);
+    ctx.lineTo(nozzleX - 10, ry - bodyH / 2 - 12);
+    ctx.lineTo(nozzleX + 22, ry - bodyH / 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // 하단 핀
+    ctx.beginPath();
+    ctx.moveTo(nozzleX + 4, ry + bodyH / 2);
+    ctx.lineTo(nozzleX - 10, ry + bodyH / 2 + 12);
+    ctx.lineTo(nozzleX + 22, ry + bodyH / 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // (3) 로켓 엔진 노즐 벨 (원뿔대)
+    const nozGrad = ctx.createLinearGradient(nozzleX - 12, ry, nozzleX, ry);
+    nozGrad.addColorStop(0, '#334155');
+    nozGrad.addColorStop(0.7, '#64748b');
+    nozGrad.addColorStop(1, '#94a3b8');
+    ctx.fillStyle = nozGrad;
+    ctx.beginPath();
+    ctx.moveTo(nozzleX, ry - bodyH * 0.36);
+    ctx.lineTo(nozzleX - 12, ry - bodyH * 0.52);
+    ctx.lineTo(nozzleX - 12, ry + bodyH * 0.52);
+    ctx.lineTo(nozzleX, ry + bodyH * 0.36);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.stroke();
+
+    // (4) 로켓 원통형 본체
+    const bGrad = ctx.createLinearGradient(0, ry - bodyH / 2, 0, ry + bodyH / 2);
+    bGrad.addColorStop(0, '#f8fafc');
+    bGrad.addColorStop(0.35, '#cbd5e1');
+    bGrad.addColorStop(0.85, '#475569');
+    bGrad.addColorStop(1, '#1e293b');
+    ctx.fillStyle = bGrad;
+    ctx.beginPath();
+    ctx.roundRect(nozzleX, ry - bodyH / 2, bodyW - 20, bodyH, [2, 0, 0, 2]);
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(nozzleX, ry - bodyH / 2, bodyW - 20, bodyH);
+
+    // 단 분리 밴드 데칼 (1단/2단 분리선)
+    ctx.fillStyle = '#0284c7';
+    ctx.fillRect(nozzleX + (bodyW - 20) * 0.55, ry - bodyH / 2, 4, bodyH);
+    ctx.fillStyle = '#ef4444';
+    ctx.fillRect(nozzleX + (bodyW - 20) * 0.57, ry - bodyH / 2, 2, bodyH);
+
+    // (5) 로켓 전방 노즈콘 (유선형 페어링)
+    const noseStart = nozzleX + bodyW - 20;
+    const noseGrad = ctx.createLinearGradient(noseStart, ry - bodyH / 2, noseX, ry);
+    noseGrad.addColorStop(0, '#cbd5e1');
+    noseGrad.addColorStop(0.7, '#f8fafc');
+    noseGrad.addColorStop(1, '#38bdf8');
+    ctx.fillStyle = noseGrad;
+    ctx.beginPath();
+    ctx.moveTo(noseStart, ry - bodyH / 2);
+    ctx.quadraticCurveTo(noseStart + 16, ry - bodyH / 2 + 2, noseX, ry);
+    ctx.quadraticCurveTo(noseStart + 16, ry + bodyH / 2 - 2, noseStart, ry + bodyH / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#334155';
+    ctx.stroke();
+
+    // (6) 본체 텍스트 각인
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 8.5px Space Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText(`M=${rocketMass}kg`, nozzleX + (bodyW - 20) * 0.28, ry + 3);
+
+    // 7. 물리 벡터 화살표 오버레이
+    // (1) 작용-반작용 힘 벡터 (F_gas, F_thrust) - 분출 중에만 가동
+    if (showForceVec && s.progress > 0 && s.progress < 1.0) {
+      const fScale = 55;
+      // 노즐에서 가스를 뒤로 밀어내는 힘 F_gas (← 주황색)
+      drawArrow(ctx, nozzleX - 14, ry - 22, nozzleX - 14 - fScale, ry - 22, '#f97316', 'F_작용(가스 ←)', -6);
+      // 로켓을 앞으로 미는 추진력 F_thrust (→ 주황색)
+      drawArrow(ctx, rx + 15, ry - 22, rx + 15 + fScale, ry - 22, '#f97316', 'F_추진(로켓 →)', -6);
+    }
+
+    // (2) 속도 벡터 (v_gas, V_rocket)
+    if (showVelVec && s.progress > 0) {
+      // 로켓 속도 V (→ 하늘색)
+      const vScale = Math.min(100, Math.max(12, (s.v / theoryV) * 75));
+      drawArrow(ctx, noseX + 4, ry, noseX + 4 + vScale, ry, '#38bdf8', `V = +${s.v.toFixed(1)} m/s`, -7);
+
+      // 가스 분출 속도 v (← 연두색) - 분출 중일 때
+      if (s.progress < 1.0) {
+        const gasVScale = Math.min(85, (gasVel / 4000) * 75);
+        drawArrow(ctx, nozzleX - 18, ry + 22, nozzleX - 18 - gasVScale, ry + 22, '#86efac', `v = -${gasVel.toLocaleString()} m/s`, 14);
+      }
+    }
+
+    // (3) 운동량 벡터 (p_gas, P_rocket) - 핵심 원리!
+    if (showMomVec && s.progress > 0) {
+      const curProg = Math.min(1.0, s.progress);
+      const curMomRocket = rocketMass * s.v;
+      const curMomGas = gasMass * curProg * gasVel;
+      const momScale = Math.min(95, (curMomRocket / Math.max(1, theoryP_rocket)) * 85);
+
+      if (momScale > 8) {
+        // 로켓 운동량 P_rocket (→ 보라색)
+        drawArrow(ctx, rx + 20, ry + 28, rx + 20 + momScale, ry + 28, '#c084fc', `P_로켓=+${Math.round(curMomRocket).toLocaleString()}`, 14);
+        // 가스 총 운동량 p_gas (← 보라색)
+        drawArrow(ctx, nozzleX - 22, ry + 28, nozzleX - 22 - momScale, ry + 28, '#c084fc', `p_가스=-${Math.round(curMomGas).toLocaleString()}`, 14);
+      }
+    }
+
+    // 8. 캔버스 내부 상단 실시간 HUD 배너
+    // 좌측: 상태 뱃지
+    let statusText = '⚪ [발사 대기] 연료 완충 상태';
+    let statusBg = 'rgba(15, 23, 42, 0.75)';
+    let statusBorder = '#334155';
+    let statusCol = '#94a3b8';
+
+    if (s.progress > 0 && s.progress < 1.0) {
+      statusText = '🔥 [주엔진 연소 가속 중...] 고온 가스 초음속 분출';
+      statusBg = 'rgba(180, 83, 9, 0.35)';
+      statusBorder = '#f59e0b';
+      statusCol = '#fef08a';
+    } else if (s.progress >= 1.0) {
+      statusText = '🛸 [목표 속도 달성] 관성 등속 순항 중 (외력 0, 운동량 보존)';
+      statusBg = 'rgba(12, 74, 110, 0.35)';
+      statusBorder = '#0ea5e9';
+      statusCol = '#7dd3fc';
+    }
+
+    // 상태 배지 그리기
+    ctx.fillStyle = statusBg;
+    ctx.strokeStyle = statusBorder;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(14, 12, 330, 26, 6);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = statusCol;
+    ctx.font = 'bold 10px Noto Sans KR, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(statusText, 24, 28);
+
+    // 우측: 실시간 속도계 및 연료 잔량
+    const fuelPct = Math.max(0, 100 * (1 - Math.min(1, s.progress)));
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.beginPath();
+    ctx.roundRect(W - 250, 12, 236, 42, 6);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px Noto Sans KR';
+    ctx.fillText('현재 로켓 속도 V:', W - 240, 27);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 15px Space Mono';
+    ctx.fillText(`+${s.v.toFixed(1)} m/s`, W - 145, 27);
+
+    // 연료 게이지 바
+    ctx.fillStyle = '#64748b';
+    ctx.font = '8px Space Mono';
+    ctx.fillText(`연료 ${fuelPct.toFixed(0)}%`, W - 240, 44);
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(W - 180, 37, 155, 7);
+    const fuelGrad = ctx.createLinearGradient(W - 180, 0, W - 25, 0);
+    fuelGrad.addColorStop(0, '#f59e0b');
+    fuelGrad.addColorStop(1, '#ef4444');
+    ctx.fillStyle = fuelGrad;
+    ctx.fillRect(W - 180, 37, (fuelPct / 100) * 155, 7);
+
+    // 중앙 하단: 운동량 보존 인디케이터 배너
+    if (s.progress > 0) {
+      const curProg = Math.min(1.0, s.progress);
+      const pR = Math.round(rocketMass * s.v);
+      const pG = Math.round(gasMass * curProg * gasVel);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+      ctx.strokeStyle = '#a855f7';
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 190, H - 36, 380, 24, 6);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e9d5ff';
+      ctx.font = 'bold 9.5px Space Mono, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`⚖️ 운동량 보존: P_로켓(+${pR.toLocaleString()}) + p_가스(-${pG.toLocaleString()}) = 0 kg·m/s`, W / 2, H - 21);
+    }
+  };
+
+  // 🚀 연료 분출 발사 시험 트리거
+  const triggerRocketLaunch = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.x = 220;
+    s.v = 0;
+    s.distKm = 0;
+    s.progress = 0;
+    s.fuelPct = 100;
+    s.bgOffset = 0;
+    s.particles = [];
+
+    setSimStatus('firing');
+    setCurV(0);
+    setCurFuelPct(100);
+    setLaunchSummary(null);
+
+    let startTime = null;
+    const BURN_DUR = 2.4; // 2.4초간 가스 분출 가속
+    const finalV = theoryV;
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      const prog = Math.min(1.0, elapsed / BURN_DUR);
+
+      s.progress = prog;
+      s.fuelPct = Math.max(0, 100 * (1 - prog));
+
+      // 가속 단계
+      if (prog < 1.0) {
+        s.v = finalV * prog;
+        // 로켓 위치 전진 (캔버스 안에서 시각적으로 전진)
+        s.x = 220 + prog * 160;
+        // 가스 분출 파티클 생성
+        const numParticles = Math.floor(4 + (gasMass / 80));
+        for (let i = 0; i < numParticles; i++) {
+          s.particles.push({
+            x: s.x - 45,
+            y: s.y + (Math.random() - 0.5) * 8,
+            vx: -(gasVel / 320) * (0.7 + Math.random() * 0.6),
+            vy: (Math.random() - 0.5) * 2.8,
+            life: 1.0,
+            decay: 0.035 + Math.random() * 0.03,
+            size: 3.5 + Math.random() * 5.0,
+            color: Math.random() > 0.4 ? '#f97316' : (Math.random() > 0.5 ? '#facc15' : '#67e8f9')
+          });
+        }
+      } else {
+        // 분출 완료 후 등속 순항 단계 (뉴턴 관성 운동)
+        s.v = finalV;
+        s.x = 380;
+        if (simStatus !== 'cruising') {
+          setSimStatus('cruising');
+          setLaunchSummary({
+            rocketMass,
+            gasMass,
+            gasVel,
+            finalV,
+            pGas: theoryP_gas,
+            pRocket: theoryP_rocket
+          });
+        }
+      }
+
+      // 파티클 업데이트
+      s.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+        p.size *= 1.03;
+      });
+      s.particles = s.particles.filter(p => p.life > 0);
+
+      // 배경 패럴랙스 및 비행 거리 누적
+      const dtSec = 1 / 60;
+      s.distKm += (s.v * dtSec) / 1000;
+      s.bgOffset += Math.max(0.8, s.v * 0.015);
+
+      setCurV(s.v);
+      setCurFuelPct(s.fuelPct);
+
+      renderCanvas();
+
+      // 분출 종료 후 4초간 순항 모습을 보여준 뒤 종료 대기
+      if (elapsed < BURN_DUR + 4.0) {
+        animRef.current = requestAnimationFrame(step);
+      } else {
+        // 애니메이션 지속 루프 유지 (배경과 별만 은은히 흐름)
+        const cruiseLoop = () => {
+          s.bgOffset += Math.max(0.8, s.v * 0.015);
+          s.distKm += (s.v * dtSec) / 1000;
+          renderCanvas();
+          animRef.current = requestAnimationFrame(cruiseLoop);
+        };
+        animRef.current = requestAnimationFrame(cruiseLoop);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(step);
+  };
+
+  // 🔄 발사대 초기화 (리셋)
+  const resetRocketLaunch = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.x = 220;
+    s.y = 120;
+    s.v = 0;
+    s.distKm = 0;
+    s.progress = 0;
+    s.fuelPct = 100;
+    s.bgOffset = 0;
+    s.particles = [];
+
+    setSimStatus('ready');
+    setCurV(0);
+    setCurFuelPct(100);
+    setLaunchSummary(null);
+
+    renderCanvas();
+  };
+
+  // 초기 렌더링 및 슬라이더 변경 시 반영
+  useEffect(() => {
+    resetRocketLaunch();
+  }, [rocketMass, gasMass, gasVel]);
 
   return (
     <div>
@@ -855,7 +1347,6 @@ function RocketPrincipleTab() {
         </p>
         
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))',gap:16}}>
-          
           {/* 수레 실험 모델 */}
           <div style={{background:'#0a1020',padding:16,borderRadius:12,border:'1px solid #1e293b'}}>
             <div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}>
@@ -863,24 +1354,18 @@ function RocketPrincipleTab() {
               <span className="badge badge-lime">정지계</span>
             </div>
             
-            {/* SVG 모식도 */}
             <svg width="100%" height="80" viewBox="0 0 320 80">
-              {/* 레일 */}
               <line x1="20" y1="65" x2="300" y2="65" stroke="#475569" strokeWidth="3"/>
-              {/* 수레 A (배기가스 역할) */}
               <rect x="50" y="25" width="70" height="32" rx="4" fill="#65a30d" stroke="#84cc16"/>
               <text x="85" y="45" fill="#fff" fontSize="11" textAnchor="middle" fontWeight="bold">수레 A (m)</text>
               <circle cx="65" cy="60" r="5" fill="#1e293b"/>
               <circle cx="105" cy="60" r="5" fill="#1e293b"/>
-              {/* 수레 B (로켓 본체 역할) */}
               <rect x="180" y="25" width="90" height="32" rx="4" fill="#0284c7" stroke="#0ea5e9"/>
               <text x="225" y="45" fill="#fff" fontSize="11" textAnchor="middle" fontWeight="bold">수레 B (M)</text>
               <circle cx="200" cy="60" r="5" fill="#1e293b"/>
               <circle cx="250" cy="60" r="5" fill="#1e293b"/>
-              {/* 용수철 */}
               <path d="M 120 41 Q 128 32, 135 41 T 150 41 T 165 41 T 180 41" fill="none" stroke="#f59e0b" strokeWidth="2.5"/>
-              {/* 힘 화살표 */}
-              <line x1="110" y1="14" x2="60" y2="14" stroke="#f97316" strokeWidth="2" markerEnd="url(#arrow)"/>
+              <line x1="110" y1="14" x2="60" y2="14" stroke="#f97316" strokeWidth="2"/>
               <text x="85" y="10" fill="#f97316" fontSize="9" textAnchor="middle">F_BA (←)</text>
               <line x1="190" y1="14" x2="240" y2="14" stroke="#f97316" strokeWidth="2"/>
               <text x="215" y="10" fill="#f97316" fontSize="9" textAnchor="middle">F_AB (→)</text>
@@ -900,17 +1385,13 @@ function RocketPrincipleTab() {
               <span className="badge badge-blue">무중력 진공</span>
             </div>
 
-            {/* SVG 로켓 모식도 */}
             <svg width="100%" height="80" viewBox="0 0 320 80">
-              {/* 배기가스 분출 */}
               <ellipse cx="60" cy="40" rx="35" ry="12" fill="rgba(249,115,22,0.4)"/>
               <polygon points="40,36 20,28 35,40 20,52 40,44" fill="#ef4444"/>
               <text x="60" y="44" fill="#fdba74" fontSize="10" textAnchor="middle" fontWeight="bold">가스 (m, v)</text>
-              {/* 로켓 본체 */}
               <rect x="100" y="24" width="110" height="32" rx="4" fill="#334155" stroke="#94a3b8"/>
               <polygon points="210,24 240,40 210,56" fill="#e2e8f0"/>
               <text x="155" y="44" fill="#fff" fontSize="11" textAnchor="middle" fontWeight="bold">로켓 본체 (M, V)</text>
-              {/* 추진 방향 화살표 */}
               <line x1="245" y1="40" x2="295" y2="40" stroke="#38bdf8" strokeWidth="2.5"/>
               <text x="270" y="32" fill="#38bdf8" fontSize="10" textAnchor="middle" fontWeight="bold">전진 (→ V)</text>
             </svg>
@@ -921,44 +1402,73 @@ function RocketPrincipleTab() {
               <li>전체 운동량 보존: <Eq f="m\vec{v} + M\vec{V} = 0 \implies \vec{V} = -\frac{m}{M}\vec{v}"/></li>
             </ul>
           </div>
-
         </div>
       </div>
 
       {/* ── 인터랙티브 로켓 가속 시뮬레이터 ── */}
       <div className="card">
-        <p style={{fontWeight:800,fontSize:14,color:'#f8fafc',marginBottom:12}}>
-          🎛️ 발사체 운동량 보존 시뮬레이터 (질량비와 가스 속도 조절)
-        </p>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
+          <div>
+            <span style={{fontWeight:800,fontSize:15,color:'#f8fafc'}}>
+              🌌 [실시간 시뮬레이션] 우주 발사체 가스 분출 가속 실험실
+            </span>
+            <span style={{fontSize:12,color:'#94a3b8',marginLeft:8}}>
+              (가스 분출 시 작용-반작용과 운동량 보존을 시각적으로 관찰합니다)
+            </span>
+          </div>
 
+          {/* 물리 벡터 토글 체크박스 */}
+          <div style={{display:'flex',gap:12,fontSize:12}}>
+            <label style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'#fb923c'}}>
+              <input type="checkbox" checked={showForceVec} onChange={e=>setShowForceVec(e.target.checked)}/>
+              작용·반작용 힘 (<span style={{fontFamily:'Space Mono'}}>F</span>)
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'#38bdf8'}}>
+              <input type="checkbox" checked={showVelVec} onChange={e=>setShowVelVec(e.target.checked)}/>
+              속도 벡터 (<span style={{fontFamily:'Space Mono'}}>v, V</span>)
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'#c084fc'}}>
+              <input type="checkbox" checked={showMomVec} onChange={e=>setShowMomVec(e.target.checked)}/>
+              운동량 벡터 (<span style={{fontFamily:'Space Mono'}}>p, P</span>)
+            </label>
+          </div>
+        </div>
+
+        {/* ── 캔버스 디스플레이 ── */}
+        <canvas ref={canvasRef} width={800} height={235}
+          style={{width:'100%',borderRadius:12,border:'1px solid #1e293b',background:'#040714',display:'block',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',marginBottom:16}} />
+
+        {/* ── 조절 슬라이더 ── */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))',gap:14,marginBottom:16}}>
           <div>
             <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>로켓 본체 질량 (M)</label>
-            <input type="range" min="400" max="1500" step="50" value={rocketMass} onChange={e=>setRocketMass(+e.target.value)} style={{width:'100%'}}/>
+            <input type="range" min="400" max="1500" step="50" value={rocketMass} onChange={e=>setRocketMass(+e.target.value)} disabled={simStatus==='firing'} style={{width:'100%'}}/>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#60a5fa',fontFamily:'Space Mono'}}>
               <span>400 kg</span><span>{rocketMass} kg</span><span>1500 kg</span>
             </div>
           </div>
           <div>
             <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>분출 가스 질량 (m)</label>
-            <input type="range" min="50" max="400" step="25" value={gasMass} onChange={e=>setGasMass(+e.target.value)} style={{width:'100%'}}/>
+            <input type="range" min="50" max="400" step="25" value={gasMass} onChange={e=>setGasMass(+e.target.value)} disabled={simStatus==='firing'} style={{width:'100%'}}/>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#f59e0b',fontFamily:'Space Mono'}}>
               <span>50 kg</span><span>{gasMass} kg</span><span>400 kg</span>
             </div>
           </div>
           <div>
             <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>배기가스 분출 속력 (v)</label>
-            <input type="range" min="1000" max="4000" step="200" value={gasVel} onChange={e=>setGasVel(+e.target.value)} style={{width:'100%'}}/>
+            <input type="range" min="1000" max="4000" step="200" value={gasVel} onChange={e=>setGasVel(+e.target.value)} disabled={simStatus==='firing'} style={{width:'100%'}}/>
             <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#86efac',fontFamily:'Space Mono'}}>
               <span>1,000 m/s</span><span>{gasVel.toLocaleString()} m/s</span><span>4,000 m/s</span>
             </div>
           </div>
         </div>
 
-        {/* 결과 박스 */}
+        {/* ── 결과 박스 & 발사 버튼 ── */}
         <div style={{background:'#0a1224',padding:16,borderRadius:12,border:'1px solid #1e3a8a',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:14}}>
           <div>
-            <p style={{fontSize:12,color:'#94a3b8',marginBottom:4}}>로켓이 얻는 속도 증가량 (ΔV):</p>
+            <p style={{fontSize:12,color:'#94a3b8',marginBottom:4}}>
+              로켓이 얻는 이론 속도 증가량 (ΔV = <Eq f="\frac{m}{M}v"/>):
+            </p>
             <div style={{display:'flex',alignItems:'baseline',gap:8}}>
               <span className="num-mono" style={{fontSize:28,fontWeight:800,color:'#38bdf8'}}>
                 +{theoryV.toFixed(1)}
@@ -970,19 +1480,762 @@ function RocketPrincipleTab() {
             </div>
           </div>
 
-          <div style={{textAlign:'right'}}>
-            <button className="btn-success" onClick={triggerRocketLaunch} disabled={isFiring}
-              style={{padding:'12px 24px',fontSize:14,boxShadow:'0 0 16px rgba(22,163,74,0.4)'}}>
-              {isFiring ? '🔥 가스 분출 가속 중...' : '🚀 연료 분출 발사 시험!'}
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            <button className="btn-secondary" onClick={resetRocketLaunch} disabled={simStatus==='firing'}
+              style={{padding:'12px 18px',fontSize:13}}>
+              🔄 발사대 초기화
+            </button>
+            <button className="btn-success" onClick={triggerRocketLaunch} disabled={simStatus==='firing'}
+              style={{padding:'12px 26px',fontSize:14,boxShadow:'0 0 18px rgba(22,163,74,0.45)'}}>
+              {simStatus==='firing' ? '🔥 가스 분출 가속 중...' : '🚀 연료 분출 발사 시험!'}
             </button>
           </div>
         </div>
+
+        {/* ── 시험 완료 후 정량적 운동량 보존 결과 브리핑 카드 ── */}
+        {launchSummary && (
+          <div style={{marginTop:14,background:'rgba(15,23,42,0.9)',padding:16,borderRadius:12,border:'1px solid #38bdf8'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <span style={{fontWeight:800,color:'#38bdf8',fontSize:14}}>
+                📊 [시험 결과 분석] 발사체-배기가스 운동량 보존 정량 검증
+              </span>
+              <span className="badge badge-blue">실험 완료</span>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:10,marginBottom:12}}>
+              <div style={{background:'#090d16',padding:10,borderRadius:8,border:'1px solid #1e293b'}}>
+                <span style={{fontSize:11,color:'#94a3b8',display:'block'}}>배기가스 총 운동량 (p_gas)</span>
+                <span className="num-mono" style={{fontSize:15,fontWeight:700,color:'#f97316'}}>
+                  -{(launchSummary.pGas).toLocaleString()} kg·m/s
+                </span>
+              </div>
+              <div style={{background:'#090d16',padding:10,borderRadius:8,border:'1px solid #1e293b'}}>
+                <span style={{fontSize:11,color:'#94a3b8',display:'block'}}>로켓 본체 운동량 (P_rocket)</span>
+                <span className="num-mono" style={{fontSize:15,fontWeight:700,color:'#38bdf8'}}>
+                  +{(launchSummary.pRocket).toLocaleString()} kg·m/s
+                </span>
+              </div>
+              <div style={{background:'#090d16',padding:10,borderRadius:8,border:'1px solid #1e293b'}}>
+                <span style={{fontSize:11,color:'#94a3b8',display:'block'}}>전체 운동량 합 (p_total)</span>
+                <span className="num-mono" style={{fontSize:15,fontWeight:700,color:'#a3e635'}}>
+                  0.000 kg·m/s (100% 보존)
+                </span>
+              </div>
+              <div style={{background:'#090d16',padding:10,borderRadius:8,border:'1px solid #1e293b'}}>
+                <span style={{fontSize:11,color:'#94a3b8',display:'block'}}>최종 달성 속도 (V_final)</span>
+                <span className="num-mono" style={{fontSize:15,fontWeight:700,color:'#fbbf24'}}>
+                  +{(launchSummary.finalV).toFixed(1)} m/s
+                </span>
+              </div>
+            </div>
+
+            <p style={{fontSize:12.5,color:'#cbd5e1',lineHeight:1.7}}>
+              💡 <b>정량적 결론:</b> 배기가스가 뒤로 가져간 운동량 <Eq f="p = m \cdot (-v)"/>와 로켓이 앞으로 얻은 운동량 <Eq f="P = M \cdot V"/>의 
+              크기는 정확히 일치하며 방향이 반대입니다. 따라서 외력이 없는 우주 공간에서 <b>전체 계의 운동량의 총합은 정확히 0으로 완벽하게 보존</b>됩니다!
+            </p>
+          </div>
+        )}
 
         {/* 다단계 로켓의 필요성 설명 박스 */}
         <div style={{marginTop:14,background:'rgba(30,41,59,0.5)',padding:14,borderRadius:10,border:'1px solid #334155',fontSize:12.5,color:'#cbd5e1',lineHeight:1.8}}>
           💡 <b>다단계 로켓(1단, 2단 분리)이 필수적인 물리적 이유:</b><br/>
           위 공식 <Eq f="V = \frac{m}{M} v"/>에서 알 수 있듯이, 로켓의 속도 증가량은 <b>본체 질량 M에 반비례</b>합니다.<br/>
           연료를 모두 소모한 빈 연료탱크는 불필요한 질량 M이 되어 추가 가속을 방해합니다. 따라서 빈 1단 로켓을 분리하여 버림으로써 본체 질량 M을 대폭 가볍게 만들어야만 최종 궤도 속도(약 7.9 km/s)에 도달할 수 있습니다.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   탭 2-2: [원리 탐구 2] 발사체 질량 감소와 속도 증가 (그림 I-24)
+══════════════════════════════════════════════════ */
+function RocketMotionPrincipleTab() {
+  // 슬라이더 상태 변수
+  const [initMass, setInitMass] = useState(1000);   // 초기 전체 질량 M (kg)
+  const [initVel, setInitVel] = useState(400);      // 초기 비행 속력 V (m/s)
+  const [deltaM, setDeltaM] = useState(100);        // 방출 배기가스 질량 Δm (kg)
+  const [relU, setRelU] = useState(2000);           // 상대 분사 속력 u (m/s)
+
+  // 관측 기준계: 'ground'(외부 정지계: 가스 속도 V - u) | 'rocket'(로켓 탑승계: 가스 속도 -u)
+  const [frameView, setFrameView] = useState('ground');
+
+  // 물리 벡터 토글
+  const [showVelVec, setShowVelVec] = useState(true);
+  const [showMomVec, setShowMomVec] = useState(true);
+
+  // 시뮬레이션 상태: 'before'(방출 전) | 'ejecting'(방출 중) | 'after'(방출 후 가속)
+  const [simState, setSimState] = useState('before');
+  const [curV, setCurV] = useState(initVel);
+  const [curM, setCurM] = useState(initMass);
+
+  // 물리 이론값 정밀 계산
+  // 운동량 보존: M*V = (M - Δm)*(V + Δv) + Δm*(V - u)
+  // 전개: M*V = M*V + (M - Δm)*Δv - u*Δm  =>  (M - Δm)*Δv = u*Δm
+  // 정밀 Δv = (u * Δm) / (M - Δm)
+  // 교과서 근사 Δv (Δm*Δv ≈ 0 무시): M*Δv ≈ u*Δm => Δv_approx = (u * Δm) / M
+  const exactDeltaV = (relU * deltaM) / (initMass - deltaM);
+  const approxDeltaV = (relU * deltaM) / initMass;
+  const finalVel = initVel + exactDeltaV;
+  const gasGroundVel = initVel - relU; // 지상 관측계 배기가스 속도 (V - u)
+
+  // 운동량 계산 (kg·m/s)
+  const P_initial = initMass * initVel;
+  const P_rocket_after = (initMass - deltaM) * finalVel;
+  const P_gas_after = deltaM * gasGroundVel;
+  const P_total_after = P_rocket_after + P_gas_after;
+
+  // 2차 미소량 분석 (Δm * Δv)
+  const term_dmdv = deltaM * exactDeltaV;
+  const term_udm = relU * deltaM;
+  const term_Mdv = initMass * exactDeltaV;
+
+  const canvasRef = useRef(null);
+  const animRef = useRef(null);
+  const simRef = useRef({
+    rocketY: 155, // 캔버스 세로 중앙 아래
+    rocketX: 400, // 캔버스 가로 중앙
+    vel: initVel,
+    mass: initMass,
+    state: 'before', // 'before' | 'ejecting' | 'after'
+    altKm: 120.0,
+    gasPosY: 0,
+    gasAlpha: 0,
+    stars: Array.from({ length: 65 }, (_, i) => ({
+      x: (i * 37 + 19) % 800,
+      y: (i * 29 + 11) % 270,
+      r: (i % 3 === 0 ? 1.7 : 1.0),
+      speedMult: 0.6 + ((i * 13) % 9) / 10
+    })),
+    particles: []
+  });
+
+  // 화살표 그리기 헬퍼 함수
+  const drawVecArrow = (ctx, fromX, fromY, toX, toY, color, labelText, offsetLabelX = 0, offsetLabelY = -6) => {
+    if (Math.abs(toX - fromX) < 3 && Math.abs(toY - fromY) < 3) return;
+    const headLen = 7;
+    const dx = toX - fromX;
+    const dy = toY - fromY;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2.4;
+
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    if (labelText) {
+      ctx.font = 'bold 9px Space Mono, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(labelText, (fromX + toX) / 2 + offsetLabelX, (fromY + toY) / 2 + offsetLabelY);
+    }
+  };
+
+  // 캔버스 렌더링
+  const renderCanvas = () => {
+    const cvs = canvasRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    const W = cvs.width, H = cvs.height;
+    const s = simRef.current;
+
+    // 1. 심우주 배경
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, '#020617');
+    bgGrad.addColorStop(0.5, '#070f26');
+    bgGrad.addColorStop(1, '#030712');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 은은한 성운 글로우
+    const radG = ctx.createRadialGradient(W / 2, H / 2, 20, W / 2, H / 2, 220);
+    radG.addColorStop(0, 'rgba(30, 58, 138, 0.18)');
+    radG.addColorStop(1, 'rgba(2, 6, 23, 0)');
+    ctx.fillStyle = radG;
+    ctx.fillRect(0, 0, W, H);
+
+    // 2. 배경 별무리 (수직 하강: 로켓이 위로 상승하므로 상대적으로 별들이 아래로 흘러내림)
+    const starSpeedBase = (s.vel / 120);
+    s.stars.forEach(st => {
+      st.y = (st.y + starSpeedBase * st.speedMult) % H;
+      ctx.fillStyle = '#e2e8f0';
+      ctx.beginPath();
+      ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 3. 고도 기준선 (좌측 고도 표시)
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(35, 10);
+    ctx.lineTo(35, H - 10);
+    ctx.stroke();
+
+    for (let y = 20; y <= H - 20; y += 45) {
+      ctx.beginPath();
+      ctx.moveTo(30, y);
+      ctx.lineTo(40, y);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#64748b';
+    ctx.font = '8px Space Mono';
+    ctx.textAlign = 'left';
+    ctx.fillText(`고도 ${(s.altKm).toFixed(1)} km`, 45, H - 15);
+    ctx.fillText('상승 방향 (↑)', 45, 25);
+
+    // 4. 배기가스 방출 덩어리 및 파티클
+    // (1) 방출된 배기가스 파티클
+    s.particles.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // (2) 방출된 배기가스 덩어리 Δm (교과서의 갈색 원과 말풍선)
+    if (s.gasAlpha > 0) {
+      const gx = s.rocketX;
+      const gy = s.gasPosY;
+
+      ctx.save();
+      ctx.globalAlpha = s.gasAlpha;
+
+      // 가스 덩어리 외부 구름
+      const gasGrad = ctx.createRadialGradient(gx, gy, 4, gx, gy, 20);
+      gasGrad.addColorStop(0, '#f97316');
+      gasGrad.addColorStop(0.5, '#ea580c');
+      gasGrad.addColorStop(1, 'rgba(194, 65, 12, 0)');
+      ctx.fillStyle = gasGrad;
+      ctx.beginPath();
+      ctx.arc(gx, gy, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 가스 본체 원 (교과서 갈색 원 Δm)
+      ctx.fillStyle = '#c2410c';
+      ctx.strokeStyle = '#fdba74';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(gx, gy, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // 라벨
+      ctx.fillStyle = '#fed7aa';
+      ctx.font = 'bold 9.5px Space Mono';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Δm = ${deltaM}kg`, gx + 15, gy + 3);
+
+      // 배기가스 속도 벡터 화살표
+      if (showVelVec) {
+        if (frameView === 'ground') {
+          // 외부 정지 관측자 시점: 속도 V - u
+          // V - u 가 음수면 아래(↓), 양수면 위(↑)
+          const gvLen = Math.max(12, Math.min(65, Math.abs(gasGroundVel) / 35));
+          if (gasGroundVel < 0) {
+            // 아래쪽 방향 (배기가스가 뒤로 후진)
+            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + gvLen, '#fb923c', `V - u = ${gasGroundVel.toFixed(0)}m/s (↓)`, -65, 4);
+          } else {
+            // 위쪽 방향 (로켓 초기속도가 너무 커서 가스도 앞으로 전진하지만 로켓보다 느림)
+            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy - gvLen, '#fb923c', `V - u = +${gasGroundVel.toFixed(0)}m/s (↑)`, -65, -4);
+          }
+        } else {
+          // 로켓 탑승자 시점: 속도 -u (항상 아래쪽 ↓)
+          const uLen = Math.min(70, relU / 35);
+          drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + uLen, '#fb923c', `-u = -${relU.toLocaleString()}m/s (↓)`, -65, 4);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // 5. 로켓 본체 그리기 (교과서 그림 I-24 수직 상승 로켓 디자인 완벽 재현)
+    const rx = s.rocketX;
+    const ry = s.rocketY;
+    const rw = 40;
+    const rh = 72;
+
+    // (1) 추진 화염 (방출 중일 때)
+    if (simState === 'ejecting') {
+      const fH = 35 + Math.random() * 18;
+      const fGrad = ctx.createLinearGradient(rx, ry + rh / 2, rx, ry + rh / 2 + fH);
+      fGrad.addColorStop(0, '#ffffff');
+      fGrad.addColorStop(0.3, '#38bdf8');
+      fGrad.addColorStop(0.6, '#f97316');
+      fGrad.addColorStop(1, 'rgba(239, 68, 68, 0)');
+      ctx.fillStyle = fGrad;
+      ctx.beginPath();
+      ctx.moveTo(rx - 10, ry + rh / 2 + 4);
+      ctx.quadraticCurveTo(rx, ry + rh / 2 + fH, rx + 10, ry + rh / 2 + 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // (2) 로켓 측면 핀 (붉은 날개)
+    ctx.fillStyle = '#dc2626';
+    ctx.strokeStyle = '#991b1b';
+    ctx.lineWidth = 1;
+    // 좌측 핀
+    ctx.beginPath();
+    ctx.moveTo(rx - rw / 2, ry + 10);
+    ctx.quadraticCurveTo(rx - rw / 2 - 18, ry + rh / 2 + 4, rx - rw / 2 - 14, ry + rh / 2 + 10);
+    ctx.lineTo(rx - rw / 2 + 4, ry + rh / 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // 우측 핀
+    ctx.beginPath();
+    ctx.moveTo(rx + rw / 2, ry + 10);
+    ctx.quadraticCurveTo(rx + rw / 2 + 18, ry + rh / 2 + 4, rx + rw / 2 + 14, ry + rh / 2 + 10);
+    ctx.lineTo(rx + rw / 2 - 4, ry + rh / 2);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // (3) 로켓 엔진 노즐
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(rx - 10, ry + rh / 2, 20, 6);
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.moveTo(rx - 12, ry + rh / 2 + 6);
+    ctx.lineTo(rx + 12, ry + rh / 2 + 6);
+    ctx.lineTo(rx + 8, ry + rh / 2);
+    ctx.lineTo(rx - 8, ry + rh / 2);
+    ctx.closePath();
+    ctx.fill();
+
+    // (4) 로켓 원통 몸체 (메탈릭 그레이 + 리벳)
+    const bGrad = ctx.createLinearGradient(rx - rw / 2, 0, rx + rw / 2, 0);
+    bGrad.addColorStop(0, '#94a3b8');
+    bGrad.addColorStop(0.35, '#e2e8f0');
+    bGrad.addColorStop(0.7, '#cbd5e1');
+    bGrad.addColorStop(1, '#64748b');
+    ctx.fillStyle = bGrad;
+    ctx.beginPath();
+    ctx.roundRect(rx - rw / 2, ry - 14, rw, rh * 0.72, 4);
+    ctx.fill();
+    ctx.strokeStyle = '#475569';
+    ctx.stroke();
+
+    // (5) 노즈콘 (상단 붉은 원뿔)
+    const noseGrad = ctx.createLinearGradient(rx - rw / 2, 0, rx + rw / 2, 0);
+    noseGrad.addColorStop(0, '#b91c1c');
+    noseGrad.addColorStop(0.4, '#ef4444');
+    noseGrad.addColorStop(1, '#991b1b');
+    ctx.fillStyle = noseGrad;
+    ctx.beginPath();
+    ctx.moveTo(rx - rw / 2, ry - 14);
+    ctx.quadraticCurveTo(rx, ry - rh / 2 - 14, rx + rw / 2, ry - 14);
+    ctx.closePath();
+    ctx.fill();
+
+    // (6) 원형 포트홀 (블루 렌즈 창)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(rx, ry + 2, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.arc(rx, ry + 2, 7.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7dd3fc';
+    ctx.beginPath();
+    ctx.arc(rx - 2.5, ry - 0.5, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // (7) 동체 질량 텍스트 (실시간 질량 감소 반영)
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 9px Space Mono';
+    ctx.textAlign = 'center';
+    const displayMass = Math.round(s.mass);
+    ctx.fillText(`${displayMass}kg`, rx, ry + 26);
+
+    // 6. 로켓 속도 및 운동량 벡터 오버레이
+    if (showVelVec) {
+      // 로켓 속도 벡터 화살표 (위쪽 ↑)
+      const vLen = Math.min(85, Math.max(16, (s.vel / 1200) * 75));
+      const vLabel = simState === 'after' ? `V + Δv = +${s.vel.toFixed(1)}m/s` : `V = +${s.vel.toFixed(1)}m/s`;
+      drawVecArrow(ctx, rx + rw / 2 + 8, ry, rx + rw / 2 + 8, ry - vLen, '#38bdf8', vLabel, 60, -4);
+    }
+
+    if (showMomVec) {
+      // 로켓 운동량 화살표 (우측 더 바깥 위쪽 ↑)
+      const curMom = s.mass * s.vel;
+      const pLen = Math.min(85, Math.max(16, (curMom / Math.max(1, P_initial * 1.5)) * 65));
+      const pLabel = `P_로켓 = +${Math.round(curMom).toLocaleString()}`;
+      drawVecArrow(ctx, rx + rw / 2 + 40, ry, rx + rw / 2 + 40, ry - pLen, '#c084fc', pLabel, 60, -4);
+    }
+
+    // 7. 상단 HUD 배너
+    let hudText = '⚪ [ (가) 방출 전 상태 ] 전체 질량 M, 비행 속도 V로 정속 순항';
+    let hudColor = '#94a3b8';
+    if (s.state === 'ejecting') {
+      hudText = '🔥 [ 배기가스 방출 중... ] 질량 감소 (M → M - Δm) 및 가속 시작';
+      hudColor = '#fbbf24';
+    } else if (s.state === 'after') {
+      hudText = '🚀 [ (나) 방출 후 상태 ] 발사체 질량 (M - Δm) 감소 & 속도 (V + Δv) 증가!';
+      hudColor = '#38bdf8';
+    }
+
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(14, 12, 380, 26, 6);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = hudColor;
+    ctx.font = 'bold 10px Noto Sans KR';
+    ctx.textAlign = 'left';
+    ctx.fillText(hudText, 24, 28);
+
+    // 우측: 속도 및 질량 대형 디스플레이
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.beginPath();
+    ctx.roundRect(W - 250, 12, 236, 44, 6);
+    ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px Noto Sans KR';
+    ctx.fillText('발사체 현재 속도:', W - 240, 27);
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 14px Space Mono';
+    ctx.fillText(`+${s.vel.toFixed(1)} m/s`, W - 145, 27);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '9px Noto Sans KR';
+    ctx.fillText('발사체 현재 질량:', W - 240, 47);
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 13px Space Mono';
+    ctx.fillText(`${s.mass} kg`, W - 145, 47);
+  };
+
+  // 🚀 배기가스 방출 및 가속 트리거
+  const triggerEjection = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.state = 'ejecting';
+    setSimState('ejecting');
+    s.mass = initMass;
+    s.vel = initVel;
+    s.gasPosY = s.rocketY + 45;
+    s.gasAlpha = 1.0;
+    s.particles = [];
+
+    let startTime = null;
+    const EJECT_DUR = 1.6; // 1.6초 동안 가스 방출 및 속도 증가 전환
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000;
+      const prog = Math.min(1.0, elapsed / EJECT_DUR);
+
+      // 질량 감소: M -> M - Δm
+      s.mass = +(initMass - deltaM * prog).toFixed(1);
+      // 속도 증가: V -> V + Δv
+      s.vel = +(initVel + exactDeltaV * prog).toFixed(1);
+      // 고도 누적
+      s.altKm += (s.vel * (1 / 60)) / 1000;
+
+      // 가스 덩어리 이동 (로켓 노즐 아래로 분리)
+      s.gasPosY = s.rocketY + 45 + prog * 45;
+
+      // 분출 파티클 생성
+      if (prog < 0.9) {
+        for (let i = 0; i < 5; i++) {
+          s.particles.push({
+            x: s.rocketX + (Math.random() - 0.5) * 12,
+            y: s.rocketY + 40,
+            vx: (Math.random() - 0.5) * 3,
+            vy: 3 + Math.random() * 5,
+            life: 1.0,
+            decay: 0.05,
+            size: 3 + Math.random() * 4,
+            color: Math.random() > 0.4 ? '#f97316' : '#ef4444'
+          });
+        }
+      }
+
+      // 파티클 업데이트
+      s.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= p.decay;
+      });
+      s.particles = s.particles.filter(p => p.life > 0);
+
+      setCurV(s.vel);
+      setCurM(s.mass);
+
+      renderCanvas();
+
+      if (prog < 1.0) {
+        animRef.current = requestAnimationFrame(step);
+      } else {
+        s.state = 'after';
+        setSimState('after');
+        // 가속 후 순항 루프 유지
+        const afterLoop = () => {
+          s.altKm += (s.vel * (1 / 60)) / 1000;
+          renderCanvas();
+          animRef.current = requestAnimationFrame(afterLoop);
+        };
+        animRef.current = requestAnimationFrame(afterLoop);
+      }
+    };
+
+    animRef.current = requestAnimationFrame(step);
+  };
+
+  // 🔄 초기 상태(가)로 리셋
+  const resetToBefore = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.state = 'before';
+    s.mass = initMass;
+    s.vel = initVel;
+    s.gasAlpha = 0;
+    s.particles = [];
+    setSimState('before');
+    setCurV(initVel);
+    setCurM(initMass);
+    renderCanvas();
+  };
+
+  useEffect(() => {
+    resetToBefore();
+  }, [initMass, initVel, deltaM, relU, frameView]);
+
+  return (
+    <div>
+      {/* ── 교과서 단원 연계 배너 ── */}
+      <div className="hl-box">
+        <h3 style={{color:'#93c5fd',fontSize:15,fontWeight:800,marginBottom:8}}>
+          🌌 교과서 단원 연계: 그림 I-24 발사체에서의 운동량 보존 (초기 속도와 질량 감소 모델)
+        </h3>
+        <p style={{fontSize:13.5,lineHeight:1.8,color:'#e2e8f0'}}>
+          발사체가 이미 <b>초기 속도 <Eq f="V"/></b>로 운동하고 있을 때, 배기가스 <Eq f="\Delta m"/>을 상대 속력 <Eq f="u"/>로 분사하면 
+          발사체의 질량은 <b><Eq f="M \to M - \Delta m"/></b>으로 감소하고, 속도는 <b><Eq f="V \to V + \Delta v"/></b>로 증가합니다.
+          외부 정지계 관측에서 배기가스의 속도가 <b><Eq f="V - u"/></b>가 되는 상대 속도 원리와 <b><Eq f="M\Delta v = u\Delta m"/></b> 유도 과정을 탐구합니다.
+        </p>
+      </div>
+
+      {/* ── 교과서 그림 I-24 완벽 재현 비교 카드 ── */}
+      <div className="card">
+        <p style={{fontWeight:800,fontSize:14,color:'#fbbf24',marginBottom:14}}>
+          🔍 교과서 그림 I-24 발사체에서의 운동량 보존 상태 비교
+        </p>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',gap:16}}>
+          {/* (가) 방출 전 */}
+          <div style={{background:'#0a1020',padding:16,borderRadius:12,border:'1px solid #1e293b'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <span style={{fontWeight:700,color:'#38bdf8'}}>🚀 (가) 배기가스 방출 전</span>
+              <span className="badge badge-blue">초기 상태</span>
+            </div>
+
+            <div style={{display:'flex',alignItems:'center',gap:16,padding:'10px 0'}}>
+              {/* 로켓 미니 모식도 */}
+              <div style={{width:55,height:85,background:'#1e293b',borderRadius:'16px 16px 4px 4px',border:'2px solid #ef4444',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative'}}>
+                <div style={{width:16,height:16,borderRadius:'50%',background:'#0284c7',marginBottom:4}}/>
+                <span style={{fontSize:11,fontWeight:800,color:'#f8fafc',fontFamily:'Space Mono'}}>M</span>
+                <span style={{position:'absolute',top:-18,color:'#38bdf8',fontSize:12,fontWeight:800}}>↑ V</span>
+              </div>
+
+              <div style={{fontSize:12.5,color:'#cbd5e1',lineHeight:1.8}}>
+                • <b>발사체 질량:</b> <Eq f="M"/> = {initMass} kg<br/>
+                • <b>발사체 속도:</b> <Eq f="V"/> = +{initVel} m/s (위쪽)<br/>
+                • <b>전체 초기 운동량:</b><br/>
+                <span className="num-mono" style={{color:'#38bdf8',fontWeight:700}}>
+                  P_초기 = M · V = +{(P_initial).toLocaleString()} kg·m/s
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* (나) 방출 후 */}
+          <div style={{background:'#0a1020',padding:16,borderRadius:12,border:'1px solid #f97316'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+              <span style={{fontWeight:700,color:'#fb923c'}}>🔥 (나) 배기가스 방출 후</span>
+              <span className="badge badge-amber">분출 완료</span>
+            </div>
+
+            <div style={{display:'flex',alignItems:'center',gap:16,padding:'10px 0'}}>
+              {/* 로켓 미니 모식도 + 가스 방출구 */}
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
+                <div style={{width:55,height:85,background:'#1e293b',borderRadius:'16px 16px 4px 4px',border:'2px solid #f97316',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative'}}>
+                  <div style={{width:16,height:16,borderRadius:'50%',background:'#0284c7',marginBottom:4}}/>
+                  <span style={{fontSize:10,fontWeight:800,color:'#f8fafc',fontFamily:'Space Mono'}}>M-Δm</span>
+                  <span style={{position:'absolute',top:-18,color:'#38bdf8',fontSize:12,fontWeight:800}}>↑ V+Δv</span>
+                </div>
+                {/* 방출 가스 */}
+                <div style={{width:18,height:18,borderRadius:'50%',background:'#c2410c',marginTop:6,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'#fed7aa'}}>
+                  Δm
+                </div>
+                <span style={{fontSize:10,color:'#fb923c',fontWeight:700}}>↓ V-u</span>
+              </div>
+
+              <div style={{fontSize:12,color:'#cbd5e1',lineHeight:1.7}}>
+                • <b>가벼워진 발사체:</b> 질량 <Eq f="M - \Delta m"/> ({initMass - deltaM} kg), 속도 <Eq f="V + \Delta v"/> (+{finalVel.toFixed(1)} m/s)<br/>
+                • <b>방출된 배기가스:</b> 질량 <Eq f="\Delta m"/> ({deltaM} kg), 속도 <Eq f="V - u"/> ({gasGroundVel.toFixed(1)} m/s)<br/>
+                • <b>전체 나중 운동량 합:</b><br/>
+                <span className="num-mono" style={{color:'#a3e635',fontWeight:700}}>
+                  P_나중 = (M-Δm)(V+Δv) + Δm(V-u) = +{(Math.round(P_total_after)).toLocaleString()} kg·m/s
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── 인터랙티브 수직 상승 시뮬레이터 ── */}
+      <div className="card">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
+          <div>
+            <span style={{fontWeight:800,fontSize:15,color:'#f8fafc'}}>
+              🚀 [수직 비행 시뮬레이터] 초기 속도 상태에서의 가스 방출 및 속도 증가
+            </span>
+          </div>
+
+          {/* 관측계 및 벡터 토글 */}
+          <div style={{display:'flex',gap:14,fontSize:12,flexWrap:'wrap'}}>
+            <div style={{display:'flex',alignItems:'center',gap:6}}>
+              <span style={{color:'#94a3b8',fontWeight:700}}>관측 기준계:</span>
+              <button className={`btn-secondary ${frameView==='ground'?'active':''}`} onClick={()=>setFrameView('ground')}
+                style={{padding:'4px 10px',fontSize:11.5,background:frameView==='ground'?'#0284c7':'#1e293b',color:frameView==='ground'?'#fff':'#94a3b8'}}>
+                🌐 정지계 (가스 속도 V - u)
+              </button>
+              <button className={`btn-secondary ${frameView==='rocket'?'active':''}`} onClick={()=>setFrameView('rocket')}
+                style={{padding:'4px 10px',fontSize:11.5,background:frameView==='rocket'?'#0284c7':'#1e293b',color:frameView==='rocket'?'#fff':'#94a3b8'}}>
+                🚀 로켓계 (가스 속도 -u)
+              </button>
+            </div>
+
+            <label style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'#38bdf8'}}>
+              <input type="checkbox" checked={showVelVec} onChange={e=>setShowVelVec(e.target.checked)}/>
+              속도 벡터 (<span style={{fontFamily:'Space Mono'}}>v, V</span>)
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:4,cursor:'pointer',color:'#c084fc'}}>
+              <input type="checkbox" checked={showMomVec} onChange={e=>setShowMomVec(e.target.checked)}/>
+              운동량 벡터 (<span style={{fontFamily:'Space Mono'}}>P</span>)
+            </label>
+          </div>
+        </div>
+
+        {/* ── 캔버스 ── */}
+        <canvas ref={canvasRef} width={800} height={250}
+          style={{width:'100%',borderRadius:12,border:'1px solid #1e293b',background:'#020617',display:'block',boxShadow:'0 4px 20px rgba(0,0,0,0.6)',marginBottom:16}} />
+
+        {/* ── 조절 슬라이더 ── */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))',gap:14,marginBottom:16}}>
+          <div>
+            <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>초기 전체 질량 (M)</label>
+            <input type="range" min="600" max="2000" step="50" value={initMass} onChange={e=>setInitMass(+e.target.value)} disabled={simState==='ejecting'} style={{width:'100%'}}/>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#60a5fa',fontFamily:'Space Mono'}}>
+              <span>600 kg</span><span>{initMass} kg</span><span>2000 kg</span>
+            </div>
+          </div>
+          <div>
+            <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>초기 비행 속력 (V)</label>
+            <input type="range" min="100" max="1000" step="50" value={initVel} onChange={e=>setInitVel(+e.target.value)} disabled={simState==='ejecting'} style={{width:'100%'}}/>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#38bdf8',fontFamily:'Space Mono'}}>
+              <span>100 m/s</span><span>{initVel} m/s</span><span>1,000 m/s</span>
+            </div>
+          </div>
+          <div>
+            <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>방출 가스 질량 (Δm)</label>
+            <input type="range" min="20" max="250" step="10" value={deltaM} onChange={e=>setDeltaM(+e.target.value)} disabled={simState==='ejecting'} style={{width:'100%'}}/>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#f59e0b',fontFamily:'Space Mono'}}>
+              <span>20 kg</span><span>{deltaM} kg</span><span>250 kg</span>
+            </div>
+          </div>
+          <div>
+            <label style={{fontSize:11.5,color:'#94a3b8',display:'block',marginBottom:4}}>상대 분사 속력 (u)</label>
+            <input type="range" min="1000" max="3500" step="100" value={relU} onChange={e=>setRelU(+e.target.value)} disabled={simState==='ejecting'} style={{width:'100%'}}/>
+            <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#86efac',fontFamily:'Space Mono'}}>
+              <span>1,000 m/s</span><span>{relU.toLocaleString()} m/s</span><span>3,500 m/s</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 결과 박스 & 제어 버튼 ── */}
+        <div style={{background:'#0a1224',padding:16,borderRadius:12,border:'1px solid #1e3a8a',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:14}}>
+          <div>
+            <p style={{fontSize:12,color:'#94a3b8',marginBottom:4}}>
+              속도 증가량 (교과서 근사 <Eq f="\Delta v \approx u\frac{\Delta m}{M}"/>):
+            </p>
+            <div style={{display:'flex',alignItems:'baseline',gap:8}}>
+              <span className="num-mono" style={{fontSize:28,fontWeight:800,color:'#38bdf8'}}>
+                +{exactDeltaV.toFixed(1)}
+              </span>
+              <span style={{fontSize:14,color:'#93c5fd',fontWeight:700}}>m/s</span>
+              <span style={{fontSize:12,color:'#64748b'}}>
+                (근사값: +{approxDeltaV.toFixed(1)} m/s, 오차 {((Math.abs(exactDeltaV - approxDeltaV)/exactDeltaV)*100).toFixed(1)}%)
+              </span>
+            </div>
+            <p style={{fontSize:11.5,color:'#94a3b8',marginTop:4}}>
+              최종 속도: {initVel} m/s → <b style={{color:'#a3e635'}}>+{finalVel.toFixed(1)} m/s</b> | 배기가스 속도(정지계): <b style={{color:'#f97316'}}>{gasGroundVel.toFixed(1)} m/s</b>
+            </p>
+          </div>
+
+          <div style={{display:'flex',gap:10,alignItems:'center'}}>
+            <button className="btn-secondary" onClick={resetToBefore} disabled={simState==='ejecting'}
+              style={{padding:'12px 18px',fontSize:13}}>
+              🔄 (가) 상태로 리셋
+            </button>
+            <button className="btn-success" onClick={triggerEjection} disabled={simState==='ejecting'}
+              style={{padding:'12px 26px',fontSize:14,boxShadow:'0 0 18px rgba(22,163,74,0.45)'}}>
+              {simState==='ejecting' ? '🔥 가스 방출 가속 중...' : '🚀 배기가스 방출 시험! (가 → 나)'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── 교과서 수식 증명 및 유도 전개 카드 ── */}
+        <div style={{marginTop:16,background:'rgba(15,23,42,0.85)',padding:16,borderRadius:12,border:'1px solid #334155'}}>
+          <p style={{fontWeight:800,fontSize:14,color:'#fbbf24',marginBottom:10}}>
+            📐 교과서 그림 I-24 수식 증명 및 <Eq f="M \Delta v = u \Delta m"/>의 물리적 의미
+          </p>
+
+          <div style={{fontSize:12.8,color:'#e2e8f0',lineHeight:1.9,background:'#0a1020',padding:14,borderRadius:10,border:'1px solid #1e293b',marginBottom:12}}>
+            <p><b>1. 운동량 보존 법칙 적용:</b></p>
+            <p style={{paddingLeft:16}}>
+              <Eq f="M V = (M - \Delta m)(V + \Delta v) + \Delta m (V - u)" display={true}/>
+            </p>
+            <p style={{marginTop:6}}><b>2. 우변 전개:</b></p>
+            <p style={{paddingLeft:16}}>
+              <Eq f="M V = M V + M \Delta v - \Delta m V - \Delta m \Delta v + \Delta m V - u \Delta m" display={true}/>
+            </p>
+            <p style={{marginTop:6}}><b>3. 양변의 <Eq f="M V"/> 및 <Eq f="\Delta m V"/> 상쇄:</b></p>
+            <p style={{paddingLeft:16}}>
+              <Eq f="0 = M \Delta v - \Delta m \Delta v - u \Delta m \implies M \Delta v = u \Delta m + \Delta m \Delta v" display={true}/>
+            </p>
+            <p style={{marginTop:6}}><b>4. 교과서의 핵심 근사 (<Eq f="\Delta m \Delta v \approx 0"/>):</b></p>
+            <p style={{paddingLeft:16}}>
+              <Eq f="\Delta m \Delta v"/>는 두 미소 변화량의 곱이므로 다른 항들에 비해 매우 작아 무시할 수 있습니다.<br/>
+              현재 실험값에서: <Eq f="u \Delta m"/> = {(term_udm).toLocaleString()} N·s vs <Eq f="\Delta m \Delta v"/> = {(term_dmdv).toFixed(0)} N·s (비율: {((term_dmdv/term_udm)*100).toFixed(1)}%)<br/>
+              따라서 최종적으로 다음 관계가 성립합니다:
+            </p>
+            <p style={{paddingLeft:16,fontSize:15,fontWeight:800,color:'#38bdf8',marginTop:4}}>
+              <Eq f="M \Delta v = u \Delta m \iff \Delta v = u \frac{\Delta m}{M}" display={true}/>
+            </p>
+          </div>
+
+          <p style={{fontSize:12.5,color:'#cbd5e1',lineHeight:1.8}}>
+            💡 <b>교과서 결론:</b> 발사체에서 분사하는 <b>배기가스의 질량 <Eq f="\Delta m"/>이 크고 그 속력 <Eq f="u"/>가 빠를수록</b> 발사체의 
+            속도 증가량 <Eq f="\Delta v"/>가 더 커집니다. 또한 이를 미소 시간 <Eq f="dt"/>에 대해 연속적으로 적분하면 현대 우주 로켓의 근간인 
+            <b>치올콥스키 로켓 방정식</b> <Eq f="\Delta V = u \ln\left(\frac{M_{\text{초기}}}{M_{\text{최종}}}\right)"/>으로 자연스럽게 확장됩니다!
+          </p>
         </div>
       </div>
     </div>
@@ -1099,4 +2352,4 @@ root.render(<App />);
 </body>
 </html>"""
 
-components.html(REACT_HTML, height=980, scrolling=True)
+components.html(REACT_HTML, height=1150, scrolling=True)
