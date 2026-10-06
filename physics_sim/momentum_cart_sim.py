@@ -1557,7 +1557,7 @@ function RocketMotionPrincipleTab() {
   const [deltaM, setDeltaM] = useState(100);        // 방출 배기가스 질량 Δm (kg)
   const [relU, setRelU] = useState(2000);           // 상대 분사 속력 u (m/s)
 
-  // 관측 기준계: 'ground'(외부 정지계: 가스 속도 V - u) | 'rocket'(로켓 탑승계: 가스 속도 -u)
+  // 관측 기준계: 'ground'(외부 정지계: 배경 고정, 로켓 상승) | 'rocket'(로켓계: 로켓 고정, 배경 흐름)
   const [frameView, setFrameView] = useState('ground');
 
   // 물리 벡터 토글
@@ -1570,10 +1570,6 @@ function RocketMotionPrincipleTab() {
   const [curM, setCurM] = useState(initMass);
 
   // 물리 이론값 정밀 계산
-  // 운동량 보존: M*V = (M - Δm)*(V + Δv) + Δm*(V - u)
-  // 전개: M*V = M*V + (M - Δm)*Δv - u*Δm  =>  (M - Δm)*Δv = u*Δm
-  // 정밀 Δv = (u * Δm) / (M - Δm)
-  // 교과서 근사 Δv (Δm*Δv ≈ 0 무시): M*Δv ≈ u*Δm => Δv_approx = (u * Δm) / M
   const exactDeltaV = (relU * deltaM) / (initMass - deltaM);
   const approxDeltaV = (relU * deltaM) / initMass;
   const finalVel = initVel + exactDeltaV;
@@ -1593,17 +1589,19 @@ function RocketMotionPrincipleTab() {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const simRef = useRef({
-    rocketY: 155, // 캔버스 세로 중앙 아래
-    rocketX: 400, // 캔버스 가로 중앙
+    rocketY: 170, // 정지계에서는 아래쪽 시작, 로켓계에서는 135 중앙 고정
+    rocketX: 400,
     vel: initVel,
     mass: initMass,
-    state: 'before', // 'before' | 'ejecting' | 'after'
+    state: 'before',
     altKm: 120.0,
     gasPosY: 0,
     gasAlpha: 0,
+    ejectProgress: 0,
+    ejectStartTime: null,
     stars: Array.from({ length: 65 }, (_, i) => ({
       x: (i * 37 + 19) % 800,
-      y: (i * 29 + 11) % 270,
+      y: (i * 29 + 11) % 260,
       r: (i % 3 === 0 ? 1.7 : 1.0),
       speedMult: 0.6 + ((i * 13) % 9) / 10
     })),
@@ -1641,14 +1639,8 @@ function RocketMotionPrincipleTab() {
     }
   };
 
-  // 캔버스 렌더링
-  const renderCanvas = () => {
-    const cvs = canvasRef.current;
-    if (!cvs) return;
-    const ctx = cvs.getContext('2d');
-    const W = cvs.width, H = cvs.height;
-    const s = simRef.current;
-
+  // 캔버스 그리기 함수
+  const drawScene = (ctx, W, H, s) => {
     // 1. 심우주 배경
     const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
     bgGrad.addColorStop(0, '#020617');
@@ -1664,38 +1656,58 @@ function RocketMotionPrincipleTab() {
     ctx.fillStyle = radG;
     ctx.fillRect(0, 0, W, H);
 
-    // 2. 배경 별무리 (수직 하강: 로켓이 위로 상승하므로 상대적으로 별들이 아래로 흘러내림)
-    const starSpeedBase = (s.vel / 120);
+    // 2. 배경 별무리 렌더링
+    // (정지계: 별 위치 완전 고정! / 로켓계: 별이 아래로 흘러내림)
     s.stars.forEach(st => {
-      st.y = (st.y + starSpeedBase * st.speedMult) % H;
       ctx.fillStyle = '#e2e8f0';
       ctx.beginPath();
       ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
       ctx.fill();
     });
 
-    // 3. 고도 기준선 (좌측 고도 표시)
+    // 3. 고도 및 기준 좌표계 축 (좌측)
     ctx.strokeStyle = '#1e293b';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(35, 10);
-    ctx.lineTo(35, H - 10);
+    ctx.moveTo(40, 10);
+    ctx.lineTo(40, H - 10);
     ctx.stroke();
 
-    for (let y = 20; y <= H - 20; y += 45) {
-      ctx.beginPath();
-      ctx.moveTo(30, y);
-      ctx.lineTo(40, y);
-      ctx.stroke();
+    if (frameView === 'ground') {
+      // 정지계: 고정된 지표면 기준 격자 눈금자 (화면에 고정!)
+      const groundTicks = [
+        { y: 35, label: '200 km' },
+        { y: 85, label: '160 km' },
+        { y: 135, label: '120 km' },
+        { y: 185, label: '80 km' },
+        { y: 235, label: '40 km' }
+      ];
+      groundTicks.forEach(gt => {
+        ctx.strokeStyle = '#334155';
+        ctx.beginPath(); ctx.moveTo(35, gt.y); ctx.lineTo(45, gt.y); ctx.stroke();
+        ctx.fillStyle = '#64748b';
+        ctx.font = '8px Space Mono';
+        ctx.textAlign = 'left';
+        ctx.fillText(gt.label, 50, gt.y + 3);
+      });
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 8.5px Noto Sans KR';
+      ctx.textAlign = 'left';
+      ctx.fillText('🏛️ 고정 좌표계', 48, 16);
+    } else {
+      // 로켓계: 로켓 기준 동적 고도 표시
+      for (let y = 20; y <= H - 20; y += 45) {
+        ctx.strokeStyle = '#334155';
+        ctx.beginPath(); ctx.moveTo(35, y); ctx.lineTo(45, y); ctx.stroke();
+      }
+      ctx.fillStyle = '#64748b';
+      ctx.font = '8px Space Mono';
+      ctx.textAlign = 'left';
+      ctx.fillText(`고도 ${(s.altKm).toFixed(1)} km`, 50, H - 15);
+      ctx.fillText('상승 방향 (↑)', 50, 25);
     }
-    ctx.fillStyle = '#64748b';
-    ctx.font = '8px Space Mono';
-    ctx.textAlign = 'left';
-    ctx.fillText(`고도 ${(s.altKm).toFixed(1)} km`, 45, H - 15);
-    ctx.fillText('상승 방향 (↑)', 45, 25);
 
     // 4. 배기가스 방출 덩어리 및 파티클
-    // (1) 방출된 배기가스 파티클
     s.particles.forEach(p => {
       ctx.save();
       ctx.globalAlpha = Math.max(0, p.life);
@@ -1706,7 +1718,6 @@ function RocketMotionPrincipleTab() {
       ctx.restore();
     });
 
-    // (2) 방출된 배기가스 덩어리 Δm (교과서의 갈색 원과 말풍선)
     if (s.gasAlpha > 0) {
       const gx = s.rocketX;
       const gy = s.gasPosY;
@@ -1715,13 +1726,13 @@ function RocketMotionPrincipleTab() {
       ctx.globalAlpha = s.gasAlpha;
 
       // 가스 덩어리 외부 구름
-      const gasGrad = ctx.createRadialGradient(gx, gy, 4, gx, gy, 20);
+      const gasGrad = ctx.createRadialGradient(gx, gy, 4, gx, gy, 22);
       gasGrad.addColorStop(0, '#f97316');
       gasGrad.addColorStop(0.5, '#ea580c');
       gasGrad.addColorStop(1, 'rgba(194, 65, 12, 0)');
       ctx.fillStyle = gasGrad;
       ctx.beginPath();
-      ctx.arc(gx, gy, 20, 0, Math.PI * 2);
+      ctx.arc(gx, gy, 22, 0, Math.PI * 2);
       ctx.fill();
 
       // 가스 본체 원 (교과서 갈색 원 Δm)
@@ -1729,11 +1740,10 @@ function RocketMotionPrincipleTab() {
       ctx.strokeStyle = '#fdba74';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(gx, gy, 9, 0, Math.PI * 2);
+      ctx.arc(gx, gy, 9.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      // 라벨
       ctx.fillStyle = '#fed7aa';
       ctx.font = 'bold 9.5px Space Mono';
       ctx.textAlign = 'left';
@@ -1743,33 +1753,32 @@ function RocketMotionPrincipleTab() {
       if (showVelVec) {
         if (frameView === 'ground') {
           // 외부 정지 관측자 시점: 속도 V - u
-          // V - u 가 음수면 아래(↓), 양수면 위(↑)
-          const gvLen = Math.max(12, Math.min(65, Math.abs(gasGroundVel) / 35));
+          const gvLen = Math.max(14, Math.min(65, Math.abs(gasGroundVel) / 35));
           if (gasGroundVel < 0) {
-            // 아래쪽 방향 (배기가스가 뒤로 후진)
-            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + gvLen, '#fb923c', `V - u = ${gasGroundVel.toFixed(0)}m/s (↓)`, -65, 4);
+            // 아래쪽 방향 (배기가스가 지표면 기준 후진)
+            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + gvLen, '#fb923c', `V - u = ${gasGroundVel.toFixed(0)}m/s (↓)`, -68, 4);
           } else {
             // 위쪽 방향 (로켓 초기속도가 너무 커서 가스도 앞으로 전진하지만 로켓보다 느림)
-            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy - gvLen, '#fb923c', `V - u = +${gasGroundVel.toFixed(0)}m/s (↑)`, -65, -4);
+            drawVecArrow(ctx, gx - 14, gy, gx - 14, gy - gvLen, '#fb923c', `V - u = +${gasGroundVel.toFixed(0)}m/s (↑)`, -68, -4);
           }
         } else {
           // 로켓 탑승자 시점: 속도 -u (항상 아래쪽 ↓)
           const uLen = Math.min(70, relU / 35);
-          drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + uLen, '#fb923c', `-u = -${relU.toLocaleString()}m/s (↓)`, -65, 4);
+          drawVecArrow(ctx, gx - 14, gy, gx - 14, gy + uLen, '#fb923c', `-u = -${relU.toLocaleString()}m/s (↓)`, -68, 4);
         }
       }
 
       ctx.restore();
     }
 
-    // 5. 로켓 본체 그리기 (교과서 그림 I-24 수직 상승 로켓 디자인 완벽 재현)
+    // 5. 로켓 본체 그리기
     const rx = s.rocketX;
     const ry = s.rocketY;
     const rw = 40;
     const rh = 72;
 
     // (1) 추진 화염 (방출 중일 때)
-    if (simState === 'ejecting') {
+    if (s.state === 'ejecting') {
       const fH = 35 + Math.random() * 18;
       const fGrad = ctx.createLinearGradient(rx, ry + rh / 2, rx, ry + rh / 2 + fH);
       fGrad.addColorStop(0, '#ffffff');
@@ -1815,7 +1824,7 @@ function RocketMotionPrincipleTab() {
     ctx.closePath();
     ctx.fill();
 
-    // (4) 로켓 원통 몸체 (메탈릭 그레이 + 리벳)
+    // (4) 로켓 원통 몸체 (메탈릭 그레이)
     const bGrad = ctx.createLinearGradient(rx - rw / 2, 0, rx + rw / 2, 0);
     bGrad.addColorStop(0, '#94a3b8');
     bGrad.addColorStop(0.35, '#e2e8f0');
@@ -1863,14 +1872,12 @@ function RocketMotionPrincipleTab() {
 
     // 6. 로켓 속도 및 운동량 벡터 오버레이
     if (showVelVec) {
-      // 로켓 속도 벡터 화살표 (위쪽 ↑)
       const vLen = Math.min(85, Math.max(16, (s.vel / 1200) * 75));
-      const vLabel = simState === 'after' ? `V + Δv = +${s.vel.toFixed(1)}m/s` : `V = +${s.vel.toFixed(1)}m/s`;
+      const vLabel = s.state === 'after' ? `V + Δv = +${s.vel.toFixed(1)}m/s` : `V = +${s.vel.toFixed(1)}m/s`;
       drawVecArrow(ctx, rx + rw / 2 + 8, ry, rx + rw / 2 + 8, ry - vLen, '#38bdf8', vLabel, 60, -4);
     }
 
     if (showMomVec) {
-      // 로켓 운동량 화살표 (우측 더 바깥 위쪽 ↑)
       const curMom = s.mass * s.vel;
       const pLen = Math.min(85, Math.max(16, (curMom / Math.max(1, P_initial * 1.5)) * 65));
       const pLabel = `P_로켓 = +${Math.round(curMom).toLocaleString()}`;
@@ -1878,92 +1885,121 @@ function RocketMotionPrincipleTab() {
     }
 
     // 7. 상단 HUD 배너
-    let hudText = '⚪ [ (가) 방출 전 상태 ] 전체 질량 M, 비행 속도 V로 정속 순항';
+    let hudText = '';
     let hudColor = '#94a3b8';
-    if (s.state === 'ejecting') {
-      hudText = '🔥 [ 배기가스 방출 중... ] 질량 감소 (M → M - Δm) 및 가속 시작';
-      hudColor = '#fbbf24';
-    } else if (s.state === 'after') {
-      hudText = '🚀 [ (나) 방출 후 상태 ] 발사체 질량 (M - Δm) 감소 & 속도 (V + Δv) 증가!';
-      hudColor = '#38bdf8';
+
+    if (frameView === 'ground') {
+      if (s.state === 'before') {
+        hudText = '🌐 [외부 정지계 관측] 배경: 정지(지표면 고정) | 로켓: 초기 속도 V 로 위로 상승 이동 중';
+        hudColor = '#94a3b8';
+      } else if (s.state === 'ejecting') {
+        hudText = `🔥 [가스 방출 중] 로켓 가속(V+Δv) 솟구침 | 가스: V - u (${gasGroundVel.toFixed(0)}m/s) 로 분리 이동`;
+        hudColor = '#fbbf24';
+      } else {
+        hudText = `🚀 [방출 완료] 배경 고정 | 로켓: +${s.vel.toFixed(1)}m/s 고속 상승 | 가스: ${gasGroundVel.toFixed(0)}m/s 분리 이동`;
+        hudColor = '#38bdf8';
+      }
+    } else {
+      if (s.state === 'before') {
+        hudText = '🚀 [로켓계 관측] 로켓: 화면 중앙 정지(내 우주선) | 배경: 속도 -V 로 뒤로 스쳐 흐름';
+        hudColor = '#94a3b8';
+      } else if (s.state === 'ejecting') {
+        hudText = `🔥 [가스 방출 중] 배경 흐름 가속 | 배기가스: 로켓 기준 속도 -u (-${relU.toLocaleString()}m/s) 로 후방 분출`;
+        hudColor = '#fbbf24';
+      } else {
+        hudText = `🛸 [가속 순항 중] 로켓: 중앙 정지 | 배경: -(V+Δv) 초고속 하강 | 가스: -u 로 후방 분출 완료`;
+        hudColor = '#38bdf8';
+      }
     }
 
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.strokeStyle = '#334155';
-    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+    ctx.strokeStyle = frameView === 'ground' ? '#0ea5e9' : '#a855f7';
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(14, 12, 380, 26, 6);
+    ctx.roundRect(14, 10, 480, 26, 6);
     ctx.fill(); ctx.stroke();
     ctx.fillStyle = hudColor;
-    ctx.font = 'bold 10px Noto Sans KR';
+    ctx.font = 'bold 9.5px Noto Sans KR';
     ctx.textAlign = 'left';
-    ctx.fillText(hudText, 24, 28);
+    ctx.fillText(hudText, 22, 26);
 
     // 우측: 속도 및 질량 대형 디스플레이
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
     ctx.strokeStyle = '#1e3a8a';
     ctx.beginPath();
-    ctx.roundRect(W - 250, 12, 236, 44, 6);
+    ctx.roundRect(W - 250, 10, 236, 44, 6);
     ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '9px Noto Sans KR';
-    ctx.fillText('발사체 현재 속도:', W - 240, 27);
+    ctx.fillText('발사체 현재 속도:', W - 240, 25);
     ctx.fillStyle = '#38bdf8';
     ctx.font = 'bold 14px Space Mono';
-    ctx.fillText(`+${s.vel.toFixed(1)} m/s`, W - 145, 27);
+    ctx.fillText(`+${s.vel.toFixed(1)} m/s`, W - 145, 25);
 
     ctx.fillStyle = '#94a3b8';
     ctx.font = '9px Noto Sans KR';
-    ctx.fillText('발사체 현재 질량:', W - 240, 47);
+    ctx.fillText('발사체 현재 질량:', W - 240, 45);
     ctx.fillStyle = '#f59e0b';
     ctx.font = 'bold 13px Space Mono';
-    ctx.fillText(`${s.mass} kg`, W - 145, 47);
+    ctx.fillText(`${s.mass} kg`, W - 145, 45);
   };
 
-  // 🚀 배기가스 방출 및 가속 트리거
-  const triggerEjection = () => {
-    cancelAnimationFrame(animRef.current);
+  // 🚀 연속 애니메이션 루프 (상시 실행되어 정지계와 로켓계의 배경/로켓 움직임을 실시간 렌더링)
+  useEffect(() => {
     const s = simRef.current;
-    s.state = 'ejecting';
-    setSimState('ejecting');
-    s.mass = initMass;
-    s.vel = initVel;
-    s.gasPosY = s.rocketY + 45;
-    s.gasAlpha = 1.0;
-    s.particles = [];
+    s.mass = simState === 'after' ? (initMass - deltaM) : initMass;
+    s.vel = simState === 'after' ? finalVel : initVel;
+    setCurV(s.vel);
+    setCurM(s.mass);
 
-    let startTime = null;
-    const EJECT_DUR = 1.6; // 1.6초 동안 가스 방출 및 속도 증가 전환
+    if (frameView === 'rocket') {
+      s.rocketY = 135; // 로켓계는 화면 중앙에 고정
+    }
 
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = (timestamp - startTime) / 1000;
-      const prog = Math.min(1.0, elapsed / EJECT_DUR);
+    let isRunning = true;
 
-      // 질량 감소: M -> M - Δm
-      s.mass = +(initMass - deltaM * prog).toFixed(1);
-      // 속도 증가: V -> V + Δv
-      s.vel = +(initVel + exactDeltaV * prog).toFixed(1);
-      // 고도 누적
-      s.altKm += (s.vel * (1 / 60)) / 1000;
+    const mainLoop = (timestamp) => {
+      if (!isRunning) return;
+      const cvs = canvasRef.current;
+      if (!cvs) {
+        animRef.current = requestAnimationFrame(mainLoop);
+        return;
+      }
+      const ctx = cvs.getContext('2d');
+      const W = cvs.width, H = cvs.height;
 
-      // 가스 덩어리 이동 (로켓 노즐 아래로 분리)
-      s.gasPosY = s.rocketY + 45 + prog * 45;
+      // 1. 방출 단계 애니메이션 진행
+      if (s.state === 'ejecting') {
+        if (!s.ejectStartTime) s.ejectStartTime = timestamp;
+        const elapsed = (timestamp - s.ejectStartTime) / 1000;
+        const prog = Math.min(1.0, elapsed / 1.6);
+        s.ejectProgress = prog;
 
-      // 분출 파티클 생성
-      if (prog < 0.9) {
-        for (let i = 0; i < 5; i++) {
-          s.particles.push({
-            x: s.rocketX + (Math.random() - 0.5) * 12,
-            y: s.rocketY + 40,
-            vx: (Math.random() - 0.5) * 3,
-            vy: 3 + Math.random() * 5,
-            life: 1.0,
-            decay: 0.05,
-            size: 3 + Math.random() * 4,
-            color: Math.random() > 0.4 ? '#f97316' : '#ef4444'
-          });
+        s.mass = +(initMass - deltaM * prog).toFixed(1);
+        s.vel = +(initVel + exactDeltaV * prog).toFixed(1);
+        setCurV(s.vel);
+        setCurM(s.mass);
+
+        // 분출 파티클 생성
+        if (prog < 0.9) {
+          for (let i = 0; i < 4; i++) {
+            s.particles.push({
+              x: s.rocketX + (Math.random() - 0.5) * 12,
+              y: s.rocketY + 40,
+              vx: (Math.random() - 0.5) * 2.5,
+              vy: 3 + Math.random() * 5,
+              life: 1.0,
+              decay: 0.05,
+              size: 3 + Math.random() * 4,
+              color: Math.random() > 0.4 ? '#f97316' : '#ef4444'
+            });
+          }
+        }
+
+        if (prog >= 1.0) {
+          s.state = 'after';
+          setSimState('after');
         }
       }
 
@@ -1975,47 +2011,99 @@ function RocketMotionPrincipleTab() {
       });
       s.particles = s.particles.filter(p => p.life > 0);
 
-      setCurV(s.vel);
-      setCurM(s.mass);
+      // 2. 관측 기준계(frameView)에 따른 물리적 위치 계산 (핵심!)
+      s.altKm += (s.vel * (1 / 60)) / 1000;
 
-      renderCanvas();
+      if (frameView === 'ground') {
+        // [외부 정지계 (지표면 관측)]
+        // (1) 배경 별들은 완전히 멈춤! (st.y 변경 없음)
+        // (2) 로켓이 실제로 위로 물리적 상승!
+        const rSpeed = (s.vel / 220);
+        s.rocketY -= rSpeed;
+        if (s.rocketY < -45) {
+          s.rocketY = H + 40; // 화면 위를 벗어나면 아래에서 다시 상승
+        }
 
-      if (prog < 1.0) {
-        animRef.current = requestAnimationFrame(step);
+        // (3) 방출된 배기가스는 지표면 기준 속도 V - u 로 이동!
+        if (s.gasAlpha > 0) {
+          const gSpeed = (gasGroundVel / 220);
+          s.gasPosY -= gSpeed; // gasGroundVel < 0 이면 아래로(Y 증가), > 0 이면 위로
+        }
       } else {
-        s.state = 'after';
-        setSimState('after');
-        // 가속 후 순항 루프 유지
-        const afterLoop = () => {
-          s.altKm += (s.vel * (1 / 60)) / 1000;
-          renderCanvas();
-          animRef.current = requestAnimationFrame(afterLoop);
-        };
-        animRef.current = requestAnimationFrame(afterLoop);
+        // [로켓계 (우주선 조종사 관측)]
+        // (1) 로켓은 화면 중앙에 완벽히 정지!
+        s.rocketY = 135;
+
+        // (2) 배경 별들이 로켓의 속도에 비례해 아래로 쏟아져 내림!
+        const starSpeed = (s.vel / 110);
+        s.stars.forEach(st => {
+          st.y = (st.y + starSpeed * st.speedMult) % H;
+        });
+
+        // (3) 방출된 배기가스는 로켓에 대해 항상 -u 속도로 아래로 뿜어져 나감!
+        if (s.gasAlpha > 0) {
+          const uSpeed = (relU / 180);
+          s.gasPosY += uSpeed;
+        }
       }
+
+      // 3. 렌더링
+      drawScene(ctx, W, H, s);
+
+      animRef.current = requestAnimationFrame(mainLoop);
     };
 
-    animRef.current = requestAnimationFrame(step);
+    animRef.current = requestAnimationFrame(mainLoop);
+    return () => {
+      isRunning = false;
+      cancelAnimationFrame(animRef.current);
+    };
+  }, [initMass, initVel, deltaM, relU, frameView, simState]);
+
+  // 🚀 배기가스 방출 및 가속 트리거
+  const triggerEjection = () => {
+    const s = simRef.current;
+    s.state = 'ejecting';
+    s.ejectStartTime = null;
+    s.ejectProgress = 0;
+    s.mass = initMass;
+    s.vel = initVel;
+    s.gasPosY = s.rocketY + 45;
+    s.gasAlpha = 1.0;
+    s.particles = [];
+    setSimState('ejecting');
   };
 
   // 🔄 초기 상태(가)로 리셋
   const resetToBefore = () => {
-    cancelAnimationFrame(animRef.current);
     const s = simRef.current;
     s.state = 'before';
+    s.ejectStartTime = null;
+    s.ejectProgress = 0;
     s.mass = initMass;
     s.vel = initVel;
     s.gasAlpha = 0;
     s.particles = [];
+    if (frameView === 'ground') {
+      s.rocketY = 175; // 정지계는 아래쪽에서 다시 출발
+    } else {
+      s.rocketY = 135; // 로켓계는 중앙 고정
+    }
     setSimState('before');
     setCurV(initVel);
     setCurM(initMass);
-    renderCanvas();
   };
 
-  useEffect(() => {
-    resetToBefore();
-  }, [initMass, initVel, deltaM, relU, frameView]);
+  // 관측계 전환 핸들러
+  const handleFrameChange = (newFrame) => {
+    setFrameView(newFrame);
+    const s = simRef.current;
+    if (newFrame === 'ground') {
+      s.rocketY = 175; // 정지계는 아래쪽에서 출발
+    } else {
+      s.rocketY = 135; // 로켓계는 중앙 고정
+    }
+  };
 
   return (
     <div>
@@ -2046,7 +2134,6 @@ function RocketMotionPrincipleTab() {
             </div>
 
             <div style={{display:'flex',alignItems:'center',gap:16,padding:'10px 0'}}>
-              {/* 로켓 미니 모식도 */}
               <div style={{width:55,height:85,background:'#1e293b',borderRadius:'16px 16px 4px 4px',border:'2px solid #ef4444',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative'}}>
                 <div style={{width:16,height:16,borderRadius:'50%',background:'#0284c7',marginBottom:4}}/>
                 <span style={{fontSize:11,fontWeight:800,color:'#f8fafc',fontFamily:'Space Mono'}}>M</span>
@@ -2072,14 +2159,12 @@ function RocketMotionPrincipleTab() {
             </div>
 
             <div style={{display:'flex',alignItems:'center',gap:16,padding:'10px 0'}}>
-              {/* 로켓 미니 모식도 + 가스 방출구 */}
               <div style={{display:'flex',flexDirection:'column',alignItems:'center'}}>
                 <div style={{width:55,height:85,background:'#1e293b',borderRadius:'16px 16px 4px 4px',border:'2px solid #f97316',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative'}}>
                   <div style={{width:16,height:16,borderRadius:'50%',background:'#0284c7',marginBottom:4}}/>
                   <span style={{fontSize:10,fontWeight:800,color:'#f8fafc',fontFamily:'Space Mono'}}>M-Δm</span>
                   <span style={{position:'absolute',top:-18,color:'#38bdf8',fontSize:12,fontWeight:800}}>↑ V+Δv</span>
                 </div>
-                {/* 방출 가스 */}
                 <div style={{width:18,height:18,borderRadius:'50%',background:'#c2410c',marginTop:6,display:'flex',alignItems:'center',justifyContent:'center',fontSize:8,fontWeight:800,color:'#fed7aa'}}>
                   Δm
                 </div>
@@ -2109,16 +2194,16 @@ function RocketMotionPrincipleTab() {
           </div>
 
           {/* 관측계 및 벡터 토글 */}
-          <div style={{display:'flex',gap:14,fontSize:12,flexWrap:'wrap'}}>
+          <div style={{display:'flex',gap:14,fontSize:12,flexWrap:'wrap',alignItems:'center'}}>
             <div style={{display:'flex',alignItems:'center',gap:6}}>
               <span style={{color:'#94a3b8',fontWeight:700}}>관측 기준계:</span>
-              <button className={`btn-secondary ${frameView==='ground'?'active':''}`} onClick={()=>setFrameView('ground')}
-                style={{padding:'4px 10px',fontSize:11.5,background:frameView==='ground'?'#0284c7':'#1e293b',color:frameView==='ground'?'#fff':'#94a3b8'}}>
-                🌐 정지계 (가스 속도 V - u)
+              <button className={`btn-secondary ${frameView==='ground'?'active':''}`} onClick={()=>handleFrameChange('ground')}
+                style={{padding:'5px 12px',fontSize:12,fontWeight:700,background:frameView==='ground'?'#0284c7':'#1e293b',color:frameView==='ground'?'#fff':'#94a3b8',border:frameView==='ground'?'1px solid #38bdf8':'1px solid #334155'}}>
+                🌐 정지계 (배경 정지, 로켓 상승)
               </button>
-              <button className={`btn-secondary ${frameView==='rocket'?'active':''}`} onClick={()=>setFrameView('rocket')}
-                style={{padding:'4px 10px',fontSize:11.5,background:frameView==='rocket'?'#0284c7':'#1e293b',color:frameView==='rocket'?'#fff':'#94a3b8'}}>
-                🚀 로켓계 (가스 속도 -u)
+              <button className={`btn-secondary ${frameView==='rocket'?'active':''}`} onClick={()=>handleFrameChange('rocket')}
+                style={{padding:'5px 12px',fontSize:12,fontWeight:700,background:frameView==='rocket'?'#7c3aed':'#1e293b',color:frameView==='rocket'?'#fff':'#94a3b8',border:frameView==='rocket'?'1px solid #c084fc':'1px solid #334155'}}>
+                🚀 로켓계 (로켓 정지, 배경 흐름)
               </button>
             </div>
 
@@ -2131,6 +2216,15 @@ function RocketMotionPrincipleTab() {
               운동량 벡터 (<span style={{fontFamily:'Space Mono'}}>P</span>)
             </label>
           </div>
+        </div>
+
+        {/* 관측계 모드 친절 안내 박스 */}
+        <div style={{marginBottom:10,padding:'8px 14px',borderRadius:8,fontSize:12,background:frameView==='ground'?'rgba(2,132,199,0.12)':'rgba(124,58,237,0.12)',border:frameView==='ground'?'1px solid rgba(2,132,199,0.35)':'1px solid rgba(124,58,237,0.35)',color:frameView==='ground'?'#7dd3fc':'#d8b4fe'}}>
+          {frameView === 'ground' ? (
+            <span>💡 <b>외부 정지계 (지표면 관측):</b> 관측자가 멈춰 있으므로 <b>배경(별·좌표계)은 정지</b>해 있고, <b>로켓이 실제로 화면 위로 상승</b>하며, 분출된 가스는 지표면 기준 속도 <b>V - u</b>로 분리 이동합니다.</span>
+          ) : (
+            <span>💡 <b>로켓계 (우주선 조종사 관측):</b> 관측자가 로켓에 타고 있으므로 <b>로켓은 화면 중앙에 정지(내 우주선)</b>해 있고, <b>배경 별들이 뒤로 스쳐 지나가며</b>, 가스는 로켓 기준 상대 속도 <b>-u</b>로 후방 분출됩니다.</span>
+          )}
         </div>
 
         {/* ── 캔버스 ── */}
