@@ -42,10 +42,10 @@ REACT_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
@@ -108,12 +108,12 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <span style={{fontSize:24}}>🚀</span>
             <h2 style={{fontSize:19,fontWeight:800,color:'#f8fafc'}}>
-              누리호 5차 발사 기반 3D 로켓 비행 & 분리 가상실험실
+              누리호 5차 발사 기반 3D/2D 로켓 비행 & 분리 가상실험실
             </h2>
             <span className="badge badge-lime">역학과 에너지 [쉬운 해설]</span>
           </div>
           <p style={{fontSize:12.5,color:'#94a3b8',marginTop:4}}>
-            지상 발사대에서 700km 우주 궤도 진입까지, <b>'왜 다 탄 빈 로켓과 위성 덮개를 제때 버려야 하는지'</b> 3D 비행으로 확인하세요!
+            지상 발사대에서 700km 우주 궤도 진입까지, <b>'왜 다 탄 빈 로켓과 위성 덮개를 제때 버려야 하는지'</b> 비행으로 확인하세요!
           </p>
         </div>
 
@@ -129,7 +129,7 @@ function App() {
       {/* 탭 네비게이션 */}
       <div className="tab-bar">
         <button className={`tab-btn ${activeTab==='sim3d'?'active':''}`} onClick={()=>setActiveTab('sim3d')}>
-          🌌 [3D 시뮬레이션] 지상 발사 ~ 700km 궤도 3D 비행 & 3가지 조건 비교
+          🌌 [가상 시뮬레이션] 지상 발사 ~ 700km 궤도 비행 & 3가지 조건 비교
         </button>
         <button className={`tab-btn ${activeTab==='dataTable'?'active':''}`} onClick={()=>setActiveTab('dataTable')}>
           📊 [데이터 비교 표] 3가지 발사 조건 정량적 최종 속도/질량 데이터 비교표
@@ -142,7 +142,7 @@ function App() {
         </button>
       </div>
 
-      {activeTab === 'sim3d' && <Nuri3DSimTab />}
+      {activeTab === 'sim3d' && <NuriSimTab />}
       {activeTab === 'dataTable' && <DataTableTab />}
       {activeTab === 'math' && <MathTab />}
       {activeTab === 'report' && <ReportTab />}
@@ -151,48 +151,39 @@ function App() {
 }
 
 /* ══════════════════════════════════════════════════
-   탭 1: 누리호 지상 발사 ~ 700km 궤도 3D Three.js 시뮬레이션
+   탭 1: 누리호 지상 발사 ~ 700km 궤도 시뮬레이션
 ══════════════════════════════════════════════════ */
-function Nuri3DSimTab() {
+function NuriSimTab() {
   const [mode, setMode] = useState('normal'); // 'normal' | 'no_fairing_sep' | 'no_stage_sep'
   const [speedMult, setSpeedMult] = useState(2); // 배속
-  const [cameraView, setCameraView] = useState('follow'); // 'follow'(로켓 추적) | 'orbit'(지구 궤도 뷰) | 'ground'(지상 발사대 뷰)
+  const [viewMode, setViewMode] = useState('2d'); // '2d' | '3d'
+  const [cameraView, setCameraView] = useState('follow'); // 'follow' | 'orbit' | 'ground'
   
   const [simState, setSimState] = useState('ready'); // ready | launching | completed | failed
   const [telemetry, setTelemetry] = useState({
-    time: 0,
-    altKm: 0,
-    velKms: 0,
-    accelG: 0,
-    massTon: 200.0,
-    phaseText: '발사대 대기 중',
-    fairingText: '위성 덮개 닫힘 (공기 저항 방어)',
-    resultText: '발사 버튼을 눌러보세요!'
+    time: 0, altKm: 0, velKms: 0, accelG: 0, massTon: 200.0,
+    phaseText: '발사대 대기 중', fairingText: '위성 덮개 닫힘 (공기 저항 방어)', resultText: '발사 버튼을 눌러보세요!'
   });
 
   const containerRef = useRef(null);
+  const canvas2dRef = useRef(null);
   const animRef = useRef(null);
 
-  // Three.js 객체 참조
-  const threeRef = useRef({
-    scene: null, camera: null, renderer: null,
-    earthMesh: null, atmosMesh: null,
-    rocketGroup: null,
-    stage1Mesh: null, stage2Mesh: null, stage3Mesh: null,
-    fairingLeft: null, fairingRight: null,
-    satGroup: null, solarPanelL: null, solarPanelR: null,
-    exhaustParticles: [],
-    detachedStage1: null, detachedStage2: null, detachedFairingL: null, detachedFairingR: null,
-
-    // 물리 파라미터 상태
-    t: 0, alt: 0, vel: 0, mass: 200.0, downrange: 0,
+  // 물리 파라미터 및 3D 참조
+  const simRef = useRef({
+    t: 0, alt: 0, vel: 0, accel: 0, mass: 200.0, downrange: 0,
+    stagePhase: 1,
     stage1Sep: false, fairingSep: false, stage2Sep: false, satDeployed: false,
-    status: 'ready'
+    status: 'ready',
+    
+    // 3D 객체
+    scene: null, camera: null, renderer: null, rocketGroup: null,
+    stage1Mesh: null, stage2Mesh: null, stage3Mesh: null,
+    fairingLeft: null, fairingRight: null, solarPanelL: null, solarPanelR: null,
+    is3DInited: false
   });
 
-  /* 누리호 물리 사양 (쉽게 변환된 수치) */
   const SPECS = {
-    liftoffMass: 200.0,
     stage1: { fuel: 130.0, dry: 20.0, burnDur: 125, thrustKn: 2940 },
     fairing: { mass: 1.5, sepTime: 204 },
     stage2: { fuel: 35.0, dry: 4.5, burnDur: 130, thrustKn: 735 },
@@ -200,233 +191,35 @@ function Nuri3DSimTab() {
     payload: 1.5
   };
 
-  /* Three.js 3D 씬 초기화 */
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container || !window.THREE) return;
-
-    const W = container.clientWidth || 800;
-    const H = 420;
-
-    // 1. Scene, Camera, Renderer 생성
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x040814);
-
-    const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 5000);
-    camera.position.set(0, 15, 60);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(W, H);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
-
-    // 2. 조명 (우주 태양광 & 환경광)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambientLight);
-
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1.3);
-    sunLight.position.set(200, 150, 100);
-    scene.add(sunLight);
-
-    const hemiLight = new THREE.HemisphereLight(0x38bdf8, 0x080d1a, 0.4);
-    scene.add(hemiLight);
-
-    // 3. 3D 지구 구체 (Radius = 120 단위)
-    const earthRadius = 120;
-    const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({
-      color: 0x1d4ed8,
-      emissive: 0x06112d,
-      specular: 0x38bdf8,
-      shininess: 20,
-      wireframe: false
-    });
-    const earthMesh = new THREE.Mesh(earthGeo, earthMat);
-    earthMesh.position.set(0, -earthRadius, 0); // 지표면 Y=0
-    scene.add(earthMesh);
-
-    // 대기권 대기 박막 글로우
-    const atmosGeo = new THREE.SphereGeometry(earthRadius + 2.5, 32, 32);
-    const atmosMat = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
-      transparent: true,
-      opacity: 0.18,
-      side: THREE.BackSide
-    });
-    const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
-    atmosMesh.position.set(0, -earthRadius, 0);
-    scene.add(atmosMesh);
-
-    // 지상 발사대 타워 (Naro Spaceport)
-    const padGroup = new THREE.Group();
-    const padMat = new THREE.MeshStandardMaterial({ color: 0x475569 });
-    const padGeo = new THREE.BoxGeometry(8, 1, 8);
-    const padMesh = new THREE.Mesh(padGeo, padMat);
-    padMesh.position.set(0, 0, 0);
-    padGroup.add(padMesh);
-
-    const towerGeo = new THREE.BoxGeometry(2, 22, 2);
-    const towerMesh = new THREE.Mesh(towerGeo, padMat);
-    towerMesh.position.set(-6, 11, 0);
-    padGroup.add(towerMesh);
-
-    scene.add(padGroup);
-
-    // 4. 3D 누리호 로켓 모델 (Rocket Group)
-    const rocketGroup = new THREE.Group();
-    rocketGroup.position.set(0, 0.5, 0);
-
-    // (A) 1단 로켓 (White/Taegeuk stripe)
-    const s1Geo = new THREE.CylinderGeometry(1.4, 1.5, 14, 24);
-    const s1Mat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.3 });
-    const stage1Mesh = new THREE.Mesh(s1Geo, s1Mat);
-    stage1Mesh.position.set(0, 7, 0);
-    rocketGroup.add(stage1Mesh);
-
-    // 태극 띠 데칼링 링
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
-    const ringMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.42, 0.8, 24), ringMat);
-    ringMesh.position.set(0, 11, 0);
-    rocketGroup.add(ringMesh);
-
-    // (B) 2단 로켓 (Silver Metallic)
-    const s2Geo = new THREE.CylinderGeometry(1.1, 1.3, 8, 24);
-    const s2Mat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.5, roughness: 0.4 });
-    const stage2Mesh = new THREE.Mesh(s2Geo, s2Mat);
-    stage2Mesh.position.set(0, 18, 0);
-    rocketGroup.add(stage2Mesh);
-
-    // (C) 3단 로켓 (Dark Steel)
-    const s3Geo = new THREE.CylinderGeometry(0.8, 1.0, 5, 24);
-    const s3Mat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7 });
-    const stage3Mesh = new THREE.Mesh(s3Geo, s3Mat);
-    stage3Mesh.position.set(0, 24.5, 0);
-    rocketGroup.add(stage3Mesh);
-
-    // (D) 페어링 위성 덮개 (Left & Right halves)
-    const fShape = new THREE.ConeGeometry(0.9, 4.5, 24, 1, false, 0, Math.PI);
-    const fMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 });
-    
-    const fairingLeft = new THREE.Mesh(fShape, fMat);
-    fairingLeft.position.set(0, 29.25, 0);
-    rocketGroup.add(fairingLeft);
-
-    const fShapeR = new THREE.ConeGeometry(0.9, 4.5, 24, 1, false, Math.PI, Math.PI);
-    const fairingRight = new THREE.Mesh(fShapeR, fMat);
-    fairingRight.position.set(0, 29.25, 0);
-    rocketGroup.add(fairingRight);
-
-    // (E) 위성 페이로드 (차세대 소형위성 2호)
-    const satGroup = new THREE.Group();
-    satGroup.position.set(0, 28, 0);
-
-    const satBodyMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, metalness: 0.8 });
-    const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), satBodyMat);
-    satGroup.add(satBody);
-
-    // 태양광 날개
-    const panelMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.1 });
-    const solarPanelL = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.8, 1.6), panelMat);
-    solarPanelL.position.set(-0.5, 0, 0);
-    satGroup.add(solarPanelL);
-
-    const solarPanelR = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.8, 1.6), panelMat);
-    solarPanelR.position.set(0.5, 0, 0);
-    satGroup.add(solarPanelR);
-
-    rocketGroup.add(satGroup);
-
-    scene.add(rocketGroup);
-
-    // 5. 배경 우주 성단 파티클 별무리
-    const starGeo = new THREE.BufferGeometry();
-    const starCount = 600;
-    const starPositions = new Float32Array(starCount * 3);
-    for (let i = 0; i < starCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 1200;
-      starPositions[i + 1] = Math.random() * 800 - 100;
-      starPositions[i + 2] = (Math.random() - 0.5) * 1200;
-    }
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1.5, transparent: true, opacity: 0.8 });
-    const starPoints = new THREE.Points(starGeo, starMat);
-    scene.add(starPoints);
-
-    // 참조 저장
-    const tRef = threeRef.current;
-    tRef.scene = scene;
-    tRef.camera = camera;
-    tRef.renderer = renderer;
-    tRef.earthMesh = earthMesh;
-    tRef.rocketGroup = rocketGroup;
-    tRef.stage1Mesh = stage1Mesh;
-    tRef.stage2Mesh = stage2Mesh;
-    tRef.stage3Mesh = stage3Mesh;
-    tRef.fairingLeft = fairingLeft;
-    tRef.fairingRight = fairingRight;
-    tRef.satGroup = satGroup;
-    tRef.solarPanelL = solarPanelL;
-    tRef.solarPanelR = solarPanelR;
-
-    // 6. Three.js 프레임 렌더링 루프
-    const renderLoop = () => {
-      // 지구 은은한自轉 회전
-      earthMesh.rotation.y += 0.0005;
-
-      renderer.render(scene, camera);
-      animRef.current = requestAnimationFrame(renderLoop);
-    };
-
-    renderLoop();
-
-    return () => {
-      cancelAnimationFrame(animRef.current);
-      if (renderer.domElement && container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
-      }
-    };
-  }, []);
-
-  /* 물리 및 3D 그래픽 프레임 연동 업데이트 */
-  const update3DFrame = (dt) => {
-    const tRef = threeRef.current;
-    if (!tRef.rocketGroup) return;
-
-    tRef.t += dt;
-    const t = tRef.t;
+  /* 물리 업데이트 루프 */
+  const updatePhysics = (dt) => {
+    const s = simRef.current;
     const mMode = mode;
+
+    s.t += dt;
+    const t = s.t;
 
     let thrust = 0;
     let totalM = SPECS.payload;
     let phaseMsg = '';
     let fairingMsg = '';
 
-    // (A) 0~125s: 1단 엔진 추진
     if (t <= 125) {
+      s.stagePhase = 1;
       const fuelRem1 = Math.max(0, SPECS.stage1.fuel * (1 - t / 125));
       totalM += fuelRem1 + SPECS.stage1.dry + SPECS.stage2.fuel + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.fairing.mass;
       thrust = SPECS.stage1.thrustKn;
-      phaseMsg = '🔥 1단 엔진 강하게 분사 중 (300톤 힘)';
+      phaseMsg = '🔥 1단 엔진 분사 중 (300톤 추진력)';
       fairingMsg = '🛡️ 위성 덮개 닫힘 (공기 저항 방어)';
-    }
-    // (B) 125~255s: 2단 추진 (t=125s 시 1단 분리)
-    else if (t > 125 && t <= 255) {
-      if (mMode !== 'no_stage_sep') {
-        tRef.stage1Sep = true;
-      } else {
-        totalM += SPECS.stage1.dry; // 다 탄 1단 껍데기 20t 끌고 감!
-      }
+    } else if (t > 125 && t <= 255) {
+      s.stagePhase = 2;
+      if (mMode !== 'no_stage_sep') s.stage1Sep = true;
+      else totalM += SPECS.stage1.dry;
 
       if (t >= 204) {
-        if (mMode === 'normal') {
-          tRef.fairingSep = true;
-        } else {
-          totalM += SPECS.fairing.mass; // 덮개 1.5t 안 열림!
-        }
-        fairingMsg = tRef.fairingSep ? '✨ 페어링 분리 완료 (우주 진공)' : '⚠️ 페어링 미분리 (1.5t 불필요한 무거운 짐 탑재!)';
+        if (mMode === 'normal') s.fairingSep = true;
+        else totalM += SPECS.fairing.mass;
+        fairingMsg = s.fairingSep ? '✨ 페어링 분리 완료 (우주 진공)' : '⚠️ 페어링 미분리 (1.5t 불필요한 무거운 짐 탑재!)';
       } else {
         totalM += SPECS.fairing.mass;
         fairingMsg = '🛡️ 대기권 탈출 비행 중';
@@ -436,210 +229,383 @@ function Nuri3DSimTab() {
       const fuelRem2 = Math.max(0, SPECS.stage2.fuel * (1 - dt2 / 130));
       totalM += fuelRem2 + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry;
       thrust = SPECS.stage2.thrustKn;
-      phaseMsg = tRef.stage1Sep ? '🚀 2단 엔진 연소 중 (75톤 힘)' : '⚠️ 2단 연소 (다 탄 1단 20톤 무거운 짐 견인!)';
-    }
-    // (C) 255~755s: 3단 추진 (t=255s 시 2단 분리)
-    else if (t > 255 && t <= 755) {
-      if (mMode !== 'no_stage_sep') {
-        tRef.stage2Sep = true;
-      } else {
-        totalM += SPECS.stage1.dry + SPECS.stage2.dry; // 24.5t 짐!
-      }
+      phaseMsg = s.stage1Sep ? '🚀 2단 엔진 연소 중 (75톤 힘)' : '⚠️ 2단 연소 (다 탄 1단 20톤 무거운 짐 견인!)';
+    } else if (t > 255 && t <= 755) {
+      s.stagePhase = 3;
+      if (mMode !== 'no_stage_sep') s.stage2Sep = true;
+      else totalM += SPECS.stage1.dry + SPECS.stage2.dry;
 
-      if (mMode !== 'normal') {
-        totalM += SPECS.fairing.mass;
-      }
-      tRef.fairingSep = (mMode === 'normal');
+      if (mMode !== 'normal') totalM += SPECS.fairing.mass;
+      s.fairingSep = (mMode === 'normal');
 
       const dt3 = t - 255;
       const fuelRem3 = Math.max(0, SPECS.stage3.fuel * (1 - dt3 / 500));
       totalM += fuelRem3 + SPECS.stage3.dry;
       thrust = SPECS.stage3.thrustKn;
-      phaseMsg = tRef.stage2Sep ? '🌌 3단 정밀 엔진 연소 (7톤 힘)' : '⚠️ 3단 연소 (24.5t 빈 껍데기 무거운 짐 가속 방해!)';
-      fairingMsg = tRef.fairingSep ? '✨ 페어링 분리 상태' : '❌ 덮개 무게로 추가 속도 저하';
-    }
-    // (D) t > 755s: 연소 종료
-    else {
+      phaseMsg = s.stage2Sep ? '🌌 3단 정밀 엔진 연소 (7톤 힘)' : '⚠️ 3단 연소 (24.5t 빈 껍데기 무거운 짐 가속 방해!)';
+      fairingMsg = s.fairingSep ? '✨ 페어링 분리 상태' : '❌ 덮개 무게로 추가 속도 저하';
+    } else {
+      s.stagePhase = 4;
       thrust = 0;
       phaseMsg = '🏁 비행 엔진 연소 완료';
-      if (mMode === 'normal') tRef.satDeployed = true;
+      if (mMode === 'normal') s.satDeployed = true;
     }
 
-    tRef.mass = totalM;
+    s.mass = totalM;
 
-    // 가속도 & 속도 적분
-    const g = 9.81 * Math.pow(6371 / (6371 + tRef.alt), 2);
+    const g = 9.81 * Math.pow(6371 / (6371 + s.alt), 2);
     const netKn = thrust - totalM * g * 0.35;
     const accelMss = Math.max(-g, netKn / totalM);
-    tRef.vel += (accelMss / 1000) * dt;
-    if (tRef.vel < 0 && tRef.alt <= 0) tRef.vel = 0;
-    tRef.alt += tRef.vel * dt;
-    tRef.downrange += (tRef.vel * 0.8) * dt;
+    s.accel = accelMss;
+    s.vel += (accelMss / 1000) * dt;
+    if (s.vel < 0 && s.alt <= 0) s.vel = 0;
+    s.alt += s.vel * dt;
+    s.downrange += (s.vel * 0.8) * dt;
 
-    /* 3D 로켓 위치 & 각도 업데이트 */
-    const scaleAlt = (tRef.alt / 700) * 180; // 3D Y축 스케일링
-    const scaleX = (tRef.downrange / 800) * 220; // 3D X축 스케일링
-
-    tRef.rocketGroup.position.set(scaleX, scaleAlt + 0.5, 0);
-
-    // 고도 상승 시 기울기 (90도 직립 -> 수평 궤도 진입)
-    const pitch = Math.max(0, (Math.PI / 2) * Math.exp(-tRef.alt / 220));
-    tRef.rocketGroup.rotation.z = -((Math.PI / 2) - pitch);
-
-    /* 3D 분리체 이격 애니메이션 연출 */
-    if (tRef.stage1Sep && tRef.stage1Mesh) {
-      tRef.stage1Mesh.position.y -= 0.4;
-      tRef.stage1Mesh.position.x -= 0.1;
-      tRef.stage1Mesh.rotation.z += 0.02;
-    }
-    if (tRef.fairingSep && tRef.fairingLeft && tRef.fairingRight) {
-      tRef.fairingLeft.position.x -= 0.2;
-      tRef.fairingLeft.position.y -= 0.1;
-      tRef.fairingLeft.rotation.z += 0.04;
-
-      tRef.fairingRight.position.x += 0.2;
-      tRef.fairingRight.position.y -= 0.1;
-      tRef.fairingRight.rotation.z -= 0.04;
-    }
-    if (tRef.stage2Sep && tRef.stage2Mesh) {
-      tRef.stage2Mesh.position.y -= 0.3;
-      tRef.stage2Mesh.rotation.z -= 0.02;
-    }
-    if (tRef.satDeployed && tRef.solarPanelL && tRef.solarPanelR) {
-      tRef.solarPanelL.position.x = Math.max(-1.4, tRef.solarPanelL.position.x - 0.03);
-      tRef.solarPanelR.position.x = Math.min(1.4, tRef.solarPanelR.position.x + 0.03);
-    }
-
-    /* 3D 카메라인 추적 뷰 업데이트 */
-    if (cameraView === 'follow') {
-      tRef.camera.position.set(scaleX - 25, scaleAlt + 18, 45);
-      tRef.camera.lookAt(scaleX, scaleAlt + 5, 0);
-    } else if (cameraView === 'orbit') {
-      tRef.camera.position.set(120, 150, 260);
-      tRef.camera.lookAt(0, 50, 0);
-    } else if (cameraView === 'ground') {
-      tRef.camera.position.set(12, 6, 25);
-      tRef.camera.lookAt(0, 10, 0);
-    }
-
-    /* 궤도 성공 평가 메시지 */
     let resultStr = '🚀 정상 비행 중...';
-    if (t > 755 || tRef.alt >= 700) {
-      if (mMode === 'normal' && tRef.vel >= 7.4) {
-        resultStr = '🎉 [선공] 700km 우주 궤도 진입 성공! (최종 속도 7.5 km/s)';
-        tRef.status = 'completed';
+    if (t > 755 || s.alt >= 700) {
+      if (mMode === 'normal' && s.vel >= 7.4) {
+        resultStr = '🎉 [성공] 700km 우주 궤도 진입 성공! (최종 속도 7.5 km/s)';
+        s.status = 'completed';
       } else if (mMode === 'no_fairing_sep') {
         resultStr = '⚠️ [실패] 페어링 덮개 1.5t 안 열림 -> 최종 속도 모자람(6.4 km/s)으로 궤도 진입 실패!';
-        tRef.status = 'failed';
+        s.status = 'failed';
       } else {
         resultStr = '❌ [실패] 다 탄 빈 로켓 24.5t 무거운 짐 안 버림 -> 속도 부족(2.1 km/s)으로 해상 추락!';
-        tRef.status = 'failed';
+        s.status = 'failed';
       }
     }
 
     setTelemetry({
       time: Math.round(t),
-      altKm: Math.max(0, +tRef.alt.toFixed(1)),
-      velKms: Math.max(0, +tRef.vel.toFixed(2)),
+      altKm: Math.max(0, +s.alt.toFixed(1)),
+      velKms: Math.max(0, +s.vel.toFixed(2)),
       accelG: +(accelMss / 9.81).toFixed(2),
-      massTon: +tRef.mass.toFixed(1),
+      massTon: +s.mass.toFixed(1),
       phaseText: phaseMsg,
       fairingText: fairingMsg,
       resultText: resultStr
     });
   };
 
-  /* 3D 루프 시작 */
-  const startLaunch3D = () => {
-    const tRef = threeRef.current;
-    tRef.t = 0; tRef.alt = 0; tRef.vel = 0; tRef.mass = 200.0; tRef.downrange = 0;
-    tRef.stage1Sep = false; tRef.fairingSep = false; tRef.stage2Sep = false; tRef.satDeployed = false;
-    tRef.status = 'launching';
+  /* 2D Canvas 렌더링 */
+  const render2D = () => {
+    const cvs = canvas2dRef.current;
+    if (!cvs) return;
+    const ctx = cvs.getContext('2d');
+    const W = cvs.width, H = cvs.height;
+    const s = simRef.current;
 
-    // 3D 위치 재정렬
-    if (tRef.rocketGroup) tRef.rocketGroup.position.set(0, 0.5, 0);
-    if (tRef.stage1Mesh) tRef.stage1Mesh.position.set(0, 7, 0);
-    if (tRef.stage2Mesh) tRef.stage2Mesh.position.set(0, 18, 0);
-    if (tRef.fairingLeft) tRef.fairingLeft.position.set(0, 29.25, 0);
-    if (tRef.fairingRight) tRef.fairingRight.position.set(0, 29.25, 0);
+    // 배경
+    const skyFactor = Math.max(0, 1 - s.alt / 100);
+    const bgGrad = ctx.createLinearGradient(0, H, 0, 0);
+    bgGrad.addColorStop(0, `rgb(${Math.round(14 + 100*skyFactor)}, ${Math.round(23 + 140*skyFactor)}, ${Math.round(42 + 200*skyFactor)})`);
+    bgGrad.addColorStop(1, '#030712');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 별
+    ctx.fillStyle = `rgba(255,255,255,${(1 - skyFactor)*0.8})`;
+    for (let i = 0; i < 40; i++) {
+      ctx.beginPath(); ctx.arc((i * 47) % W, (i * 31) % (H * 0.7), (i % 3 === 0 ? 1.5 : 1), 0, Math.PI * 2); ctx.fill();
+    }
+
+    // 지구 곡선
+    const earthY = H + 500 - (s.alt / 700) * 380;
+    ctx.fillStyle = '#0ea5e9';
+    ctx.beginPath(); ctx.arc(W / 2, earthY, 550, 0, Math.PI * 2); ctx.fill();
+
+    // 로켓 궤적
+    const trajX = 80 + (s.downrange / 800) * (W - 160);
+    const trajY = H - 40 - (s.alt / 750) * (H - 80);
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.5)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(80, H - 40); ctx.quadraticCurveTo(W * 0.3, H - 150, trajX, trajY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 로켓 아이콘
+    const rx = Math.max(80, Math.min(W - 80, trajX));
+    const ry = Math.max(30, Math.min(H - 30, trajY));
+    const pitch = Math.max(0.1, (Math.PI / 2) * Math.exp(-s.alt / 220));
+
+    ctx.save();
+    ctx.translate(rx, ry);
+    ctx.rotate(Math.PI / 2 - pitch);
+
+    // 엔진 화염
+    if (s.t < 755 && s.status === 'launching') {
+      const flameGrad = ctx.createLinearGradient(0, 20, 0, 45);
+      flameGrad.addColorStop(0, '#ffffff'); flameGrad.addColorStop(0.3, '#38bdf8'); flameGrad.addColorStop(1, 'rgba(239,68,68,0)');
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath(); ctx.moveTo(-6, 20); ctx.lineTo(0, 45 + Math.random()*6); ctx.lineTo(6, 20); ctx.closePath(); ctx.fill();
+    }
+
+    // 1단
+    if (!s.stage1Sep) {
+      ctx.fillStyle = '#f8fafc'; ctx.fillRect(-8, 2, 16, 20);
+      ctx.fillStyle = '#dc2626'; ctx.fillRect(-8, 6, 16, 3);
+    }
+    // 2단
+    if (!s.stage2Sep) {
+      ctx.fillStyle = '#cbd5e1'; ctx.fillRect(-6, -14, 12, 16);
+    }
+    // 3단
+    ctx.fillStyle = '#64748b'; ctx.fillRect(-5, -26, 10, 12);
+
+    // 페어링
+    if (!s.fairingSep) {
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath(); ctx.moveTo(-6, -26); ctx.quadraticCurveTo(0, -42, 6, -26); ctx.closePath(); ctx.fill();
+    } else {
+      ctx.fillStyle = '#fbbf24'; ctx.fillRect(-4, -34, 8, 8);
+      if (s.satDeployed) {
+        ctx.fillStyle = '#0284c7'; ctx.fillRect(-12, -32, 6, 4); ctx.fillRect(6, -32, 6, 4);
+      }
+    }
+    ctx.restore();
+
+    // 텍스트 HUD
+    ctx.fillStyle = 'rgba(11, 19, 43, 0.85)';
+    ctx.strokeStyle = '#1e3a8a';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(12, 12, 280, 80, 8); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#60a5fa'; ctx.font = 'bold 11px Noto Sans KR';
+    ctx.fillText(`🚀 누리호 2D 비행 텔레메트리 (t = ${Math.round(s.t)}초)`, 20, 28);
+    ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px Space Mono';
+    ctx.fillText(`고도 (h): ${s.alt.toFixed(1)} km | 속도: ${s.vel.toFixed(2)} km/s`, 20, 46);
+    ctx.fillText(`남은 무게 (m): ${s.mass.toFixed(1)} 톤`, 20, 64);
+  };
+
+  /* Three.js 3D 씬 초기화 (폴링 및 세이프티 로드) */
+  useEffect(() => {
+    if (viewMode !== '3d') return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    let timerId = null;
+
+    const init3D = () => {
+      const THREE = window.THREE;
+      if (!THREE) {
+        timerId = setTimeout(init3D, 150);
+        return;
+      }
+
+      const W = container.clientWidth || 800;
+      const H = 400;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x040814);
+
+      const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 5000);
+      camera.position.set(0, 15, 60);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(W, H);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+
+      const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+      sunLight.position.set(200, 150, 100);
+      scene.add(sunLight);
+
+      // 지구
+      const earthGeo = new THREE.SphereGeometry(120, 48, 48);
+      const earthMat = new THREE.MeshPhongMaterial({ color: 0x1d4ed8, emissive: 0x06112d, specular: 0x38bdf8, shininess: 20 });
+      const earthMesh = new THREE.Mesh(earthGeo, earthMat);
+      earthMesh.position.set(0, -120, 0);
+      scene.add(earthMesh);
+
+      // 로켓 그룹
+      const rocketGroup = new THREE.Group();
+      rocketGroup.position.set(0, 0.5, 0);
+
+      const stage1Mesh = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.5, 14, 20), new THREE.MeshStandardMaterial({ color: 0xf8fafc }));
+      stage1Mesh.position.set(0, 7, 0); rocketGroup.add(stage1Mesh);
+
+      const stage2Mesh = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.3, 8, 20), new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.5 }));
+      stage2Mesh.position.set(0, 18, 0); rocketGroup.add(stage2Mesh);
+
+      const stage3Mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.0, 5, 20), new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.7 }));
+      stage3Mesh.position.set(0, 24.5, 0); rocketGroup.add(stage3Mesh);
+
+      const fMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+      const fairingLeft = new THREE.Mesh(new THREE.ConeGeometry(0.9, 4.5, 20, 1, false, 0, Math.PI), fMat);
+      fairingLeft.position.set(0, 29.25, 0); rocketGroup.add(fairingLeft);
+
+      const fairingRight = new THREE.Mesh(new THREE.ConeGeometry(0.9, 4.5, 20, 1, false, Math.PI, Math.PI), fMat);
+      fairingRight.position.set(0, 29.25, 0); rocketGroup.add(fairingRight);
+
+      scene.add(rocketGroup);
+
+      const s = simRef.current;
+      s.scene = scene; s.camera = camera; s.renderer = renderer;
+      s.rocketGroup = rocketGroup; s.stage1Mesh = stage1Mesh; s.stage2Mesh = stage2Mesh;
+      s.fairingLeft = fairingLeft; s.fairingRight = fairingRight;
+      s.is3DInited = true;
+    };
+
+    init3D();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      const s = simRef.current;
+      s.is3DInited = false;
+    };
+  }, [viewMode]);
+
+  /* 3D 위치 및 카메라 연동 */
+  const render3D = () => {
+    const s = simRef.current;
+    if (!s.is3DInited || !s.renderer || !s.scene || !s.camera) return;
+
+    const scaleAlt = (s.alt / 700) * 180;
+    const scaleX = (s.downrange / 800) * 220;
+
+    s.rocketGroup.position.set(scaleX, scaleAlt + 0.5, 0);
+    const pitch = Math.max(0, (Math.PI / 2) * Math.exp(-s.alt / 220));
+    s.rocketGroup.rotation.z = -((Math.PI / 2) - pitch);
+
+    if (s.stage1Sep && s.stage1Mesh) {
+      s.stage1Mesh.position.y -= 0.4;
+      s.stage1Mesh.rotation.z += 0.02;
+    }
+    if (s.fairingSep && s.fairingLeft && s.fairingRight) {
+      s.fairingLeft.position.x -= 0.2; s.fairingLeft.rotation.z += 0.03;
+      s.fairingRight.position.x += 0.2; s.fairingRight.rotation.z -= 0.03;
+    }
+
+    if (cameraView === 'follow') {
+      s.camera.position.set(scaleX - 25, scaleAlt + 18, 45);
+      s.camera.lookAt(scaleX, scaleAlt + 5, 0);
+    } else if (cameraView === 'orbit') {
+      s.camera.position.set(120, 150, 260);
+      s.camera.lookAt(0, 50, 0);
+    } else {
+      s.camera.position.set(12, 6, 25);
+      s.camera.lookAt(0, 10, 0);
+    }
+
+    s.renderer.render(s.scene, s.camera);
+  };
+
+  /* 비행 시뮬레이션 애니메이션 루프 */
+  const startLaunch = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.t = 0; s.alt = 0; s.vel = 0; s.mass = 200.0; s.downrange = 0;
+    s.stage1Sep = false; s.fairingSep = false; s.stage2Sep = false; s.satDeployed = false;
+    s.status = 'launching';
+
+    if (s.rocketGroup) {
+      s.rocketGroup.position.set(0, 0.5, 0);
+      s.rocketGroup.rotation.set(0, 0, 0);
+    }
+    if (s.stage1Mesh) s.stage1Mesh.position.set(0, 7, 0);
+    if (s.fairingLeft) { s.fairingLeft.position.set(0, 29.25, 0); s.fairingLeft.rotation.set(0, 0, 0); }
+    if (s.fairingRight) { s.fairingRight.position.set(0, 29.25, 0); s.fairingRight.rotation.set(0, 0, 0); }
 
     setSimState('launching');
 
-    let lastT = performance.now();
-    const animLoop = (now) => {
-      const dtReal = (now - lastT) / 1000;
-      lastT = now;
+    let lastNow = performance.now();
+    const step = (now) => {
+      const dtReal = (now - lastNow) / 1000;
+      lastNow = now;
       const dtSim = Math.min(0.2, dtReal * speedMult * 2.8);
 
-      if (tRef.status === 'launching') {
-        update3DFrame(dtSim);
-        requestAnimationFrame(animLoop);
+      if (s.status === 'launching') {
+        updatePhysics(dtSim);
+        if (viewMode === '3d' && s.is3DInited) render3D();
+        else render2D();
+
+        animRef.current = requestAnimationFrame(step);
       } else {
-        setSimState(tRef.status);
+        if (viewMode === '3d' && s.is3DInited) render3D();
+        else render2D();
+        setSimState(s.status);
       }
     };
-    requestAnimationFrame(animLoop);
+    animRef.current = requestAnimationFrame(step);
   };
 
-  /* 3D 초기화 */
-  const reset3D = () => {
-    const tRef = threeRef.current;
-    tRef.t = 0; tRef.alt = 0; tRef.vel = 0; tRef.mass = 200.0; tRef.downrange = 0;
-    tRef.stage1Sep = false; tRef.fairingSep = false; tRef.stage2Sep = false; tRef.satDeployed = false;
-    tRef.status = 'ready';
+  const resetSim = () => {
+    cancelAnimationFrame(animRef.current);
+    const s = simRef.current;
+    s.t = 0; s.alt = 0; s.vel = 0; s.mass = 200.0; s.downrange = 0;
+    s.stage1Sep = false; s.fairingSep = false; s.stage2Sep = false; s.satDeployed = false;
+    s.status = 'ready';
 
-    if (tRef.rocketGroup) {
-      tRef.rocketGroup.position.set(0, 0.5, 0);
-      tRef.rocketGroup.rotation.set(0, 0, 0);
+    if (s.rocketGroup) {
+      s.rocketGroup.position.set(0, 0.5, 0);
+      s.rocketGroup.rotation.set(0, 0, 0);
     }
-    if (tRef.stage1Mesh) tRef.stage1Mesh.position.set(0, 7, 0);
-    if (tRef.stage2Mesh) tRef.stage2Mesh.position.set(0, 18, 0);
-    if (tRef.fairingLeft) { tRef.fairingLeft.position.set(0, 29.25, 0); tRef.fairingLeft.rotation.set(0, 0, 0); }
-    if (tRef.fairingRight) { tRef.fairingRight.position.set(0, 29.25, 0); tRef.fairingRight.rotation.set(0, 0, 0); }
+    if (s.stage1Mesh) s.stage1Mesh.position.set(0, 7, 0);
+    if (s.fairingLeft) { s.fairingLeft.position.set(0, 29.25, 0); s.fairingLeft.rotation.set(0, 0, 0); }
+    if (s.fairingRight) { s.fairingRight.position.set(0, 29.25, 0); s.fairingRight.rotation.set(0, 0, 0); }
 
     setSimState('ready');
     setTelemetry({
       time: 0, altKm: 0, velKms: 0, accelG: 0, massTon: 200.0,
-      phaseText: '발사대 대기 중', fairingText: '위성 덮개 닫힘 (공기 저항 방어)', resultText: '발사 버튼을 누르면 3D 비행이 시작됩니다!'
+      phaseText: '발사대 대기 중', fairingText: '위성 덮개 닫힘 (공기 저항 방어)', resultText: '발사 버튼을 눌러보세요!'
     });
+
+    if (viewMode === '3d' && s.is3DInited) render3D();
+    else render2D();
   };
 
   useEffect(() => {
-    reset3D();
-  }, [mode]);
+    resetSim();
+  }, [mode, viewMode]);
 
   return (
     <div>
-      {/* 탐구 설명 카드 */}
+      {/* 카드 1 */}
       <div className="card">
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:12}}>
           <div>
-            <span className="badge badge-lime">3D 웹글(WebGL) 그래픽 엔진 적용</span>
+            <span className="badge badge-lime">2D 궤도 뷰 & 3D 입체 뷰 모두 지원</span>
             <h3 style={{fontSize:16,fontWeight:800,color:'#f8fafc',marginTop:4}}>
-              지상 발사대 ~ 700km 우주 궤도 진입 3D 비행 가상실험
+              지상 발사대 ~ 700km 우주 궤도 진입 비행 가상실험
             </h3>
             <p style={{fontSize:13,color:'#94a3b8',lineHeight:1.6,marginTop:4}}>
-              나로 우주센터 지상 발사대에서 시속 27,000km(초속 7.5km) 우주 궤도로 올라가는 누리호의 3D 비행 과정을 관찰하고, 
+              나로 우주센터 지상 발사대에서 시속 27,000km(초속 7.5km) 우주 궤도로 올라가는 누리호의 비행 과정을 관찰하고, 
               <b>'왜 다 탄 1단·2단과 위성 덮개를 제때 버려야만 궤도에 들어갈 수 있는지'</b> 3가지 조건으로 비교해 보세요.
             </p>
           </div>
           
           <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
             <div>
-              <span style={{fontSize:11.5,color:'#cbd5e1',fontWeight:700,marginRight:6}}>🎥 3D 카메라 뷰:</span>
-              <button className="btn-secondary" style={{padding:'4px 8px',fontSize:11,background:cameraView==='follow'?'#2563eb':undefined}} onClick={()=>setCameraView('follow')}>
-                🚀 로켓 추적
+              <span style={{fontSize:11.5,color:'#cbd5e1',fontWeight:700,marginRight:6}}>🖼️ 화면 뷰 전환:</span>
+              <button className="btn-secondary" style={{padding:'5px 12px',fontSize:12,background:viewMode==='2d'?'#2563eb':undefined,color:viewMode==='2d'?'#fff':undefined}} onClick={()=>setViewMode('2d')}>
+                🚀 2D 궤도 뷰 (추천)
               </button>
-              <button className="btn-secondary" style={{padding:'4px 8px',fontSize:11,background:cameraView==='orbit'?'#2563eb':undefined,marginLeft:4}} onClick={()=>setCameraView('orbit')}>
-                🌍 지구 궤도전체
-              </button>
-              <button className="btn-secondary" style={{padding:'4px 8px',fontSize:11,background:cameraView==='ground'?'#2563eb':undefined,marginLeft:4}} onClick={()=>setCameraView('ground')}>
-                🗼 지상 발사대
+              <button className="btn-secondary" style={{padding:'5px 12px',fontSize:12,background:viewMode==='3d'?'#2563eb':undefined,color:viewMode==='3d'?'#fff':undefined,marginLeft:4}} onClick={()=>setViewMode('3d')}>
+                🌌 3D 입체 뷰
               </button>
             </div>
 
+            {viewMode==='3d' && (
+              <div>
+                <span style={{fontSize:11.5,color:'#cbd5e1',fontWeight:700,marginRight:6}}>🎥 3D 시점:</span>
+                <button className="btn-secondary" style={{padding:'4px 8px',fontSize:11,background:cameraView==='follow'?'#2563eb':undefined}} onClick={()=>setCameraView('follow')}>
+                  로켓 추적
+                </button>
+                <button className="btn-secondary" style={{padding:'4px 8px',fontSize:11,background:cameraView==='orbit'?'#2563eb':undefined,marginLeft:3}} onClick={()=>setCameraView('orbit')}>
+                  지구 전체
+                </button>
+              </div>
+            )}
+
             <div>
-              <span style={{fontSize:11.5,color:'#cbd5e1',fontWeight:700,marginRight:6}}>⚡ 비행 배속:</span>
+              <span style={{fontSize:11.5,color:'#cbd5e1',fontWeight:700,marginRight:6}}>⚡ 배속:</span>
               {[1, 2, 5, 10].map(sp => (
                 <button key={sp} className="btn-secondary"
                   style={{padding:'4px 8px',fontSize:11,background:speedMult===sp?'#2563eb':undefined,color:speedMult===sp?'#fff':undefined}}
@@ -659,7 +625,6 @@ function Nuri3DSimTab() {
         </span>
         
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))',gap:12}}>
-          {/* 정상 모드 */}
           <div style={{
             background: mode==='normal' ? 'rgba(37,99,235,0.18)' : '#0f172a',
             border: `2px solid ${mode==='normal'?'#3b82f6':'#1e293b'}`,
@@ -677,7 +642,6 @@ function Nuri3DSimTab() {
             </p>
           </div>
 
-          {/* 페어링 미분리 모드 */}
           <div style={{
             background: mode==='no_fairing_sep' ? 'rgba(245,158,11,0.18)' : '#0f172a',
             border: `2px solid ${mode==='no_fairing_sep'?'#f59e0b':'#1e293b'}`,
@@ -694,7 +658,6 @@ function Nuri3DSimTab() {
             </p>
           </div>
 
-          {/* 단분리 미실시 모드 */}
           <div style={{
             background: mode==='no_stage_sep' ? 'rgba(239,68,68,0.18)' : '#0f172a',
             border: `2px solid ${mode==='no_stage_sep'?'#ef4444':'#1e293b'}`,
@@ -713,17 +676,21 @@ function Nuri3DSimTab() {
         </div>
       </div>
 
-      {/* 3D 캔버스 디스플레이 */}
+      {/* 캔버스 뷰 디스플레이 */}
       <div className="card" style={{padding:6,position:'relative'}}>
-        <div ref={containerRef} style={{width:'100%',height:'420px',borderRadius:10,overflow:'hidden',background:'#040814'}}/>
+        {viewMode === '3d' ? (
+          <div ref={containerRef} style={{width:'100%',height:'400px',borderRadius:10,overflow:'hidden',background:'#040814'}}/>
+        ) : (
+          <canvas ref={canvas2dRef} width={800} height={360} style={{width:'100%',height:'360px',borderRadius:10,background:'#030712',display:'block'}}/>
+        )}
 
-        {/* 3D 컨트롤 버튼 바 */}
+        {/* 컨트롤 버튼 바 */}
         <div style={{display:'flex',justifyContent:'center',gap:14,marginTop:12,flexWrap:'wrap'}}>
-          <button className="btn-success" onClick={startLaunch3D} disabled={simState==='launching'}
+          <button className="btn-success" onClick={startLaunch} disabled={simState==='launching'}
             style={{padding:'10px 30px',fontSize:14.5,boxShadow:'0 0 16px rgba(22,163,74,0.4)'}}>
-            🚀 {simState==='launching'?'누리호 3D 비행 가속 중...':'누리호 3D 비행 발사 개시!'}
+            🚀 {simState==='launching'?'누리호 비행 가속 중...':'누리호 비행 발사 개시!'}
           </button>
-          <button className="btn-secondary" onClick={reset3D} disabled={simState==='launching'}
+          <button className="btn-secondary" onClick={resetSim} disabled={simState==='launching'}
             style={{padding:'10px 20px',fontSize:13}}>
             🔄 발사대 리셋 (초기화)
           </button>
@@ -793,7 +760,6 @@ function DataTableTab() {
         </p>
       </div>
 
-      {/* 🌟 3가지 경우의 최종 속도 데이터 정량적 비교 표 🌟 */}
       <div className="card" style={{background:'#080e1e',borderColor:'#2563eb'}}>
         <span style={{fontSize:14,fontWeight:800,color:'#60a5fa',display:'block',marginBottom:12}}>
           📋 3가지 경우의 최종 속도 및 궤도 진입 결과 정량 비교표
@@ -865,7 +831,6 @@ function DataTableTab() {
         </table>
       </div>
 
-      {/* 정량 그래프 2종 */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(340px, 1fr))',gap:14,marginTop:14}}>
         <div className="card">
           <span style={{fontSize:13.5,fontWeight:700,color:'#38bdf8',display:'block',marginBottom:8}}>
