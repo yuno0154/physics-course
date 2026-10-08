@@ -14,3 +14,4 @@ test_write.txt
 .streamlit/config.toml
 admin_tools/
 *-DESKTOP-*
+scratch/

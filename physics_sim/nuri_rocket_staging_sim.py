@@ -1,11 +1,15 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-st.set_page_config(
-    page_title="누리호 5차 발사와 다단·페어링 분리 3D 가상실험",
-    page_icon="🚀",
-    layout="wide"
-)
+try:
+    st.set_page_config(
+        page_title="누리호 5차 발사와 다단·페어링 분리 3D 가상실험",
+        page_icon="🚀",
+        layout="wide"
+    )
+except Exception:
+    pass
+
 
 st.sidebar.title("🚀 누리호 다단·페어링 분리 3D 탐구")
 st.sidebar.markdown(r"""
@@ -877,14 +881,14 @@ function MathTab() {
           📐 1. 쉬운 공식 해설: 로켓 속도 증가량 공식 (찌올콥스키 공식)
         </h3>
         <p style={{fontSize:13.5,color:'#e2e8f0',lineHeight:1.8}}>
-          로켓이 엔진을 태워 늘릴 수 있는 속도량 <Eq f="\\Delta v"/>는 아래 공식으로 계산됩니다.
+          로켓이 엔진을 태워 늘릴 수 있는 속도량 <Eq f="\Delta v"/>는 아래 공식으로 계산됩니다.
         </p>
         <div style={{background:'rgba(15,23,42,0.6)',padding:12,borderRadius:8,marginTop:10,textAlign:'center'}}>
-          <Eq f="\\Delta v = v_e \\cdot \\ln \\left( \\frac{\\text{초기 전체 무게 } m_0}{\\text{마지막 남은 무게 } m_f} \\right)" display={true}/>
+          <Eq f="\Delta v = v_e \cdot \ln \left( \frac{\text{초기 전체 무게 } m_0}{\text{마지막 남은 무게 } m_f} \right)" display={true}/>
         </div>
         <p style={{fontSize:12.5,color:'#cbd5e1',marginTop:10,lineHeight:1.6}}>
           💡 <b>쉽게 이해하기:</b> 마지막에 남은 무게 <Eq f="m_f"/>가 <b>가벼우면 가벼울수록(분모가 작을수록)</b> 
-          로켓이 얻는 속도 <Eq f="\\Delta v"/>가 훨씬 더 폭발적으로 커집니다! 이것이 다 탄 1단/2단 로켓과 위성 덮개를 버리는 이유입니다.
+          로켓이 얻는 속도 <Eq f="\Delta v"/>가 훨씬 더 폭발적으로 커집니다! 이것이 다 탄 1단/2단 로켓과 위성 덮개를 버리는 이유입니다.
         </p>
       </div>
 

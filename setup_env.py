@@ -4,80 +4,81 @@ import sys
 import shutil
 import argparse
 
-def setup(launch=False):
-    # Standard venv path (Absolute)
-    target_venv_root = r"d:\project\물리학 가상실험"
-    target_venv_path = os.path.join(target_venv_root, ".venv")
-    
-    # Current project path
+def find_working_venv():
+    # Candidates for venv
+    candidates = [
+        r"d:\project\물리학 가상실험\.venv",
+        r"d:\project\물리학 가상실험\venv",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), ".venv"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "venv"),
+    ]
+    for cand in candidates:
+        py_path = os.path.join(cand, "Scripts", "python.exe")
+        if os.path.exists(py_path):
+            return cand, py_path
+    return None, None
+
+def setup(launch=False, target_file="main_app.py"):
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    old_venv_path = os.path.join(current_dir, "venv")
     requirements_path = os.path.join(current_dir, "requirements.txt")
-    main_app_path = os.path.join(current_dir, "main_app.py")
+    
+    # Target file path resolution
+    if not os.path.isabs(target_file):
+        target_path = os.path.join(current_dir, target_file)
+    else:
+        target_path = target_file
 
     print(f"[*] Project directory: {current_dir}")
-    print(f"[*] Target Venv path: {target_venv_path}")
+    print(f"[*] Target launch file: {target_path}")
 
     try:
-        # 1. Ensure target directory exists
-        if not os.path.exists(target_venv_root):
-            print(f"[*] Creating directory: {target_venv_root}")
+        venv_dir, venv_python = find_working_venv()
+        target_venv_root = r"d:\project\물리학 가상실험"
+        default_venv_path = os.path.join(target_venv_root, ".venv")
+
+        if not venv_python:
+            print("[*] 가상환경을 찾지 못하여 기본 경로에 생성합니다...")
             os.makedirs(target_venv_root, exist_ok=True)
+            subprocess.run([sys.executable, "-m", "venv", default_venv_path], check=True)
+            venv_dir = default_venv_path
+            venv_python = os.path.join(venv_dir, "Scripts", "python.exe")
+            print("[*] 가상환경 생성 완료.")
 
-        # 2. Check/Create Virtual Environment
-        if not os.path.exists(target_venv_path):
-            print("[*] Creating virtual environment...")
-            subprocess.run([sys.executable, "-m", "venv", target_venv_path], check=True)
-            print("[*] Venv creation successful.")
-        else:
-            print("[*] Virtual environment already exists.")
+        print(f"[*] 사용 중인 파이썬 환경: {venv_python}")
 
-        # 3. Install Requirements
+        # Ensure pip and requirements are installed
         if os.path.exists(requirements_path):
-            print("[*] Installing requirements...")
-            venv_python = os.path.join(target_venv_path, "Scripts", "python.exe")
-            if not os.path.exists(venv_python):
-                print("[!] python.exe not found in venv. Repairing...")
-                subprocess.run([sys.executable, "-m", "venv", "--clear", target_venv_path], check=True)
-            
-            # Use 'python -m pip' to upgrade pip to avoid file lock issues on Windows
-            print("[*] Upgrading pip...")
-            subprocess.run([venv_python, "-m", "pip", "install", "-U", "pip"], check=True)
-            
-            print("[*] Installing dependencies from requirements.txt...")
-            subprocess.run([venv_python, "-m", "pip", "install", "-r", requirements_path], check=True)
-            print("[*] Installation successful.")
-        else:
-            print("[!] Warning: requirements.txt not found.")
-
-        # 4. Delete old "venv" folder in project directory
-        if os.path.exists(old_venv_path):
-            print(f"[*] Deleting old venv at {old_venv_path}...")
-            try:
-                shutil.rmtree(old_venv_path)
-                print("[*] Old venv deleted.")
-            except Exception as e:
-                print(f"[!] Warning: Could not delete venv: {e}")
-
-        print("[*] Setup complete!")
-
-        # 5. Launch if requested
-        if launch:
-            print("[*] Launching Streamlit App...")
-            streamlit_path = os.path.join(target_venv_path, "Scripts", "streamlit.exe")
-            if os.path.exists(streamlit_path):
-                subprocess.run([streamlit_path, "run", main_app_path], check=True)
+            # Check if streamlit is already installed in this venv
+            check_res = subprocess.run([venv_python, "-c", "import streamlit"], capture_output=True)
+            if check_res.returncode != 0:
+                print("[*] 필요한 패키지를 설치 중입니다...")
+                subprocess.run([venv_python, "-m", "pip", "install", "-U", "pip"], check=True)
+                subprocess.run([venv_python, "-m", "pip", "install", "-r", requirements_path], check=True)
+                print("[*] 패키지 설치 완료.")
             else:
-                print("[ERROR] streamlit.exe not found. Please check dependencies.")
-                sys.exit(1)
-        
+                print("[*] 가상환경 패키지가 이미 완비되어 있습니다.")
+
+        print("[*] 실행 환경 준비 완료!")
+
+        # Launch if requested
+        if launch:
+            print(f"[*] Streamlit 앱을 실행합니다 ({os.path.basename(target_path)})...")
+            streamlit_path = os.path.join(venv_dir, "Scripts", "streamlit.exe")
+            if os.path.exists(streamlit_path):
+                cmd = [streamlit_path, "run", target_path]
+            else:
+                cmd = [venv_python, "-m", "streamlit", "run", target_path]
+            
+            subprocess.run(cmd, check=True)
+
     except Exception as e:
-        print(f"\n[ERROR] Process failed: {e}")
+        print(f"\n[오류 발생]: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--launch", action="store_true", help="Launch the app after setup")
+    parser.add_argument("--file", type=str, default="main_app.py", help="Target python file to run with streamlit")
     args = parser.parse_args()
     
-    setup(launch=args.launch)
+    setup(launch=args.launch, target_file=args.file)
