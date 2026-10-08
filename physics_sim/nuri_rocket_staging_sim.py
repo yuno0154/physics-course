@@ -42,10 +42,10 @@ REACT_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <style>
@@ -756,7 +756,7 @@ function DataTableTab() {
           📊 3가지 발사 조건 정량적 최종 속도/질량 데이터 비교표
         </h3>
         <p style={{fontSize:13,color:'#94a3b8',lineHeight:1.6}}>
-          세 가지 발사 조건에서 <b>'최종 남아있는 무게($m_f$)'</b>가 속도에 얼마나 결정적인 영향을 주는지 수치 데이터로 직접 비교합니다.
+          세 가지 발사 조건에서 <b>'최종 남아있는 무게(m_f)'</b>가 속도에 얼마나 결정적인 영향을 주는지 수치 데이터로 직접 비교합니다.
         </p>
       </div>
 
@@ -769,8 +769,8 @@ function DataTableTab() {
           <thead>
             <tr>
               <th style={{width:'22%'}}>발사 조건 구분</th>
-              <th style={{width:'15%'}}>최종 남은 무게 ($m_f$)</th>
-              <th style={{width:'18%'}}>최종 달성 최고 속도 ($v_{\text{최종}}$)</th>
+              <th style={{width:'15%'}}>최종 남은 무게 (m_f)</th>
+              <th style={{width:'18%'}}>최종 달성 최고 속도 (v_최종)</th>
               <th style={{width:'15%'}}>목표 고도 도달</th>
               <th style={{width:'15%'}}>우주 궤도 안착</th>
               <th style={{width:'15%'}}>쉬운 결과 원인 분석</th>
@@ -790,7 +790,7 @@ function DataTableTab() {
               <td style={{fontWeight:700,color:'#a3e635'}}>700 km 성공</td>
               <td><span className="badge badge-lime">🎉 성공</span></td>
               <td style={{fontSize:11.5,textAlign:'left',color:'#cbd5e1'}}>
-                다 탄 1단/2단과 덮개를 다 버려서 무게가 $1.5\text{t}$으로 가벼워져 최고 속도에 도달함!
+                다 탄 1단/2단과 덮개를 다 버려서 무게가 1.5t으로 가벼워져 최고 속도에 도달함!
               </td>
             </tr>
 
@@ -807,7 +807,7 @@ function DataTableTab() {
               <td style={{fontWeight:700,color:'#fbbf24'}}>620 km 저하</td>
               <td><span className="badge badge-amber">⚠️ 실패</span></td>
               <td style={{fontSize:11.5,textAlign:'left',color:'#cbd5e1'}}>
-                대기권 밖에서 쓸데없는 $1.5\text{t}$ 덮개 무게를 끌고 가느라 속도가 모자람!
+                대기권 밖에서 쓸데없는 1.5t 덮개 무게를 끌고 가느라 속도가 모자람!
               </td>
             </tr>
 
@@ -824,7 +824,7 @@ function DataTableTab() {
               <td style={{fontWeight:700,color:'#fca5a5'}}>180 km 불과</td>
               <td><span className="badge badge-red">❌ 추락</span></td>
               <td style={{fontSize:11.5,textAlign:'left',color:'#cbd5e1'}}>
-                다 탄 빈 로켓 $24.5\text{t}$ 무거운 짐에 눌려 가속을 못 하고 바다로 추락함!
+                다 탄 빈 로켓 24.5t 무거운 짐에 눌려 가속을 못 하고 바다로 추락함!
               </td>
             </tr>
           </tbody>
@@ -877,14 +877,14 @@ function MathTab() {
           📐 1. 쉬운 공식 해설: 로켓 속도 증가량 공식 (찌올콥스키 공식)
         </h3>
         <p style={{fontSize:13.5,color:'#e2e8f0',lineHeight:1.8}}>
-          로켓이 엔진을 태워 늘릴 수 있는 속도량 <Eq f="\Delta v"/>는 아래 공식으로 계산됩니다.
+          로켓이 엔진을 태워 늘릴 수 있는 속도량 <Eq f="\\Delta v"/>는 아래 공식으로 계산됩니다.
         </p>
         <div style={{background:'rgba(15,23,42,0.6)',padding:12,borderRadius:8,marginTop:10,textAlign:'center'}}>
-          <Eq f="\Delta v = v_e \cdot \ln \left( \frac{\text{초기 전체 무게 } m_0}{\text{마지막 남은 무게 } m_f} \right)" display={true}/>
+          <Eq f="\\Delta v = v_e \\cdot \\ln \\left( \\frac{\\text{초기 전체 무게 } m_0}{\\text{마지막 남은 무게 } m_f} \\right)" display={true}/>
         </div>
         <p style={{fontSize:12.5,color:'#cbd5e1',marginTop:10,lineHeight:1.6}}>
           💡 <b>쉽게 이해하기:</b> 마지막에 남은 무게 <Eq f="m_f"/>가 <b>가벼우면 가벼울수록(분모가 작을수록)</b> 
-          로켓이 얻는 속도 <Eq f="\Delta v"/>가 훨씬 더 폭발적으로 커집니다! 이것이 다 탄 1단/2단 로켓과 위성 덮개를 버리는 이유입니다.
+          로켓이 얻는 속도 <Eq f="\\Delta v"/>가 훨씬 더 폭발적으로 커집니다! 이것이 다 탄 1단/2단 로켓과 위성 덮개를 버리는 이유입니다.
         </p>
       </div>
 
