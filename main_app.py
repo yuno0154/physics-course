@@ -71,6 +71,7 @@ gravitational_lensing_page = st.Page("physics_sim/gravitational_lensing_sim.py",
 # 6. 탈출속도와 블랙홀 섹션 (신규)
 escape_velocity_page = st.Page("physics_sim/escape_velocity_sim.py", title="🚀 [탐구1] 탈출속도 탐구")
 momentum_cart_page = st.Page("physics_sim/momentum_cart_sim.py", title="🛒 [탐구2] 운동량 보존 법칙 실험")
+nuri_rocket_page = st.Page("physics_sim/nuri_rocket_staging_sim.py", title="🚀 [탐구2-2] 누리호 5차 발사 다단·페어링 분리")
 black_hole_page = st.Page("physics_sim/black_hole_sim.py", title="🌑 [탐구3] 블랙홀 탐구")
 
 # 7. 수행평가 섹션
@@ -148,6 +149,7 @@ pg = st.navigation({
     "🌑 학습주제 6: 탈출속도와 블랙홀": [
         escape_velocity_page,
         momentum_cart_page,
+        nuri_rocket_page,
         black_hole_page
     ],
     "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [
