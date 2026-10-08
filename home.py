@@ -471,7 +471,7 @@ st.markdown("""
 
 | 학습 자료실 QR 코드 | 📍 역학과 에너지 핵심 가상 실험실 |
 | :---: | :--- |
-| ![DRIVE_QR](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link) | • **[수행① 대비]** 포물선 운동 분석 및 역학적 에너지 보존 탐구 <br> • **[수행① 대비]** 케플러 법칙 수학적 유도 및 실제 위성 궤도 데이터 분석 <br> • **[심화 탐구]** 일반 상대성 이론과 등가원리, 중력장 및 블랙홀 시뮬레이션 <br> • **[수행② 대비]** 정상파 공명 및 파동의 중첩·간섭 음향 제어 시뮬레이션 |
+| ![DRIVE_QR](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link) | • **[수행① 대비]** 포물선 운동 분석 및 역학적 에너지 보존 탐구 <br> • **[수행① 대비]** 케플러 법칙 수학적 유도 및 실제 위성 궤도 데이터 분석 <br> • **[핵심 탐구]** 누리호 5차 발사 기반 다단·페어링 분리 및 운동량 보존 ([▶️ 영상 보기](https://youtu.be/YeM0G_BEBzY)) <br> • **[심화 탐구]** 일반 상대성 이론과 등가원리, 중력장 및 블랙홀 시뮬레이션 <br> • **[수행② 대비]** 정상파 공명 및 파동의 중첩·간섭 음향 제어 시뮬레이션 |
 
 제작: 사곡고등학교 물리실
 """)

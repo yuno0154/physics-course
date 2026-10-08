@@ -1537,10 +1537,14 @@ function RocketPrincipleTab() {
         )}
 
         {/* 다단계 로켓의 필요성 설명 박스 */}
-        <div style={{marginTop:14,background:'rgba(30,41,59,0.5)',padding:14,borderRadius:10,border:'1px solid #334155',fontSize:12.5,color:'#cbd5e1',lineHeight:1.8}}>
-          💡 <b>다단계 로켓(1단, 2단 분리)이 필수적인 물리적 이유:</b><br/>
+        <div style={{marginTop:14,background:'linear-gradient(135deg, rgba(37,99,235,0.2), rgba(15,23,42,0.8))',padding:16,borderRadius:12,border:'1px solid #3b82f6',fontSize:13,color:'#cbd5e1',lineHeight:1.8}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+            <span style={{fontSize:18}}>🚀</span>
+            <b style={{color:'#60a5fa',fontSize:14}}>누리호 5차 발사 기반 페어링 & 다단 분리 시뮬레이션 확장</b>
+          </div>
           위 공식 <Eq f="V = \frac{m}{M} v"/>에서 알 수 있듯이, 로켓의 속도 증가량은 <b>본체 질량 M에 반비례</b>합니다.<br/>
-          연료를 모두 소모한 빈 연료탱크는 불필요한 질량 M이 되어 추가 가속을 방해합니다. 따라서 빈 1단 로켓을 분리하여 버림으로써 본체 질량 M을 대폭 가볍게 만들어야만 최종 궤도 속도(약 7.9 km/s)에 도달할 수 있습니다.
+          연료를 모두 소모한 빈 연료탱크(1단·2단)와 대기권 탈출 후 불필요해진 <b>페어링(1.5톤 사중량)</b>을 제때 분리하지 않으면 최종 궤도 속도(7.5 km/s)에 도달할 수 없습니다.<br/>
+          👉 <b>사이드바 메뉴 🚀 [탐구2-2] 누리호 5차 발사 다단·페어링 분리</b>에서 3가지 발사 조건(정상 분리 vs 페어링 미분리 vs 단분리 미실시)을 직접 비교 시뮬레이션해 보세요!
         </div>
       </div>
     </div>
