@@ -186,29 +186,40 @@ def now_kst():
 # ════════════════════════════════════════════════════════════════════
 # 3. 데이터 처리
 # ════════════════════════════════════════════════════════════════════
-def make_backup_csv():
-    """제공(비상용) 데이터: 실제 측정처럼 약한 공기 저항과 측정 잡음을 포함."""
-    rng = np.random.default_rng(2026)
-    v0, ang, k = 16.6, np.radians(14.3), 0.006
-    vx, vy, x, y, dt = v0 * np.cos(ang), v0 * np.sin(ang), 0.0, 0.0, 1e-4
-    t_s = np.round(np.arange(N_POINTS) / 30, 4)
-    xs, ys, t, j = [], [], 0.0, 0
-    while j < N_POINTS:
-        if t >= t_s[j] - 1e-9:
-            xs.append(x); ys.append(y); j += 1
-        v = np.hypot(vx, vy)
-        vx += -k * v * vx * dt
-        vy += (-G - k * v * vy) * dt
-        x += vx * dt; y += vy * dt; t += dt
-    xs = np.array(xs) + rng.normal(0, 0.006, N_POINTS)
-    ys = np.array(ys) + rng.normal(0, 0.006, N_POINTS)
-    vxs, vys = np.gradient(xs, t_s), np.gradient(ys, t_s)
-    df = pd.DataFrame({"Time (s)": t_s, "X (m)": xs.round(3), "Y (m)": ys.round(3),
-                       "X Velocity (m/s)": vxs.round(3), "Y Velocity (m/s)": vys.round(3)})
-    return df.to_csv(index=False)
+# 교사용 실제 영상 분석 측정 데이터 (야구공 포물선 운동 29개 프레임 실측 데이터)
+TEACHER_CSV = """Time (s),X (m),Y (m),X Velocity (m/s),Y Velocity (m/s)
+0.000,-0.011,0.019,16.182,3.519
+0.033,0.529,0.136,16.299,3.519
+0.067,1.076,0.254,16.182,3.519
+0.100,1.608,0.371,15.830,3.519
+0.133,2.132,0.488,16.065,2.932
+0.167,2.680,0.567,16.065,2.346
+0.200,3.204,0.645,15.478,2.229
+0.233,3.712,0.715,15.830,1.759
+0.267,4.259,0.762,16.182,1.408
+0.300,4.791,0.809,15.947,1.173
+0.334,5.323,0.840,16.065,1.056
+0.367,5.863,0.879,15.830,0.469
+0.400,6.379,0.872,15.596,0.000
+0.434,6.903,0.879,15.830,-0.117
+0.467,7.435,0.864,16.065,-0.587
+0.500,7.974,0.840,15.947,-0.821
+0.534,8.498,0.809,16.234,-1.395
+0.567,9.057,0.747,16.091,-1.342
+0.600,9.571,0.720,15.426,-1.668
+0.634,10.086,0.636,16.260,-2.502
+0.667,10.656,0.553,16.052,-2.502
+0.700,11.156,0.469,16.260,-3.128
+0.734,11.740,0.344,16.468,-3.336
+0.767,12.255,0.247,16.468,-3.336
+0.800,12.839,0.122,17.094,-4.170
+0.834,13.395,-0.032,16.468,-4.587
+0.867,13.937,-0.185,16.052,-4.587
+0.900,14.465,-0.337,16.052,-5.004
+0.934,15.007,-0.518,16.260,-5.422"""
 
+BACKUP_CSV = TEACHER_CSV
 
-BACKUP_CSV = make_backup_csv()
 
 
 def parse_table(text):
@@ -1342,6 +1353,7 @@ with st.container(border=True):
 # ════════════════════════════════════════════════════════════════════
 with st.expander("🔒 교사용 확인"):
     if st.text_input("교사 코드", type="password", key="teacher_view") == teacher_code():
+        st.markdown("#### 🎯 학생 입력 데이터 분석")
         if d is not None:
             slope = np.polyfit(d.t, d.vy, 1)[0]
             v0x, v0y = float(d.vx.iloc[0]), float(d.vy.iloc[0])
@@ -1356,6 +1368,24 @@ with st.expander("🔒 교사용 확인"):
 - 역학적 에너지 처음→마지막 변화율 ≈ {(E1 - E0) / E0 * 100 if E0 else float('nan'):.1f}%
 """)
         else:
-            st.caption("데이터가 없습니다.")
+            st.caption("현재 화면에 학생 입력 데이터가 없습니다.")
+
+        st.markdown("---")
+        st.markdown("#### 📋 교사용 기준 실측 데이터셋 (정답 기준값)")
+        st.markdown("""
+- **영상 분석 교사용 실측값 (야구공 29개 프레임)**:
+  - vy-t 기울기 ay ≈ **-10.12 m/s²** (g = 9.8 m/s² 대비 오차 3.2%)
+  - 첫 점: $v_{0x} = 16.182\\text{ m/s}$, $v_{0y} = 3.519\\text{ m/s}$ → $v_0 = 16.560\\text{ m/s}$
+  - 최고점: 실측 $t = 0.367\\text{ s}$, $y = 0.879\\text{ m}$ / 이론 $t = 0.359\\text{ s}$, $H = 0.632\\text{ m}$
+  - 역학적 에너지 $E$: 평균 약 $13.8\\text{ J}$ (보존 경향)
+""")
+        raw_t = parse_table(TEACHER_CSV)
+        if raw_t is not None:
+            g_t = guess_columns(list(raw_t.columns))
+            d_t = build_data(raw_t, g_t)
+            if d_t is not None:
+                st.download_button("📊 교사용 정답 엑셀 파일 받기", make_xlsx(d_t),
+                                   file_name="교사용_포물선운동_기준데이터.xlsx",
+                                   mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 st.caption("사곡고등학교 역학과 에너지 · 시뮬레이션 및 실습 지원 포털")
