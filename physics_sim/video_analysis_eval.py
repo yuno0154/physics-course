@@ -43,16 +43,8 @@ DEFAULT_TEACHER_CODE = "sagok-physics"
 SIM_URL = "?page=physics_sim/projectile_analysis_excel"   # 이론값 계산용 시뮬레이션 페이지
 KST = ZoneInfo("Asia/Seoul")
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-
-def _find_font(name):
-    for p in [os.path.join(ROOT, "fonts", name), os.path.join(HERE, "fonts", name), os.path.join(ROOT, name), os.path.join(HERE, name)]:
-        if os.path.exists(p):
-            return p
-    return os.path.join(ROOT, "fonts", name)
-
-FONT_REG = _find_font("NanumGothic.ttf")
-FONT_BOLD = _find_font("NanumGothicBold.ttf")
+FONT_REG = os.path.join(HERE, "fonts", "NanumGothic.ttf")
+FONT_BOLD = os.path.join(HERE, "fonts", "NanumGothicBold.ttf")
 
 ROLES = ["영상 조작·데이터 추출", "계산·보고서 서술", "(공동)"]
 BACKUP_REASONS = ["질점·교정·좌표축 설정 오류 (학생)", "기기·네트워크·프로그램 오류"]
