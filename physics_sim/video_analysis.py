@@ -45,24 +45,9 @@ DEFAULT_TEACHER_CODE = "sagok-physics"
 SIM_URL = "?page=physics_sim/projectile_analysis_excel"   # 이론값 계산용 시뮬레이션 페이지
 KST = ZoneInfo("Asia/Seoul")
 
-PADLET_SUBMISSION_URLS = {
-    "A반": [
-        ("1모둠", "https://padlet.com/sgh/submission-request/oO6VvPdgOPMmvrwD"),
-        ("2모둠", "https://padlet.com/sgh/submission-request/o4ZnXBW51ZQ5vNda"),
-        ("3모둠", "https://padlet.com/sgh/submission-request/1JkMb03PQyJQvdD8"),
-        ("4모둠", "https://padlet.com/sgh/submission-request/BGYjXmaGn2xQX3M0"),
-        ("5모둠", "https://padlet.com/sgh/submission-request/y5WkX4e2LpA6vmxG"),
-        ("6모둠", "https://padlet.com/sgh/submission-request/m9LGXq689ekVvaKY"),
-    ],
-    "B반": [
-        ("1모둠", "https://padlet.com/sgh/submission-request/e3JNXQmEpoLmXErY"),
-        ("2모둠", "https://padlet.com/sgh/submission-request/eWRpzxVgqNRMv7Qr"),
-        ("3모둠", "https://padlet.com/sgh/submission-request/kr73X52795OQvM89"),
-        ("4모둠", "https://padlet.com/sgh/submission-request/Y10QzVNxpV2Yzg2G"),
-        ("5모둠", "https://padlet.com/sgh/submission-request/PW6VbOqZwDM7XY19"),
-        ("6모둠", "https://padlet.com/sgh/submission-request/e3JNXQmEpoJ9XErY"),
-    ],
-}
+PADLET_SUBMIT_URL = "https://padlet.com/sgh/submission-request/oO6VvPdgOPMmvrwD"   # 모둠 과제 제출방 (모든 모둠 공통)
+PADLET_INFO_URL = "https://padlet.com/sgh/padlet-s024pudcl47khfjoa5j7"            # 공통 안내방
+PADLET_INDIV_URL = "https://padlet.com/sgh/submission-request/1JkMb03PA7RNvdD8"   # 개인 과제 제출방
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_REG = os.path.join(HERE, "fonts", "NanumGothic.ttf")
 FONT_BOLD = os.path.join(HERE, "fonts", "NanumGothicBold.ttf")
@@ -634,7 +619,7 @@ with g2:
     <span class='pill'>교정 막대자·좌표축: 선생님 안내</span></li>
 <li><b>데이터 붙여넣기</b> — 분석 표를 복사해 이 페이지 <b>1번</b>에 붙여 넣습니다. 표·그래프·엑셀 파일은 자동으로 만들어집니다.</li>
 <li><b>분석·서술</b> — 2~6번 노란 칸을 작성합니다.</li>
-<li><b>제출</b> — 맨 아래에서 보고서 PDF를 받아 <b>패들렛 모둠별 비공개 제출방</b>에 올립니다. (1모둠 내 2인 1조 각 조별로 자기 모둠방에 제출)</li>
+<li><b>제출</b> — 맨 아래에서 보고서 PDF를 받아 <b>모둠 과제 제출방(패들렛)</b>에 올립니다. (모든 모둠 공통 제출방 사용 · 학급·모둠·모둠원을 정확히 입력)</li>
 </ol>
 <span class='pill'>계산 조건: m = {MASS} kg(가정), g = {G} m/s²</span>
 </div>""", unsafe_allow_html=True)
@@ -1334,31 +1319,21 @@ with st.container(border=True):
         x2.download_button("⬇️ Word 받기 (참고용)", ex["docx"], file_name=ex["name"] + ".docx",
                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                            **FULL)
-    st.markdown("""
-**제출 방법 (패들렛 모둠별 비공개 제출방)**
+    st.markdown(f"""
+**제출 방법 (모둠 과제 제출방 · 패들렛)**
 1. 위 버튼으로 **PDF**를 받습니다. 파일 이름은 자동으로 `수강반_이름_이름_영상분석보고서.pdf`가 됩니다.
-2. **1모둠에 2인 1조 2개 조**가 편성되어 있습니다. **각 조는 자신이 속한 모둠의 비공개 제출방**에 **보고서 PDF**와 **영상 분석 파일**(`.vmbl`)을 함께 올립니다.
-3. 비공개 제출방이므로 제출물은 다른 학생에게 보이지 않습니다.
+2. 아래 **[모둠 과제 제출방]** 링크를 열고 **보고서 PDF**와 **영상 분석 파일**(`.vmbl`)을 함께 올립니다.
+   - **모든 모둠이 이 제출함**을 사용합니다. 학급·모둠·모둠원을 정확히 입력하세요.
+   - **모둠 제목 형식**: `A반_1모둠_영상분석보고서_최종` (1모둠 내 2인 1조 각 조별 제출)
+   - 파일이 2개라면 각각 제출하거나 ZIP 파일 하나로 묶어 제출하세요. 수정할 때는 제목에 ‘재제출’을 표시하세요.
+   - 비공개 제출방이므로 제출물은 다른 학생에게 보이지 않습니다.
 """)
 
-    with st.container(border=True):
-        st.markdown("#### 📮 모둠별 비공개 제출방 바로가기")
-        st.caption("※ 1모둠당 2인 1조 2개 조 편성 · 각 조는 자신의 학급과 모둠 링크를 클릭하여 제출하세요.")
-        tab_a, tab_b = st.tabs(["🅰️ A반 모둠 제출방", "🅱️ B반 모둠 제출방"])
-        with tab_a:
-            cols = st.columns(3)
-            for idx, (m_name, url) in enumerate(PADLET_SUBMISSION_URLS["A반"]):
-                with cols[idx % 3]:
-                    st.markdown(f"""<a href="{url}" target="_blank" style="text-decoration:none;">
-<div style="background:#13334C;color:#E8F4F8;padding:12px;border-radius:10px;text-align:center;font-weight:700;margin-bottom:10px;border:1px solid #2B6282;">
-📤 A반 {m_name} 제출 ↗</div></a>""", unsafe_allow_html=True)
-        with tab_b:
-            cols = st.columns(3)
-            for idx, (m_name, url) in enumerate(PADLET_SUBMISSION_URLS["B반"]):
-                with cols[idx % 3]:
-                    st.markdown(f"""<a href="{url}" target="_blank" style="text-decoration:none;">
-<div style="background:#13334C;color:#E8F4F8;padding:12px;border-radius:10px;text-align:center;font-weight:700;margin-bottom:10px;border:1px solid #2B6282;">
-📤 B반 {m_name} 제출 ↗</div></a>""", unsafe_allow_html=True)
+    st.markdown(f"""<a href="{PADLET_SUBMIT_URL}" target="_blank" style="text-decoration:none;">
+<div style="background:#1F3B5C;color:#fff;border-radius:10px;padding:14px;text-align:center;font-weight:700;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,0.15);margin:10px 0 16px;">
+🚀 [모둠 과제 제출방 (패들렛)] 새 창에서 열기 ↗
+<div style="font-size:12px;font-weight:normal;color:#B8C9E0;margin-top:5px;">모든 모둠 공통 제출함 · 학급·모둠·모둠원 입력 · 비공개 제출방</div>
+</div></a>""", unsafe_allow_html=True)
 
     tip("제출 후에도 💾 저장 파일은 지우지 마세요. 이의 신청이나 수정 확인 때 필요할 수 있습니다.")
 
