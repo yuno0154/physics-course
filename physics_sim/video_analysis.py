@@ -61,8 +61,8 @@ Q = {
            "(식 → 값 대입 → 결과(단위) 순서로 쓸 것)",
     "q4": "위 표의 세 지점의 E 값을 근거로 역학적 에너지가 보존된다고 볼 수 있는지 판단하시오. "
           "판단의 근거가 된 수치를 함께 쓰고, 높이에 따라 Ek와 Ep가 어떻게 바뀌는지 표의 값과 연결하여 설명하시오.",
-    "q5a": "가. 1번 표 첫 번째 점의 vx, vy로 처음 속력 v0와 발사각을 구하시오. 이 값을 [포물선 운동 시뮬레이션]에 "
-           "입력하여 얻은 이론값을 실험값과 비교하고, 두 값의 차이를 구하시오.",
+    "q5a": "가. 1번 표 첫 번째 점의 vx, vy로 처음 속력 v0와 발사각을 구하시오. (영상 분석 야구공의 발사각은 근사적으로 약 19°입니다.) "
+           "이 값을 [포물선 운동 시뮬레이션]에 입력하여 얻은 이론값을 실험값과 비교하고, 두 값의 차이를 구하시오.",
     "q5b": "나. 이론값과 실험값이 차이 나는 원인을 '측정 오차'와 '모델의 가정' 두 가지로 나누어 쓰시오.",
     "q6a": "Q1. 비스듬히 던진 공의 운동을 수평·연직 두 방향으로 나누어 설명할 수 있는 이유를 쓰시오. "
            "연직 방향 속도가 변하는 동안 수평 방향 속도(vx)가 어떠했는지 1번 표와 3-다의 수치를 근거로 쓸 것.",
@@ -365,12 +365,31 @@ def ay_range(v):
     return [lo, hi]
 
 
-def same_span_ranges(a, b):
-    """두 물리량을 같은 눈금 폭으로 그리기 위한 축 범위 (증감 크기를 공정하게 비교)."""
-    a, b = np.asarray(a, float), np.asarray(b, float)
-    span = max(np.nanmax(a) - np.nanmin(a), np.nanmax(b) - np.nanmin(b), 1e-6) * 1.3
-    ca, cb = (np.nanmax(a) + np.nanmin(a)) / 2, (np.nanmax(b) + np.nanmin(b)) / 2
-    return [ca - span / 2, ca + span / 2], [cb - span / 2, cb + span / 2]
+def energy_range(d):
+    """에너지(Ek, Ep, E) 그래프의 급간을 크게 하여 작은 변동이 과장되지 않고 역학적 에너지 보존 경향이 잘 보이도록 축 범위 확장."""
+    vals = []
+    for col in ("Ek", "Ep", "E"):
+        if hasattr(d, col):
+            arr = np.asarray(getattr(d, col), float)
+            arr = arr[~np.isnan(arr)]
+            if len(arr) > 0:
+                vals.append(arr)
+        elif isinstance(d, dict) or hasattr(d, "__getitem__"):
+            try:
+                arr = np.asarray(d[col], float)
+                arr = arr[~np.isnan(arr)]
+                if len(arr) > 0:
+                    vals.append(arr)
+            except Exception:
+                pass
+    if not vals:
+        return [0.0, 20.0]
+    all_v = np.concatenate(vals)
+    min_v = float(np.min(all_v))
+    max_v = float(np.max(all_v))
+    lo = min(0.0, float(np.floor(min_v / 5.0) * 5.0))
+    hi = max(20.0, float(np.ceil((max_v + 1.0) / 5.0) * 5.0))
+    return [lo, hi]
 
 
 def plotly_graphs(d):
@@ -397,15 +416,14 @@ def plotly_graphs(d):
 
 
 def plotly_energy(d):
-    rk, rp = same_span_ranges(d.Ek, d.Ep)
+    rng = energy_range(d)
     f = make_subplots(rows=1, cols=3, horizontal_spacing=0.09,
                       subplot_titles=("운동 에너지 Ek", "위치 에너지 Ep", "역학적 에너지 E = Ek + Ep"))
-    for j, (col, color, rng) in enumerate([("Ek", "#2E6DA4", rk), ("Ep", "#C0504D", rp),
-                                           ("E", "#2D2D2D", zero_range(d.E))], start=1):
+    for j, (col, color) in enumerate([("Ek", "#2E6DA4"), ("Ep", "#C0504D"), ("E", "#2D2D2D")], start=1):
         f.add_trace(go.Scatter(x=d.t, y=d[col], mode="lines+markers", line=dict(color=color)), 1, j)
-        f.update_yaxes(range=rng, title_text="J" if j == 1 else None, row=1, col=j)
+        f.update_yaxes(range=rng, dtick=5, title_text="J" if j == 1 else None, row=1, col=j)
     f.update_xaxes(title_text="t (s)")
-    f.update_yaxes(tickformat=".2f", zeroline=True, zerolinecolor="#9AA8B8")
+    f.update_yaxes(tickformat=".1f", zeroline=True, zerolinecolor="#9AA8B8")
     f.update_layout(height=320, showlegend=False, margin=dict(l=40, r=20, t=40, b=40), plot_bgcolor="#FAFBFC")
     return f
 
@@ -445,13 +463,15 @@ def mpl_png(d, kind):
                     a.yaxis.set_major_locator(ticker.MultipleLocator(10))
         ax[0][2].axis("off")
     else:
-        rk, rp = same_span_ranges(d.Ek, d.Ep)
+        rng = energy_range(d)
         fig, ax = plt.subplots(1, 3, figsize=(10, 3.2))
-        for a, (col, color, rng, ttl) in zip(ax, [("Ek", "#2E6DA4", rk, "Ek"), ("Ep", "#C0504D", rp, "Ep"),
-                                                  ("E", "#2D2D2D", zero_range(d.E), "E = Ek + Ep")]):
+        import matplotlib.ticker as ticker
+        for a, (col, color, ttl) in zip(ax, [("Ek", "#2E6DA4", "Ek"), ("Ep", "#C0504D", "Ep"),
+                                             ("E", "#2D2D2D", "E = Ek + Ep")]):
             a.plot(d.t, d[col], "o-", ms=3, lw=1.2, color=color)
             style(a, "J", ttl)
             a.set_ylim(*rng)
+            a.yaxis.set_major_locator(ticker.MultipleLocator(5))
     fig.tight_layout()
     bio = io.BytesIO()
     fig.savefig(bio, format="png", dpi=160)
@@ -794,8 +814,8 @@ if d is not None:
                         "E (J)": fnum(d.E[i]) if i is not None and i < len(d) else ""} for nm, i in rows])
     st.dataframe(et, hide_index=True, **FULL)
     st.plotly_chart(plotly_energy(d), **FULL, config={"displaylogo": False})
-    st.markdown("<span class='auto-label'>▣ 그래프 눈금: Ek와 Ep는 같은 눈금 폭으로 그려 두 값의 증감 크기를 비교할 수 있게 했고, "
-                "E는 0부터 그렸습니다.</span>", unsafe_allow_html=True)
+    st.markdown("<span class='auto-label'>▣ 그래프 눈금: 역학적 에너지 보존 경향과 상호 변환을 한눈에 비교할 수 있도록 "
+                "세 에너지(Ek, Ep, E)의 y축 급간을 0부터 동일한 큰 눈금(5 J 단위)으로 맞추었습니다.</span>", unsafe_allow_html=True)
     tip("지점을 고르면 표가 자동으로 채워집니다. 그래프 위에 마우스를 올리면 각 점의 값이 보입니다.")
 else:
     st.info("1번 데이터를 넣으면 에너지 표와 그래프가 나타납니다.")
@@ -812,16 +832,17 @@ v1, v2, v3, v4 = st.columns(4)
 v1.text_input("v0x (m/s) = 첫 점의 vx", key="v0x")
 v2.text_input("v0y (m/s) = 첫 점의 vy", key="v0y")
 v3.text_input("처음 속력 v0 (m/s)", key="v0")
-v4.text_input("발사각 θ (°)", key="theta")
+v4.text_input("발사각 θ (°)", key="theta", placeholder="약 19°")
 tip("계산기로 각도를 구할 때는 각도 단위가 <b>DEG</b>(도)로 되어 있는지 확인하세요. "
-    "역탄젠트는 보통 <b>SHIFT → tan</b> 으로 입력합니다.")
+    "역탄젠트는 보통 <b>SHIFT → tan</b> 으로 입력합니다. "
+    "<br>※ <b>영상 분석 야구공의 발사각은 근사적으로 약 19°(약 18°~20°)</b> 입니다.")
 
 st.markdown("**② 시뮬레이션으로 이론값 구하기**")
 st.markdown(f"""<a href="{SIM_URL}" target="_blank" style="text-decoration:none;">
 <div style="background:#1F3B5C;color:#fff;border-radius:8px;padding:10px;text-align:center;font-weight:600;">
 🚀 [포물선 운동 시뮬레이션] 새 창에서 열기</div></a>""", unsafe_allow_html=True)
 tip("시뮬레이션은 새 창(새 탭)으로 열리므로 이 페이지의 입력 내용은 그대로 남아 있습니다. "
-    "시뮬레이션에 ①에서 구한 발사각과 처음 속력을 넣고, 중력 가속도는 <b>9.8</b>을 선택한 뒤 "
+    "시뮬레이션에 ①에서 구한 발사각(약 19°)과 처음 속력을 넣고, 중력 가속도는 <b>9.8</b>을 선택한 뒤 "
     "최고점 도달 시간·최고점 높이·수평 도달 거리를 아래 '이론값' 칸에 옮겨 적으세요.")
 
 st.markdown("**③ 실험값과 비교하기**")
