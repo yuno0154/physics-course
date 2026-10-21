@@ -44,6 +44,25 @@ G = 9.8      # m/s²
 DEFAULT_TEACHER_CODE = "sagok-physics"
 SIM_URL = "?page=physics_sim/projectile_analysis_excel"   # 이론값 계산용 시뮬레이션 페이지
 KST = ZoneInfo("Asia/Seoul")
+
+PADLET_SUBMISSION_URLS = {
+    "A반": [
+        ("1모둠", "https://padlet.com/sgh/submission-request/oO6VvPdgOPMmvrwD"),
+        ("2모둠", "https://padlet.com/sgh/submission-request/o4ZnXBW51ZQ5vNda"),
+        ("3모둠", "https://padlet.com/sgh/submission-request/1JkMb03PQyJQvdD8"),
+        ("4모둠", "https://padlet.com/sgh/submission-request/BGYjXmaGn2xQX3M0"),
+        ("5모둠", "https://padlet.com/sgh/submission-request/y5WkX4e2LpA6vmxG"),
+        ("6모둠", "https://padlet.com/sgh/submission-request/m9LGXq689ekVvaKY"),
+    ],
+    "B반": [
+        ("1모둠", "https://padlet.com/sgh/submission-request/e3JNXQmEpoLmXErY"),
+        ("2모둠", "https://padlet.com/sgh/submission-request/eWRpzxVgqNRMv7Qr"),
+        ("3모둠", "https://padlet.com/sgh/submission-request/kr73X52795OQvM89"),
+        ("4모둠", "https://padlet.com/sgh/submission-request/Y10QzVNxpV2Yzg2G"),
+        ("5모둠", "https://padlet.com/sgh/submission-request/PW6VbOqZwDM7XY19"),
+        ("6모둠", "https://padlet.com/sgh/submission-request/e3JNXQmEpoJ9XErY"),
+    ],
+}
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT_REG = os.path.join(HERE, "fonts", "NanumGothic.ttf")
 FONT_BOLD = os.path.join(HERE, "fonts", "NanumGothicBold.ttf")
@@ -356,12 +375,12 @@ def zero_range(v):
 
 
 def ay_range(v):
-    """가속도-시간(ay-t) 그래프의 급간을 크게 하여 등가속도 운동(ay ≈ -9.8 m/s²)에 가깝게 보이도록 축 범위 확장."""
+    """가속도-시간(ay-t) 그래프의 급간을 넓게 잡아 등가속도 운동(ay ≈ -9.8 m/s²)으로 거의 일정하게 보이도록 축 범위 대폭 확장."""
     v = np.asarray(v, float)
     min_v = float(np.nanmin(v)) if len(v) > 0 else -10.0
     max_v = float(np.nanmax(v)) if len(v) > 0 else -10.0
-    lo = min(-30.0, min_v - 5.0)
-    hi = max(10.0, max_v + 5.0)
+    lo = min(-60.0, float(np.floor((min_v - 10.0) / 20.0) * 20.0))
+    hi = max(40.0, float(np.ceil((max_v + 10.0) / 20.0) * 20.0))
     return [lo, hi]
 
 
@@ -406,7 +425,7 @@ def plotly_graphs(d):
     fig2.add_trace(go.Scatter(x=d.t, y=d.ay, mode="lines+markers", line=dict(color=C_A)), 1, 3)
     fig2.update_yaxes(title_text="y (m)", row=1, col=1)
     fig2.update_yaxes(title_text="vy (m/s)", row=1, col=2)
-    fig2.update_yaxes(title_text="ay (m/s²)", range=ay_range(d.ay), dtick=10, row=1, col=3)
+    fig2.update_yaxes(title_text="ay (m/s²)", range=ay_range(d.ay), dtick=20, row=1, col=3)
     for f in (fig1, fig2):
         f.update_xaxes(title_text="t (s)")
         f.update_yaxes(tickformat=".1f", title_standoff=4, zeroline=True, zerolinecolor="#9AA8B8")
@@ -460,7 +479,7 @@ def mpl_png(d, kind):
                 a.set_ylim(*rng)
                 if col == "ay":
                     import matplotlib.ticker as ticker
-                    a.yaxis.set_major_locator(ticker.MultipleLocator(10))
+                    a.yaxis.set_major_locator(ticker.MultipleLocator(20))
         ax[0][2].axis("off")
     else:
         rng = energy_range(d)
@@ -615,7 +634,7 @@ with g2:
     <span class='pill'>교정 막대자·좌표축: 선생님 안내</span></li>
 <li><b>데이터 붙여넣기</b> — 분석 표를 복사해 이 페이지 <b>1번</b>에 붙여 넣습니다. 표·그래프·엑셀 파일은 자동으로 만들어집니다.</li>
 <li><b>분석·서술</b> — 2~6번 노란 칸을 작성합니다.</li>
-<li><b>제출</b> — 맨 아래에서 보고서 파일을 만들어 Teams 과제에 올립니다.</li>
+<li><b>제출</b> — 맨 아래에서 보고서 PDF를 받아 <b>패들렛 모둠별 비공개 제출방</b>에 올립니다. (1모둠 내 2인 1조 각 조별로 자기 모둠방에 제출)</li>
 </ol>
 <span class='pill'>계산 조건: m = {MASS} kg(가정), g = {G} m/s²</span>
 </div>""", unsafe_allow_html=True)
@@ -833,9 +852,7 @@ v1.text_input("v0x (m/s) = 첫 점의 vx", key="v0x")
 v2.text_input("v0y (m/s) = 첫 점의 vy", key="v0y")
 v3.text_input("처음 속력 v0 (m/s)", key="v0")
 v4.text_input("발사각 θ (°)", key="theta", placeholder="약 19°")
-tip("계산기로 각도를 구할 때는 각도 단위가 <b>DEG</b>(도)로 되어 있는지 확인하세요. "
-    "역탄젠트는 보통 <b>SHIFT → tan</b> 으로 입력합니다. "
-    "<br>※ <b>영상 분석 야구공의 발사각은 근사적으로 약 19°(약 18°~20°)</b> 입니다.")
+tip("※ <b>영상 분석 야구공의 발사각은 근사적으로 약 19°(약 18°~20°)</b> 입니다.")
 
 st.markdown("**② 시뮬레이션으로 이론값 구하기**")
 st.markdown(f"""<a href="{SIM_URL}" target="_blank" style="text-decoration:none;">
@@ -1317,11 +1334,32 @@ with st.container(border=True):
         x2.download_button("⬇️ Word 받기 (참고용)", ex["docx"], file_name=ex["name"] + ".docx",
                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                            **FULL)
-    st.markdown(f"""
-**제출 방법 (Teams 과제)**
+    st.markdown("""
+**제출 방법 (패들렛 모둠별 비공개 제출방)**
 1. 위 버튼으로 **PDF**를 받습니다. 파일 이름은 자동으로 `수강반_이름_이름_영상분석보고서.pdf`가 됩니다.
-2. Teams 과제에 **보고서 PDF**와 **영상 분석 파일**(예: `홍길동_김영철.vmbl`)을 함께 올립니다.
+2. **1모둠에 2인 1조 2개 조**가 편성되어 있습니다. **각 조는 자신이 속한 모둠의 비공개 제출방**에 **보고서 PDF**와 **영상 분석 파일**(`.vmbl`)을 함께 올립니다.
+3. 비공개 제출방이므로 제출물은 다른 학생에게 보이지 않습니다.
 """)
+
+    with st.container(border=True):
+        st.markdown("#### 📮 모둠별 비공개 제출방 바로가기")
+        st.caption("※ 1모둠당 2인 1조 2개 조 편성 · 각 조는 자신의 학급과 모둠 링크를 클릭하여 제출하세요.")
+        tab_a, tab_b = st.tabs(["🅰️ A반 모둠 제출방", "🅱️ B반 모둠 제출방"])
+        with tab_a:
+            cols = st.columns(3)
+            for idx, (m_name, url) in enumerate(PADLET_SUBMISSION_URLS["A반"]):
+                with cols[idx % 3]:
+                    st.markdown(f"""<a href="{url}" target="_blank" style="text-decoration:none;">
+<div style="background:#13334C;color:#E8F4F8;padding:12px;border-radius:10px;text-align:center;font-weight:700;margin-bottom:10px;border:1px solid #2B6282;">
+📤 A반 {m_name} 제출 ↗</div></a>""", unsafe_allow_html=True)
+        with tab_b:
+            cols = st.columns(3)
+            for idx, (m_name, url) in enumerate(PADLET_SUBMISSION_URLS["B반"]):
+                with cols[idx % 3]:
+                    st.markdown(f"""<a href="{url}" target="_blank" style="text-decoration:none;">
+<div style="background:#13334C;color:#E8F4F8;padding:12px;border-radius:10px;text-align:center;font-weight:700;margin-bottom:10px;border:1px solid #2B6282;">
+📤 B반 {m_name} 제출 ↗</div></a>""", unsafe_allow_html=True)
+
     tip("제출 후에도 💾 저장 파일은 지우지 마세요. 이의 신청이나 수정 확인 때 필요할 수 있습니다.")
 
 # ════════════════════════════════════════════════════════════════════
