@@ -100,6 +100,11 @@ transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] 
 # 네비게이션 구성
 pg = st.navigation({
     "🏠 메인": [home_page],
+    "📑 수행평가 : 역학과 에너지로 증명하는 최적의 위성 임무 궤도 설계 탐구": [
+        video_analysis_eval_page,
+        satellite_orbit_eval_page,
+        satellite_nasa_page
+    ],
     "📍 학습 주제1: 힘의 합성과 운동 예측": [
         vector_decomp_page, 
         position_vector_page, 
@@ -151,11 +156,6 @@ pg = st.navigation({
         momentum_cart_page,
         nuri_rocket_page,
         black_hole_page
-    ],
-    "📑 수행평가 : 만유인력과 인공위성 궤도 탐구": [
-        video_analysis_eval_page,
-        satellite_orbit_eval_page,
-        satellite_nasa_page
     ],
     "⚡ 학습주제 7: 전기장": [
         gravity_electric_page,
