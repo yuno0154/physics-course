@@ -35,8 +35,10 @@ AREA = "역학과 에너지로 증명하는 최적의 위성 임무 궤도 설�
 VA_URL = "https://videoanalysis.app?key=tvampus85n"
 VA_KEY = "tvampus85n"
 VA_EXPIRE = "2026년 11월 2일(월)"
-CLIP = "205 ~ 235"
-N_POINTS = 26
+CLIP = "207 ~ 233"
+N_POINTS = 29
+PADLET_URL = "https://padlet.app/qr-code/s024pudcl47khfjoa5j7?source=image"   # 분석 영상 내려받기
+PADLET_QR_B64 = "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"
 MASS = 0.1   # kg (계산 편의를 위한 가정값)
 G = 9.8      # m/s²
 DEFAULT_TEACHER_CODE = "sagok-physics"
@@ -57,8 +59,8 @@ Q = {
            "연직 방향으로 작용하는 알짜힘이 무엇인지 설명하시오.",
     "q3c": "다. 연직 가속도 산출: 연직 방향 가속도 ay를 직접 계산하고 중력 가속도와 비교하시오. "
            "(식 → 값 대입 → 결과(단위) 순서로 쓸 것)",
-    "q4": "세 지점의 역학적 에너지 E를 비교하여 보존된다고 볼 수 있는지 판단하고, "
-          "높이에 따른 Ek와 Ep의 변화를 연결하여 설명하시오.",
+    "q4": "위 표의 세 지점의 E 값을 근거로 역학적 에너지가 보존된다고 볼 수 있는지 판단하시오. "
+          "판단의 근거가 된 수치를 함께 쓰고, 높이에 따라 Ek와 Ep가 어떻게 바뀌는지 표의 값과 연결하여 설명하시오.",
     "q5a": "가. 1번 표 첫 번째 점의 vx, vy로 처음 속력 v0와 발사각을 구하시오. 이 값을 [포물선 운동 시뮬레이션]에 "
            "입력하여 얻은 이론값을 실험값과 비교하고, 두 값의 차이를 구하시오.",
     "q5b": "나. 이론값과 실험값이 차이 나는 원인을 '측정 오차'와 '모델의 가정' 두 가지로 나누어 쓰시오.",
@@ -74,10 +76,10 @@ SAVE_KEYS = [
     "input_mode", "raw_data", "raw_file_text", "raw_file_name",
     "map_t", "map_x", "map_y", "map_vx", "map_vy",
     "backup_used", "backup_reason", "backup_time", "own_raw_backup",
-    "q3a", "q3b", "ay_method", "ay_i1", "ay_i2", "ay_trend", "ay_formula", "ay_subst",
+    "q3a", "q3b", "ay_i1", "ay_i2", "ay_formula", "ay_subst",
     "ay_result", "ay_err", "calc_img_b64", "calc_img_name",
     "e_top", "e_after", "q4",
-    "v0x", "v0y", "v0", "theta", "theory_calc", "err_measure", "err_model", "q6a", "q6b",
+    "v0x", "v0y", "v0", "theta", "err_measure", "err_model", "q6a", "q6b",
     *[f"exp_{i}" for i in range(3)], *[f"th_{i}" for i in range(3)], *[f"er_{i}" for i in range(3)],
 ]
 
@@ -183,9 +185,9 @@ def now_kst():
 def make_backup_csv():
     """제공(비상용) 데이터: 실제 측정처럼 약한 공기 저항과 측정 잡음을 포함."""
     rng = np.random.default_rng(2026)
-    v0, ang, k = 7.6, np.radians(52), 0.012
+    v0, ang, k = 16.6, np.radians(14.3), 0.006
     vx, vy, x, y, dt = v0 * np.cos(ang), v0 * np.sin(ang), 0.0, 0.0, 1e-4
-    t_s = np.round(np.arange(N_POINTS) * 0.05, 3)
+    t_s = np.round(np.arange(N_POINTS) / 30, 4)
     xs, ys, t, j = [], [], 0.0, 0
     while j < N_POINTS:
         if t >= t_s[j] - 1e-9:
@@ -342,40 +344,64 @@ def fnum(v, nd=3):
 C_H, C_V, C_A = "#2E6DA4", "#C0504D", "#7A5195"
 
 
+def zero_range(v):
+    """0과 평균의 2배 사이를 보여 주는 넓은 축 (일정한 값의 작은 흔들림이 과장되지 않게).
+    값이 그 범위를 넘으면 범위를 넓힘."""
+    v = np.asarray(v, float)
+    c = float(np.nanmean(v))
+    half = max(abs(c), 1e-6)
+    lo, hi = c - half, c + half
+    pad = 0.08 * (hi - lo)
+    return [min(lo, float(np.nanmin(v)) - pad), max(hi, float(np.nanmax(v)) + pad)]
+
+
+def same_span_ranges(a, b):
+    """두 물리량을 같은 눈금 폭으로 그리기 위한 축 범위 (증감 크기를 공정하게 비교)."""
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    span = max(np.nanmax(a) - np.nanmin(a), np.nanmax(b) - np.nanmin(b), 1e-6) * 1.3
+    ca, cb = (np.nanmax(a) + np.nanmin(a)) / 2, (np.nanmax(b) + np.nanmin(b)) / 2
+    return [ca - span / 2, ca + span / 2], [cb - span / 2, cb + span / 2]
+
+
 def plotly_graphs(d):
-    fig1 = make_subplots(rows=1, cols=2, subplot_titles=("위치-시간 (x-t)", "속도-시간 (vx-t)"))
+    fig1 = make_subplots(rows=1, cols=2, horizontal_spacing=0.1,
+                         subplot_titles=("위치-시간 (x-t)", "속도-시간 (vx-t)"))
     fig1.add_trace(go.Scatter(x=d.t, y=d.x, mode="lines+markers", line=dict(color=C_H)), 1, 1)
     fig1.add_trace(go.Scatter(x=d.t, y=d.vx, mode="lines+markers", line=dict(color=C_H)), 1, 2)
     fig1.update_yaxes(title_text="x (m)", row=1, col=1)
-    fig1.update_yaxes(title_text="vx (m/s)", row=1, col=2)
-    fig2 = make_subplots(rows=1, cols=3, horizontal_spacing=0.11, subplot_titles=("위치-시간 (y-t)", "속도-시간 (vy-t)", "가속도-시간 (ay-t)"))
+    fig1.update_yaxes(title_text="vx (m/s)", range=zero_range(d.vx), row=1, col=2)
+    fig2 = make_subplots(rows=1, cols=3, horizontal_spacing=0.11,
+                         subplot_titles=("위치-시간 (y-t)", "속도-시간 (vy-t)", "가속도-시간 (ay-t)"))
     fig2.add_trace(go.Scatter(x=d.t, y=d.y, mode="lines+markers", line=dict(color=C_V)), 1, 1)
     fig2.add_trace(go.Scatter(x=d.t, y=d.vy, mode="lines+markers", line=dict(color=C_V)), 1, 2)
     fig2.add_trace(go.Scatter(x=d.t, y=d.ay, mode="lines+markers", line=dict(color=C_A)), 1, 3)
     fig2.update_yaxes(title_text="y (m)", row=1, col=1)
     fig2.update_yaxes(title_text="vy (m/s)", row=1, col=2)
-    fig2.update_yaxes(title_text="ay (m/s²)", row=1, col=3)
-    fig2.update_layout()
+    fig2.update_yaxes(title_text="ay (m/s²)", range=zero_range(d.ay), row=1, col=3)
     for f in (fig1, fig2):
         f.update_xaxes(title_text="t (s)")
-        f.update_yaxes(tickformat=".2f", title_standoff=4)
+        f.update_yaxes(tickformat=".1f", title_standoff=4, zeroline=True, zerolinecolor="#9AA8B8")
         f.update_layout(height=320, showlegend=False, margin=dict(l=40, r=20, t=40, b=40),
                         plot_bgcolor="#FAFBFC")
     return fig1, fig2
 
 
 def plotly_energy(d):
-    f = go.Figure()
-    for col, name, color in [("Ek", "운동 에너지 Ek", "#2E6DA4"), ("Ep", "위치 에너지 Ep", "#C0504D"),
-                             ("E", "역학적 에너지 E", "#2D2D2D")]:
-        f.add_trace(go.Scatter(x=d.t, y=d[col], mode="lines+markers", name=name, line=dict(color=color)))
-    f.update_layout(height=320, margin=dict(l=40, r=20, t=30, b=40), xaxis_title="t (s)",
-                    yaxis_title="에너지 (J)", legend=dict(orientation="h", y=1.12), plot_bgcolor="#FAFBFC")
+    rk, rp = same_span_ranges(d.Ek, d.Ep)
+    f = make_subplots(rows=1, cols=3, horizontal_spacing=0.09,
+                      subplot_titles=("운동 에너지 Ek", "위치 에너지 Ep", "역학적 에너지 E = Ek + Ep"))
+    for j, (col, color, rng) in enumerate([("Ek", "#2E6DA4", rk), ("Ep", "#C0504D", rp),
+                                           ("E", "#2D2D2D", zero_range(d.E))], start=1):
+        f.add_trace(go.Scatter(x=d.t, y=d[col], mode="lines+markers", line=dict(color=color)), 1, j)
+        f.update_yaxes(range=rng, title_text="J" if j == 1 else None, row=1, col=j)
+    f.update_xaxes(title_text="t (s)")
+    f.update_yaxes(tickformat=".2f", zeroline=True, zerolinecolor="#9AA8B8")
+    f.update_layout(height=320, showlegend=False, margin=dict(l=40, r=20, t=40, b=40), plot_bgcolor="#FAFBFC")
     return f
 
 
 def mpl_png(d, kind):
-    """보고서 파일용 그래프 이미지 (matplotlib)."""
+    """보고서 파일용 그래프 이미지 (matplotlib) — 화면 그래프와 같은 축 범위 사용."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -385,25 +411,34 @@ def mpl_png(d, kind):
         font_manager.fontManager.addfont(FONT_REG)
         plt.rcParams["font.family"] = font_manager.FontProperties(fname=FONT_REG).get_name()
     plt.rcParams["axes.unicode_minus"] = False
+
+    def style(a, yl, title):
+        a.set_title(title, fontsize=10)
+        a.set_xlabel("t (s)", fontsize=8); a.set_ylabel(yl, fontsize=8)
+        a.tick_params(labelsize=7); a.grid(alpha=.3)
+        a.ticklabel_format(useOffset=False, axis="y")
+        a.axhline(0, color="#9AA8B8", lw=0.8)
+
     if kind == "motion":
         fig, ax = plt.subplots(2, 3, figsize=(10, 5.6))
-        spec = [(0, 0, "x", "x (m)", C_H, "x-t"), (0, 1, "vx", "vx (m/s)", C_H, "vx-t"),
-                (1, 0, "y", "y (m)", C_V, "y-t"), (1, 1, "vy", "vy (m/s)", C_V, "vy-t"),
-                (1, 2, "ay", "ay (m/s²)", C_A, "ay-t")]
-        for r, c, col, yl, color, ttl in spec:
+        spec = [(0, 0, "x", "x (m)", C_H, "x-t", None), (0, 1, "vx", "vx (m/s)", C_H, "vx-t", zero_range(d.vx)),
+                (1, 0, "y", "y (m)", C_V, "y-t", None), (1, 1, "vy", "vy (m/s)", C_V, "vy-t", None),
+                (1, 2, "ay", "ay (m/s²)", C_A, "ay-t", zero_range(d.ay))]
+        for r, c, col, yl, color, ttl, rng in spec:
             a = ax[r][c]
             a.plot(d.t, d[col], "o-", color=color, ms=3, lw=1.2)
-            a.set_title(("수평 " if r == 0 else "연직 ") + ttl if ko else ttl, fontsize=10)
-            a.set_xlabel("t (s)", fontsize=8); a.set_ylabel(yl, fontsize=8)
-            a.tick_params(labelsize=7); a.grid(alpha=.3)
-            a.ticklabel_format(useOffset=False, axis="y")
+            style(a, yl, (("수평 " if r == 0 else "연직 ") + ttl) if ko else ttl)
+            if rng:
+                a.set_ylim(*rng)
         ax[0][2].axis("off")
     else:
-        fig, a = plt.subplots(figsize=(7.5, 3.2))
-        for col, name, color in [("Ek", "Ek", "#2E6DA4"), ("Ep", "Ep", "#C0504D"), ("E", "E = Ek + Ep", "#2D2D2D")]:
-            a.plot(d.t, d[col], "o-", ms=3, lw=1.2, color=color, label=name)
-        a.set_xlabel("t (s)", fontsize=8); a.set_ylabel("J", fontsize=8)
-        a.legend(fontsize=8); a.grid(alpha=.3); a.tick_params(labelsize=7)
+        rk, rp = same_span_ranges(d.Ek, d.Ep)
+        fig, ax = plt.subplots(1, 3, figsize=(10, 3.2))
+        for a, (col, color, rng, ttl) in zip(ax, [("Ek", "#2E6DA4", rk, "Ek"), ("Ep", "#C0504D", rp, "Ep"),
+                                                  ("E", "#2D2D2D", zero_range(d.E), "E = Ek + Ep")]):
+            a.plot(d.t, d[col], "o-", ms=3, lw=1.2, color=color)
+            style(a, "J", ttl)
+            a.set_ylim(*rng)
     fig.tight_layout()
     bio = io.BytesIO()
     fig.savefig(bio, format="png", dpi=160)
@@ -498,17 +533,17 @@ if st.session_state.pop("_loaded_msg", False):
 with st.container(border=True):
     st.markdown("<div class='card-t'>👥 모둠 정보</div>", unsafe_allow_html=True)
     c0, c1, c2, c3 = st.columns([1, 1, 1.4, 2])
-    c0.text_input("반", key="cls", placeholder="예: 2-3")
-    c1.text_input("번호 ①", key="s1_num")
+    c0.text_input("수강반", key="cls", placeholder="예: A")
+    c1.text_input("반-번호 ①", key="s1_num", placeholder="예: 2-3")
     c2.text_input("이름 ①", key="s1_name")
     c3.selectbox("역할 ①", ROLES, key="s1_role")
     d0, d1, d2, d3 = st.columns([1, 1, 1.4, 2])
     d0.markdown("")
-    d1.text_input("번호 ②", key="s2_num")
+    d1.text_input("반-번호 ②", key="s2_num", placeholder="예: 2-15")
     d2.text_input("이름 ②", key="s2_name")
     d3.selectbox("역할 ②", ROLES, key="s2_role", **sel_kw("s2_role", 1))
-    tip("수업이 끝나기 전에 반드시 위의 <b>💾 저장</b>을 눌러 파일을 받아 두세요. "
-        "다음 차시에 <b>📂 불러오기</b>로 그 파일을 열면 이어서 작성할 수 있습니다. "
+    tip("반-번호는 <b>반-번호</b> 형식으로 씁니다 (2반 3번 → 2-3). "
+        "중간에 창을 닫아야 할 때는 위의 <b>💾 저장</b>으로 파일을 받아 두고, <b>📂 불러오기</b>로 열면 이어서 작성할 수 있습니다. "
         "(인터넷 창을 닫거나 새로고침하면 입력한 내용이 사라집니다.)")
 
 # ── 탐구 안내 (목표 · 과정 · 평가) ─────────────────────────────────
@@ -537,16 +572,18 @@ with g2:
         st.markdown(f"""
 <div class='steps'>
 <ol>
+<li><b>분석 영상 내려받기</b> — <a href='{PADLET_URL}' target='_blank'>패들렛에서 영상 받기 ↗</a>
+    <br><img src='data:image/png;base64,{PADLET_QR_B64}' width='92' style='margin-top:4px;border:1px solid #D5DEE8;border-radius:6px'>
+    <span style='font-size:12px;color:#6B7A8C'>&nbsp;휴대폰으로 받을 때는 QR</span></li>
 <li><b>프로그램 접속</b> — <a href='{VA_URL}' target='_blank'>동영상 분석 프로그램 열기 ↗</a>
     <br><span class='pill'>제품키 {VA_KEY}</span><span class='pill'>사용 기한 {VA_EXPIRE}</span></li>
 <li><b>설정</b> — 아래 값대로 설정합니다.
-    <br><span class='pill'>클립 {CLIP}</span><span class='pill'>질점 {N_POINTS}개</span>
+    <br><span class='pill'>프레임 범위 {CLIP}</span><span class='pill'>질점 {N_POINTS}개</span>
     <span class='pill'>교정 막대자·좌표축: 선생님 안내</span></li>
 <li><b>데이터 붙여넣기</b> — 분석 표를 복사해 이 페이지 <b>1번</b>에 붙여 넣습니다. 표·그래프·엑셀 파일은 자동으로 만들어집니다.</li>
 <li><b>분석·서술</b> — 2~6번 노란 칸을 작성합니다.</li>
 <li><b>제출</b> — 맨 아래에서 보고서 파일을 만들어 Teams 과제에 올립니다.</li>
 </ol>
-<span class='pill'>1차시: 1~2번</span><span class='pill'>2차시: 3~6번 · 제출</span>
 <span class='pill'>계산 조건: m = {MASS} kg(가정), g = {G} m/s²</span>
 </div>""", unsafe_allow_html=True)
 
@@ -572,7 +609,7 @@ with st.container(border=True):
 # ════════════════════════════════════════════════════════════════════
 # 7. [1] 데이터
 # ════════════════════════════════════════════════════════════════════
-sec(1, "데이터 정리", "1차시")
+sec(1, "데이터 정리")
 
 d = None
 if st.session_state.get("backup_used"):
@@ -664,13 +701,15 @@ if st.session_state.pop("_unlock_msg", None) == "ok":
 # ════════════════════════════════════════════════════════════════════
 # 8. [2] 그래프
 # ════════════════════════════════════════════════════════════════════
-sec(2, "그래프", "1차시 · 자동 생성")
+sec(2, "그래프", "자동 생성")
 if d is not None:
     f1, f2 = plotly_graphs(d)
     st.markdown("**[수평 방향 운동]**")
     st.plotly_chart(f1, **FULL, config={"displaylogo": False})
     st.markdown("**[연직 방향 운동]**")
     st.plotly_chart(f2, **FULL, config={"displaylogo": False})
+    st.markdown("<span class='auto-label'>▣ 그래프 눈금: vx-t와 ay-t 그래프는 측정값의 작은 흔들림이 과장되지 않도록 "
+                "0이 보이는 넓은 눈금으로 그렸습니다.</span>", unsafe_allow_html=True)
     tip("그래프 위에 마우스를 올리면 각 점의 값이 보입니다. 그래프 영역을 드래그하면 확대되고, 더블클릭하면 원래대로 돌아옵니다.")
 else:
     st.info("1번에 데이터를 넣으면 그래프 5개(x-t, vx-t, y-t, vy-t, ay-t)가 여기에 나타납니다.")
@@ -678,7 +717,7 @@ else:
 # ════════════════════════════════════════════════════════════════════
 # 9. [3] 분석 및 해석
 # ════════════════════════════════════════════════════════════════════
-sec(3, "분석 및 해석", "2차시")
+sec(3, "분석 및 해석")
 qtext(Q["q3a"])
 st.text_area("3-가", key="q3a", height=110, label_visibility="collapsed")
 qtext(Q["q3b"])
@@ -686,8 +725,7 @@ st.text_area("3-나", key="q3b", height=110, label_visibility="collapsed")
 
 qtext(Q["q3c"])
 with st.container(border=True):
-    st.radio("계산 방법", ["두 시각의 속도 이용", "추세선 기울기 이용"], key="ay_method", horizontal=True)
-    if ss("ay_method", "두 시각의 속도 이용") == "두 시각의 속도 이용":
+    if True:
         if d is not None:
             idx = list(range(len(d)))
             lab = lambda i: f"{i + 1}번째 점 · t = {d.t[i]:.3f} s"
@@ -705,9 +743,6 @@ with st.container(border=True):
             tip("시각을 고르면 그 시각의 측정값이 선택 칸 바로 아래에 표시됩니다. 이 값을 사용해 직접 계산하세요.")
         else:
             st.caption("1번 데이터를 먼저 넣으세요.")
-    else:
-        st.text_input("엑셀에서 구한 vy-t 추세선 식", key="ay_trend", placeholder="예: y = □x + □")
-        tip("받은 엑셀 파일에서 vy-t 산점도를 그리고 '추세선 → 수식 표시'를 선택하면 식이 나타납니다.")
     st.text_input("① 식", key="ay_formula")
     st.text_input("② 값 대입", key="ay_subst")
     r1, r2 = st.columns([1, 2])
@@ -723,7 +758,7 @@ with st.container(border=True):
 # ════════════════════════════════════════════════════════════════════
 # 10. [4] 역학적 에너지
 # ════════════════════════════════════════════════════════════════════
-sec(4, "역학적 에너지 보존 확인", f"2차시 · m = {MASS} kg(가정), g = {G} m/s²")
+sec(4, "역학적 에너지 보존 확인", f"m = {MASS} kg(가정), g = {G} m/s²")
 st.markdown(f"<span class='auto-label'>▣ Ek = ½mv², Ep = mgy, E = Ek + Ep 는 앱이 계산합니다. "
             f"지점 선택과 판단은 학생이 합니다.</span>", unsafe_allow_html=True)
 if d is not None:
@@ -746,7 +781,9 @@ if d is not None:
                         "E (J)": fnum(d.E[i]) if i is not None and i < len(d) else ""} for nm, i in rows])
     st.dataframe(et, hide_index=True, **FULL)
     st.plotly_chart(plotly_energy(d), **FULL, config={"displaylogo": False})
-    tip("지점을 고르면 표가 자동으로 채워집니다. 위 그래프는 모든 점의 Ek, Ep, E를 시간에 따라 나타낸 것입니다.")
+    st.markdown("<span class='auto-label'>▣ 그래프 눈금: Ek와 Ep는 같은 눈금 폭으로 그려 두 값의 증감 크기를 비교할 수 있게 했고, "
+                "E는 0부터 그렸습니다.</span>", unsafe_allow_html=True)
+    tip("지점을 고르면 표가 자동으로 채워집니다. 그래프 위에 마우스를 올리면 각 점의 값이 보입니다.")
 else:
     st.info("1번 데이터를 넣으면 에너지 표와 그래프가 나타납니다.")
 qtext(Q["q4"])
@@ -755,7 +792,7 @@ st.text_area("4", key="q4", height=120, label_visibility="collapsed")
 # ════════════════════════════════════════════════════════════════════
 # 11. [5] 이론값과 실험값 비교
 # ════════════════════════════════════════════════════════════════════
-sec(5, "이론값과 실험값 비교", "2차시")
+sec(5, "이론값과 실험값 비교")
 qtext(Q["q5a"])
 st.markdown("**① 처음 속력과 발사각 구하기**")
 v1, v2, v3, v4 = st.columns(4)
@@ -763,7 +800,6 @@ v1.text_input("v0x (m/s) = 첫 점의 vx", key="v0x")
 v2.text_input("v0y (m/s) = 첫 점의 vy", key="v0y")
 v3.text_input("처음 속력 v0 (m/s)", key="v0")
 v4.text_input("발사각 θ (°)", key="theta")
-st.text_area("v0와 발사각 계산 과정 (식 → 값 대입 → 결과)", key="theory_calc", height=110)
 tip("계산기로 각도를 구할 때는 각도 단위가 <b>DEG</b>(도)로 되어 있는지 확인하세요. "
     "역탄젠트는 보통 <b>SHIFT → tan</b> 으로 입력합니다.")
 
@@ -795,7 +831,7 @@ o2.text_area("모델의 가정 (이론이 무시한 요인)", key="err_model", h
 # ════════════════════════════════════════════════════════════════════
 # 12. [6] 결론
 # ════════════════════════════════════════════════════════════════════
-sec(6, "결론", "2차시")
+sec(6, "결론")
 qtext(Q["q6a"])
 st.text_area("6-Q1", key="q6a", height=130, label_visibility="collapsed")
 qtext(Q["q6b"])
@@ -815,7 +851,7 @@ checks = [
     ("3-가·나 서술", filled("q3a", "q3b", min_len=10)),
     ("3-다 가속도 계산 (식·대입·결과)", filled("ay_result") and (filled("ay_formula", "ay_subst") or bool(ss("calc_img_b64")))),
     ("4. 지점 선택·판단", ss("e_top", None) is not None and ss("e_after", None) is not None and filled("q4", min_len=10)),
-    ("5-가 v0·발사각·비교표", filled("v0x", "v0y", "v0", "theta", "theory_calc", *[f"exp_{i}" for i in range(3)],
+    ("5-가 v0·발사각·비교표", filled("v0x", "v0y", "v0", "theta", *[f"exp_{i}" for i in range(3)],
                             *[f"th_{i}" for i in range(3)], *[f"er_{i}" for i in range(3)])),
     ("5-나 오차 원인 2분류", filled("err_measure", "err_model", min_len=5)),
     ("6. 결론 Q1·Q2", filled("q6a", "q6b", min_len=10)),
@@ -837,7 +873,7 @@ def report_dict():
         source=("제공 데이터 (" + ss("backup_reason", "-") + ", " + ss("backup_time") + ")")
         if st.session_state.get("backup_used") else "자체 측정 데이터",
         made=now_kst(), d=d, top=sel("e_top"), after=sel("e_after"),
-        ay_pts=(sel("ay_i1"), sel("ay_i2")) if ss("ay_method", "두 시각의 속도 이용") == "두 시각의 속도 이용" else None,
+        ay_pts=(sel("ay_i1"), sel("ay_i2")),
         own_backup=ss("own_raw_backup") if st.session_state.get("backup_used") else "",
     )
 
@@ -954,7 +990,7 @@ def build_docx(R):
     run(p, "평가영역: " + AREA + "  |  실험 및 보고서 · 모둠별 · 30점", size=8.5, color="5B6B7D")
 
     m = R["members"]
-    grid(["반", "번호·이름 ①", "역할 ①", "번호·이름 ②", "역할 ②"],
+    grid(["수강반", "반-번호·이름 ①", "역할 ①", "반-번호·이름 ②", "역할 ②"],
          [[R["cls"], f"{m[0][0]} {m[0][1]}", m[0][2], f"{m[1][0]} {m[1][1]}", m[1][2]]],
          stu_cols=(0, 1, 2, 3, 4), font=9)
     p = doc.add_paragraph()
@@ -982,15 +1018,11 @@ def build_docx(R):
     question(Q["q3a"]); student_box(ss("q3a"))
     question(Q["q3b"]); student_box(ss("q3b"))
     question(Q["q3c"])
-    method = ss("ay_method", "두 시각의 속도 이용")
     if R["ay_pts"] and D is not None and None not in R["ay_pts"]:
         i1, i2 = R["ay_pts"]
         auto_label(f"선택한 시각의 측정값: t1 = {D.t[i1]:.3f} s, vy1 = {D.vy[i1]:.3f} m/s  /  "
                    f"t2 = {D.t[i2]:.3f} s, vy2 = {D.vy[i2]:.3f} m/s")
-    stu_rows = [["계산 방법", method]]
-    if method != "두 시각의 속도 이용":
-        stu_rows.append(["추세선 식", ss("ay_trend")])
-    stu_rows += [["① 식", ss("ay_formula")], ["② 값 대입", ss("ay_subst")],
+    stu_rows = [["① 식", ss("ay_formula")], ["② 값 대입", ss("ay_subst")],
                  ["③ 결과 ay", ss("ay_result")], ["④ 중력 가속도와 비교", ss("ay_err")]]
     t = grid(["단계", "학생 작성"], stu_rows, stu_cols=(1,), widths=[38, 140], font=9.5)
     for row in t.rows[1:]:
@@ -1013,7 +1045,7 @@ def build_docx(R):
                 erows.append([nm, fnum(D.t[i]), fnum(D.y[i]), fnum(D.v[i]), fnum(D.Ek[i]), fnum(D.Ep[i]), fnum(D.E[i])])
         grid(["지점", "t (s)", "y (m)", "v (m/s)", "Ek (J)", "Ep (J)", "E (J)"], erows, font=8.5,
              widths=[46, 20, 22, 22, 22, 22, 24])
-        doc.add_picture(io.BytesIO(mpl_png(D, "energy")), width=Mm(150))
+        doc.add_picture(io.BytesIO(mpl_png(D, "energy")), width=Mm(176))
     question(Q["q4"]); student_box(ss("q4"))
 
     heading(5, "이론값과 실험값 비교")
@@ -1022,8 +1054,6 @@ def build_docx(R):
     run(p, "① 처음 속력과 발사각", bold=True, size=9.5)
     grid(["v0x (m/s)", "v0y (m/s)", "처음 속력 v0 (m/s)", "발사각 (°)"],
          [[ss("v0x"), ss("v0y"), ss("v0"), ss("theta")]], stu_cols=(0, 1, 2, 3), widths=[40, 40, 48, 48])
-    p = doc.add_paragraph(); run(p, "v0와 발사각 계산 과정", bold=True, size=9.5)
-    student_box(ss("theory_calc"))
     p = doc.add_paragraph(); run(p, "② 이론값(포물선 운동 시뮬레이션)과 실험값 비교", bold=True, size=9.5)
     grid(["구분"] + COMP_ITEMS,
          [["실험값 (영상 측정)"] + [ss(f"exp_{j}") for j in range(3)],
@@ -1124,7 +1154,7 @@ def build_pdf(R):
            Paragraph(esc(TITLE), P(15, True, "#1F3B5C", 1, 21)),
            Paragraph(esc("평가영역: " + AREA + "  |  실험 및 보고서 · 모둠별 · 30점"), P(8, False, "#5B6B7D", 1)),
            Spacer(1, 6)]
-    grid(["반", "번호·이름 ①", "역할 ①", "번호·이름 ②", "역할 ②"],
+    grid(["수강반", "반-번호·이름 ①", "역할 ①", "반-번호·이름 ②", "역할 ②"],
          [[R["cls"], f"{m[0][0]} {m[0][1]}", m[0][2], f"{m[1][0]} {m[1][1]}", m[1][2]]], stu_cols=(0, 1, 2, 3, 4),
          widths=[20, 38, 41, 38, 41])
     el.append(Spacer(1, 3))
@@ -1151,15 +1181,11 @@ def build_pdf(R):
     question(Q["q3a"]); student_box(ss("q3a"))
     question(Q["q3b"]); student_box(ss("q3b"))
     question(Q["q3c"])
-    method = ss("ay_method", "두 시각의 속도 이용")
     if R["ay_pts"] and D is not None and None not in R["ay_pts"]:
         i1, i2 = R["ay_pts"]
         auto_label(f"▣ 선택한 시각의 측정값: t1 = {D.t[i1]:.3f} s, vy1 = {D.vy[i1]:.3f} m/s  /  "
                    f"t2 = {D.t[i2]:.3f} s, vy2 = {D.vy[i2]:.3f} m/s")
-    rows = [["계산 방법", method]]
-    if method != "두 시각의 속도 이용":
-        rows.append(["추세선 식", ss("ay_trend")])
-    rows += [["① 식", ss("ay_formula")], ["② 값 대입", ss("ay_subst")], ["③ 결과 ay", ss("ay_result")],
+    rows = [["① 식", ss("ay_formula")], ["② 값 대입", ss("ay_subst")], ["③ 결과 ay", ss("ay_result")],
              ["④ 중력 가속도와 비교", ss("ay_err")]]
     grid(["단계", "학생 작성"], rows, stu_cols=(1,), widths=[40, 138], size=9, left_cols=(1,))
     if ss("calc_img_b64"):
@@ -1182,16 +1208,14 @@ def build_pdf(R):
         grid(["지점", "t (s)", "y (m)", "v (m/s)", "Ek (J)", "Ep (J)", "E (J)"], erows,
              widths=[52, 20, 20, 22, 21, 21, 22], size=8)
         el.append(Spacer(1, 3))
-        el.append(Image(io.BytesIO(mpl_png(D, "energy")), width=150 * mm, height=150 * mm * 3.2 / 7.5))
+        el.append(Image(io.BytesIO(mpl_png(D, "energy")), width=W, height=W * 3.2 / 10))
     question(Q["q4"]); student_box(ss("q4"))
     heading(5, "이론값과 실험값 비교")
     question(Q["q5a"])
-    el.append(Paragraph("① 처음 속력과 발사각", P(9, True)))
+    el.append(Paragraph("(1) 처음 속력과 발사각", P(9, True)))
     grid(["v0x (m/s)", "v0y (m/s)", "처음 속력 v0 (m/s)", "발사각 (°)"],
          [[ss("v0x"), ss("v0y"), ss("v0"), ss("theta")]], stu_cols=(0, 1, 2, 3), widths=[40, 40, 49, 49])
-    el.append(Spacer(1, 4)); el.append(Paragraph("v0와 발사각 계산 과정", P(9, True)))
-    student_box(ss("theory_calc"))
-    el.append(Spacer(1, 4)); el.append(Paragraph("② 이론값(포물선 운동 시뮬레이션)과 실험값 비교", P(9, True)))
+    el.append(Spacer(1, 4)); el.append(Paragraph("(2) 이론값(포물선 운동 시뮬레이션)과 실험값 비교", P(9, True)))
     grid(["구분"] + COMP_ITEMS, [["실험값 (영상 측정)"] + [ss(f"exp_{j}") for j in range(3)],
                                ["이론값 (시뮬레이션)"] + [ss(f"th_{j}") for j in range(3)],
                                ["차이 (실험값 - 이론값)"] + [ss(f"er_{j}") for j in range(3)]],
@@ -1219,7 +1243,7 @@ def build_pdf(R):
 
     def footer(cv, doc_):
         cv.saveState(); cv.setFont("NG", 7.5); cv.setFillColor(colors.HexColor("#8A97A6"))
-        cv.drawString(16 * mm, 9 * mm, f"{R['cls']}  {m[0][1]} · {m[1][1]}  |  {TITLE}")
+        cv.drawString(16 * mm, 9 * mm, f"{R['cls']}반  {m[0][0]} {m[0][1]} · {m[1][0]} {m[1][1]}  |  {TITLE}")
         cv.drawRightString(194 * mm, 9 * mm, f"{doc_.page}쪽")
         cv.restoreState()
 
@@ -1261,7 +1285,7 @@ with st.container(border=True):
                            **FULL)
     st.markdown(f"""
 **제출 방법 (Teams 과제)**
-1. 위 버튼으로 **PDF**를 받습니다. 파일 이름은 자동으로 `반_이름_이름_영상분석보고서.pdf`가 됩니다.
+1. 위 버튼으로 **PDF**를 받습니다. 파일 이름은 자동으로 `수강반_이름_이름_영상분석보고서.pdf`가 됩니다.
 2. Teams 과제에 **보고서 PDF**와 **영상 분석 파일**(예: `홍길동_김영철.vmbl`)을 함께 올립니다.
 """)
     tip("제출 후에도 💾 저장 파일은 지우지 마세요. 이의 신청이나 수정 확인 때 필요할 수 있습니다.")
