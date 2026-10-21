@@ -355,6 +355,16 @@ def zero_range(v):
     return [min(lo, float(np.nanmin(v)) - pad), max(hi, float(np.nanmax(v)) + pad)]
 
 
+def ay_range(v):
+    """가속도-시간(ay-t) 그래프의 급간을 크게 하여 등가속도 운동(ay ≈ -9.8 m/s²)에 가깝게 보이도록 축 범위 확장."""
+    v = np.asarray(v, float)
+    min_v = float(np.nanmin(v)) if len(v) > 0 else -10.0
+    max_v = float(np.nanmax(v)) if len(v) > 0 else -10.0
+    lo = min(-30.0, min_v - 5.0)
+    hi = max(10.0, max_v + 5.0)
+    return [lo, hi]
+
+
 def same_span_ranges(a, b):
     """두 물리량을 같은 눈금 폭으로 그리기 위한 축 범위 (증감 크기를 공정하게 비교)."""
     a, b = np.asarray(a, float), np.asarray(b, float)
@@ -377,7 +387,7 @@ def plotly_graphs(d):
     fig2.add_trace(go.Scatter(x=d.t, y=d.ay, mode="lines+markers", line=dict(color=C_A)), 1, 3)
     fig2.update_yaxes(title_text="y (m)", row=1, col=1)
     fig2.update_yaxes(title_text="vy (m/s)", row=1, col=2)
-    fig2.update_yaxes(title_text="ay (m/s²)", range=zero_range(d.ay), row=1, col=3)
+    fig2.update_yaxes(title_text="ay (m/s²)", range=ay_range(d.ay), dtick=10, row=1, col=3)
     for f in (fig1, fig2):
         f.update_xaxes(title_text="t (s)")
         f.update_yaxes(tickformat=".1f", title_standoff=4, zeroline=True, zerolinecolor="#9AA8B8")
@@ -423,13 +433,16 @@ def mpl_png(d, kind):
         fig, ax = plt.subplots(2, 3, figsize=(10, 5.6))
         spec = [(0, 0, "x", "x (m)", C_H, "x-t", None), (0, 1, "vx", "vx (m/s)", C_H, "vx-t", zero_range(d.vx)),
                 (1, 0, "y", "y (m)", C_V, "y-t", None), (1, 1, "vy", "vy (m/s)", C_V, "vy-t", None),
-                (1, 2, "ay", "ay (m/s²)", C_A, "ay-t", zero_range(d.ay))]
+                (1, 2, "ay", "ay (m/s²)", C_A, "ay-t", ay_range(d.ay))]
         for r, c, col, yl, color, ttl, rng in spec:
             a = ax[r][c]
             a.plot(d.t, d[col], "o-", color=color, ms=3, lw=1.2)
             style(a, yl, (("수평 " if r == 0 else "연직 ") + ttl) if ko else ttl)
             if rng:
                 a.set_ylim(*rng)
+                if col == "ay":
+                    import matplotlib.ticker as ticker
+                    a.yaxis.set_major_locator(ticker.MultipleLocator(10))
         ax[0][2].axis("off")
     else:
         rk, rp = same_span_ranges(d.Ek, d.Ep)
