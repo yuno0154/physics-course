@@ -12,6 +12,7 @@ test_write.txt
 .vscode/
 .idea/
 .streamlit/config.toml
+.streamlit/secrets.toml
 admin_tools/
 *-DESKTOP-*
 scratch/
