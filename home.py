@@ -134,12 +134,15 @@ st.markdown("""
 st.markdown("---")
 
 # 2. 평가계획 타이틀 및 다운로드 상단 배치
-pdf_file_name = "2026학년도 사곡고 2학기 2학년 역학과 에너지 평가계획서.pdf"
+pdf_file_name = "2026학년도 사곡고 2학기 2학년 역학과 에너지 과목 교수학습-평가계획(최연호)-수정본(10.19.).pdf"
 pdf_path = Path(__file__).parent / pdf_file_name
+# 파일이 없을 경우 대체 경로
+if not os.path.exists(pdf_path):
+    pdf_path = Path(__file__).parent / "2026학년도 사곡고 2학기 2학년 역학과 에너지 평가계획서.pdf"
 
 col_title, col_btn = st.columns([3, 1.2])
 with col_title:
-    st.subheader("📑 2026학년도 사곡고 2학기 2학년 역학과 에너지 평가계획")
+    st.subheader("📑 2026학년도 사곡고 2학기 2학년 역학과 에너지 평가계획 (수정본)")
     st.caption("사곡고등학교 2학년 · 담당교사 최연호 · 2022 개정 교육과정 기반 교수학습 및 평가 운영 계획")
 
 with col_btn:
@@ -147,9 +150,9 @@ with col_btn:
         with open(pdf_path, "rb") as f:
             pdf_data = f.read()
         st.download_button(
-            label="📥 평가계획서 전문(PDF) 다운로드",
+            label="📥 수정 평가계획서(PDF) 다운로드",
             data=pdf_data,
-            file_name=pdf_file_name,
+            file_name="2026학년도 사곡고 2학기 2학년 역학과 에너지 과목 교수학습-평가계획(최연호)-수정본.pdf",
             mime="application/pdf",
             use_container_width=True
         )
@@ -181,17 +184,17 @@ with c3:
     st.markdown("""
     <div class="plan-kpi-card">
         <div class="plan-kpi-title">서·논술형 평가</div>
-        <div class="plan-kpi-num">20<span>%</span></div>
-        <div class="plan-kpi-sub">수행평가 영역 내 사고·논증 측정</div>
+        <div class="plan-kpi-num">28<span>%</span></div>
+        <div class="plan-kpi-sub">수행평가 내 사고·논증 측정 비율 (16%+12%)</div>
     </div>
     """, unsafe_allow_html=True)
 
 with c4:
     st.markdown("""
     <div class="plan-kpi-card">
-        <div class="plan-kpi-title">최소 성취 보장 기준</div>
-        <div class="plan-kpi-num">40<span>%</span></div>
-        <div class="plan-kpi-sub">학기말 성취율 미도달자 예방·보장 지도</div>
+        <div class="plan-kpi-title">최소 성취수준 기준</div>
+        <div class="plan-kpi-num" style="font-size: 22px; color: #64748b; margin-top: 6px; margin-bottom: 2px;">기준 없음</div>
+        <div class="plan-kpi-sub">성취도 5단계(A~E) 평정 · 최소성취수준 미적용</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -212,22 +215,22 @@ with tab1:
         <div class="timeline-item" style="border-left-color: #0ea5e9;">
             <div class="timeline-month">9월 실시</div>
             <div class="timeline-desc">수행평가 ①</div>
-            <div class="timeline-detail">위성 임무 궤도 설계 탐구 (20%)</div>
+            <div class="timeline-detail">위성 임무 궤도 설계 탐구 (20%, 서·논술형 16%)</div>
         </div>
         <div class="timeline-item" style="border-left-color: #2563eb;">
             <div class="timeline-month">10월 실시</div>
             <div class="timeline-desc">정기시험 1차</div>
-            <div class="timeline-detail">선택형 지필평가 (30%)</div>
+            <div class="timeline-detail">선택형 지필평가 (30%) · <span class="badge-tag badge-gray">동점 2순위</span></div>
         </div>
         <div class="timeline-item" style="border-left-color: #8b5cf6;">
             <div class="timeline-month">11월 실시</div>
             <div class="timeline-desc">수행평가 ②</div>
-            <div class="timeline-detail">모빌리티 음향·파동 제어 탐구 (20%)</div>
+            <div class="timeline-detail">모빌리티 음향·파동 제어 탐구 (20%, 서·논술형 12%)</div>
         </div>
         <div class="timeline-item" style="border-left-color: #ef4444;">
             <div class="timeline-month">12월 실시</div>
             <div class="timeline-desc">정기시험 2차</div>
-            <div class="timeline-detail">선택형 지필평가 (30%) · <span class="badge-tag badge-blue">동점 1순위</span></div>
+            <div class="timeline-detail">선택형 지필평가 (30%) · <span class="badge-tag badge-blue">★ 동점 1순위</span></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -238,10 +241,11 @@ with tab1:
         <thead>
             <tr>
                 <th style="width: 25%;">평가 유형</th>
-                <th style="width: 25%;">평가 방법</th>
-                <th style="width: 15%; text-align: center;">만점(반영비율)</th>
-                <th style="width: 15%; text-align: center;">실시 시기</th>
-                <th style="width: 20%; text-align: center;">동점자 처리 순위</th>
+                <th style="width: 23%;">평가 방법</th>
+                <th style="width: 17%; text-align: center;">만점(반영비율)</th>
+                <th style="width: 15%; text-align: center;">서·논술형 비율</th>
+                <th style="width: 10%; text-align: center;">실시 시기</th>
+                <th style="width: 10%; text-align: center;">동점 순위</th>
             </tr>
         </thead>
         <tbody>
@@ -249,6 +253,7 @@ with tab1:
                 <td><b>정기시험 1차</b></td>
                 <td>선택형 (지필평가)</td>
                 <td style="text-align: center;">100점 (30%)</td>
+                <td style="text-align: center;">-</td>
                 <td style="text-align: center;">10월 중</td>
                 <td style="text-align: center;"><span class="badge-tag badge-gray">2순위</span></td>
             </tr>
@@ -256,6 +261,7 @@ with tab1:
                 <td><b>정기시험 2차</b></td>
                 <td>선택형 (지필평가)</td>
                 <td style="text-align: center;">100점 (30%)</td>
+                <td style="text-align: center;">-</td>
                 <td style="text-align: center;">12월 중</td>
                 <td style="text-align: center;"><span class="badge-tag badge-blue">★ 1순위</span></td>
             </tr>
@@ -263,20 +269,22 @@ with tab1:
                 <td><b>수행평가 ①</b><br><span style="font-size: 11px; color:#64748b;">위성 임무 궤도 설계 탐구</span></td>
                 <td>실험·실습 / 서·논술형</td>
                 <td style="text-align: center;">100점 (20%)</td>
+                <td style="text-align: center; font-weight: 600; color: #2563eb;">16%</td>
                 <td style="text-align: center;">9월 중</td>
                 <td style="text-align: center;"><span class="badge-tag badge-gray">3순위</span></td>
             </tr>
             <tr>
-                <td><b>수행평가 ②</b><br><span style="font-size: 11px; color:#64748b;">모빌리티 음향·파동 제어 탐구</span></td>
+                <td><b>수행평가 ②</b><br><span style="font-size: 11px; color:#64748b;">미래형 모빌리티 음향·파동 제어 탐구</span></td>
                 <td>실험·실습 / 서·논술형</td>
                 <td style="text-align: center;">100점 (20%)</td>
+                <td style="text-align: center; font-weight: 600; color: #2563eb;">12%</td>
                 <td style="text-align: center;">11월 중</td>
                 <td style="text-align: center;"><span class="badge-tag badge-gray">4순위</span></td>
             </tr>
         </tbody>
     </table>
     """, unsafe_allow_html=True)
-    st.info("💡 **평가 원칙:** 정기시험 60% + 수행평가 40%(서·논술형 20% 포함)로 운영되며, 동점자 발생 시 **2차 정기시험 ➔ 1차 정기시험 ➔ 수행 ① ➔ 수행 ②** 순으로 우선순위를 부여합니다.")
+    st.info("💡 **평가 운영 원칙:** 정기시험 60% + 수행평가 40%(서·논술형 평가 28% 포함)로 운영되며, 동점자 발생 시 **2차 정기시험 ➔ 1차 정기시험 ➔ 수행 ① ➔ 수행 ②** 순으로 우선순위를 부여합니다.")
 
 # ----------------- TAB 2 -----------------
 with tab2:
@@ -323,17 +331,17 @@ with tab2:
         """, unsafe_allow_html=True)
 
     with col_t2_2:
-        st.markdown("#### 📌 분할점수 산출 및 최소 성취수준 보장")
+        st.markdown("#### 📌 분할점수 산출 및 성취수준 평정 방식")
         st.markdown("""
         <div class="plan-kpi-card" style="margin-top: 8px;">
             <div style="font-weight: 700; color: #1e293b; margin-bottom: 6px;">📐 성취도 산출 방식</div>
             <div style="font-size: 12.5px; color: #475569; line-height: 1.6;">
-                본 교과는 교육과정 성취수준에 따라 <b>추정 분할점수</b> 산출 방식을 적용하여 평정합니다. 정기시험(1차·2차)과 수행평가(1·2)의 반영 비율 환산 점수 합계를 기준으로 최종 성취도(A~E)가 부여됩니다.
+                본 교과는 교육과정 성취수준에 따라 <b>고정 분할점수</b>(90%-80%-70%-60%) 방식을 적용하여 평정합니다. 정기시험(1차·2차)과 수행평가(1·2)의 반영 비율 환산 점수 합계를 기준으로 최종 성취도(A~E 5단계)가 부여됩니다.
             </div>
             <hr style="margin: 10px 0; border: none; border-top: 1px solid #f1f5f9;">
-            <div style="font-weight: 700; color: #dc2626; margin-bottom: 6px;">🛡️ 최소성취수준 보장지도 계획</div>
+            <div style="font-weight: 700; color: #475569; margin-bottom: 6px;">ℹ️ 최소 성취수준 기준 안내</div>
             <div style="font-size: 12.5px; color: #475569; line-height: 1.6;">
-                학기말 최종 성취율 <b>40% 미도달 예상자 및 미도달자</b>를 대상으로 보충 학습 자료 제공, 1:1 맞춤 지도, 추가 과제 피드백 등 학교 자체 <b>최소성취수준 보장지도 프로그램</b>을 운영합니다.
+                <b>본 교과(역학과 에너지)는 최소성취수준 기준이 적용되지 않습니다.</b> (최소성취수준 기준 없음 · 미적용 과목)
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -341,7 +349,7 @@ with tab2:
 # ----------------- TAB 3 -----------------
 with tab3:
     st.markdown("#### 🛰️ 수행평가 ① 세부 채점기준 (최고 수준 요약)")
-    st.caption("주제: 역학과 에너지로 증명하는 최적의 위성 임무 궤도 설계 탐구 · 관련 성취기준: [12역학01-02], [12역학01-04], [12역학01-05] · 9월 실시 · 100점 만점 (반영 20%)")
+    st.caption("주제: 역학과 에너지로 증명하는 최적의 위성 임무 궤도 설계 탐구 · 관련 성취기준: [12역학01-02], [12역학01-04], [12역학01-05] · 9월 실시 · 100점 만점 (반영 20%, 서·논술형 16%)")
 
     st.markdown("""
     <table class="custom-eval-table">
@@ -354,38 +362,45 @@ with tab3:
         </thead>
         <tbody>
             <tr>
-                <td><b>1. 지표면 역학 분석</b><br><span class="badge-tag badge-blue">실험·보고서</span> <span class="badge-tag badge-gray">모둠</span></td>
-                <td>측정값을 수평·연직별 표·그래프로 명확히 나타내고 연직 가속도를 직접 산출하여 수평 등속·연직 등가속 운동의 <b>독립성을 수식·계산과 함께 오류 없이 정량 입증</b>하며, 이론값과 실험값 간의 오차 원인을 공기 저항 등 물리적 요인과 연계하여 논리적으로 서술함.</td>
+                <td><b>1. 지표면 역학 분석</b><br><span class="badge-tag badge-blue">실험 및 보고서</span> <span class="badge-tag badge-gray">모둠</span></td>
+                <td>영상 분석 프로그램을 통해 추출한 측정값을 수평·연직별 표와 그래프로 나타내고, 연직 가속도 값을 직접 산출하여 수평 등속 및 연직 등가속도 운동의 <b>독립성을 수식 및 계산 과정과 함께 오류 없이 정량적으로 입증</b>하며, 대표 지점의 운동 에너지와 위치 에너지로 역학적 에너지 보존을 확인하고, 이론값과 실험값의 오차 원인을 측정 오차와 모델의 가정(공기 저항 무시)으로 나누어 논리적으로 서술함. (※ 개념적 오류나 유도 과정의 오류가 하나도 없는 경우)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">30점</td>
             </tr>
             <tr>
-                <td><b>2. 케플러 법칙·관계식 유도</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
-                <td>중력과 구심 가속도 조건을 물리 기호로 표현하고 <b>공전 주기-궤도 반지름 간의 거듭제곱 비례식을 단계별 논리적 비약 없이 완전 유도</b>하며 상수의 물리적 의미를 서술함. 원 궤도 유지의 원인이 중력임을 설명하고 반지름 변화에 따른 속도·주기 관계를 완벽히 논증함.</td>
+                <td><b>2. 케플러 법칙과 궤도 관계식 유도</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>중심 천체와 위성 사이에 작용하는 상호작용과 구심 조건의 관계를 기호로 올바르게 표현하고, 이를 바탕으로 <b>공전 주기와 궤도 반지름 사이의 거듭제곱 비례 관계식을 단계별 오류 없이 유도</b>하며, 상수의 의미와 보편성을 논리적으로 서술함. 인공위성이 원 궤도를 유지하는 근본 원인이 중력임을 설명하고 반지름 변화에 따른 속도와 주기의 관계를 명확히 논증함. (※ 한 가지의 개념적 오류나 유도 과정의 오류가 없는 경우)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">20점</td>
             </tr>
             <tr>
-                <td><b>3. 실제 위성 데이터 검증</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
-                <td>실제 인공위성 및 ISS의 관측 데이터(궤도 반지름, 주기, 속력)를 표로 바르게 작성하고 <b>수학적 계산 과정을 거쳐 정량적 관계를 명확히 입증</b>하며, 수치 경향성을 근거로 궤도 반지름과 주기·속력의 상관관계를 체계적으로 설명함.</td>
+                <td><b>3. 실제 인공위성 궤도 데이터 분석 및 정량적 검증</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>실제 인공위성 및 ISS의 관측 데이터(궤도 반지름, 공전 주기, 속력 등)를 표를 바르게 작성하고, <b>데이터 간의 정량적 관계를 계산 과정을 통해 정확히 입증</b>함. 데이터의 수치적 경향성을 근거로 궤도 반지름과 주기·속력의 상관관계를 논리적으로 설명함.</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">20점</td>
             </tr>
             <tr>
-                <td><b>4. 임무 궤도 선정·에너지</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
-                <td>임무 환경 제약 조건을 종합 추출하여 최적 궤도를 선정하고, 정지궤도 위성과 비교하여 목표 고도와 역학적 에너지(위치+운동)의 크기 및 전환 관계를 <b>역학적 에너지 보존 법칙을 적용해 오개념 없이 논리적으로 설명</b>함.</td>
-                <td style="text-align: center; font-weight: 700; color:#2563eb;">20점</td>
+                <td><b>4. 위성 궤도별 역학적 에너지 비교</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>제시된 목표 궤도와 정지궤도 위성의 운동 에너지, 위치 에너지, 역학적 에너지를 궤도 반지름으로 비교하고, <b>목표 궤도로 옮기는 데 에너지가 더 필요한지 줄어드는지를 근거와 함께 바르게 설명</b>함.</td>
+                <td style="text-align: center; font-weight: 700; color:#2563eb;">10점</td>
             </tr>
             <tr>
-                <td><b>5. 로켓 발사·궤도 전이 논증</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
-                <td>다단 로켓 발사 과정(연소 및 단분리)에서의 <b>운동량 보존 법칙을 명확히 제시</b>하고, 타원 전이 궤도에서 목표 원 궤도로 진입하기 위한 속도 조정 과정을 <b>역학적 에너지 보존과 유기적으로 연결하여 논리적으로 입증</b>함.</td>
+                <td><b>5. 다단 로켓 발사와 궤도 전이 논증</b><br><span class="badge-tag badge-green">서술형 (운동량·역학적 에너지 보존)</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>제시된 발사 상황에 운동량 보존 법칙을 적절한 계 설정과 함께 적용하여 로켓의 가속 원리와 다단 구조의 효과를 인과적으로 설명함. 뉴턴 운동 법칙을 적용하여 위성이 궤도에 진입하고 이를 유지하는 조건을 근거와 함께 논증함. 발사 단계와 궤도 단계의 설명이 <b>하나의 일관된 논리로 연결됨</b>. (※ 개념적 오류나 논리적 비약이 없는 경우)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">20점</td>
             </tr>
         </tbody>
     </table>
     """, unsafe_allow_html=True)
+
+    with st.expander("🚀 전이 가능한 자기주도적 탐구 안내 (평가 점수 미반영)", expanded=False):
+        st.markdown("""
+        * **[과제 1] 화성 탐사를 위한 궤도 전이:** 지구 궤도에서 화성 궤도로 가기 위해 필요한 속도 변화량을 역학적 에너지 보존 법칙과 케플러 법칙을 이용해 추론
+        * **[과제 2] 우주 쓰레기와 충돌의 물리학:** 고도 400km에서 공전하는 10g의 파편이 가진 운동 에너지를 계산하고 지상 포물선 운동 물체의 에너지와 비교
+        * **[과제 3] 블랙홀 주위의 빛의 궤도:** 위성 대신 빛이 블랙홀 주위를 원운동 할 때의 궤도 반지름 계산
+        """)
 
 # ----------------- TAB 4 -----------------
 with tab4:
     st.markdown("#### 🔊 수행평가 ② 세부 채점기준 (최고 수준 요약)")
-    st.caption("주제: 탄성파와 소리 원리를 적용한 미래형 모빌리티 음향 역학 및 파동 제어 탐구 · 관련 성취기준: [12역학03-03], [12역학03-04], [12역학03-05] · 11월 실시 · 100점 만점 (반영 20%)")
+    st.caption("주제: 탄성파와 소리 원리를 적용한 미래형 모빌리티 음향 역학 및 파동 제어 탐구 · 관련 성취기준: [12역학03-03], [12역학03-04], [12역학03-05] · 11월 실시 · 100점 만점 (반영 20%, 서·논술형 12%)")
 
     st.markdown("""
     <table class="custom-eval-table">
@@ -398,25 +413,31 @@ with tab4:
         </thead>
         <tbody>
             <tr>
-                <td><b>1. 정상파 공명·음속 산출</b><br><span class="badge-tag badge-blue">실험·실습</span> <span class="badge-tag badge-gray">모둠</span></td>
-                <td>관의 경계 조건(막힌 끝 마디, 열린 끝 배)과 공기 입자의 진동을 연계하여 파장 변화를 정량적으로 설명하고, 스마트 기기 센서 측정값으로부터 <b>차내 음속을 비약·오류 없이 정량 산출</b>하며, 개구단 보정·온도 등 실측-이론 오차 요인을 인과적으로 완벽히 서술함.</td>
+                <td><b>1. 정상파 공명 데이터 분석 및 관 경계 조건 기반 차내 음속 구하기</b><br><span class="badge-tag badge-blue">실험</span> <span class="badge-tag badge-gray">모둠</span></td>
+                <td>파동의 간섭으로 형성되는 정상파의 원리를 이용하여 관의 길이 변화에 따라 정상파의 파장이 달라짐을 관의 경계 조건과 매질 입자의 진동 가능 여부로 정량적으로 설명함. 스마트 기기를 활용하여 음파의 특성을 분석하고 정상파를 이용하여 <b>차내 음파의 진행 속력을 계산 과정의 비약 없이 정량적으로 오류 없이 산출</b>함. 실험을 통해 산출한 음속과 이론적 음속 간 오차가 발생한 물리적 요인을 들고, 이것이 측정값에 미친 영향을 인과적으로 바르게 서술함. (※ 한 가지의 개념적 오류나 수식·단위 누락이 없어야 함)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">40점</td>
             </tr>
             <tr>
-                <td><b>2. 도플러 효과·상대속도 역산</b><br><span class="badge-tag badge-blue">실험·실습</span> <span class="badge-tag badge-gray">모둠</span></td>
-                <td>파원의 상대 운동에 따른 파면 압축 기하학적 모델을 바탕으로 <b>도플러 관측 진동수 관계식을 논리적으로 유도</b>하고, 접근하는 긴급차량 사이렌의 주파수 변화 데이터로부터 <b>상대 속도를 수식과 함께 정량적으로 역산</b>함.</td>
+                <td><b>2. 도플러 효과 파면 압축 모델링 및 긴급차량 상대 속도 역산 논증</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>제시된 상황에서 파원의 운동에 따른 파면 간격의 변화를 근거로 <b>도플러 효과의 관측 진동수 관계를 논리적으로 도출</b>하고, 이를 측정 자료에 적용하여 <b>긴급차량의 속도를 정량적으로 산출</b>함. 산출 결과의 타당성을 검토하고, 도플러 효과가 속도 측정 장치에 이용되는 원리와 연결하여 설명함. (※ 개념적 오류나 수식·단위 누락이 없는 경우)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">30점</td>
             </tr>
             <tr>
-                <td><b>3. 에너지 최적화 (ANC 소음 제어)</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
-                <td>파동의 중첩과 간섭 원리를 토대로 <b>상쇄 간섭 조건(역위상, 경로차 ΔL = λ/2)을 정량 유도</b>하여 최적 스피커 경로차를 계산하고, 차량 내 저주파 소음을 능동 소음 제어(ANC) 기술로 상쇄 소멸시키는 작동 메커니즘을 인과적으로 완벽히 논증함.</td>
+                <td><b>3. 음파의 간섭을 이용한 능동 소음 제어(ANC) 원리 논증</b><br><span class="badge-tag badge-green">서술형</span> <span class="badge-tag badge-gray">개별</span></td>
+                <td>파동의 중첩과 간섭 원리를 근거로 <b>상쇄 간섭이 일어나는 조건을 설명</b>하고, 이를 제시된 차내 소음 상황에 적용하여 <b>능동 소음 제어(ANC) 시스템이 소음을 줄이는 과정을 인과적으로 논증</b>함. 소음 제어 기술의 활용 사례와 한계를 과학적 근거로 판단함. (※ 개념적 오류가 없는 경우)</td>
                 <td style="text-align: center; font-weight: 700; color:#2563eb;">30점</td>
             </tr>
         </tbody>
     </table>
     """, unsafe_allow_html=True)
 
-    st.warning("⚠️ **원문 확인 안내:** 수행평가 ②의 2번 요소(도플러 효과 상대속도 역산, 30점) 채점기준 문구가 원본 문서 일부에서 '전기 에너지-열량 변환' 내용으로 기재되어 있어, 평가계획 본래의 취지(도플러 효과 및 상대속도 역산)에 맞게 정정 안내합니다.")
+    with st.expander("🔊 전이 가능한 자기주도적 탐구 안내 (평가 점수 미반영)", expanded=False):
+        st.markdown("""
+        * **[과제 1] 초음속 비행과 소닉 붐(Sonic Boom)의 충격파 메커니즘:** 마하 원뿔(Mach Cone) 및 소닉 붐의 원리를 도플러 효과 및 파면 상호작용 관점에서 분석
+        * **[과제 2] 3차원 공간 능동 소음 제어(3D ANC)의 한계와 위상 제어:** 3차원 공간 전체 소음 상쇄의 어려움을 파동의 입사각, 경로차, 맥동(Beat) 현상을 중심으로 추론
+        * **[과제 3] 전기차 가상 엔진 사운드(AVAS) 감성 음향과 맥동 현상:** 주파수 맥동 공식 유도 및 음향 합성 원리 논증
+        * **[과제 4] 의료용 도플러 초음파 진단과 고강도 집속 초음파(HIFU)의 파동 제어:** 혈류 측정 초음파와 HIFU의 반사, 간섭, 도플러 효과 원리 비교 분석
+        """)
 
 # ----------------- TAB 5 -----------------
 with tab5:
@@ -452,7 +473,7 @@ with tab5:
 # 5. 원본 PDF 펼쳐보기 섹션
 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 if os.path.exists(pdf_path):
-    with st.expander("📖 2026학년도 사곡고 2학기 2학년 역학과 에너지 평가계획서 원본 전문(PDF) 펼쳐보기", expanded=False):
+    with st.expander("📖 2026학년도 사곡고 2학기 2학년 역학과 에너지 교수학습 및 평가 운영 계획 원본 전문(수정본 PDF) 펼쳐보기", expanded=False):
         if HAS_PDF_VIEWER:
             pdf_viewer(str(pdf_path), width=850)
         else:
@@ -462,16 +483,16 @@ if os.path.exists(pdf_path):
 
 st.markdown("---")
 
-# 6. 하단 학습 자료 및 가상실험 바로가기
+# 6. 하단 가상실험 및 핵심 탐구 시뮬레이션 안내 (구글 드라이브 자료실 삭제 완료)
 st.markdown("""
-### 📂 역학과 에너지 학습 자료 및 시뮬레이션 안내
-교과 수업 및 수행평가 탐구 보고서 작성과 관련된 추가 학습 자료는 아래 구글 드라이브에서 확인하실 수 있습니다.
+### 🔬 역학과 에너지 핵심 가상 실험실 및 시뮬레이션 안내
+교과 수업 및 수행평가 탐구와 연계된 핵심 가상 실험실 시뮬레이션 목록입니다. 좌측 네비게이션 메뉴를 통해 직접 인터랙티브하게 실험을 조작하고 데이터를 분석할 수 있습니다.
 
-* **[구글 드라이브 바로가기](https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link)**
-
-| 학습 자료실 QR 코드 | 📍 역학과 에너지 핵심 가상 실험실 |
+| 영역 | 연계 탐구 및 시뮬레이션 안내 |
 | :---: | :--- |
-| ![DRIVE_QR](https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://drive.google.com/drive/folders/1C_LpA1TGeVk6sNhMSYe-azp67Sp1Y0eT?usp=drive_link) | • **[수행① 대비]** 포물선 운동 분석 및 역학적 에너지 보존 탐구 <br> • **[수행① 대비]** 케플러 법칙 수학적 유도 및 실제 위성 궤도 데이터 분석 <br> • **[핵심 탐구]** 누리호 5차 발사 기반 다단·페어링 분리 및 운동량 보존 ([▶️ 영상 보기](https://youtu.be/YeM0G_BEBzY)) <br> • **[심화 탐구]** 일반 상대성 이론과 등가원리, 중력장 및 블랙홀 시뮬레이션 <br> • **[수행② 대비]** 정상파 공명 및 파동의 중첩·간섭 음향 제어 시뮬레이션 |
+| **수행평가 ①** | • **[수행① 대비]** 포물선 운동 분석 및 역학적 에너지 보존 탐구 (독립성 수식 입증 및 오차 분석)<br>• **[수행① 대비]** 케플러 제3법칙 수학적 유도 및 실제 인공위성/ISS 궤도 데이터 분석<br>• **[수행① 대비]** 목표 궤도별 역학적 에너지 비교 및 다단 로켓 발사·궤도 전이 논증 |
+| **핵심·심화 탐구** | • **[핵심 탐구]** 누리호 5차 발사 기반 다단·페어링 분리 및 운동량 보존 ([▶️ 관련 영상 보기](https://youtu.be/YeM0G_BEBzY))<br>• **[심화 탐구]** 일반 상대성 이론과 등가원리, 중력장 및 블랙홀 시뮬레이션 |
+| **수행평가 ②** | • **[수행② 대비]** 정상파 공명 데이터 분석 및 관 경계 조건 기반 차내 음속 구하기<br>• **[수행② 대비]** 도플러 효과 파면 압축 모델링 및 긴급차량 상대 속도 역산 논증<br>• **[수행② 대비]** 음파의 중첩·간섭을 이용한 미래형 모빌리티 능동 소음 제어(ANC) 시스템 시뮬레이션 |
 
-제작: 사곡고등학교 물리실
-""")
+<div style="font-size: 12px; color: #64748b; margin-top: 8px;">제작: 사곡고등학교 물리실 · 담당교사 최연호</div>
+""", unsafe_allow_html=True)
