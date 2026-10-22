@@ -42,7 +42,7 @@ PADLET_QR_B64 = "iVBORw0KGgoAAAANSUhEUgAAAQQAAAEECAAAAADrYxXWAAAPK0lEQVR42u1d25L
 MASS = 0.1   # kg (계산 편의를 위한 가정값)
 G = 9.8      # m/s²
 DEFAULT_TEACHER_CODE = "sagok-physics"
-SIM_URL = "?page=physics_sim/projectile_analysis_excel"   # 이론값 계산용 시뮬레이션 페이지
+SIM_URL = "https://physics-course.streamlit.app/projectile_analysis_excel"   # 이론값 계산용 시뮬레이션 페이지
 KST = ZoneInfo("Asia/Seoul")
 
 PADLET_SUBMIT_URL = "https://padlet.com/sgh/submission-request/oO6VvPdgOPMmvrwD"   # 모둠 과제 제출방 (모든 모둠 공통)

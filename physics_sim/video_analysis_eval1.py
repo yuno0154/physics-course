@@ -331,7 +331,7 @@ st.write("")  # 간격
 st.markdown("#### 바. [포물선 운동 정밀 데이터 분석]에서 최고점 도달 시간을 기준으로 이론적으로 계산한 수평도달 거리와 최고점의 높이를 야구공의 값과 비교하고, 차이가 나는 이유를 추론해보자.")
 st.markdown("""
 <div style="margin-bottom: 20px;">
-    <a href="?page=physics_sim/projectile_analysis_excel" target="_blank" style="text-decoration: none;">
+    <a href="https://physics-course.streamlit.app/projectile_analysis_excel" target="_blank" style="text-decoration: none;">
         <button style="width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
             🚀 [포물선 운동 정밀 데이터 분석] 페이지 새 창에서 열기
         </button>
