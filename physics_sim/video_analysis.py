@@ -184,6 +184,58 @@ def now_kst():
     return datetime.now(KST).strftime("%Y-%m-%d %H:%M")
 
 
+def load_submission_html():
+    candidates = [
+        os.path.join(HERE, "..", "static", "submission_list_1.html"),
+        os.path.join(HERE, "..", "1차시_JSON_제출목록.html"),
+        os.path.join(HERE, "1차시_JSON_제출목록.html"),
+        os.path.join(os.getcwd(), "1차시_JSON_제출목록.html"),
+    ]
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    return f.read()
+            except Exception:
+                pass
+    return None
+
+
+def _render_submission_content():
+    st.markdown("""
+<div style="background:#EEF6FB;border:1px solid #C5DFEE;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;color:#1B3555;line-height:1.6;">
+  <b>💡 1차시 제출 파일 활용 안내:</b><br>
+  • 자신의 수강반(A/B반)과 모둠을 찾아 <b>[JSON]</b> 링크를 클릭하면 지난 시간에 제출한 JSON 파일이 다운로드됩니다.<br>
+  • 다운로드한 파일을 상단 <b>[📂 불러오기]</b>에 넣으면 1차시 작성 내용을 그대로 이어서 진행할 수 있습니다.<br>
+  • 모둠의 제출 원문(설명 및 첨부파일)을 보려면 <b>[게시물]</b> 링크를 누르세요.
+</div>
+""", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c1:
+        st.link_button("🌐 원본 패들렛 열기 ↗", "https://padlet.com/sgh/padlet-s024ptsns1f0aj91uyqt", **FULL)
+    with c2:
+        st.link_button("📄 새 창에서 전체보기 ↗", "/app/static/submission_list_1.html", **FULL)
+    with c3:
+        st.link_button("🐙 GitHub에서 보기 ↗", "https://htmlpreview.github.io/?https://github.com/yuno0154/physics-course/blob/main/1%EC%B0%A8%EC%8B%9C_JSON_%EC%A0%9C%EC%B6%9C%EB%AA%A9%EB%A1%9D.html", **FULL)
+
+    html_code = load_submission_html()
+    if html_code:
+        import streamlit.components.v1 as components
+        components.html(html_code, height=580, scrolling=True)
+    else:
+        st.warning("1차시 제출 목록 파일(1차시_JSON_제출목록.html)을 찾을 수 없습니다.")
+
+
+if hasattr(st, "dialog"):
+    @st.dialog("📋 1차시 JSON 제출 목록 (A반·B반 모둠)", width="large")
+    def show_submission_modal():
+        _render_submission_content()
+else:
+    def show_submission_modal():
+        _render_submission_content()
+
+
+
 # ════════════════════════════════════════════════════════════════════
 # 3. 데이터 처리
 # ════════════════════════════════════════════════════════════════════
@@ -554,7 +606,7 @@ st.markdown(f"""
   <div class='m'>평가영역: {AREA}</div>
 </div>""", unsafe_allow_html=True)
 
-bar1, bar2, bar3 = st.columns([4.4, 1.2, 1.5])
+bar1, bar2, bar3, bar4 = st.columns([3.5, 1.0, 1.2, 1.4])
 with bar1:
     st.markdown("<div class='legend'><span class='sw' style='background:#FFF8DC;border:1px solid #E8C766'></span>"
                 "노란 칸 = 학생이 작성하는 곳 &nbsp;&nbsp; <span class='sw' style='background:#EEF4FA;border:1px solid #D5DEE8'>"
@@ -575,6 +627,13 @@ with bar3:
                 st.rerun()
             except Exception as e:
                 st.error(f"파일을 읽을 수 없습니다: {e}")
+        st.markdown("<hr style='margin:10px 0 8px 0;'>", unsafe_allow_html=True)
+        st.caption("💡 1차시에 제출한 JSON 파일 링크가 필요하신가요?")
+        if st.button("📋 1차시 제출 목록 확인", key="pop_sub_list_btn", **FULL):
+            show_submission_modal()
+with bar4:
+    if st.button("📋 1차시 제출목록", key="main_sub_list_btn", **FULL, help="1차시에 제출된 모둠별 JSON 파일 다운로드 및 게시물 링크 목록을 확인합니다."):
+        show_submission_modal()
 if st.session_state.pop("_loaded_msg", False):
     st.success("저장한 내용을 불러왔습니다. 이어서 작성하세요.")
 
@@ -1391,5 +1450,14 @@ with st.expander("🔒 교사용 확인"):
                 st.download_button("📊 교사용 정답 엑셀 파일 받기", make_xlsx(d_t),
                                    file_name="교사용_포물선운동_기준데이터.xlsx",
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+        st.markdown("---")
+        st.markdown("#### 📋 학생 1차시 JSON 제출 현황")
+        t_c1, t_c2 = st.columns([1, 1])
+        with t_c1:
+            if st.button("📋 1차시 JSON 제출 목록 모달 열기", key="teacher_sub_modal", **FULL):
+                show_submission_modal()
+        with t_c2:
+            st.link_button("📄 1차시 제출 목록 새 창 열기 ↗", "/app/static/submission_list_1.html", **FULL)
 
 st.caption("사곡고등학교 역학과 에너지 · 시뮬레이션 및 실습 지원 포털")
