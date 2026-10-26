@@ -39,26 +39,6 @@ SATELLITES = {
         "info": "우주인이 머무르며 실험을 수행하는 다국적 우주정거장. 하루에 지구를 약 15.5바퀴 돈다.",
         "source": "NASA ISS Facts and Figures",
     },
-    "Hubble": {
-        "name": "허블 우주 망원경",
-        "orbit": "저궤도 (LEO)",
-        "altitude_km": 520,
-        "period": (0, 94, 53),     # 약 94.9분
-        "speed_kms": 7.61,
-        "color": "#F3A712",
-        "info": "1990년에 발사된 우주 망원경. 대기의 방해 없이 우주를 관측한다. 고도가 조금씩 낮아지고 있다.",
-        "source": "NASA Hubble Space Telescope",
-    },
-    "Landsat 9": {
-        "name": "랜드샛 9호 (Landsat 9)",
-        "orbit": "태양동기궤도 (SSO)",
-        "altitude_km": 705,
-        "period": (0, 98, 54),     # 약 98.9분
-        "speed_kms": 7.49,
-        "color": "#29BF12",
-        "info": "지표면의 자원과 환경 변화를 촬영하는 지구 관측 위성. 16일마다 같은 지역 위를 다시 지난다.",
-        "source": "USGS / NASA Landsat 9",
-    },
     "GPS": {
         "name": "GPS 위성",
         "orbit": "중궤도 (MEO)",
@@ -131,7 +111,7 @@ def derived(sat):
 st.title("🛰️ 실제 인공위성 궤도 데이터")
 st.markdown(
     "**[수행평가 자료]** 실제 인공위성 궤도 데이터 분석 및 정량적 검증 · 서술형 · 개별  \n"
-    "실제로 운용 중인 인공위성 5개의 궤도 자료입니다. **③ 단위 변환** 탭에서 SI 단위로 바꾼 값을 확인하고, "
+    "저궤도·중궤도·정지궤도를 대표하는 실제 인공위성 3개의 궤도 자료입니다. **③ 단위 변환** 탭에서 SI 단위로 바꾼 값을 확인하고, "
     "**④ 데이터 옮기기** 탭의 값을 평가지의 데이터 정리표에 옮겨 적으세요."
 )
 
@@ -232,7 +212,7 @@ with tab1:
     )
     st.plotly_chart(fig, width="stretch")
 
-    st.markdown("#### 🌍 5개 위성의 궤도 크기 비교 (실제 비율)")
+    st.markdown("#### 🌍 3개 위성의 궤도 크기 비교 (실제 비율)")
     fig_sc = go.Figure()
     fig_sc.add_trace(go.Scatter(x=R_EARTH_KM / 1000 * np.cos(th_e), y=R_EARTH_KM / 1000 * np.sin(th_e),
                                 fill="toself", fillcolor="rgba(30,144,255,0.5)",
