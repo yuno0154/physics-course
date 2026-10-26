@@ -76,6 +76,7 @@ black_hole_page = st.Page("physics_sim/black_hole_sim.py", title="🌑 [탐구3]
 
 # 7. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📹 [수행1] 포물선 운동 영상 분석 보고서")
+satellite_orbit_assessment_page = st.Page("physics_sim/satellite_orbit_assessment.py", title="🛰️ [수행자료] 실제 인공위성 궤도 데이터")
 # [수행평가 반영으로 인한 임시 비활성화]
 # satellite_orbit_eval_page = st.Page("physics_sim/satellite_orbit_sim.py", title="🛰️ [수행연습] 포물선과 궤도 역학적 연결")
 # satellite_nasa_page = st.Page("physics_sim/satellite_orbit_sim_nasa.py", title="🛰️ [분석] NASA 실제 위성 궤도")
@@ -102,7 +103,8 @@ transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] 
 pg = st.navigation({
     "🏠 메인": [home_page],
     "📑 수행평가 : 역학과 에너지로 증명하는 최적의 위성 임무 궤도 설계 탐구": [
-        video_analysis_eval_page
+        video_analysis_eval_page,
+        satellite_orbit_assessment_page
         # satellite_orbit_eval_page,  # 수행평가 진행으로 임시 비활성화
         # satellite_nasa_page         # 수행평가 진행으로 임시 비활성화
     ],
