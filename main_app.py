@@ -65,6 +65,7 @@ elevator_sim_page = st.Page("physics_sim/elevator_sim.py", title="🛗 [가속] 
 circular_relativity_page = st.Page("physics_sim/circular_motion_relativity.py", title="🎡 [가속] 회전 원판과 원심력")
 artificial_gravity_page = st.Page("physics_sim/artificial_gravity_sim.py", title="🌌 [탐구] 우주정거장과 인공중력")
 light_path_sim_page = st.Page("physics_sim/equivalence_principle_sim.py", title="🌓 [탐구] 등가 원리와 시공간 곡률")
+rocket_time_sim_page = st.Page("physics_sim/rocket_time_dilation_sim.py", title="⏱️ [탐구] 로켓 빛 신호와 중력 시간 지연")
 einstein_gravity_page = st.Page("physics_sim/einstein_gravity_sim.py", title="🌌 [분석] 아인슈타인의 중력과 시간")
 gravitational_lensing_page = st.Page("physics_sim/gravitational_lensing_sim.py", title="🔭 [탐구] 중력 렌즈와 시공간 곡률")
 
@@ -153,6 +154,7 @@ pg = st.navigation({
         circular_relativity_page,
         artificial_gravity_page,
         light_path_sim_page,
+        rocket_time_sim_page,
         einstein_gravity_page,
         gravitational_lensing_page
     ],
