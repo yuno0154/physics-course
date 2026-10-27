@@ -44,6 +44,8 @@ react_code = """
             const posRef = useRef(0);
             const velRef = useRef(0);
             const [renderPos, setRenderPos] = useState(0);
+            const [scenario, setScenario] = useState('');
+            const [stopped, setStopped] = useState(false);
 
             const g = 10; 
             const m = 65; 
@@ -59,7 +61,17 @@ react_code = """
                     lastTime = time;
 
                     if (isMoving) {
-                        velRef.current += accel * dt;
+                        const vPrev = velRef.current;
+                        let vNew = vPrev + accel * dt;
+                        if (vPrev !== 0 && Math.sign(vNew) !== Math.sign(vPrev) && accel * vPrev < 0) {
+                            // 감속하던 엘리베이터가 멈춤 → 정지, 가속도 0
+                            vNew = 0;
+                            velRef.current = 0;
+                            setIsMoving(false);
+                            setAccel(0);
+                            setStopped(true);
+                        }
+                        velRef.current = vNew;
                         posRef.current -= velRef.current * dt * 50; 
                         setRenderPos(posRef.current);
                     }
@@ -74,7 +86,37 @@ react_code = """
                 posRef.current = 0;
                 velRef.current = 0;
                 setRenderPos(0);
+                setScenario('');
+                setStopped(false);
             };
+
+            // 활동지 '엘리베이터의 운동' 행에 맞춘 상황 버튼 (위쪽을 + 로 둔다)
+            const SCEN = {
+                upStart:   { label: '올라가며 출발',  v0: 0,  a: 2 },
+                upStop:    { label: '올라가다 멈춤',  v0: 6,  a: -2 },
+                downStart: { label: '내려가며 출발',  v0: 0,  a: -2 },
+                downStop:  { label: '내려가다 멈춤',  v0: -6, a: 2 },
+                steady:    { label: '등속 운동',      v0: 3,  a: 0 },
+            };
+            const runScenario = (key) => {
+                const sc = SCEN[key];
+                posRef.current = 0; setRenderPos(0);
+                velRef.current = sc.v0;
+                setAccel(sc.a);
+                setScenario(key);
+                setStopped(false);
+                setIsMoving(true);
+            };
+            const v = velRef.current;
+            const moveText = (() => {
+                if (stopped) return '멈춤 (정지)';
+                if (!isMoving && Math.abs(v) < 0.01) return accel === 0 ? '정지' : '출발 전';
+                const dir = v > 0.01 ? '올라가면서' : (v < -0.01 ? '내려가면서' : '');
+                if (Math.abs(accel) < 0.01) return dir ? dir + ' 등속 운동' : '정지';
+                if (!dir) return '출발';
+                return dir + (accel * v > 0 ? ' 속력 증가' : ' 속력 감소');
+            })();
+            const gEff = apparentWeight / m;
 
             const shaftOffset = view === 'internal' ? (renderPos % 200) : 0;
             const elevatorY = view === 'internal' ? 80 : (100 + (renderPos % 400 + 400) % 400 - 100);
@@ -97,6 +139,16 @@ react_code = """
                                         <div className="flex justify-between text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">가속도 <span className="text-sky-600">{accel.toFixed(1)} m/s²</span></div>
                                         <input type="range" min="-10" max="10" step="1" value={accel} onChange={(e)=>setAccel(parseFloat(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-sky-600" />
                                         <div className="flex justify-between text-[9px] mt-1 text-slate-400 font-bold"><span>하강 가속</span><span>정지/등속</span><span>상승 가속</span></div>
+                                    </div>
+
+                                    <div className="space-y-2 text-left">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">상황 선택 (가속도 2 m/s²)</div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {['upStart','upStop','downStart','downStop'].map(k => (
+                                                <button key={k} onClick={() => runScenario(k)} className={`px-2 py-2 rounded-xl text-[11px] font-bold border transition-all ${scenario === k ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}`}>{SCEN[k].label}</button>
+                                            ))}
+                                            <button onClick={() => runScenario('steady')} className={`col-span-2 px-2 py-2 rounded-xl text-[11px] font-bold border transition-all ${scenario === 'steady' ? 'bg-sky-600 text-white border-sky-600' : 'bg-white text-slate-500 border-slate-200'}`}>{SCEN.steady.label}</button>
+                                        </div>
                                     </div>
                                     
                                     <div className="space-y-2 text-left">
@@ -131,6 +183,12 @@ react_code = """
                                     {apparentWeight.toFixed(0)} <span className="text-lg">N</span>
                                 </div>
                                 <div className="text-[10px] text-slate-500 mt-2 font-bold">(실제 체중: 650 N)</div>
+                                <div className="mt-4 pt-4 border-t border-slate-700 space-y-2 text-left text-[11px] font-bold text-slate-300">
+                                    <div className="flex justify-between"><span>엘리베이터</span><span className="text-sky-300">{moveText}</span></div>
+                                    <div className="flex justify-between"><span>관성력 (안에서 본)</span><span className="text-rose-300">{Math.abs(accel) < 0.01 ? '없음' : `${Math.abs(m * accel).toFixed(0)} N, ${accel > 0 ? '아래' : '위'}`}</span></div>
+                                    <div className="flex justify-between"><span>같은 눈금이 나오는 중력 가속도</span><span className="text-amber-300">{gEff.toFixed(0)} m/s²</span></div>
+                                    <div className="text-[10px] text-slate-500 font-normal">= 저울 눈금 ÷ 질량(65 kg)</div>
+                                </div>
                             </div>
                         </div>
 
@@ -227,117 +285,60 @@ react_code = """
 """
 
 # 시뮬레이션 삽입
-components.html(react_code, height=540, scrolling=False)
+components.html(react_code, height=760, scrolling=False)
 
-# 탐구 문제 표
-st.markdown("### 📋 [탐구 문제] 엘리베이터 운동에 따른 몸무게 변화 분석")
-st.write("표는 엘리베이터가 정지해 있을 때 몸무게가 **650N**인 사람이 엘리베이터의 움직임에 따라 몸무게의 변화를 측정한 것이다.")
+# 탐구 문제 표 (활동지 B와 같은 구조)
+st.markdown("### 📋 [탐구 문제] 저울 눈금을 중력과 관성력으로 해석하기")
+st.write("몸무게가 **650 N(질량 65 kg)**인 사람이 엘리베이터 안에서 저울에 올라섰다. 위의 **상황 선택** 버튼으로 각 경우를 재현하고, 활동지의 답을 **확인** 버튼으로 점검해 보자. (g = 10 m/s²)")
 
-# 스타일링된 HTML 테이블 (각 셀마다 정답 확인 버튼 적용)
+def _ans(t):
+    return f'<details><summary>확인</summary><div class="answer-content"><b>{t}</b></div></details>'
+
+rows = [
+    ("엘리베이터의 운동", _ans("위로 가면서 속력 증가<br>아래로 가면서 속력 감소"), "정지해 있을 때<br>등속 운동할 때", _ans("위로 가면서 속력 감소<br>아래로 가면서 속력 증가")),
+    ("① 저울 눈금", "<span class='weight-val text-emerald-600'>780 N</span>", "<span class='weight-val'>650 N</span>", "<span class='weight-val text-rose-600'>520 N</span>"),
+    ("② 눈금의 해석", _ans("중력 650 N + 관성력 130 N"), "중력 650 N", _ans("중력 650 N − 관성력 130 N")),
+    ("③ 관성력의 방향", _ans("아래"), "작용하지 않음", _ans("위")),
+    ("④ 엘리베이터의 가속도", _ans("2 m/s², 위 방향"), "0", _ans("2 m/s², 아래 방향")),
+    ("⑤ 같은 눈금이 나오는<br>중력 가속도 (눈금 ÷ 질량)", _ans("12 m/s²"), "10 m/s²", _ans("8 m/s²")),
+]
+body = "".join(f"<tr><td class='label-col'>{r[0]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td></tr>" for r in rows)
+
 st.markdown("""
 <style>
-    .elevator-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 10px 0;
-        font-family: 'Pretendard', sans-serif;
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .elevator-table th {
-        background-color: #0f172a;
-        color: white;
-        padding: 12px;
-        text-align: center;
-        font-weight: 800;
-        font-size: 13px;
-        border: 1px solid #1e293b;
-    }
-    .elevator-table td {
-        padding: 15px;
-        border: 1px solid #e2e8f0;
-        text-align: center;
-        font-size: 14px;
-        vertical-align: middle;
-    }
-    .label-col {
-        background-color: #f8fafc;
-        font-weight: 700;
-        width: 25%;
-    }
+    .elevator-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-family: 'Pretendard', sans-serif;
+        background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .elevator-table th { background-color: #0f172a; color: white; padding: 12px; text-align: center; font-weight: 800;
+        font-size: 13px; border: 1px solid #1e293b; }
+    .elevator-table td { padding: 12px; border: 1px solid #e2e8f0; text-align: center; font-size: 14px; vertical-align: middle; }
+    .label-col { background-color: #f8fafc; font-weight: 700; width: 25%; }
     .weight-val { font-weight: 800; color: #334155; }
-    
-    /* 각 셀 정답 확인 버튼 스타일 */
-    summary {
-        cursor: pointer;
-        list-style: none;
-        background-color: #0ea5e9;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 11px;
-        font-weight: 800;
-        display: inline-block;
-        color: white;
-        transition: all 0.2s;
-    }
+    .text-emerald-600 { color: #059669 !important; } .text-rose-600 { color: #e11d48 !important; }
+    summary { cursor: pointer; list-style: none; background-color: #0ea5e9; padding: 4px 10px; border-radius: 6px;
+        font-size: 11px; font-weight: 800; display: inline-block; color: white; transition: all 0.2s; }
     summary:hover { background-color: #0284c7; }
     details[open] summary { display: none; }
     .answer-content { animation: fadeIn 0.3s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 </style>
-
 <table class="elevator-table">
-    <thead>
-        <tr>
-            <th>구분</th>
-            <th>🚀 출발 직후</th>
-            <th>↔ 등속 운동</th>
-            <th>🛑 멈추기 직전</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td class="label-col">⬆️ 올라갈 때 (몸무게)</td>
-            <td class="weight-val text-emerald-600">780 N</td>
-            <td class="weight-val">650 N</td>
-            <td class="weight-val text-rose-600">520 N</td>
-        </tr>
-        <tr>
-            <td class="label-col">⬇️ 내려갈 때 (몸무게)</td>
-            <td class="weight-val text-rose-600">520 N</td>
-            <td class="weight-val">650 N</td>
-            <td class="weight-val text-emerald-600">780 N</td>
-        </tr>
-        <tr>
-            <td class="label-col">관성력의 크기와 방향</td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>130 N (아래)</b></div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>0</b></div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>130 N (위)</b></div></details></td>
-        </tr>
-        <tr>
-            <td class="label-col">엘리베이터의 가속도</td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>2 m/s² (위)</b></div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>0</b></div></details></td>
-            <td><details><summary>확인</summary><div class="answer-content"><b>2 m/s² (아래)</b></div></details></td>
-        </tr>
-    </tbody>
+    <thead><tr><th>가속도</th><th>⬆️ 위쪽으로 일정할 때</th><th>0일 때</th><th>⬇️ 아래쪽으로 일정할 때</th></tr></thead>
+    <tbody>""" + body + """</tbody>
 </table>
 """, unsafe_allow_html=True)
 
-with st.expander("👀 엘리베이터 운동 분석 및 정답 확인하기"):
-    st.success("### 💡 탐구 포인트")
+with st.expander("👀 정리하기 및 탐구 포인트"):
+    st.success("**정리하기** 엘리베이터 안의 저울 눈금은 사람에게 작용하는 중력과 **관성력**을 합한 힘의 크기와 같고, 관성력의 방향은 엘리베이터 가속도의 방향과 **반대**이다.")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-        **1. 겉보기 무게의 변화**
-        *   엘리베이터가 **위로 가속**될 때($a>0$) 몸무게는 실제보다 **더 무겁게** 측정됩니다.
-        *   엘리베이터가 **아래로 가속**될 때($a<0$) 몸무게는 실제보다 **더 가볍게** 측정됩니다.
+        **1. 저울 눈금의 변화**
+        *   엘리베이터가 **위로 가속**할 때 저울 눈금은 실제 몸무게보다 **크다**: $N = mg + ma$
+        *   엘리베이터가 **아래로 가속**할 때 저울 눈금은 실제 몸무게보다 **작다**: $N = mg - ma$
         """)
     with col2:
         st.markdown("""
         **2. 관성력의 방향**
-        *   내부 관찰자는 엘리베이터의 가속도와 **반대 방향**으로 작용하는 **관성력($f = -ma$)**을 느낍니다.
-        *   저울의 눈금은 **수직항력($N$)**의 크기와 같으며, $N = mg - f$ (방향 고려)로 계산됩니다.
+        *   엘리베이터 안의 관찰자는 엘리베이터의 가속도와 **반대 방향**으로 크기 $ma$인 **관성력**이 작용한다고 본다.
+        *   위로 2 m/s²로 가속하는 엘리베이터 안의 저울은 중력 가속도가 **12 m/s²**인 곳에 정지해 있을 때와 같은 눈금을 보인다.
         """)

@@ -349,7 +349,7 @@ st.markdown("""
             </td>
         </tr>
         <tr>
-            <td class="label-cell">운동 현상의 원인</td>
+            <td class="label-cell">운동의 설명</td>
             <td>
                 <details>
                     <summary>정답 확인</summary>
