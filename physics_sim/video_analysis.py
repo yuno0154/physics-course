@@ -205,20 +205,50 @@ def _render_submission_content():
     st.markdown("""
 <div style="background:#EEF6FB;border:1px solid #C5DFEE;border-radius:8px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;color:#1B3555;line-height:1.6;">
   <b>💡 1차시 제출 파일 활용 안내:</b><br>
-  • 자신의 수강반(A/B반)과 모둠을 찾아 <b>[JSON]</b> 링크를 클릭하면 지난 시간에 제출한 JSON 파일이 다운로드됩니다.<br>
-  • 다운로드한 파일을 상단 <b>[📂 불러오기]</b>에 넣으면 1차시 작성 내용을 그대로 이어서 진행할 수 있습니다.<br>
-  • 모둠의 제출 원문(설명 및 첨부파일)을 보려면 <b>[게시물]</b> 링크를 누르세요.
+  • <b>원클릭 즉시 불러오기:</b> 아래 선택창에서 본인 모둠을 고르고 <b>[⚡ 이 파일로 즉시 불러오기]</b>를 누르면 다운로드/업로드 과정 없이 <b>보고서에 바로 반영</b>됩니다.<br>
+  • <b>직접 다운로드:</b> 아래 목록 표에서 <b>[JSON ⬇]</b> 버튼을 누르면 PC로 즉시 안전하게 저장됩니다. (Google Cloud 권한 오류 해결 완료)<br>
+  • <b>원문 확인:</b> 모둠의 패들렛 원문(제출 사진·메모 등)을 보려면 <b>[게시물]</b> 링크를 누르세요.
 </div>
 """, unsafe_allow_html=True)
+
+    sub_dir = os.path.join(HERE, "..", "static", "submissions_1")
+    if os.path.isdir(sub_dir):
+        files = sorted(os.listdir(sub_dir))
+        file_map = {}
+        for f in files:
+            if f.endswith(".json") and "_" in f:
+                wid, rest = f.split("_", 1)
+                team_name = rest.replace(".json", "")
+                label = f"[{team_name}] (제출 ID: {wid})"
+                file_map[label] = os.path.join(sub_dir, f)
+
+        if file_map:
+            with st.container(border=True):
+                st.markdown("<b>🚀 내 모둠 선택해서 보고서로 즉시 불러오기</b>", unsafe_allow_html=True)
+                sc1, sc2 = st.columns([3, 1.3])
+                with sc1:
+                    sel_opt = st.selectbox("불러올 모둠 제출본 선택", list(file_map.keys()), label_visibility="collapsed")
+                with sc2:
+                    if st.button("⚡ 이 파일로 즉시 불러오기", key="practice_direct_sub_load_btn", type="primary", **FULL):
+                        try:
+                            with open(file_map[sel_opt], "r", encoding="utf-8") as jf:
+                                st.session_state["_pending_load"] = json.load(jf)
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"불러오기 실패: {e}")
+
+    html_code = load_submission_html()
     c1, c2, c3 = st.columns([1, 1, 1])
     with c1:
         st.link_button("🌐 원본 패들렛 열기 ↗", "https://padlet.com/sgh/padlet-s024ptsns1f0aj91uyqt", **FULL)
     with c2:
-        st.link_button("📄 새 창에서 전체보기 ↗", "/app/static/submission_list_1.html", **FULL)
+        st.link_button("📄 새 창(페이지)에서 전체보기 ↗", "/submission_list_1", **FULL)
     with c3:
-        st.link_button("🐙 GitHub에서 보기 ↗", "https://htmlpreview.github.io/?https://github.com/yuno0154/physics-course/blob/main/1%EC%B0%A8%EC%8B%9C_JSON_%EC%A0%9C%EC%B6%9C%EB%AA%A9%EB%A1%9D.html", **FULL)
+        if html_code:
+            st.download_button("💾 목록 HTML 다운로드", data=html_code, file_name="1차시_JSON_제출목록.html", mime="text/html", **FULL)
+        else:
+            st.link_button("🐙 GitHub에서 보기 ↗", "https://htmlpreview.github.io/?https://github.com/yuno0154/physics-course/blob/main/1%EC%B0%A8%EC%8B%9C_JSON_%EC%A0%9C%EC%B6%9C%EB%AA%A9%EB%A1%9D.html", **FULL)
 
-    html_code = load_submission_html()
     if html_code:
         import streamlit.components.v1 as components
         components.html(html_code, height=580, scrolling=True)
