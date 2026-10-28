@@ -91,6 +91,14 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
 .callout{border-left:4px solid var(--gold);background:#fbf7ef;padding:10px 14px;border-radius:0 8px 8px 0}
 .callout b{color:var(--ink)}
 .thumbs{font-size:1.05rem}
+.flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.flow{grid-template-columns:minmax(0,1fr)}}
+.flow div{background:var(--soft);border-radius:10px;padding:10px 12px;font-size:.95rem}
+.flow b.n{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:.85rem;margin-right:6px}
+tr.cut td{border-bottom:3px solid var(--ok)}
+.tag{display:inline-block;padding:0 7px;border-radius:5px;font-size:.78rem;font-weight:700;white-space:nowrap}
+.tag.loc{background:#e9ebef;color:#555c68} .tag.earth{background:var(--ok-soft);color:var(--ok)}
+td.calc{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -154,8 +162,9 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
         <h3>시계를 맞춘 직후, 6명이 같은 값에 주문한다</h3>
         <p class="note">사곡전자 300주 · 50,000원 · 100주씩 · 먼저 낸 3명만 산다 (가격 우선 → 시간 우선)</p>
         <svg id="map2" viewBox="0 0 960 300" role="img" aria-label="주문이 거래소로 이동하는 그림"></svg>
+        <svg id="nl2" viewBox="0 0 960 250" role="img" aria-label="낸 순간과 거래소에 도착한 순간을 비교하는 수직선"></svg>
         <div class="tablewrap"><table id="t2"></table></div>
-        <p class="note">낸 시각: 오전 9시 정각 이후 지난 시간(μs, 100만분의 1초). 세 곳의 시계는 방금 맞췄으므로 모두 같다.</p>
+        <p class="note">시각: 오전 9시 정각 이후 지난 시간(μs, 100만분의 1초). 세 곳의 시계는 방금 맞췄으므로 모두 같다.</p>
       </div>
       <div class="card">
         <div class="step on">
@@ -230,7 +239,7 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
     </div>
 
     <div class="card">
-      <h3>하루 뒤, 같은 6명이 같은 순간에 주문했다 (기록은 각자의 시계로)</h3>
+      <h3>하루 뒤, 같은 6명이 같은 순간에 주문했다 · 낸 시각은 각자 <span class="tag loc">그곳 시계</span>로 찍힌다</h3>
       <div class="tablewrap"><table id="t3"></table></div>
       <div class="reveal bad" id="r3b"></div>
     </div>
@@ -240,12 +249,18 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
   <section class="tab" id="p4" role="tabpanel" aria-labelledby="tb4" hidden>
     <div class="card">
       <div class="ctl-row">
-        <h3>기록된 시각 그대로 vs 지구 시각으로 환산 (<span id="days4">1.0</span>일 뒤)</h3>
-        <span class="seg" role="group" aria-label="상대성 보정"><button id="c4off" class="on">상대성 보정 없음</button><button id="c4on">상대성 보정 (지구 시각으로 환산)</button></span>
+        <h3>그곳 시계에 찍힌 낸 시각 그대로 vs 지구 시계로 환산 (<span id="days4">1.0</span>일 뒤)</h3>
+        <span class="seg" role="group" aria-label="상대성 보정"><button id="c4off" class="on">상대성 보정 없음</button><button id="c4on">상대성 보정 (지구 시계로 환산)</button></span>
       </div>
-      <svg id="tl4" viewBox="0 0 960 170" role="img" aria-label="주문 시각 타임라인"></svg>
+      <div class="flow" aria-label="2045년 우주 거래소의 체결 과정">
+        <div><b class="n">1</b>주문에는 각자 <b>그곳 시계</b>로 낸 시각이 찍혀 온다.</div>
+        <div><b class="n">2</b>거래소는 도착한 주문을 모았다가, 찍힌 시각을 <b>지구 시계로 환산</b>한다.</div>
+        <div><b class="n">3</b>환산한 <b>낸 순간</b>이 빠른 순서로 체결한다. 도착한 순서가 아니다.</div>
+      </div>
+      <p class="note">예) 가: 달 시계로 78.7 μs에 냄 → 지구 시계로는 20 μs에 냄 → 거래소 도착은 약 1.28 s. 비교하는 것은 20 μs다.</p>
+      <svg id="tl4" viewBox="0 0 960 270" role="img" aria-label="주문 시각 타임라인"></svg>
       <div class="tablewrap"><table id="t4"></table></div>
-      <p class="note">지구 기준 시각 = 기록된 시각 − (그곳 시계가 앞선 시간). 정거장은 시계가 느리므로 빼면 더해진다.</p>
+      <p class="note"><span class="tag earth">낸 시각 (지구 시계로 환산)</span> = <span class="tag loc">낸 시각 (그곳 시계)</span> − (그곳 시계가 앞선 시간) · 달: 78.7 − 58.7 = 20 · 정거장: 시계가 24.8 μs 뒤처졌으므로 35.2 + 24.8 = 60</p>
     </div>
     <div class="grid2">
       <div class="card" id="verdict4"></div>
@@ -322,29 +337,30 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
   function render1(p){ // p: 0..1 애니메이션 진행
     let svg=baseMap(360,180);
     if(s1.sent){
-      const k=ease(Math.min(1,p));
+      const k=Math.min(1,p);
       const mx=EARTH.x+EARTH.r+(MOON.x-MOON.r-EARTH.x-EARTH.r)*k;
       svg+=`<line x1="${EARTH.x+EARTH.r}" y1="${EARTH.y}" x2="${mx}" y2="${EARTH.y}" stroke="${COL.gold}" stroke-width="3"/>
             <circle cx="${mx}" cy="${EARTH.y}" r="7" fill="${COL.gold}"/>`;
-      const ks=Math.min(1,p*25);
-      svg+=`<line x1="${EARTH.x}" y1="${EARTH.y-EARTH.r}" x2="${STN.x}" y2="${STN.y}" stroke="${COL.gold}" stroke-width="3" opacity="${ks}"/>`;
-      svg+=`<text x="${(EARTH.x+MOON.x)/2}" y="${EARTH.y-16}" font-size="15" fill="${COL.ink}" text-anchor="middle" font-weight="700">“9시 정각” 신호 · ${(Math.min(1,p)*1.28).toFixed(2)} s</text>`;
+      svg+=`<line x1="${EARTH.x}" y1="${EARTH.y-EARTH.r}" x2="${STN.x}" y2="${STN.y}" stroke="${COL.gold}" stroke-width="3"/>`;
+      svg+=`<text x="${(EARTH.x+MOON.x)/2}" y="${EARTH.y-16}" font-size="15" fill="${COL.ink}" text-anchor="middle" font-weight="700">“9시 정각” 신호 · 보낸 뒤 ${(k*1.28).toFixed(2)} s</text>`;
     }
     $('map1').innerHTML=svg;
-    const got={E:true,S:s1.sent&&p*25>=1,M:s1.sent&&p>=1};
+    const tau=s1.sent?Math.min(1,p)*1.28:0;           // 신호를 보낸 뒤 흐른 실제 시간(s)
+    const got={E:true,S:s1.sent&&tau>=DELAY.S,M:s1.sent&&tau>=DELAY.M};
     $('clk1').innerHTML=['E','S','M'].map(w=>{
       let t='--:--:--', d='신호를 기다리는 중';
-      if(w==='E'){t='09:00:00.000000';d='기준 시계';}
-      else if(got[w]){const diff=s1.corr?0:-DELAY[w];t=clockText(diff);
-        d=Math.abs(diff)<1e-9?'<span style="color:var(--ok);font-weight:700">거래소와 일치</span>':`<span style="color:var(--bad);font-weight:700">거래소보다 ${DELAY[w]} s 늦음</span>`;}
+      if(w==='E'){t=s1.sent?clockText(tau):'09:00:00.000000';d=s1.sent?'거래소 시계 (기준)':'거래소 시계 · 9시 정각에 신호를 보낸다';}
+      else if(got[w]){const diff=s1.corr?0:-DELAY[w];t=clockText(tau+diff);
+        d=Math.abs(diff)<1e-9?'<span style="color:var(--ok);font-weight:700">받은 순간 '+clockText(DELAY[w])+'로 맞춤 → 거래소와 일치</span>'
+          :`<span style="color:var(--bad);font-weight:700">받은 순간 09:00:00으로 맞춤 → 거래소보다 ${DELAY[w]} s 늦음</span>`;}
       return `<div class="clk"><span class="who" style="color:${COL[w]}">${PLACE[w]} 시계</span><span class="t">${t}</span><span class="d">${d}</span></div>`;
     }).join('');
     if(s1.sent&&p>=1){
       const r=$('r1');r.hidden=false;
       r.className='reveal '+(s1.corr?'good':'bad');
       r.innerHTML=s1.corr
-        ?'신호가 오는 데 걸린 시간(달 1.28 s)을 <b>더해서</b> 맞추면 세 시계가 모두 일치한다. 이것이 <b>거리 보정</b>이다.'
-        :`받은 순간 9시로 맞추면 달 시계는 거래소보다 <b>1.28 s 늦다</b>${pred.q1?(pred.q1==='slow'?' (예측 적중)':' (예측과 다름)'):''}. 신호가 오는 동안 거래소 시계는 이미 1.28 s 흘렀기 때문이다. → ‘거리 보정 켜기’를 눌러 보자.`;
+        ?'신호를 받은 순간 09:00:00에 걸린 시간(달 1.28 s)을 <b>더해</b> 09:00:01.28로 맞추면 세 시계가 모두 일치한다. 이것이 <b>거리 보정</b>이다.'
+        :`신호가 달에 닿은 순간 거래소 시계는 이미 <b>09:00:01.28</b>이다. 그때 달 시계를 09:00:00으로 맞추면 달 시계는 거래소보다 <b>1.28 s 늦다</b>${pred.q1?(pred.q1==='slow'?' (예측 적중)':' (예측과 다름)'):''}. → ‘거리 보정 켜기’를 눌러 보자.`;
       ['s1b','s1c'].forEach(i=>$(i).classList.add('on'));
     }
   }
@@ -362,10 +378,39 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
   const arrive=o=>o.t*1e-6+DELAY[o.w];               // 도착 시각 (s)
   const arrOrder=[...ORD].sort((a,b)=>arrive(a)-arrive(b));
   const tsOrder=[...ORD].sort((a,b)=>a.t-b.t);
-  const fmtArr=o=>o.w==='E'?`+${o.t} μs`:o.w==='S'?`+${(o.t+1300).toLocaleString()} μs (≈0.0013 s)`:'+1.28 s';
+  const ARRTXT={E:'바로',S:'0.0013 s 뒤',M:'1.28 s 뒤'};
   function table2(){
-    $('t2').innerHTML=`<thead><tr><th>신청자</th><th>사는 곳</th><th class="r">낸 시각</th><th class="r">신호 지연</th><th class="r">거래소 도착</th></tr></thead><tbody>`+
-      ORD.map(o=>`<tr><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num">${o.t} μs</td><td class="r num">${o.w==='E'?'0':o.w==='S'?'0.0013 s':'1.28 s'}</td><td class="r num">${fmtArr(o)}</td></tr>`).join('')+'</tbody>';
+    $('t2').innerHTML=`<thead><tr><th>신청자</th><th>사는 곳</th><th class="r">낸 시각</th><th>거래소 도착</th></tr></thead><tbody>`+
+      tsOrder.map(o=>`<tr><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num">${o.t} μs</td><td>${ARRTXT[o.w]}</td></tr>`).join('')+'</tbody>';
+  }
+  function nl2(done){
+    const L=150,R=930, X1=t=>L+t/100*(R-L);
+    // 도착 줄: 끊어진 축 [0–100 μs] [1.30–1.40 ms] [1.28 s + 0–100 μs]
+    const XB=v=>v<1000?L+v/100*300:v<1e6?L+350+(v-1300)/100*190:L+590+(v-1.28e6)/100*190;
+    const y1=62,y2=182;
+    let g=`<text x="12" y="${y1+5}" font-size="14" font-weight="700" fill="${COL.ink}">낸 순간</text>
+      <text x="12" y="${y2+5}" font-size="14" font-weight="700" fill="${COL.ink}">거래소 도착</text>
+      <line x1="${L}" x2="${R}" y1="${y1}" y2="${y1}" stroke="${COL.muted}" stroke-width="2"/>`;
+    for(let v=0;v<=100;v+=20)g+=`<line x1="${X1(v)}" x2="${X1(v)}" y1="${y1}" y2="${y1+6}" stroke="${COL.muted}"/><text x="${X1(v)}" y="${y1+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${v}${v===100?' μs':''}</text>`;
+    // 아래 축 세 구간
+    [[L,L+300,'0','100 μs'],[L+350,L+540,'1.30 ms','1.40 ms'],[L+590,L+780,'1.28 s','']].forEach(([x1,x2,a,b2])=>{
+      g+=`<line x1="${x1}" x2="${x2}" y1="${y2}" y2="${y2}" stroke="${COL.muted}" stroke-width="2"/>
+        <text x="${x1}" y="${y2+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${a}</text>${b2?`<text x="${x2}" y="${y2+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${b2}</text>`:''}`});
+    [L+325,L+565].forEach(x=>g+=`<text x="${x}" y="${y2+6}" font-size="18" fill="${COL.muted}" text-anchor="middle">≈</text>`);
+    g+=`<text x="${(L+350+L+540)/2}" y="${y2+54}" font-size="12" fill="${COL.muted}" text-anchor="middle">정거장: 0.0013 s 뒤</text>
+        <text x="${L+685}" y="${y2+54}" font-size="12" fill="${COL.muted}" text-anchor="middle">달: 1.28 s 뒤 (약 1000배 더 늦음)</text>`;
+    // 낸 순서 3명
+    const tsWin=new Set(tsOrder.slice(0,SLOTS).map(o=>o.id)), arWin=new Set(arrOrder.slice(0,SLOTS).map(o=>o.id));
+    if(done){
+      ORD.forEach(o=>{const xa=X1(o.t), xb=XB(o.t+DELAY[o.w]*1e6);
+        g+=`<line x1="${xa}" y1="${y1+16}" x2="${xb}" y2="${y2-16}" stroke="${COL[o.w]}" stroke-width="1.5" opacity=".55"/>`});
+    }
+    const node=(x,y,o,win)=>`<g transform="translate(${x} ${y})"><circle r="15" fill="${COL[o.w]}" opacity="${win?1:.4}" ${win?`stroke="${COL.ok}" stroke-width="4"`:''}/><text y="5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">${o.id}</text></g>`;
+    ORD.forEach(o=>g+=node(X1(o.t),y1,o,done&&tsWin.has(o.id)));
+    if(done) ORD.forEach(o=>g+=node(XB(o.t+DELAY[o.w]*1e6),y2,o,arWin.has(o.id)));
+    else g+=`<text x="${L+20}" y="${y2-22}" font-size="13" fill="${COL.muted}">‘주문 보내기’를 누르면 도착 순간이 나타난다</text>`;
+    if(done) g+=`<text x="${R}" y="20" font-size="13" fill="${COL.ok}" text-anchor="end" font-weight="700">초록 테두리 = 그 순서로 체결하면 사는 3명</text>`;
+    $('nl2').innerHTML=g;
   }
   function render2(p){
     let svg=baseMap(300,150);
@@ -383,7 +428,7 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
         svg+=`<circle cx="${x}" cy="${y}" r="12" fill="${COL[o.w]}" opacity="${k>=1?.25:1}"/><text x="${x}" y="${y+5}" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">${o.id}</text>`;
       });
     }
-    $('map2').innerHTML=svg;
+    $('map2').innerHTML=svg; nl2(s2.sent&&p>=1);
     const nArr=s2.sent?arrOrder.filter(o=>{const st=o.w==='E'?.0:o.w==='S'?.05:.05;const dur=o.w==='E'?.08:o.w==='S'?.12:.9;return p>=st+dur+ (o.w==='M'?.06:.05)}).length:0;
     $('lArr').innerHTML=arrOrder.slice(0,nArr).map((o,i)=>`<li class="${i<SLOTS?'win':''}">${dot(o.w)}${o.id}</span>${SHORT[o.w]}${i<SLOTS?' <span class="pill ok">구매</span>':''}</li>`).join('');
     $('lTs').innerHTML=(s2.sent&&p>=1)?tsOrder.map((o,i)=>`<li class="${i<SLOTS?'win':''}">${dot(o.w)}${o.id}</span>${SHORT[o.w]} <span class="num">${o.t}μs</span>${i<SLOTS?' <span class="pill ok">구매</span>':''}</li>`).join(''):'';
@@ -443,10 +488,10 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
     const rec=ORD.map(o=>({...o,rec:o.t+off(o.w)}));
     const byRec=[...rec].sort((a,b)=>a.rec-b.rec);
     const win=new Set(byRec.slice(0,SLOTS).map(o=>o.id));
-    $('t3').innerHTML=`<thead><tr><th>신청자</th><th>사는 곳</th><th class="r">실제로 낸 순간 (지구 기준)</th><th class="r">각자 시계에 기록된 시각</th><th>기록대로 체결하면</th></tr></thead><tbody>`+
-      rec.map(o=>`<tr><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num" style="color:var(--muted)">?</td><td class="r num"><b>${fmt1(o.rec)} μs</b></td><td>${win.has(o.id)?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'}</td></tr>`).join('')+'</tbody>';
+    $('t3').innerHTML=`<thead><tr><th>순위</th><th>신청자</th><th>사는 곳</th><th class="r"><span class="tag loc">낸 시각 (그곳 시계)</span></th><th>이 순서로 체결하면</th></tr></thead><tbody>`+
+      byRec.map((o,i)=>`<tr class="${i===SLOTS-1?'cut':''}"><td class="num">${i+1}</td><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num"><b>${fmt1(o.rec)} μs</b></td><td>${win.has(o.id)?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'}</td></tr>`).join('')+'</tbody>';
     $('r3b').innerHTML=days<0.05?'시계를 맞춘 직후이므로 기록된 시각이 그대로 공정하다. 슬라이더를 1일로 옮겨 보자.':
-      `기록된 시각대로 체결하면 <b>${byRec.slice(0,3).map(o=>o.id).join('·')}</b>가 산다. 실제로는 누가 먼저 냈을까? → ④ 체결 비교에서 확인하자.`;
+      `그곳 시계에 찍힌 시각대로 체결하면 <b>${byRec.slice(0,3).map(o=>o.id).join('·')}</b>가 산다. 실제로는 누가 먼저 냈을까? → ④ 체결 비교에서 확인하자.`;
     $('r3b').className='reveal '+(days<0.05?'good':'bad');
     render4();
   }
@@ -465,26 +510,36 @@ input[type=range]{width:100%;accent-color:var(--ink);height:26px}
     const byKey=[...rec].sort((a,b)=>a[key]-b[key]);
     const win=new Set(byKey.slice(0,SLOTS).map(o=>o.id));
     const fair=new Set([...rec].sort((a,b)=>a.t-b.t).slice(0,SLOTS).map(o=>o.id));
-    // 타임라인
-    const lo=0,hi=Math.max(110,Math.ceil(Math.max(...rec.map(o=>o.rec))/20)*20+10);
-    const X=v=>50+(v-lo)/(hi-lo)*880;
-    const cut=(byKey[2][key]+byKey[3][key])/2;
-    let s=`<rect x="50" y="20" width="${X(cut)-50}" height="90" fill="#e3f3ea"/><line x1="${X(cut)}" x2="${X(cut)}" y1="20" y2="112" stroke="${COL.ok}" stroke-dasharray="5 4" stroke-width="2"/>
-      <text x="58" y="38" font-size="14" font-weight="700" fill="${COL.ok}">구매 성공</text>
-      <line x1="50" x2="930" y1="112" y2="112" stroke="${COL.muted}" stroke-width="2"/>`;
-    for(let v=0;v<=hi;v+=10)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="112" y2="118" stroke="${COL.muted}"/>${v%20===0?`<text x="${X(v)}" y="134" font-size="12" fill="${COL.muted}" text-anchor="middle">${v}</text>`:''}`;
-    s+=`<text x="930" y="156" font-size="12" fill="${COL.muted}" text-anchor="end">오전 9시 이후 (μs) · ${corr4?'지구 시각으로 환산':'각자 시계에 기록된 시각'}</text>`;
-    const ys={};byKey.forEach(o=>{const xx=X(o[key]);let y=85;for(const k2 in ys){if(Math.abs(ys[k2]-xx)<34)y=55}ys[o.id]=xx;o._y=y});
-    byKey.forEach(o=>{s+=`<g style="transition:transform .5s" transform="translate(${X(o[key])} ${o._y})"><circle r="16" fill="${COL[o.w]}"/><text y="5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">${o.id}</text></g>`});
+    // 두 줄 수직선
+    const L=170,R=930,hi=110, X=v=>L+v/hi*(R-L), y1=70,y2=200;
+    const recWin=new Set([...rec].sort((a,b)=>a.rec-b.rec).slice(0,SLOTS).map(o=>o.id));
+    let s=`<text x="10" y="${y1-4}" font-size="14" font-weight="700" fill="#555c68">낸 시각</text><text x="10" y="${y1+14}" font-size="12" fill="${COL.muted}">(그곳 시계)</text>
+      <text x="10" y="${y2-4}" font-size="14" font-weight="700" fill="${COL.ok}">낸 시각</text><text x="10" y="${y2+14}" font-size="12" fill="${COL.muted}">(지구 시계로 환산)</text>`;
+    [y1,y2].forEach(y=>{s+=`<line x1="${L}" x2="${R}" y1="${y}" y2="${y}" stroke="${COL.muted}" stroke-width="2"/>`;
+      for(let v=0;v<=hi;v+=10)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${y}" y2="${y+6}" stroke="${COL.muted}"/>${v%20===0?`<text x="${X(v)}" y="${y+40}" font-size="12" fill="${COL.muted}" text-anchor="middle">${v}${v===100?' μs':''}</text>`:''}`});
+    // 겹치는 점은 위로 쌓기
+    const lay=(arr,f,y)=>{const placed=[];return arr.map(o=>{const x=X(f(o));let lv=0;while(placed.some(p=>p.lv===lv&&Math.abs(p.x-x)<32))lv++;placed.push({x,lv});return {o,x,y:y-lv*32}})};
+    const top=lay([...rec].sort((a,b)=>a.rec-b.rec),o=>o.rec,y1);
+    const bot=lay([...rec].sort((a,b)=>a.t-b.t),o=>o.t,y2);
+    if(corr4) rec.forEach(o=>{const a=top.find(p=>p.o.id===o.id), b=bot.find(p=>p.o.id===o.id);
+      s+=`<line x1="${a.x}" y1="${y1+16}" x2="${b.x}" y2="${b.y-16}" stroke="${COL[o.w]}" stroke-width="2" opacity=".6"/>`;
+      if(o.w!=='E'){const f=o.w==='M'?.68:.35, lx=a.x+(b.x-a.x)*f, ly=(y1+16)+((b.y-16)-(y1+16))*f; s+=`<text x="${lx+(o.w==='M'?-8:8)}" y="${ly+4}" font-size="12" font-weight="700" fill="${COL[o.w]}" text-anchor="${o.w==='M'?'end':'start'}">${o.w==='M'?'−58.7':'+24.8'}</text>`}});
+    const node=(p,win)=>`<g transform="translate(${p.x} ${p.y})"><circle r="15" fill="${COL[p.o.w]}" opacity="${win?1:.4}" ${win?`stroke="${COL.ok}" stroke-width="4"`:''}/><text y="5" font-size="14" font-weight="700" fill="#fff" text-anchor="middle">${p.o.id}</text></g>`;
+    top.forEach(p=>s+=node(p,recWin.has(p.o.id)));
+    if(corr4) bot.forEach(p=>s+=node(p,fair.has(p.o.id)));
+    else s+=`<text x="${L+10}" y="${y2-24}" font-size="13" fill="${COL.muted}">‘상대성 보정’을 누르면 지구 시계로 환산한 낸 시각으로 옮겨진다</text>`;
+    s+=`<text x="${R}" y="18" font-size="13" fill="${COL.ok}" text-anchor="end" font-weight="700">초록 테두리 = 그 줄의 순서로 체결하면 사는 3명</text>`;
     $('tl4').innerHTML=s;
-    $('t4').innerHTML=`<thead><tr><th>신청자</th><th>사는 곳</th><th class="r">기록된 시각</th><th class="r">시계가 앞선 시간</th><th class="r">지구 기준 시각</th><th>보정 없이</th><th>보정 후</th><th>판정</th></tr></thead><tbody>`+
-      rec.map(o=>{const wNo=new Set([...rec].sort((a,b)=>a.rec-b.rec).slice(0,3).map(x=>x.id)).has(o.id);const wYes=fair.has(o.id);
+    const calc=o=>o.w==='E'?`${fmt1(o.rec)} (그대로)`:o.w==='M'?`${fmt1(o.rec)} − 58.7`:`${fmt1(o.rec)} + 24.8`;
+    const rank=[...rec].sort((a,b)=>a[key]-b[key]);
+    $('t4').innerHTML=`<thead><tr><th>순위</th><th>신청자</th><th>사는 곳</th><th class="r"><span class="tag loc">낸 시각 (그곳 시계)</span></th><th>계산</th><th class="r"><span class="tag earth">낸 시각 (지구 시계로 환산)</span></th><th>보정 없이</th><th>보정 후</th><th>판정</th></tr></thead><tbody>`+
+      rank.map((o,i)=>{const wNo=recWin.has(o.id), wYes=fair.has(o.id);
         const v=wYes&&!wNo?'<span class="pill bad">손해</span>':!wYes&&wNo?'<span class="pill gain">부당 이득</span>':'<span class="pill no">같음</span>';
-        return `<tr><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num">${fmt1(o.rec)} μs</td><td class="r num">${o.w==='E'?'0':sgn(o.of)} μs</td><td class="r num">${corr4?'<b>'+o.t+' μs</b>':'?'}</td><td>${wNo?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'}</td><td>${corr4?(wYes?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'):'?'}</td><td>${corr4?v:'?'}</td></tr>`}).join('')+'</tbody>';
-    const losers=[...fair].filter(x=>!new Set([...rec].sort((a,b)=>a.rec-b.rec).slice(0,3).map(y=>y.id)).has(x));
+        return `<tr class="${i===SLOTS-1?'cut':''}"><td class="num">${i+1}</td><td>${dot(o.w)}${o.id}</span></td><td>${PLACE[o.w]}</td><td class="r num">${fmt1(o.rec)} μs</td><td class="calc num">${corr4?calc(o):'?'}</td><td class="r num">${corr4?'<b>'+o.t+' μs</b>':'?'}</td><td>${wNo?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'}</td><td>${corr4?(wYes?'<span class="pill ok">구매</span>':'<span class="pill no">실패</span>'):'?'}</td><td>${corr4?v:'?'}</td></tr>`}).join('')+'</tbody>';
+    const losers=[...fair].filter(x=>!recWin.has(x));
     $('verdict4').innerHTML=corr4
-      ?`<h3>지구 시각으로 환산하면</h3><p>실제로 먼저 낸 <b>가·나·라</b>가 산다. 보정이 없을 때 <b>${losers.join('·')}</b>는 먼저 내고도 사지 못했고, 늦게 낸 사람이 대신 샀다.</p><p class="note">주문 직후 주가가 51,000원으로 오르면, 사지 못한 사람은 1인당 100주 × 1,000원 = 10만 원의 이익을 놓친다.</p>`
-      :`<h3>상대성 보정이 없다면</h3><p>각자의 시계에 기록된 시각 그대로 체결하면 <b>${[...win].join('·')}</b>가 산다. 거리 보정은 했지만, 그곳의 시간이 다르게 흐른 만큼 순서가 바뀌었다.</p><p class="note">‘상대성 보정’을 눌러 지구 시각으로 환산해 보자.</p>`;
+      ?`<h3>지구 시계로 환산하면</h3><p>실제로 먼저 낸 <b>가·나·라</b>가 산다. 보정이 없을 때 <b>${losers.join('·')}</b>는 먼저 내고도 사지 못했고, 늦게 낸 사람이 대신 샀다.</p><p class="note">주문 직후 주가가 51,000원으로 오르면, 사지 못한 사람은 1인당 100주 × 1,000원 = 10만 원의 이익을 놓친다.</p>`
+      :`<h3>상대성 보정이 없다면</h3><p>그곳 시계에 찍힌 시각 그대로 체결하면 <b>${[...win].join('·')}</b>가 산다. 거리 보정은 했지만, 그곳의 시간이 다르게 흐른 만큼 순서가 바뀌었다.</p><p class="note">‘상대성 보정’을 눌러 지구 시계로 환산해 보자.</p>`;
   }
   $('c4off').onclick=()=>{corr4=false;$('c4off').classList.add('on');$('c4on').classList.remove('on');render4()};
   $('c4on').onclick=()=>{corr4=true;$('c4on').classList.add('on');$('c4off').classList.remove('on');render4()};
