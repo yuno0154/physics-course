@@ -741,8 +741,14 @@ def build_space_exchange_pdf(data: dict) -> bytes:
     elements.append(Spacer(1, 1.5 * mm))
 
     q1_rows = data.get("q1_table", [])
-    q1_headers = ["신청자", "사는 곳", "낸 시각 (그곳 시계)", "환산 계산 과정", "지구 환산 시각", "환산 순위", "체결 여부"]
-    t1_data = [[Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in q1_headers]]
+    q1_headers = [
+        "신청자", "사는 곳", "낸 시각<br/>(그곳 시계)",
+        "환산 계산 과정<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>",
+        "지구 환산 시각<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>",
+        "환산 순위<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>",
+        "체결 여부<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>"
+    ]
+    t1_data = [[Paragraph(f"<b>{h}</b>", P(7.5, True, "#1A365D" if j < 3 else "#854D0E", 1)) for j, h in enumerate(q1_headers)]]
 
     for r in q1_rows:
         is_buy = "구매" in str(r[6]) or "성공" in str(r[6]) or str(r[5]).strip() in ["1", "2", "3", "1위", "2위", "3위"]
@@ -750,27 +756,25 @@ def build_space_exchange_pdf(data: dict) -> bytes:
             Paragraph(f"<b>{esc(r[0])}</b>", P(8.5, True, align=1)),
             Paragraph(esc(r[1]), P(8, False, align=1)),
             Paragraph(esc(r[2]), P(8, False, align=1)),
-            Paragraph(esc(r[3]), P(8, False, align=1)),
-            Paragraph(f"<b>{esc(r[4])}</b>", P(8.5, True, "#1A365D" if is_buy else "#334155", 1)),
-            Paragraph(f"<b>{esc(r[5])}</b>", P(8.5, True, "#059669" if is_buy else "#64748B", 1)),
-            Paragraph(f"<b>{esc(r[6])}</b>", P(8.5, True, "#059669" if is_buy else "#DC2626", 1)),
+            Paragraph(esc(r[3]) if str(r[3]).strip() else "<font color='#B45309'><i>(직접 계산)</i></font>", P(8, False, align=1)),
+            Paragraph(f"<b>{esc(r[4])}</b>" if str(r[4]).strip() else "<font color='#B45309'><i>- μs</i></font>", P(8.5, True, "#1A365D" if is_buy else "#334155", 1)),
+            Paragraph(f"<b>{esc(r[5])}</b>" if str(r[5]).strip() else "<font color='#B45309'><i>- 위</i></font>", P(8.5, True, "#059669" if is_buy else "#64748B", 1)),
+            Paragraph(f"<b>{esc(r[6])}</b>" if str(r[6]).strip() else "<font color='#B45309'><i>-</i></font>", P(8.5, True, "#059669" if is_buy else "#DC2626", 1)),
         ]
         t1_data.append(row_cells)
 
-    t1 = Table(t1_data, colWidths=[18*mm, 28*mm, 31*mm, 43*mm, 25*mm, 18*mm, 19*mm])
+    t1 = Table(t1_data, colWidths=[18*mm, 27*mm, 29*mm, 44*mm, 26*mm, 19*mm, 19*mm])
     t1_style = [
         ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
-        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('BACKGROUND', (0,0), (2,0), BLUE_HEAD),
+        ('BACKGROUND', (3,0), (-1,0), colors.HexColor("#FEF08A")), # 노란색 헤더
+        ('BACKGROUND', (3,1), (-1,-1), YELLOW_SOFT),              # 학생 작성 열 노란색 배경!
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('TOPPADDING', (0,0), (-1,-1), 2.5),
         ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
         ('LEFTPADDING', (0,0), (-1,-1), 2),
         ('RIGHTPADDING', (0,0), (-1,-1), 2),
     ]
-    for i, r in enumerate(q1_rows):
-        rank_str = str(r[5]).replace("위","").strip()
-        if rank_str in ["1", "2", "3"]:
-            t1_style.append(('BACKGROUND', (0, i+1), (-1, i+1), GREEN_SOFT))
     t1.setStyle(TableStyle(t1_style))
     elements.append(t1)
     elements.append(Spacer(1, 3.5 * mm))
@@ -781,31 +785,34 @@ def build_space_exchange_pdf(data: dict) -> bytes:
     elements.append(Spacer(1, 1.5 * mm))
 
     q2 = data.get("q2_table", {})
-    t2_headers = ["구분", "사는 사람 (1~3위)", "손해 본 사람 (먼저 냈는데 못 삼)", "이득 본 사람 (늦게 냈는데 삼)"]
+    t2_headers = [
+        "구분",
+        "사는 사람 (1~3위)<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>",
+        "손해 본 사람 (먼저 냈는데 못 삼)<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>",
+        "이득 본 사람 (늦게 냈는데 삼)<br/><font color='#854D0E' size='6.5'>[학생 작성]</font>"
+    ]
     t2_data = [
-        [Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in t2_headers],
+        [Paragraph(f"<b>{h}</b>", P(7.5, True, "#1A365D" if j == 0 else "#854D0E", 1)) for j, h in enumerate(t2_headers)],
         [
             Paragraph("<b>환산 전<br/>(그곳 시계 그대로)</b>", P(8, True, align=1)),
-            Paragraph(esc(q2.get("before_buyers", "나, 다, 마")), P(8.5, True, "#059669", 1)),
-            Paragraph(esc(q2.get("before_losers", "가, 라 (실제 1위·3위)")), P(8.5, True, "#DC2626", 1)),
-            Paragraph(esc(q2.get("before_gainers", "다, 마 (실제 5위·4위)")), P(8.5, True, "#D97706", 1)),
+            Paragraph(esc(q2.get("before_buyers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, True, "#059669", 1)),
+            Paragraph(esc(q2.get("before_losers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, True, "#DC2626", 1)),
+            Paragraph(esc(q2.get("before_gainers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, True, "#D97706", 1)),
         ],
         [
             Paragraph("<b>환산 후<br/>(지구 시계 환산)</b>", P(8, True, align=1)),
-            Paragraph(esc(q2.get("after_buyers", "가, 나, 라")), P(8.5, True, "#059669", 1)),
-            Paragraph(esc(q2.get("after_losers", "없음 (공정 체결)")), P(8.5, False, "#475569", 1)),
-            Paragraph(esc(q2.get("after_gainers", "없음 (부당 이득 없음)")), P(8.5, False, "#475569", 1)),
+            Paragraph(esc(q2.get("after_buyers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, True, "#059669", 1)),
+            Paragraph(esc(q2.get("after_losers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, False, "#475569", 1)),
+            Paragraph(esc(q2.get("after_gainers", "")) or "<font color='#B45309'><i>(학생 작성)</i></font>", P(8.5, False, "#475569", 1)),
         ]
     ]
     t2 = Table(t2_data, colWidths=[36*mm, 48*mm, 49*mm, 49*mm])
     t2.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
-        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('BACKGROUND', (0,0), (0,0), BLUE_HEAD),
+        ('BACKGROUND', (1,0), (-1,0), colors.HexColor("#FEF08A")), # 노란색 헤더
         ('BACKGROUND', (0,1), (0,-1), colors.HexColor("#F8FAFC")),
-        ('BACKGROUND', (1,1), (1,1), YELLOW_SOFT),
-        ('BACKGROUND', (2,1), (2,1), RED_SOFT),
-        ('BACKGROUND', (3,1), (3,1), YELLOW_SOFT),
-        ('BACKGROUND', (1,2), (-1,2), GREEN_SOFT),
+        ('BACKGROUND', (1,1), (-1,-1), YELLOW_SOFT),              # 학생 작성 칸 전체 노란색!
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
@@ -818,8 +825,8 @@ def build_space_exchange_pdf(data: dict) -> bytes:
     # ── [문항 3] 주가 상승 시 손실액 계산
     elements.append(section_title("3.", "주가 상승 시 손해 본 사람이 놓친 이익 계산"))
     q3 = data.get("q3", {})
-    calc_formula = q3.get("formula", "100주 × ( 1,000 )원 = ( 100,000 )원 (10만 원)")
-    calc_note = q3.get("note", "공정하게 배정받았다면 주당 1,000원씩 총 10만 원의 수익을 실현할 수 있었으나, 시계 불일치로 손실 발생")
+    calc_formula = q3.get("formula", "")
+    calc_note = q3.get("note", "")
 
     t3_box_data = [
         [
@@ -827,19 +834,19 @@ def build_space_exchange_pdf(data: dict) -> bytes:
             Paragraph("사곡전자 주문가: <b>50,000원</b> → 체결 직후 시장 가격: <b>51,000원</b>으로 상승 (+1,000원/주, 100주)", P(8.5, False))
         ],
         [
-            Paragraph("<b>계산식</b>", P(8.5, True, "#1A365D", 1)),
-            Paragraph(f"<b>{esc(calc_formula)}</b>", P(9.5, True, "#B45309"))
+            Paragraph("<b>계산식</b><br/><font color='#854D0E' size='6.5'>[학생 작성]</font>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(f"<b>{esc(calc_formula)}</b>" if calc_formula.strip() else "<font color='#B45309'><i>100주 × ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )원 = ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; )원</i></font>", P(9, True, "#B45309"))
         ],
         [
-            Paragraph("<b>결과 분석</b>", P(8.5, True, "#1A365D", 1)),
-            Paragraph(esc(calc_note), P(8.5, False, "#334155"))
+            Paragraph("<b>결과 분석</b><br/><font color='#854D0E' size='6.5'>[학생 작성]</font>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(calc_note) if calc_note.strip() else "<font color='#B45309'><i>(학생 작성 칸: 주가 상승에 따른 손실액과 물리적 시계 오차가 금융 거래에 미친 영향을 서술하시오)</i><br/><br/></font>", P(8.5, False, "#334155"))
         ]
     ]
     t3_box = Table(t3_box_data, colWidths=[24*mm, W - 24*mm])
     t3_box.setStyle(TableStyle([
         ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
         ('BACKGROUND', (0,0), (0,-1), BLUE_HEAD),
-        ('BACKGROUND', (1,1), (1,1), YELLOW_SOFT),
+        ('BACKGROUND', (1,1), (1,-1), YELLOW_SOFT), # 학생 작성 행 노란색 배경!
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
@@ -857,13 +864,16 @@ def build_space_exchange_pdf(data: dict) -> bytes:
     q4 = data.get("q4", {})
     choice_val = q4.get("choice", "③ 공통 시간 기준(지구 시계)으로 환산")
 
-    t4_headers = ["체결 방법", "이 방법이면 사는 사람", "문제점 (한계점)", "우리 모둠 선택 (○)"]
+    t4_headers = [
+        "체결 방법", "이 방법이면 사는 사람", "문제점 (한계점)",
+        "우리 모둠 선택 (○)<br/><font color='#854D0E' size='6.5'>[학생 선택]</font>"
+    ]
     m1_sel = "● 선택" if "①" in choice_val or "도착" in choice_val else "○"
     m2_sel = "● 선택" if "②" in choice_val or "각자" in choice_val else "○"
     m3_sel = "● 선택" if "③" in choice_val or "공통" in choice_val else "○"
 
     t4_data = [
-        [Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in t4_headers],
+        [Paragraph(f"<b>{h}</b>", P(8, True, "#1A365D" if j < 3 else "#854D0E", 1)) for j, h in enumerate(t4_headers)],
         [
             Paragraph("<b>① 거래소에<br/>도착한 순서</b>", P(8, True, align=1)),
             Paragraph(esc(q4.get("m1_buyers", "나, 마, 다 (지구·정거장)")), P(8, False, align=1)),
@@ -886,45 +896,52 @@ def build_space_exchange_pdf(data: dict) -> bytes:
     t4 = Table(t4_data, colWidths=[33*mm, 35*mm, 90*mm, 24*mm])
     t4_style = [
         ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
-        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('BACKGROUND', (0,0), (2,0), BLUE_HEAD),
+        ('BACKGROUND', (3,0), (3,0), colors.HexColor("#FEF08A")), # 학생 선택 열 노란색 헤더
+        ('BACKGROUND', (3,1), (3,-1), YELLOW_SOFT),              # 학생 선택 열 노란색 배경!
         ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
         ('TOPPADDING', (0,0), (-1,-1), 3),
         ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('LEFTPADDING', (0,0), (-1,-1), 3),
         ('RIGHTPADDING', (0,0), (-1,-1), 3),
     ]
-    if "●" in m3_sel:
-        t4_style.append(('BACKGROUND', (0, 3), (-1, 3), GREEN_SOFT))
-    elif "●" in m2_sel:
-        t4_style.append(('BACKGROUND', (0, 2), (-1, 2), YELLOW_SOFT))
-    elif "●" in m1_sel:
-        t4_style.append(('BACKGROUND', (0, 1), (-1, 1), YELLOW_SOFT))
     t4.setStyle(TableStyle(t4_style))
     elements.append(t4)
     elements.append(Spacer(1, 3 * mm))
 
-    # 서술형 답안 박스
-    reason_txt = q4.get("reason", "").strip() or "(모둠 서술 내용)"
-    authority_txt = q4.get("authority", "").strip() or "(모둠 서술 내용)"
+    # 서술형 답안 박스 (선택 근거, 공통 시간 기준 - 학생 직접 작성 칸: 노란색 배경)
+    reason_txt = q4.get("reason", "").strip()
+    authority_txt = q4.get("authority", "").strip()
+
+    reason_content = Paragraph(esc(reason_txt), P(8.5, False, lead=12)) if reason_txt else Paragraph(
+        "<font color='#B45309'><i>[학생 작성 칸] 선택한 체결 방법의 근거를 모둠 토의를 거쳐 서술하시오.</i></font><br/><br/><br/><br/>",
+        P(8.5, False, lead=13)
+    )
+
+    auth_content = Paragraph(esc(authority_txt), P(8.5, False, lead=12)) if authority_txt else Paragraph(
+        "<font color='#B45309'><i>[학생 작성 칸] 공통 시간 기준(우주 표준시)을 제정하고 관리할 주체(국제기구, 우주청 등)에 대한 의견을 서술하시오.</i></font><br/><br/><br/><br/>",
+        P(8.5, False, lead=13)
+    )
 
     disc_box_data = [
         [
-            Paragraph("<b>선택 근거<br/>(모둠 토의)</b>", P(8.5, True, "#1A365D", 1)),
-            Paragraph(esc(reason_txt), P(8.5, False, lead=12))
+            Paragraph("<b>선택 근거<br/>(모둠 토의)</b><br/><font color='#854D0E' size='6.5'>[학생 작성]</font>", P(8, True, "#1A365D", 1)),
+            reason_content
         ],
         [
-            Paragraph("<b>공통 시간 기준은<br/>누가 만들어야 할까?</b>", P(8, True, "#1A365D", 1)),
-            Paragraph(esc(authority_txt), P(8.5, False, lead=12))
+            Paragraph("<b>공통 시간 기준은<br/>누가 만들어야 할까?</b><br/><font color='#854D0E' size='6.5'>[학생 작성]</font>", P(8, True, "#1A365D", 1)),
+            auth_content
         ]
     ]
     t_disc = Table(disc_box_data, colWidths=[33*mm, W - 33*mm])
     t_disc.setStyle(TableStyle([
-        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E0B84A")),
+        ('BOX', (0,0), (-1,-1), 1.2, colors.HexColor("#E0B84A")),
         ('BACKGROUND', (0,0), (0,-1), BLUE_HEAD),
-        ('BACKGROUND', (1,0), (1,-1), YELLOW_SOFT),
+        ('BACKGROUND', (1,0), (1,-1), YELLOW_SOFT), # 학생 작성 칸 노란색 배경!
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
         ('LEFTPADDING', (0,0), (-1,-1), 4),
         ('RIGHTPADDING', (0,0), (-1,-1), 4),
     ]))
@@ -984,9 +1001,25 @@ with tab_report:
         {"신청자": "바", "사는 곳": "우주 정거장", "낸 시각 (그곳 시계)": "45.2 μs", "환산 계산 과정": "45.2 − (−24.8) = 45.2 + 24.8", "지구 환산 시각": "70.0 μs", "환산 순위": "6위", "체결 여부": "체결 실패 (6위)"},
     ]
 
-    # 세션 상태 초기화
+    # 세션 상태 초기화 (학생 작성 칸은 기본값 빈칸 유지)
     if "q1_df" not in st.session_state:
         st.session_state["q1_df"] = pd.DataFrame(DEFAULT_Q1_DATA)
+    if "q4_reason_txt" not in st.session_state:
+        st.session_state["q4_reason_txt"] = ""
+    if "q4_auth_txt" not in st.session_state:
+        st.session_state["q4_auth_txt"] = ""
+
+    # 학생 작성 칸 노란색 안내 배너
+    st.markdown(
+        """
+        <div style="background-color:#fff9db;border:1.5px solid #f59f00;border-radius:8px;padding:10px 16px;
+                    margin-bottom:14px;color:#7a4100;font-size:0.92rem;font-weight:600;display:flex;align-items:center;gap:8px;">
+            <span>✍️</span>
+            <span><b>작성 안내</b>: <b>노란색 배경</b>으로 표시된 칸은 <b>학생(모둠)이 직접 작성해야 하는 영역</b>입니다. 선택 근거와 공통 시간 기준은 모둠 토의를 거쳐 직접 작성해 주세요.</span>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     # 상단 도구 버튼
     tbar1, tbar2, tbar3 = st.columns([1.5, 1.5, 3])
@@ -1002,7 +1035,7 @@ with tab_report:
             st.session_state["q3_diff"] = "1,000"
             st.session_state["q3_total"] = "100,000"
             st.session_state["q4_choice_idx"] = 2
-            st.session_state["q4_reason_txt"] = "금융 시장의 '시간 우선 원칙'이 공정하게 성립하려면, 주문 신호가 거래소에 먼저 닿았거나 각자 시계에 찍힌 숫자가 작은 것이 아니라 '동일한 물리적 기준계에서 실제로 먼저 발생한 사건'에 우선권이 주어져야 합니다. 거리 지연만 보정하고 상대론적 중력·속도 시간 지연을 보정하지 않으면 우주정거장은 부당한 이득을 보고 달은 항상 불리해지는 구조적 왜곡이 발생하므로, 단일한 공통 시간 기준으로 환산하여 체결하는 방법 ③이 가장 공정합니다."
+            st.session_state["q4_reason_txt"] = "시장 경제의 '시간 우선 원칙'은 단순히 신호가 거래소에 일찍 닿았거나 각자 시계에 찍힌 숫자가 작은 것이 아니라, '동일한 물리적 기준계에서 실제로 먼저 발생한 사건'에 우선권이 주어져야 진정한 공정성이 실현됩니다. 거리 지연만 보정하고 상대론적 중력·속도 시간 지연을 보정하지 않으면 우주정거장은 항상 유리하고 달은 항상 불리해지는 구조적 왜곡이 발생하므로, 단일한 공통 시간 기준으로 환산하여 체결하는 방법 ③이 가장 공정합니다."
             st.session_state["q4_auth_txt"] = "공통 시간 기준은 특정 행성이나 민간 거래소, 개별 국가가 사익을 추구하기 위해 왜곡하지 못하도록 해야 합니다. 시간 표준은 인류 모두가 평등하게 누려야 할 '순수 공공재(Public Good)'이므로, 국제연합(UN) 산하 국제도량형국(BIPM)이나 전 행성 우주 표준 연합, 각국 우주청(NASA, KARI, ESA 등)의 중립적인 다자간 공공 기구가 제정하고 유지·관리해야 합니다."
             st.rerun()
 
@@ -1096,9 +1129,9 @@ with tab_report:
     with col2_1:
         st.markdown(
             """
-            <div style="background:#fef2f2;border-left:4px solid #c0392b;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;">
-                <b style="color:#c0392b;">환산 전 (그곳 시계 그대로 체결 시)</b>
-            </div>
+            <div style="background:#fffbe6;border:1.5px solid #facc15;padding:12px 14px;border-radius:10px;margin-bottom:8px;">
+                <span style="background-color:#fef08a;color:#854d0e;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;">✍️ 학생 작성 칸 (노란색 배경)</span>
+                <div style="font-weight:700;color:#c0392b;margin:6px 0 8px 0;">환산 전 (그곳 시계 그대로 체결 시)</div>
             """,
             unsafe_allow_html=True
         )
@@ -1117,13 +1150,14 @@ with tab_report:
             value=st.session_state.get("q2_b_gain", "다, 마 (실제 5위·4위)"),
             key="q2_b_gain_in"
         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col2_2:
         st.markdown(
             """
-            <div style="background:#e3f3ea;border-left:4px solid #2f8f5b;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;">
-                <b style="color:#2f8f5b;">환산 후 (지구 시계로 환산하여 체결 시)</b>
-            </div>
+            <div style="background:#fffbe6;border:1.5px solid #facc15;padding:12px 14px;border-radius:10px;margin-bottom:8px;">
+                <span style="background-color:#fef08a;color:#854d0e;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;">✍️ 학생 작성 칸 (노란색 배경)</span>
+                <div style="font-weight:700;color:#2f8f5b;margin:6px 0 8px 0;">환산 후 (지구 시계로 환산하여 체결 시)</div>
             """,
             unsafe_allow_html=True
         )
@@ -1142,6 +1176,7 @@ with tab_report:
             value=st.session_state.get("q2_a_gain", "없음 (부당 이득 발생하지 않음)"),
             key="q2_a_gain_in"
         )
+        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1152,6 +1187,13 @@ with tab_report:
         "> `100주 × (        )원 = (            )원`"
     )
 
+    st.markdown(
+        """
+        <div style="background:#fffbe6;border:1.5px solid #facc15;padding:12px 14px;border-radius:10px;margin-bottom:12px;">
+            <span style="background-color:#fef08a;color:#854d0e;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;">✍️ 학생 작성 칸 (노란색 배경)</span>
+        """,
+        unsafe_allow_html=True
+    )
     q3_col1, q3_col2, q3_col3 = st.columns([1.5, 2, 2.5])
     with q3_col1:
         st.text_input("주문 수량", value="100주", disabled=True)
@@ -1166,6 +1208,7 @@ with tab_report:
         height=70,
         key="q3_note_in"
     )
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1190,19 +1233,39 @@ with tab_report:
     cur_idx = st.session_state.get("q4_choice_idx", 2)
     q4_choice = st.radio("우리 모둠의 선택 (○)", q4_methods, index=cur_idx, key="q4_choice_in")
 
+    # 선택 근거 - 학생 작성 칸 (노란색 배경, 기본값 빈칸)
+    st.markdown(
+        """
+        <div style="background-color:#fffbe6;border:1.5px solid #facc15;padding:12px 14px;border-radius:10px;margin-bottom:12px;">
+            <span style="background-color:#fef08a;color:#854d0e;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;">✍️ 학생 직접 작성 칸 (노란색 배경 · 모둠 토의 필수)</span>
+        """,
+        unsafe_allow_html=True
+    )
     q4_reason = st.text_area(
         "📌 선택 근거 (모둠 발표 내용):",
-        value=st.session_state.get("q4_reason_txt", "시장 경제의 '시간 우선 원칙'은 단순히 신호가 거래소에 일찍 닿았거나 각자 시계에 찍힌 숫자가 작은 것이 아니라, '동일한 물리적 기준계에서 실제로 먼저 발생한 사건'에 우선권이 주어져야 진정한 공정성이 실현됩니다. 거리 지연만 보정하고 상대론적 중력·속도 시간 지연을 보정하지 않으면 우주정거장은 항상 유리하고 달은 항상 불리해지는 구조적 왜곡이 발생하므로, 단일한 공통 시간 기준으로 환산하여 체결하는 방법 ③이 가장 공정합니다."),
+        value=st.session_state.get("q4_reason_txt", ""),
+        placeholder="시장 경제의 '시간 우선 원칙'과 시계 차이에 따른 공정성을 고려하여, 선택한 체결 방법의 근거를 모둠 토의를 거쳐 직접 작성하세요...",
         height=100,
         key="q4_reason_in"
     )
+    st.markdown("</div>", unsafe_allow_html=True)
 
+    # 공통 시간 기준 - 학생 작성 칸 (노란색 배경, 기본값 빈칸)
+    st.markdown(
+        """
+        <div style="background-color:#fffbe6;border:1.5px solid #facc15;padding:12px 14px;border-radius:10px;margin-bottom:12px;">
+            <span style="background-color:#fef08a;color:#854d0e;border:1px solid #eab308;padding:2px 8px;border-radius:4px;font-size:0.75rem;font-weight:700;">✍️ 학생 직접 작성 칸 (노란색 배경 · 모둠 토의 필수)</span>
+        """,
+        unsafe_allow_html=True
+    )
     q4_auth = st.text_area(
         "🏛️ 공통 시간 기준은 누가 만들어야 할까?:",
-        value=st.session_state.get("q4_auth_txt", "공통 시간 기준은 특정 행성이나 민간 거래소, 개별 국가가 사익을 추구하기 위해 왜곡하지 못하도록 해야 합니다. 시간 표준은 인류 모두가 평등하게 누려야 할 '순수 공공재(Public Good)'이므로, 국제연합(UN) 산하 국제도량형국(BIPM)이나 전 행성 우주 표준 연합, 각국 우주청(NASA, KARI, ESA 등)의 중립적인 다자간 공공 기구가 제정하고 유지·관리해야 합니다."),
+        value=st.session_state.get("q4_auth_txt", ""),
+        placeholder="공통 시간 기준(우주 표준시)을 제정하고 관리해야 하는 주체(국제기구, 우주청 등)에 대한 모둠 의견을 직접 작성하세요...",
         height=90,
         key="q4_auth_in"
     )
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
@@ -1282,31 +1345,124 @@ with tab_report:
         is_print_mode = st.toggle("🖨️ 브라우저 직접 인쇄 / PDF 저장 모드", value=False)
 
     if is_print_mode:
-        st.markdown(
-            """
-            <div style="background:#ffffff;border:2px solid #1e3a5f;border-radius:12px;padding:24px;margin-top:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-                <div style="text-align:center;border-bottom:2px solid #1e3a5f;padding-bottom:12px;margin-bottom:16px;">
-                    <h2 style="margin:0;color:#1e3a5f;">💹 우주 거래소의 시계: 모둠 탐구 활동 보고서</h2>
-                    <p style="margin:4px 0 0 0;font-size:0.9rem;color:#64748b;">거리에 따른 신호 지연과 상대론적 중력·속도 시간 지연을 고려한 공정한 금융 시장 규칙 탐구</p>
+        q1_rows_html = "".join([
+            f"""<tr>
+                <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;font-weight:700;">{r['신청자']}</td>
+                <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">{r['사는 곳']}</td>
+                <td style="border:1px solid #cbd5e1;padding:5px;text-align:center;">{r['낸 시각 (그곳 시계)']}</td>
+                <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;text-align:center;">{r['환산 계산 과정'] or '-'}</td>
+                <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;text-align:center;font-weight:700;">{r['지구 환산 시각'] or '-'}</td>
+                <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;text-align:center;font-weight:700;">{r['환산 순위'] or '-'}</td>
+                <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;text-align:center;font-weight:700;">{r['체결 여부'] or '-'}</td>
+            </tr>"""
+            for _, r in edited_df.iterrows()
+        ])
+
+        reason_display = q4_reason.replace("\n", "<br/>") if q4_reason.strip() else "<span style='color:#b45309;font-style:italic;'>[학생 작성 칸] 여기에 모둠 토의 내용을 직접 작성하시오.</span><br/><br/><br/>"
+        auth_display = q4_auth.replace("\n", "<br/>") if q4_auth.strip() else "<span style='color:#b45309;font-style:italic;'>[학생 작성 칸] 공통 시간 기준(우주 표준시)을 제정하고 관리할 주체에 대한 의견을 서술하시오.</span><br/><br/><br/>"
+
+        print_html = f"""
+        <div style="background:#ffffff;border:2px solid #1e3a5f;border-radius:12px;padding:22px;margin-top:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);font-family:'Noto Sans KR',sans-serif;font-size:0.9rem;line-height:1.5;">
+            <div style="text-align:center;border-bottom:2px solid #1e3a5f;padding-bottom:10px;margin-bottom:12px;">
+                <h2 style="margin:0;color:#1e3a5f;font-size:1.35rem;">💹 우주 거래소의 시계: 모둠 탐구 활동 보고서</h2>
+                <p style="margin:4px 0 0 0;font-size:0.85rem;color:#64748b;">거리에 따른 신호 지연과 상대론적 중력·속도 시간 지연을 고려한 공정한 금융 시장 규칙 탐구</p>
+                <div style="margin-top:6px;font-size:0.8rem;color:#475569;">
+                    <span style="color:#d97706;font-weight:700;">■ 노란색 칸</span> = 학생(모둠) 직접 작성 영역 &nbsp;&nbsp;&nbsp;
+                    <span style="color:#1a365d;font-weight:700;">■ 파란색 칸</span> = 문제 제시 자료
                 </div>
-                <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:0.9rem;">
-                    <tr style="background:#f1f5f9;">
-                        <th style="border:1px solid #cbd5e1;padding:6px;width:12%;">학급</th>
-                        <td style="border:1px solid #cbd5e1;padding:6px;width:18%;">""" + rep_cls + """</td>
-                        <th style="border:1px solid #cbd5e1;padding:6px;width:12%;">모둠명</th>
-                        <td style="border:1px solid #cbd5e1;padding:6px;width:18%;">""" + rep_grp + """</td>
-                        <th style="border:1px solid #cbd5e1;padding:6px;width:14%;">작성일자</th>
-                        <td style="border:1px solid #cbd5e1;padding:6px;width:26%;">""" + str(rep_date) + """</td>
-                    </tr>
-                    <tr>
-                        <th style="border:1px solid #cbd5e1;padding:6px;background:#f1f5f9;">모둠원</th>
-                        <td colspan="5" style="border:1px solid #cbd5e1;padding:6px;">""" + rep_mems + """</td>
-                    </tr>
-                </table>
             </div>
-            """,
-            unsafe_allow_html=True
-        )
+            <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:0.85rem;">
+                <tr style="background:#ebf3fa;">
+                    <th style="border:1px solid #cbd5e1;padding:5px;width:12%;">학급</th>
+                    <td style="border:1px solid #cbd5e1;padding:5px;width:18%;">{rep_cls}</td>
+                    <th style="border:1px solid #cbd5e1;padding:5px;width:12%;">모둠명</th>
+                    <td style="border:1px solid #cbd5e1;padding:5px;width:18%;">{rep_grp}</td>
+                    <th style="border:1px solid #cbd5e1;padding:5px;width:14%;">작성일자</th>
+                    <td style="border:1px solid #cbd5e1;padding:5px;width:26%;">{str(rep_date)}</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #cbd5e1;padding:5px;background:#ebf3fa;">모둠원</th>
+                    <td colspan="5" style="border:1px solid #cbd5e1;padding:5px;">{rep_mems}</td>
+                </tr>
+            </table>
+
+            <h4 style="margin:12px 0 6px 0;color:#1e3a5f;border-bottom:1.5px solid #1e3a5f;padding-bottom:3px;">
+                1. 낸 시각 환산 및 체결 순위 계산 (1~3위 구매)
+            </h4>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:0.82rem;">
+                <tr style="background:#ebf3fa;">
+                    <th style="border:1px solid #cbd5e1;padding:5px;">신청자</th>
+                    <th style="border:1px solid #cbd5e1;padding:5px;">사는 곳</th>
+                    <th style="border:1px solid #cbd5e1;padding:5px;">낸 시각 (그곳 시계)</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;">환산 계산 과정 [학생작성]</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;">지구 환산 시각 [학생작성]</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;">환산 순위 [학생작성]</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;">체결 여부 [학생작성]</th>
+                </tr>
+                {q1_rows_html}
+            </table>
+
+            <h4 style="margin:12px 0 6px 0;color:#1e3a5f;border-bottom:1.5px solid #1e3a5f;padding-bottom:3px;">
+                2. 지구 시계로 환산 후 다시 체결하고, 환산 전과 비교
+            </h4>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:0.85rem;">
+                <tr style="background:#ebf3fa;">
+                    <th style="border:1px solid #cbd5e1;padding:5px;width:24%;">구분</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;width:25%;">사는 사람 (1~3위)</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;width:26%;">손해 본 사람 (먼저 냈는데 못 삼)</th>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:5px;color:#854d0e;width:25%;">이득 본 사람 (늦게 냈는데 삼)</th>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #cbd5e1;padding:6px;background:#f8fafc;">환산 전 (그곳 시계 그대로)</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;font-weight:700;color:#059669;">{q2_b_buy or '-'}</td>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;font-weight:700;color:#dc2626;">{q2_b_lose or '-'}</td>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;font-weight:700;color:#d97706;">{q2_b_gain or '-'}</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #cbd5e1;padding:6px;background:#f8fafc;">환산 후 (지구 시계 환산)</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;font-weight:700;color:#059669;">{q2_a_buy or '-'}</td>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;">{q2_a_lose or '-'}</td>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:6px;text-align:center;">{q2_a_gain or '-'}</td>
+                </tr>
+            </table>
+
+            <h4 style="margin:12px 0 6px 0;color:#1e3a5f;border-bottom:1.5px solid #1e3a5f;padding-bottom:3px;">
+                3. 주가 상승 시 손해 본 사람이 놓친 이익 계산
+            </h4>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:0.85rem;">
+                <tr>
+                    <th style="border:1px solid #cbd5e1;padding:5px;background:#ebf3fa;width:20%;">상황</th>
+                    <td style="border:1px solid #cbd5e1;padding:5px;">사곡전자 주문가: 50,000원 → 체결 직후 시장 가격: 51,000원으로 상승 (+1,000원/주, 100주)</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #e0b84a;padding:5px;background:#fef08a;color:#854d0e;">계산식 [학생작성]</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;font-weight:700;color:#b45309;">100주 × ( {q3_diff or '1,000'} )원 = ( {q3_total or '100,000'} )원</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #e0b84a;padding:5px;background:#fef08a;color:#854d0e;">결과 분석 [학생작성]</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:5px;">{q3_note or '-'}</td>
+                </tr>
+            </table>
+
+            <h4 style="margin:12px 0 6px 0;color:#1e3a5f;border-bottom:1.5px solid #1e3a5f;padding-bottom:3px;">
+                4. [경제·금융 통합] 체결 방식의 공정성 비교 및 모둠 토의
+            </h4>
+            <div style="margin-bottom:8px;font-weight:700;color:#1e3a5f;">
+                우리 모둠의 선택: <span style="background:#fef08a;color:#854d0e;padding:2px 8px;border-radius:4px;border:1px solid #e0b84a;">{q4_choice}</span>
+            </div>
+            <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:0.85rem;">
+                <tr>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:6px;width:24%;color:#854d0e;">선택 근거 [학생작성]</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:8px;">{reason_display}</td>
+                </tr>
+                <tr>
+                    <th style="border:1px solid #e0b84a;background:#fef08a;padding:6px;color:#854d0e;">공통 시간 기준 제정 주체 [학생작성]</th>
+                    <td style="border:1px solid #e0b84a;background:#fff8dc;padding:8px;">{auth_display}</td>
+                </tr>
+            </table>
+        </div>
+        """
+        st.markdown(print_html, unsafe_allow_html=True)
         if st.button("🖨️ 인쇄 대화상자 실행 (PDF로 저장하기)", use_container_width=True):
             components.html("<script>parent.window.print()</script>", height=0)
 
