@@ -1,20 +1,65 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import os
+import io
+from datetime import datetime, date
+import pandas as pd
+import xml.sax.saxutils
+
+# ── ReportLab 임포트 및 폰트 설정 ──────────────────────────────────
+try:
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib import colors
+    from reportlab.platypus import (
+        SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
+    )
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    HAS_REPORTLAB = True
+except ImportError:
+    HAS_REPORTLAB = False
+
+FONT_REG = os.path.join(os.path.dirname(__file__), "fonts", "NanumGothic.ttf")
+FONT_BOLD = os.path.join(os.path.dirname(__file__), "fonts", "NanumGothicBold.ttf")
+
+if HAS_REPORTLAB and os.path.exists(FONT_REG):
+    try:
+        if "NG" not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont("NG", FONT_REG))
+        if "NGB" not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(TTFont("NGB", FONT_BOLD if os.path.exists(FONT_BOLD) else FONT_REG))
+    except Exception as e:
+        print("ReportLab Font register error:", e)
+
+# ── 패들렛 발표 게시판 URL 상수 ─────────────────────────────────
+PADLET_URL = "https://padlet.com/sgh/padlet-s024y3iekcz0b0xn6dtu"
 
 # ── 헤더 섹션 ──────────────────────────────────────────────────
 st.title("💹 [융합] 우주 거래소의 시계")
 st.markdown(
     "2045년 지구·우주 정거장·달 기지의 주민이 같은 주식을 주문할 때, "
     "**거리에 따른 시간 차**(신호 지연)와 **상대성에 따른 시간 차**(중력 효과·속도 효과)를 구별하고, "
-    "시각을 환산해 공정한 체결 순서를 판단하는 가상 실험실"
+    "시각을 환산해 공정한 체결 순서를 판단하는 가상 실험실 및 모둠 탐구 활동 지원 포털"
 )
-st.caption("① 시계 맞추기 → ② 주문하기 → ③ 하루가 지나면 → ④ 체결 비교 · 활동지 연계")
 
-# ── HTML 파일 로드 ──────────────────────────────────────────────
+# 상단 빠른 액션 바
+col_top1, col_top2 = st.columns([3, 2])
+with col_top1:
+    st.caption("2022 개정 역학과 에너지 [12역학01-08] 중력 시간 지연의 적용 × 경제·금융 융합 탐구")
+with col_top2:
+    st.link_button(
+        "🪐 우주거래소 모둠별 발표 게시판 (패들렛) ↗",
+        PADLET_URL,
+        use_container_width=True,
+        type="secondary"
+    )
+
+# ── HTML 시뮬레이션 파일 로드 ──────────────────────────────────────
 html_path = os.path.join(os.path.dirname(__file__), "space-exchange.html")
 
-# 기본 HTML 코드 (space-exchange.html과 동일한 최신 버전 내장 fallback)
+# 기본 HTML 코드 (space-exchange.html fallback)
 DEFAULT_HTML = r"""<!doctype html>
 <html lang="ko">
 <head>
@@ -25,7 +70,6 @@ DEFAULT_HTML = r"""<!doctype html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: 교실 프로젝션용. 상단 단계 탭(①~④) + 탭마다 '예측 → 관찰 → 설명' 흐름. 밝은 한 가지 테마(의도). */
 :root{
   --bg:#f6f7f9; --panel:#ffffff; --ink:#1e3a5f; --text:#2b2f36; --muted:#6a7280; --line:#dfe3ea;
   --gold:#c9a96e; --earth:#2e8b7a; --station:#4e6bd6; --moon:#c97b2a;
@@ -118,14 +162,11 @@ tr.cut td{border-bottom:3px solid var(--ok)}
 td.calc{color:var(--muted)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-
-
 </head>
 <body style="margin:0">
 <div class="wrap">
   <header>
     <div class="eyebrow">역학과 에너지 · 중력 시간 지연의 적용 × 경제금융 · 2045년 가상 상황</div>
-    
     <div class="iq">탐구질문 <b>지구, 우주 정거장, 달의 시계는 하루 동안 얼마나, 왜 다르게 갈까?</b></div>
   </header>
 
@@ -292,6 +333,15 @@ td.calc{color:var(--muted)}
           <b>공공재</b>: 모두가 함께 쓰는 공통 시간 기준은 누구나 쓸 수 있고, 써도 줄어들지 않는다.<br>
           <b>실제 사례</b>: 미국은 NASA에 달 표준시를 2026년 말까지 만들도록 지시했다. GPS 위성 시계는 상대성 보정을 하지 않으면 하루에 약 11 km의 위치 오차가 생긴다.
         </div>
+        <div class="callout" style="border-left-color:var(--station);background:#eef4fd;margin-top:10px">
+          <b style="color:var(--station)">📢 모둠 과제 보고서 제출 안내</b><br>
+          시뮬레이션 탐구를 마쳤다면, 활동지 보고서를 작성하여 <b>우주거래소 모둠별 발표 게시판</b>에 제출하세요.<br>
+          <div style="margin-top:8px">
+            <a href="https://padlet.com/sgh/padlet-s024y3iekcz0b0xn6dtu" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:7px 14px;background:#1e3a5f;color:#fff;border-radius:6px;text-decoration:none;font-weight:700;font-size:0.9rem">
+              🪐 우주거래소 모둠별 발표 게시판 (패들렛) ↗
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -345,13 +395,13 @@ td.calc{color:var(--muted)}
 
   // ---------- ① 시계 맞추기 ----------
   let s1={sent:false,corr:false,anim:0,start:0};
-  const ANIM1=3.2; // 화면에서 달까지 걸리는 시간(초)
+  const ANIM1=3.2;
   function clockText(diffSec){
     if(Math.abs(diffSec)<1e-9) return '09:00:00.000000';
     const t=9*3600+diffSec; const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
     return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${s.toFixed(6).padStart(9,'0')}`;
   }
-  function render1(p){ // p: 0..1 애니메이션 진행
+  function render1(p){
     let svg=baseMap(360,180);
     if(s1.sent){
       const k=Math.min(1,p);
@@ -362,7 +412,7 @@ td.calc{color:var(--muted)}
       svg+=`<text x="${(EARTH.x+MOON.x)/2}" y="${EARTH.y-16}" font-size="15" fill="${COL.ink}" text-anchor="middle" font-weight="700">“9시 정각” 신호 · 보낸 뒤 ${(k*1.28).toFixed(2)} s</text>`;
     }
     $('map1').innerHTML=svg;
-    const tau=s1.sent?Math.min(1,p)*1.28:0;           // 신호를 보낸 뒤 흐른 실제 시간(s)
+    const tau=s1.sent?Math.min(1,p)*1.28:0;
     const got={E:true,S:s1.sent&&tau>=DELAY.S,M:s1.sent&&tau>=DELAY.M};
     $('clk1').innerHTML=['E','S','M'].map(w=>{
       let t='--:--:--', d='신호를 기다리는 중';
@@ -392,7 +442,7 @@ td.calc{color:var(--muted)}
   // ---------- ② 주문하기 ----------
   let s2={sent:false,start:0,anim:0};
   const ANIM2=3.4;
-  const arrive=o=>o.t*1e-6+DELAY[o.w];               // 도착 시각 (s)
+  const arrive=o=>o.t*1e-6+DELAY[o.w];
   const arrOrder=[...ORD].sort((a,b)=>arrive(a)-arrive(b));
   const tsOrder=[...ORD].sort((a,b)=>a.t-b.t);
   const ARRTXT={E:'바로',S:'0.0013 s 뒤',M:'1.28 s 뒤'};
@@ -402,21 +452,18 @@ td.calc{color:var(--muted)}
   }
   function nl2(done){
     const L=150,R=930, X1=t=>L+t/100*(R-L);
-    // 도착 줄: 끊어진 축 [0–100 μs] [1.30–1.40 ms] [1.28 s + 0–100 μs]
     const XB=v=>v<1000?L+v/100*300:v<1e6?L+350+(v-1300)/100*190:L+590+(v-1.28e6)/100*190;
     const y1=62,y2=182;
     let g=`<text x="12" y="${y1+5}" font-size="14" font-weight="700" fill="${COL.ink}">낸 순간</text>
       <text x="12" y="${y2+5}" font-size="14" font-weight="700" fill="${COL.ink}">거래소 도착</text>
       <line x1="${L}" x2="${R}" y1="${y1}" y2="${y1}" stroke="${COL.muted}" stroke-width="2"/>`;
     for(let v=0;v<=100;v+=20)g+=`<line x1="${X1(v)}" x2="${X1(v)}" y1="${y1}" y2="${y1+6}" stroke="${COL.muted}"/><text x="${X1(v)}" y="${y1+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${v}${v===100?' μs':''}</text>`;
-    // 아래 축 세 구간
     [[L,L+300,'0','100 μs'],[L+350,L+540,'1.30 ms','1.40 ms'],[L+590,L+780,'1.28 s','']].forEach(([x1,x2,a,b2])=>{
       g+=`<line x1="${x1}" x2="${x2}" y1="${y2}" y2="${y2}" stroke="${COL.muted}" stroke-width="2"/>
         <text x="${x1}" y="${y2+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${a}</text>${b2?`<text x="${x2}" y="${y2+34}" font-size="12" fill="${COL.muted}" text-anchor="middle">${b2}</text>`:''}`});
     [L+325,L+565].forEach(x=>g+=`<text x="${x}" y="${y2+6}" font-size="18" fill="${COL.muted}" text-anchor="middle">≈</text>`);
     g+=`<text x="${(L+350+L+540)/2}" y="${y2+54}" font-size="12" fill="${COL.muted}" text-anchor="middle">정거장: 0.0013 s 뒤</text>
         <text x="${L+685}" y="${y2+54}" font-size="12" fill="${COL.muted}" text-anchor="middle">달: 1.28 s 뒤 (약 1000배 더 늦음)</text>`;
-    // 낸 순서 3명
     const tsWin=new Set(tsOrder.slice(0,SLOTS).map(o=>o.id)), arWin=new Set(arrOrder.slice(0,SLOTS).map(o=>o.id));
     if(done){
       ORD.forEach(o=>{const xa=X1(o.t), xb=XB(o.t+DELAY[o.w]*1e6);
@@ -431,7 +478,6 @@ td.calc{color:var(--muted)}
   }
   function render2(p){
     let svg=baseMap(300,150);
-    // 주문 패킷
     const ex={x:EARTH.x+EARTH.r-6,y:150};
     if(s2.sent){
       ORD.forEach((o,i)=>{
@@ -471,12 +517,11 @@ td.calc{color:var(--muted)}
   }
   function renderBars(){
     let g=gr(alt), sv=sr(alt), n=g+sv;
-    if(alt===400){g=3.5;sv=-28.3;n=-24.8} // 활동지·지도안과 같은 반올림 값
+    if(alt===400){g=3.5;sv=-28.3;n=-24.8}
     $('altV').textContent=alt.toLocaleString()+' km';
     $('barsS').innerHTML=barRow('중력 효과',g,60,COL.gold,sgn(g)+' μs')+barRow('속도 효과',sv,60,'#8b9bf0',sgn(sv)+' μs')+barRow('<b>합계</b>',n,60,n<0?COL.S:COL.ok,'<b>'+sgn(n)+' μs</b>');
     $('barsM').innerHTML=barRow('지구 중력에서 멀어짐',59.1,60,COL.gold,'크게 +')+barRow('달 자체의 중력',-2.7,60,'#b9a07a','조금 −')+barRow('느린 공전 속도',-0.5,60,'#8b9bf0','조금 −')+barRow('<b>합계</b>',58.7,60,COL.M,'<b>+58.7 μs</b>');
     document.querySelectorAll('[data-alt]').forEach(b=>b.classList.toggle('sel',+b.dataset.alt===alt));
-    // 곡선
     const W=460,H=210,L=40,Rr=10,T=12,B=30,xMax=40000,yMin=-30,yMax=60;
     const X=h=>L+h/xMax*(W-L-Rr), Y=v=>T+(yMax-v)/(yMax-yMin)*(H-T-B);
     const path=f=>{let d='';for(let h=300;h<=xMax;h+=200)d+=(d?'L':'M')+X(h).toFixed(1)+','+Y(Math.max(yMin,Math.min(yMax,f(h)))).toFixed(1);return d};
@@ -488,7 +533,7 @@ td.calc{color:var(--muted)}
     s+=`<circle cx="${X(alt)}" cy="${Y(Math.max(yMin,Math.min(yMax,n)))}" r="6" fill="${COL.S}" stroke="#fff" stroke-width="2"/>`;
     $('curve').innerHTML=s;
   }
-  const off=w=>RATE[w]*days;                   // 시계가 앞선 시간 (μs)
+  const off=w=>RATE[w]*days;
   function render34(){
     $('daysV').textContent=days.toFixed(1)+'일'; $('days4').textContent=days.toFixed(1);
     $('clk3').innerHTML=['E','S','M'].map(w=>{
@@ -501,7 +546,6 @@ td.calc{color:var(--muted)}
     if(days>=0.95){const r=$('r3');r.hidden=false;r.className='reveal bad';
       r.innerHTML=`하루 뒤 <b>달 시계는 +58.7 μs</b>, <b>정거장 시계는 −24.8 μs</b> 어긋난다${pred.q3?(pred.q3==='no'?' (예측 적중)':' (예측과 다름)'):''}. 시계가 고장 난 것이 아니라 <b>그곳의 시간이 다르게 흐르기</b> 때문이다(중력 효과와 속도 효과). 거리 보정은 한 번으로 끝나지만, 이 차이는 <b>날마다 쌓인다</b>.`}
     else $('r3').hidden=true;
-    // 하루 뒤 주문 기록
     const rec=ORD.map(o=>({...o,rec:o.t+off(o.w)}));
     const byRec=[...rec].sort((a,b)=>a.rec-b.rec);
     const win=new Set(byRec.slice(0,SLOTS).map(o=>o.id));
@@ -520,21 +564,19 @@ td.calc{color:var(--muted)}
 
   // ---------- ④ 체결 비교 ----------
   function render4(){
-    const d=days<0.05?1:days; // ④는 최소 1일 기준으로 보여 줌
+    const d=days<0.05?1:days;
     if(days<0.05){$('days4').textContent='1.0'}
     const rec=ORD.map(o=>{const of=RATE[o.w]*d;return {...o,of,rec:o.t+of}});
     const key=corr4?'t':'rec';
     const byKey=[...rec].sort((a,b)=>a[key]-b[key]);
     const win=new Set(byKey.slice(0,SLOTS).map(o=>o.id));
     const fair=new Set([...rec].sort((a,b)=>a.t-b.t).slice(0,SLOTS).map(o=>o.id));
-    // 두 줄 수직선
     const L=170,R=930,hi=110, X=v=>L+v/hi*(R-L), y1=70,y2=200;
     const recWin=new Set([...rec].sort((a,b)=>a.rec-b.rec).slice(0,SLOTS).map(o=>o.id));
     let s=`<text x="10" y="${y1-4}" font-size="14" font-weight="700" fill="#555c68">낸 시각</text><text x="10" y="${y1+14}" font-size="12" fill="${COL.muted}">(그곳 시계)</text>
       <text x="10" y="${y2-4}" font-size="14" font-weight="700" fill="${COL.ok}">낸 시각</text><text x="10" y="${y2+14}" font-size="12" fill="${COL.muted}">(지구 시계로 환산)</text>`;
     [y1,y2].forEach(y=>{s+=`<line x1="${L}" x2="${R}" y1="${y}" y2="${y}" stroke="${COL.muted}" stroke-width="2"/>`;
       for(let v=0;v<=hi;v+=10)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${y}" y2="${y+6}" stroke="${COL.muted}"/>${v%20===0?`<text x="${X(v)}" y="${y+40}" font-size="12" fill="${COL.muted}" text-anchor="middle">${v}${v===100?' μs':''}</text>`:''}`});
-    // 겹치는 점은 위로 쌓기
     const lay=(arr,f,y)=>{const placed=[];return arr.map(o=>{const x=X(f(o));let lv=0;while(placed.some(p=>p.lv===lv&&Math.abs(p.x-x)<32))lv++;placed.push({x,lv});return {o,x,y:y-lv*32}})};
     const top=lay([...rec].sort((a,b)=>a.rec-b.rec),o=>o.rec,y1);
     const bot=lay([...rec].sort((a,b)=>a.t-b.t),o=>o.t,y2);
@@ -565,12 +607,10 @@ td.calc{color:var(--muted)}
   renderBars(); render34();
 })();
 </script>
-
 </body>
 </html>
 """
 
-# 외부 HTML 파일이 존재하면 읽어서 사용하고, 없을 시 내장 DEFAULT_HTML 사용
 if os.path.exists(html_path):
     try:
         with open(html_path, "r", encoding="utf-8") as f:
@@ -580,29 +620,770 @@ if os.path.exists(html_path):
 else:
     html_content = DEFAULT_HTML
 
-components.html(html_content, height=1650, scrolling=True)
 
-# ── 학습 개념 및 탐구 정리 (Expander) ─────────────────────────
-with st.expander("💡 [학습 정리] 우주 거래소의 시계 핵심 원리"):
+# ── PDF 생성 함수 (ReportLab 기반) ──────────────────────────────────
+def build_space_exchange_pdf(data: dict) -> bytes:
+    if not HAS_REPORTLAB:
+        return b""
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=14 * mm,
+        rightMargin=14 * mm,
+        topMargin=13 * mm,
+        bottomMargin=13 * mm
+    )
+
+    W = 182 * mm
+    NAVY = colors.HexColor("#1A365D")
+    BLUE_HEAD = colors.HexColor("#EBF3FA")
+    YELLOW_SOFT = colors.HexColor("#FFFBEB")
+    GREEN_SOFT = colors.HexColor("#ECFDF5")
+    RED_SOFT = colors.HexColor("#FEF2F2")
+    GRAY_LINE = colors.HexColor("#CBD5E1")
+
+    # 글꼴 매핑 (NG가 없으면 기본 헬베티카 사용)
+    font_body = "NG" if "NG" in pdfmetrics.getRegisteredFontNames() else "Helvetica"
+    font_bold = "NGB" if "NGB" in pdfmetrics.getRegisteredFontNames() else font_body
+
+    P = lambda size=9, bold=False, color="#1E293B", align=0, lead=None: ParagraphStyle(
+        name="style_" + str(size) + "_" + str(bold) + "_" + str(align),
+        fontName=font_bold if bold else font_body,
+        fontSize=size,
+        leading=lead or size * 1.38,
+        textColor=colors.HexColor(color) if isinstance(color, str) else color,
+        alignment=align,
+        wordWrap="CJK"
+    )
+
+    esc = lambda s: xml.sax.saxutils.escape(str(s)).replace("\n", "<br/>")
+
+    elements = []
+
+    # 1. 문서 헤더
+    header_data = [
+        [
+            Paragraph("💹 2026 사곡고 2학년 역학과 에너지 융합 탐구 활동지", P(8.5, False, "#64748B")),
+            Paragraph("성취기준 [12역학01-08] 중력 시간 지연의 적용", P(8.5, False, "#64748B", 2))
+        ]
+    ]
+    t_header = Table(header_data, colWidths=[W * 0.55, W * 0.45])
+    t_header.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+    ]))
+    elements.append(t_header)
+
+    elements.append(Spacer(1, 1.5 * mm))
+    elements.append(Paragraph("우주 거래소의 시계: 모둠 탐구 활동 보고서", P(16, True, "#0F2942", 1, 20)))
+    elements.append(Paragraph("거리에 따른 신호 지연과 상대론적 중력·속도 시간 지연을 고려한 공정한 금융 시장 규칙 탐구", P(8.5, False, "#475569", 1)))
+    elements.append(Spacer(1, 2.5 * mm))
+
+    # 모둠 메타 정보 표
+    meta = data.get("meta", {})
+    cls_txt = meta.get("cls", "2학년 O반")
+    grp_txt = meta.get("group", "1모둠")
+    mem_txt = meta.get("members", "모둠원 명단")
+    dt_txt = meta.get("date", "2026-10-29")
+
+    meta_table_data = [
+        [
+            Paragraph("<b>학급</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(cls_txt), P(8.5, False, align=1)),
+            Paragraph("<b>모둠명</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(grp_txt), P(8.5, False, align=1)),
+            Paragraph("<b>모둠원</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(mem_txt), P(8.5, False)),
+            Paragraph("<b>작성일</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(dt_txt), P(8.5, False, align=1))
+        ]
+    ]
+    t_meta = Table(meta_table_data, colWidths=[14*mm, 20*mm, 15*mm, 20*mm, 15*mm, 58*mm, 16*mm, 24*mm])
+    t_meta.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, GRAY_LINE),
+        ('BACKGROUND', (0,0), (0,-1), BLUE_HEAD),
+        ('BACKGROUND', (2,0), (2,-1), BLUE_HEAD),
+        ('BACKGROUND', (4,0), (4,-1), BLUE_HEAD),
+        ('BACKGROUND', (6,0), (6,-1), BLUE_HEAD),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+    ]))
+    elements.append(t_meta)
+    elements.append(Spacer(1, 4 * mm))
+
+    def section_title(num_str, title_str):
+        p = Paragraph(f"<b>{esc(num_str)} {esc(title_str)}</b>", P(10.5, True, "#1A365D"))
+        t = Table([[p]], colWidths=[W])
+        t.setStyle(TableStyle([
+            ('LINEBELOW', (0,0), (-1,-1), 1.2, NAVY),
+            ('TOPPADDING', (0,0), (-1,-1), 3),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 2),
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ]))
+        return t
+
+    # ── [문항 1] 낸 시각 환산 표
+    elements.append(section_title("1.", "낸 시각 환산 및 체결 순위 계산 (1~3위 구매)"))
+    elements.append(Paragraph(
+        "공식: <b>낸 시각(지구 시계로 환산) = 낸 시각(그곳 시계) − (그곳 시계가 앞선 시간)</b><br/>"
+        "<font color='#64748B'>※ 1일 경과 후: 달 기지 시계는 +58.7 μs 앞서고, 우주 정거장 시계는 −24.8 μs 뒤처집니다. (사곡전자 300주, 1인당 100주)</font>",
+        P(8, False, "#334155")
+    ))
+    elements.append(Spacer(1, 1.5 * mm))
+
+    q1_rows = data.get("q1_table", [])
+    q1_headers = ["신청자", "사는 곳", "낸 시각 (그곳 시계)", "환산 계산 과정", "지구 환산 시각", "환산 순위", "체결 여부"]
+    t1_data = [[Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in q1_headers]]
+
+    for r in q1_rows:
+        is_buy = "구매" in str(r[6]) or "성공" in str(r[6]) or str(r[5]).strip() in ["1", "2", "3", "1위", "2위", "3위"]
+        row_cells = [
+            Paragraph(f"<b>{esc(r[0])}</b>", P(8.5, True, align=1)),
+            Paragraph(esc(r[1]), P(8, False, align=1)),
+            Paragraph(esc(r[2]), P(8, False, align=1)),
+            Paragraph(esc(r[3]), P(8, False, align=1)),
+            Paragraph(f"<b>{esc(r[4])}</b>", P(8.5, True, "#1A365D" if is_buy else "#334155", 1)),
+            Paragraph(f"<b>{esc(r[5])}</b>", P(8.5, True, "#059669" if is_buy else "#64748B", 1)),
+            Paragraph(f"<b>{esc(r[6])}</b>", P(8.5, True, "#059669" if is_buy else "#DC2626", 1)),
+        ]
+        t1_data.append(row_cells)
+
+    t1 = Table(t1_data, colWidths=[18*mm, 28*mm, 31*mm, 43*mm, 25*mm, 18*mm, 19*mm])
+    t1_style = [
+        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 2.5),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 2.5),
+        ('LEFTPADDING', (0,0), (-1,-1), 2),
+        ('RIGHTPADDING', (0,0), (-1,-1), 2),
+    ]
+    for i, r in enumerate(q1_rows):
+        rank_str = str(r[5]).replace("위","").strip()
+        if rank_str in ["1", "2", "3"]:
+            t1_style.append(('BACKGROUND', (0, i+1), (-1, i+1), GREEN_SOFT))
+    t1.setStyle(TableStyle(t1_style))
+    elements.append(t1)
+    elements.append(Spacer(1, 3.5 * mm))
+
+    # ── [문항 2] 체결 결과 비교 표
+    elements.append(section_title("2.", "지구 시계로 환산 후 다시 체결하고, 환산 전과 비교"))
+    elements.append(Paragraph("그곳 시계에 찍힌 시각 그대로 체결했을 때와, 지구 시계로 환산해 체결했을 때의 결과를 비교합니다.", P(8, False, "#64748B")))
+    elements.append(Spacer(1, 1.5 * mm))
+
+    q2 = data.get("q2_table", {})
+    t2_headers = ["구분", "사는 사람 (1~3위)", "손해 본 사람 (먼저 냈는데 못 삼)", "이득 본 사람 (늦게 냈는데 삼)"]
+    t2_data = [
+        [Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in t2_headers],
+        [
+            Paragraph("<b>환산 전<br/>(그곳 시계 그대로)</b>", P(8, True, align=1)),
+            Paragraph(esc(q2.get("before_buyers", "나, 다, 마")), P(8.5, True, "#059669", 1)),
+            Paragraph(esc(q2.get("before_losers", "가, 라 (실제 1위·3위)")), P(8.5, True, "#DC2626", 1)),
+            Paragraph(esc(q2.get("before_gainers", "다, 마 (실제 5위·4위)")), P(8.5, True, "#D97706", 1)),
+        ],
+        [
+            Paragraph("<b>환산 후<br/>(지구 시계 환산)</b>", P(8, True, align=1)),
+            Paragraph(esc(q2.get("after_buyers", "가, 나, 라")), P(8.5, True, "#059669", 1)),
+            Paragraph(esc(q2.get("after_losers", "없음 (공정 체결)")), P(8.5, False, "#475569", 1)),
+            Paragraph(esc(q2.get("after_gainers", "없음 (부당 이득 없음)")), P(8.5, False, "#475569", 1)),
+        ]
+    ]
+    t2 = Table(t2_data, colWidths=[36*mm, 48*mm, 49*mm, 49*mm])
+    t2.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('BACKGROUND', (0,1), (0,-1), colors.HexColor("#F8FAFC")),
+        ('BACKGROUND', (1,1), (1,1), YELLOW_SOFT),
+        ('BACKGROUND', (2,1), (2,1), RED_SOFT),
+        ('BACKGROUND', (3,1), (3,1), YELLOW_SOFT),
+        ('BACKGROUND', (1,2), (-1,2), GREEN_SOFT),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+    ]))
+    elements.append(t2)
+    elements.append(Spacer(1, 3.5 * mm))
+
+    # ── [문항 3] 주가 상승 시 손실액 계산
+    elements.append(section_title("3.", "주가 상승 시 손해 본 사람이 놓친 이익 계산"))
+    q3 = data.get("q3", {})
+    calc_formula = q3.get("formula", "100주 × ( 1,000 )원 = ( 100,000 )원 (10만 원)")
+    calc_note = q3.get("note", "공정하게 배정받았다면 주당 1,000원씩 총 10만 원의 수익을 실현할 수 있었으나, 시계 불일치로 손실 발생")
+
+    t3_box_data = [
+        [
+            Paragraph("<b>상황</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph("사곡전자 주문가: <b>50,000원</b> → 체결 직후 시장 가격: <b>51,000원</b>으로 상승 (+1,000원/주, 100주)", P(8.5, False))
+        ],
+        [
+            Paragraph("<b>계산식</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(f"<b>{esc(calc_formula)}</b>", P(9.5, True, "#B45309"))
+        ],
+        [
+            Paragraph("<b>결과 분석</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(calc_note), P(8.5, False, "#334155"))
+        ]
+    ]
+    t3_box = Table(t3_box_data, colWidths=[24*mm, W - 24*mm])
+    t3_box.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('BACKGROUND', (0,0), (0,-1), BLUE_HEAD),
+        ('BACKGROUND', (1,1), (1,1), YELLOW_SOFT),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 4),
+        ('RIGHTPADDING', (0,0), (-1,-1), 4),
+    ]))
+    elements.append(t3_box)
+    elements.append(Spacer(1, 4 * mm))
+
+    # ── [문항 4] 경제금융 통합질문 (토의 및 평가)
+    elements.append(section_title("4.", "[경제·금융 통합] 체결 방식의 공정성 비교 및 모둠 토의"))
+    elements.append(Paragraph("세 가지 체결 방법의 특징과 문제점을 분석하고, 가장 공정하다고 생각하는 방식을 선택하여 근거를 서술하시오.", P(8, False, "#64748B")))
+    elements.append(Spacer(1, 1.5 * mm))
+
+    q4 = data.get("q4", {})
+    choice_val = q4.get("choice", "③ 공통 시간 기준(지구 시계)으로 환산")
+
+    t4_headers = ["체결 방법", "이 방법이면 사는 사람", "문제점 (한계점)", "우리 모둠 선택 (○)"]
+    m1_sel = "● 선택" if "①" in choice_val or "도착" in choice_val else "○"
+    m2_sel = "● 선택" if "②" in choice_val or "각자" in choice_val else "○"
+    m3_sel = "● 선택" if "③" in choice_val or "공통" in choice_val else "○"
+
+    t4_data = [
+        [Paragraph(f"<b>{esc(h)}</b>", P(8, True, "#1A365D", 1)) for h in t4_headers],
+        [
+            Paragraph("<b>① 거래소에<br/>도착한 순서</b>", P(8, True, align=1)),
+            Paragraph(esc(q4.get("m1_buyers", "나, 마, 다 (지구·정거장)")), P(8, False, align=1)),
+            Paragraph(esc(q4.get("m1_problem", "달 → 지구: 빛으로 약 1.3 s 늦게 도착하여 물리적 통신 지연에 따른 지리적 불평등 발생 (달 거주자는 항상 실패)")), P(7.8, False)),
+            Paragraph(f"<b>{m1_sel}</b>", P(9, True, "#1A365D" if "●" in m1_sel else "#94A3B8", 1)),
+        ],
+        [
+            Paragraph("<b>② 각자 시계에<br/>찍힌 시각</b>", P(8, True, align=1)),
+            Paragraph(esc(q4.get("m2_buyers", "나, 다, 마")), P(8, False, align=1)),
+            Paragraph(esc(q4.get("m2_problem", "중력과 속도에 따른 시간 지연으로 시계 빠르기가 다름. 시계가 느리게 흐르는 곳(정거장)이 부당 이득을 얻고 달이 피해를 봄")), P(7.8, False)),
+            Paragraph(f"<b>{m2_sel}</b>", P(9, True, "#1A365D" if "●" in m2_sel else "#94A3B8", 1)),
+        ],
+        [
+            Paragraph("<b>③ 공통 시간 기준<br/>(지구 시계) 환산</b>", P(8, True, align=1)),
+            Paragraph(esc(q4.get("m3_buyers", "가, 나, 라 (실제 순서)")), P(8, False, align=1)),
+            Paragraph(esc(q4.get("m3_problem", "각 관측지별 상대론적 시차를 실시간으로 환산·검증할 표준시 제정 및 신뢰성 있는 인프라/합의 기구 구축이 요구됨")), P(7.8, False)),
+            Paragraph(f"<b>{m3_sel}</b>", P(9, True, "#059669" if "●" in m3_sel else "#94A3B8", 1)),
+        ]
+    ]
+    t4 = Table(t4_data, colWidths=[33*mm, 35*mm, 90*mm, 24*mm])
+    t4_style = [
+        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('BACKGROUND', (0,0), (-1,0), BLUE_HEAD),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
+        ('LEFTPADDING', (0,0), (-1,-1), 3),
+        ('RIGHTPADDING', (0,0), (-1,-1), 3),
+    ]
+    if "●" in m3_sel:
+        t4_style.append(('BACKGROUND', (0, 3), (-1, 3), GREEN_SOFT))
+    elif "●" in m2_sel:
+        t4_style.append(('BACKGROUND', (0, 2), (-1, 2), YELLOW_SOFT))
+    elif "●" in m1_sel:
+        t4_style.append(('BACKGROUND', (0, 1), (-1, 1), YELLOW_SOFT))
+    t4.setStyle(TableStyle(t4_style))
+    elements.append(t4)
+    elements.append(Spacer(1, 3 * mm))
+
+    # 서술형 답안 박스
+    reason_txt = q4.get("reason", "").strip() or "(모둠 서술 내용)"
+    authority_txt = q4.get("authority", "").strip() or "(모둠 서술 내용)"
+
+    disc_box_data = [
+        [
+            Paragraph("<b>선택 근거<br/>(모둠 토의)</b>", P(8.5, True, "#1A365D", 1)),
+            Paragraph(esc(reason_txt), P(8.5, False, lead=12))
+        ],
+        [
+            Paragraph("<b>공통 시간 기준은<br/>누가 만들어야 할까?</b>", P(8, True, "#1A365D", 1)),
+            Paragraph(esc(authority_txt), P(8.5, False, lead=12))
+        ]
+    ]
+    t_disc = Table(disc_box_data, colWidths=[33*mm, W - 33*mm])
+    t_disc.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.4, GRAY_LINE),
+        ('BACKGROUND', (0,0), (0,-1), BLUE_HEAD),
+        ('BACKGROUND', (1,0), (1,-1), YELLOW_SOFT),
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 4),
+        ('RIGHTPADDING', (0,0), (-1,-1), 4),
+    ]))
+    elements.append(t_disc)
+
+    # 풋터
+    elements.append(Spacer(1, 3.5 * mm))
+    footer_text = Paragraph(
+        "사곡고등학교 물리학 학습 포털 | 2026학년도 역학과 에너지 | "
+        "우주거래소 모둠별 발표 게시판(패들렛): https://padlet.com/sgh/padlet-s024y3iekcz0b0xn6dtu",
+        P(7.5, False, "#64748B", 1)
+    )
+    elements.append(footer_text)
+
+    doc.build(elements)
+    return buffer.getvalue()
+
+
+# ── 메인 탭 구성 ────────────────────────────────────────────────
+tab_sim, tab_report, tab_theory = st.tabs([
+    "🎮 1. 가상 실험실 (인터랙티브 시뮬레이션)",
+    "📝 2. 모둠 탐구 활동 보고서 (작성 및 PDF 출력)",
+    "💡 3. 핵심 물리학 & 경제학 원리 정리"
+])
+
+# ══════════════════════════════════════════════════════════════════
+# [TAB 1] 가상 실험실 시뮬레이션
+# ══════════════════════════════════════════════════════════════════
+with tab_sim:
+    components.html(html_content, height=1650, scrolling=True)
+
+    st.markdown("---")
+    sim_nav_col1, sim_nav_col2 = st.columns([3, 1])
+    with sim_nav_col1:
+        st.info("👉 **실험과 관찰을 마쳤다면!** 상단의 **'📝 2. 모둠 탐구 활동 보고서 (작성 및 PDF 출력)'** 탭을 클릭하여 보고서를 작성하고 PDF로 출력하여 패들렛에 제출하세요.")
+    with sim_nav_col2:
+        st.link_button("🪐 패들렛 제출방 바로가기 ↗", PADLET_URL, use_container_width=True, type="primary")
+
+
+# ══════════════════════════════════════════════════════════════════
+# [TAB 2] 모둠 탐구 활동 보고서 (작성 및 PDF 출력)
+# ══════════════════════════════════════════════════════════════════
+with tab_report:
+    st.subheader("📝 우주 거래소 모둠 탐구 활동 보고서")
+    st.markdown(
+        "가상 실험실의 관찰 데이터를 바탕으로 모둠원들과 토의하여 아래 질문에 답하고, "
+        "작성 완료 후 **PDF 보고서로 다운로드**받아 **모둠별 발표 게시판(패들렛)**에 제출하세요."
+    )
+
+    # 기본 모범/예시 데이터
+    DEFAULT_Q1_DATA = [
+        {"신청자": "가", "사는 곳": "달 기지", "낸 시각 (그곳 시계)": "78.7 μs", "환산 계산 과정": "78.7 − 58.7", "지구 환산 시각": "20.0 μs", "환산 순위": "1위", "체결 여부": "구매 성공 (1위)"},
+        {"신청자": "나", "사는 곳": "지구", "낸 시각 (그곳 시계)": "35.0 μs", "환산 계산 과정": "35.0 − 0 (기준)", "지구 환산 시각": "35.0 μs", "환산 순위": "2위", "체결 여부": "구매 성공 (2위)"},
+        {"신청자": "라", "사는 곳": "달 기지", "낸 시각 (그곳 시계)": "98.7 μs", "환산 계산 과정": "98.7 − 58.7", "지구 환산 시각": "40.0 μs", "환산 순위": "3위", "체결 여부": "구매 성공 (3위)"},
+        {"신청자": "마", "사는 곳": "지구", "낸 시각 (그곳 시계)": "45.0 μs", "환산 계산 과정": "45.0 − 0 (기준)", "지구 환산 시각": "45.0 μs", "환산 순위": "4위", "체결 여부": "체결 실패 (4위)"},
+        {"신청자": "다", "사는 곳": "우주 정거장", "낸 시각 (그곳 시계)": "35.2 μs", "환산 계산 과정": "35.2 − (−24.8) = 35.2 + 24.8", "지구 환산 시각": "60.0 μs", "환산 순위": "5위", "체결 여부": "체결 실패 (5위)"},
+        {"신청자": "바", "사는 곳": "우주 정거장", "낸 시각 (그곳 시계)": "45.2 μs", "환산 계산 과정": "45.2 − (−24.8) = 45.2 + 24.8", "지구 환산 시각": "70.0 μs", "환산 순위": "6위", "체결 여부": "체결 실패 (6위)"},
+    ]
+
+    # 세션 상태 초기화
+    if "q1_df" not in st.session_state:
+        st.session_state["q1_df"] = pd.DataFrame(DEFAULT_Q1_DATA)
+
+    # 상단 도구 버튼
+    tbar1, tbar2, tbar3 = st.columns([1.5, 1.5, 3])
+    with tbar1:
+        if st.button("💡 모범 답안 채우기", use_container_width=True):
+            st.session_state["q1_df"] = pd.DataFrame(DEFAULT_Q1_DATA)
+            st.session_state["q2_b_buy"] = "나, 다, 마"
+            st.session_state["q2_b_lose"] = "가, 라 (실제 1위·3위)"
+            st.session_state["q2_b_gain"] = "다, 마 (실제 5위·4위)"
+            st.session_state["q2_a_buy"] = "가, 나, 라"
+            st.session_state["q2_a_lose"] = "없음 (실제 빠른 순서대로 공정 체결)"
+            st.session_state["q2_a_gain"] = "없음 (부당 이득 발생하지 않음)"
+            st.session_state["q3_diff"] = "1,000"
+            st.session_state["q3_total"] = "100,000"
+            st.session_state["q4_choice_idx"] = 2
+            st.session_state["q4_reason_txt"] = "금융 시장의 '시간 우선 원칙'이 공정하게 성립하려면, 주문 신호가 거래소에 먼저 닿았거나 각자 시계에 찍힌 숫자가 작은 것이 아니라 '동일한 물리적 기준계에서 실제로 먼저 발생한 사건'에 우선권이 주어져야 합니다. 거리 지연만 보정하고 상대론적 중력·속도 시간 지연을 보정하지 않으면 우주정거장은 부당한 이득을 보고 달은 항상 불리해지는 구조적 왜곡이 발생하므로, 단일한 공통 시간 기준으로 환산하여 체결하는 방법 ③이 가장 공정합니다."
+            st.session_state["q4_auth_txt"] = "공통 시간 기준은 특정 행성이나 민간 거래소, 개별 국가가 사익을 추구하기 위해 왜곡하지 못하도록 해야 합니다. 시간 표준은 인류 모두가 평등하게 누려야 할 '순수 공공재(Public Good)'이므로, 국제연합(UN) 산하 국제도량형국(BIPM)이나 전 행성 우주 표준 연합, 각국 우주청(NASA, KARI, ESA 등)의 중립적인 다자간 공공 기구가 제정하고 유지·관리해야 합니다."
+            st.rerun()
+
+    with tbar2:
+        if st.button("🧹 빈칸으로 초기화", use_container_width=True):
+            blank_q1 = [
+                {"신청자": "가", "사는 곳": "달 기지", "낸 시각 (그곳 시계)": "78.7 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+                {"신청자": "나", "사는 곳": "지구", "낸 시각 (그곳 시계)": "35.0 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+                {"신청자": "라", "사는 곳": "달 기지", "낸 시각 (그곳 시계)": "98.7 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+                {"신청자": "마", "사는 곳": "지구", "낸 시각 (그곳 시계)": "45.0 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+                {"신청자": "다", "사는 곳": "우주 정거장", "낸 시각 (그곳 시계)": "35.2 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+                {"신청자": "바", "사는 곳": "우주 정거장", "낸 시각 (그곳 시계)": "45.2 μs", "환산 계산 과정": "", "지구 환산 시각": "", "환산 순위": "", "체결 여부": ""},
+            ]
+            st.session_state["q1_df"] = pd.DataFrame(blank_q1)
+            st.session_state["q2_b_buy"] = ""
+            st.session_state["q2_b_lose"] = ""
+            st.session_state["q2_b_gain"] = ""
+            st.session_state["q2_a_buy"] = ""
+            st.session_state["q2_a_lose"] = ""
+            st.session_state["q2_a_gain"] = ""
+            st.session_state["q3_diff"] = ""
+            st.session_state["q3_total"] = ""
+            st.session_state["q4_reason_txt"] = ""
+            st.session_state["q4_auth_txt"] = ""
+            st.rerun()
+
+    st.markdown("---")
+
+    # 1. 모둠 및 학생 메타 정보
+    st.markdown("#### 👥 0. 모둠 정보 입력")
+    m_col1, m_col2, m_col3, m_col4 = st.columns([1.5, 1.5, 3.5, 1.5])
+    with m_col1:
+        rep_cls = st.text_input("학급 (예: 2학년 3반)", value="2학년 O반", key="meta_cls_in")
+    with m_col2:
+        rep_grp = st.text_input("모둠명 (예: 1모둠)", value="1모둠", key="meta_grp_in")
+    with m_col3:
+        rep_mems = st.text_input("모둠원 이름 (쉼표 구분)", value="홍길동, 김철수, 이영희, 박민수", key="meta_mems_in")
+    with m_col4:
+        rep_date = st.date_input("작성일자", value=date.today(), key="meta_date_in")
+
+    st.markdown("---")
+
+    # 2. [1번 문항] 표 완성하기
+    st.markdown("#### 📊 1. 낸 시각 환산 표 완성하기")
+    st.markdown(
+        "> **공식**: **낸 시각(지구 시계로 환산) = 낸 시각(그곳 시계) − (그곳 시계가 앞선 시간)**  \n"
+        "> *위 표를 완성하시오. (사곡전자 300주 · 50,000원 · 1인당 100주씩 · 1~3위가 산다)*"
+    )
+    st.caption("💡 팁: 달 시계는 하루에 +58.7 μs 앞서므로 앞선 시간을 빼주고, 우주정거장 시계는 하루에 −24.8 μs 뒤처졌으므로 24.8 μs를 더해줍니다.")
+
+    edited_df = st.data_editor(
+        st.session_state["q1_df"],
+        use_container_width=True,
+        num_rows="fixed",
+        key="q1_editor"
+    )
+    st.session_state["q1_df"] = edited_df
+
+    # 1번 문항 실시간 체결 요약 칩
+    st.markdown("**🔍 환산 순위 및 구매 판정 미리보기**")
+    p_cols = st.columns(6)
+    for idx, row in edited_df.iterrows():
+        with p_cols[idx]:
+            who = row["신청자"]
+            place = row["사는 곳"]
+            rank = str(row["환산 순위"]).strip()
+            is_winner = rank in ["1", "1위", "2", "2위", "3", "3위"]
+            st.markdown(
+                f"""
+                <div style="background:{'#e3f3ea' if is_winner else '#f1f5f9'};
+                            border:1.5px solid {'#2f8f5b' if is_winner else '#cbd5e1'};
+                            border-radius:10px;padding:8px 6px;text-align:center;">
+                    <b style="font-size:1.1rem;color:#1e3a5f;">{who}</b><br/>
+                    <span style="font-size:0.78rem;color:#64748b;">{place}</span><br/>
+                    <span style="font-size:0.85rem;font-weight:700;color:{'#2f8f5b' if is_winner else '#64748b'};">{rank or '-'}</span><br/>
+                    <span style="display:inline-block;margin-top:4px;padding:1px 6px;border-radius:999px;font-size:0.75rem;font-weight:700;background:{'#2f8f5b' if is_winner else '#94a3b8'};color:#fff;">
+                        {'구매' if is_winner else '실패'}
+                    </span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    st.markdown("---")
+
+    # 3. [2번 문항] 환산 전과 환산 후 비교 표
+    st.markdown("#### ⚖️ 2. 지구 시계로 환산해 다시 체결하고, 환산 전과 비교하시오")
+    st.markdown("그곳 시계에 찍힌 시각 그대로 체결했을 때와, 지구 시계로 환산하여 공정하게 체결했을 때의 구매자 및 손익자를 비교하여 작성하세요.")
+
+    col2_1, col2_2 = st.columns(2)
+    with col2_1:
+        st.markdown(
+            """
+            <div style="background:#fef2f2;border-left:4px solid #c0392b;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;">
+                <b style="color:#c0392b;">환산 전 (그곳 시계 그대로 체결 시)</b>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        q2_b_buy = st.text_input(
+            "사는 사람 (1~3위)",
+            value=st.session_state.get("q2_b_buy", "나, 다, 마"),
+            key="q2_b_buy_in"
+        )
+        q2_b_lose = st.text_input(
+            "손해 본 사람 (먼저 냈는데 못 삼)",
+            value=st.session_state.get("q2_b_lose", "가, 라 (실제 1위·3위)"),
+            key="q2_b_lose_in"
+        )
+        q2_b_gain = st.text_input(
+            "이득 본 사람 (늦게 냈는데 삼)",
+            value=st.session_state.get("q2_b_gain", "다, 마 (실제 5위·4위)"),
+            key="q2_b_gain_in"
+        )
+
+    with col2_2:
+        st.markdown(
+            """
+            <div style="background:#e3f3ea;border-left:4px solid #2f8f5b;padding:8px 12px;border-radius:0 8px 8px 0;margin-bottom:8px;">
+                <b style="color:#2f8f5b;">환산 후 (지구 시계로 환산하여 체결 시)</b>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        q2_a_buy = st.text_input(
+            "사는 사람 (1~3위)",
+            value=st.session_state.get("q2_a_buy", "가, 나, 라"),
+            key="q2_a_buy_in"
+        )
+        q2_a_lose = st.text_input(
+            "손해 본 사람",
+            value=st.session_state.get("q2_a_lose", "없음 (실제 주문 순서대로 공정 체결)"),
+            key="q2_a_lose_in"
+        )
+        q2_a_gain = st.text_input(
+            "이득 본 사람",
+            value=st.session_state.get("q2_a_gain", "없음 (부당 이득 발생하지 않음)"),
+            key="q2_a_gain_in"
+        )
+
+    st.markdown("---")
+
+    # 4. [3번 문항] 손실 이익 계산
+    st.markdown("#### 💰 3. 주가 상승 시 손해 본 사람의 놓친 이익 계산")
+    st.markdown(
+        "> **주문 직후 주가가 51,000원으로 오르면, 손해 본 사람은 1인당 얼마의 이익을 놓쳤을까?**  \n"
+        "> `100주 × (        )원 = (            )원`"
+    )
+
+    q3_col1, q3_col2, q3_col3 = st.columns([1.5, 2, 2.5])
+    with q3_col1:
+        st.text_input("주문 수량", value="100주", disabled=True)
+    with q3_col2:
+        q3_diff = st.text_input("1주당 시세 차익 (원)", value=st.session_state.get("q3_diff", "1,000"), key="q3_diff_in")
+    with q3_col3:
+        q3_total = st.text_input("1인당 놓친 총 이익 (원)", value=st.session_state.get("q3_total", "100,000"), key="q3_total_in")
+
+    q3_note = st.text_area(
+        "📝 손실 이익에 대한 모둠 분석 및 의견 서술",
+        value=st.session_state.get("q3_note_txt", "가와 라 주민은 실제로 20 μs, 40 μs로 가장 먼저 주문했음에도 달 기지의 중력이 약해 시계가 빠르게 흐른 탓에 기록 시각이 커져 주식을 배정받지 못했습니다. 주가가 1,000원 상승하면서 1인당 100주 × 1,000원 = 10만 원의 정당한 시세 차익을 부당하게 놓치게 되었습니다. 시계의 물리적 오차가 실질적인 경제적 손실로 직결됨을 알 수 있습니다."),
+        height=70,
+        key="q3_note_in"
+    )
+
+    st.markdown("---")
+
+    # 5. [4번 문항] 경제금융 통합질문 (토의 및 평가)
+    st.markdown("#### 🏛️ 4. [경제금융 통합질문] 세 가지 체결 방법 중 어느 것이 공정할까?")
+    st.markdown("모둠별로 세 가지 체결 방법 중 하나를 고르고, 그 근거와 공통 시간 기준 제정 주체를 토의하여 작성하세요.")
+
+    # 방법 비교 안내 카드
+    st.markdown("""
+| 체결 방법 | 이 방법이면 사는 사람 | 문제점 및 한계 |
+| :--- | :--- | :--- |
+| **① 거래소에 도착한 순서** | **나, 마, 다** (지구·정거장) | **달 → 지구: 빛으로 약 1.3 s 늦게 도착**하여 물리적 통신 지연에 따른 지리적 불평등 발생 (달 거주자는 영원히 실패) |
+| **② 각자 시계에 찍힌 시각** | **나, 다, 마** | 중력과 속도에 따른 시간 지연으로 시계 빠르기가 다름. 시계가 느리게 흐르는 우주정거장이 부당 이득을 보고, 달 기지가 피해를 봄 |
+| **③ 공통 시간 기준(지구 시계)으로 환산** | **가, 나, 라** (실제 빠른 순서) | 각 관측지별 상대론적 시차를 실시간 환산·검증할 표준시 제정 및 신뢰성 있는 인프라/합의 기구 구축이 요구됨 |
+""")
+
+    q4_methods = [
+        "① 거래소에 도착한 순서",
+        "② 각자 시계에 찍힌 시각",
+        "③ 공통 시간 기준(지구 시계)으로 환산"
+    ]
+    cur_idx = st.session_state.get("q4_choice_idx", 2)
+    q4_choice = st.radio("우리 모둠의 선택 (○)", q4_methods, index=cur_idx, key="q4_choice_in")
+
+    q4_reason = st.text_area(
+        "📌 선택 근거 (모둠 발표 내용):",
+        value=st.session_state.get("q4_reason_txt", "시장 경제의 '시간 우선 원칙'은 단순히 신호가 거래소에 일찍 닿았거나 각자 시계에 찍힌 숫자가 작은 것이 아니라, '동일한 물리적 기준계에서 실제로 먼저 발생한 사건'에 우선권이 주어져야 진정한 공정성이 실현됩니다. 거리 지연만 보정하고 상대론적 중력·속도 시간 지연을 보정하지 않으면 우주정거장은 항상 유리하고 달은 항상 불리해지는 구조적 왜곡이 발생하므로, 단일한 공통 시간 기준으로 환산하여 체결하는 방법 ③이 가장 공정합니다."),
+        height=100,
+        key="q4_reason_in"
+    )
+
+    q4_auth = st.text_area(
+        "🏛️ 공통 시간 기준은 누가 만들어야 할까?:",
+        value=st.session_state.get("q4_auth_txt", "공통 시간 기준은 특정 행성이나 민간 거래소, 개별 국가가 사익을 추구하기 위해 왜곡하지 못하도록 해야 합니다. 시간 표준은 인류 모두가 평등하게 누려야 할 '순수 공공재(Public Good)'이므로, 국제연합(UN) 산하 국제도량형국(BIPM)이나 전 행성 우주 표준 연합, 각국 우주청(NASA, KARI, ESA 등)의 중립적인 다자간 공공 기구가 제정하고 유지·관리해야 합니다."),
+        height=90,
+        key="q4_auth_in"
+    )
+
+    st.markdown("---")
+
+    # 6. 보고서 PDF 출력 및 제출 섹션
+    st.subheader("📤 보고서 출력 및 제출")
+
+    # PDF 데이터 취합
+    pdf_payload = {
+        "meta": {
+            "cls": rep_cls,
+            "group": rep_grp,
+            "members": rep_mems,
+            "date": str(rep_date)
+        },
+        "q1_table": [
+            [
+                row["신청자"],
+                row["사는 곳"],
+                row["낸 시각 (그곳 시계)"],
+                row["환산 계산 과정"],
+                row["지구 환산 시각"],
+                row["환산 순위"],
+                row["체결 여부"]
+            ]
+            for _, row in edited_df.iterrows()
+        ],
+        "q2_table": {
+            "before_buyers": q2_b_buy,
+            "before_losers": q2_b_lose,
+            "before_gainers": q2_b_gain,
+            "after_buyers": q2_a_buy,
+            "after_losers": q2_a_lose,
+            "after_gainers": q2_a_gain
+        },
+        "q3": {
+            "formula": f"100주 × ( {q3_diff} )원 = ( {q3_total} )원",
+            "note": q3_note
+        },
+        "q4": {
+            "choice": q4_choice,
+            "m1_buyers": "나, 마, 다 (지구·정거장)",
+            "m1_problem": "달 → 지구: 빛으로 약 1.3 s 늦게 도착하여 거리 지연에 따른 지리적 불평등 발생",
+            "m2_buyers": "나, 다, 마",
+            "m2_problem": "중력과 속도에 따른 시간 지연으로 시계 빠르기가 달라 정거장이 부당 이득을 보고 달이 피해를 봄",
+            "m3_buyers": "가, 나, 라 (실제 순서)",
+            "m3_problem": "각 관측지별 상대론적 시차를 실시간 환산·검증할 표준시 제정 및 신뢰성 있는 인프라 구축 필요",
+            "reason": q4_reason,
+            "authority": q4_auth
+        }
+    }
+
+    # 다운로드 및 인쇄 버튼 영역
+    btn_col1, btn_col2 = st.columns([1.5, 1])
+
+    with btn_col1:
+        if HAS_REPORTLAB:
+            try:
+                pdf_bytes = build_space_exchange_pdf(pdf_payload)
+                safe_cls = rep_cls.replace(" ", "_")
+                safe_grp = rep_grp.replace(" ", "_")
+                file_name = f"우주거래소_탐구보고서_{safe_cls}_{safe_grp}.pdf"
+
+                st.download_button(
+                    label="⬇️ 📄 모둠 탐구 활동 보고서 PDF 다운로드",
+                    data=pdf_bytes,
+                    file_name=file_name,
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"PDF 생성 중 오류가 발생했습니다: {e}")
+        else:
+            st.warning("⚠️ ReportLab 라이브러리가 없어 PDF 직접 다운로드가 비활성화되었습니다. 우측 브라우저 인쇄 기능을 이용해 PDF로 저장하세요.")
+
+    with btn_col2:
+        is_print_mode = st.toggle("🖨️ 브라우저 직접 인쇄 / PDF 저장 모드", value=False)
+
+    if is_print_mode:
+        st.markdown(
+            """
+            <div style="background:#ffffff;border:2px solid #1e3a5f;border-radius:12px;padding:24px;margin-top:16px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                <div style="text-align:center;border-bottom:2px solid #1e3a5f;padding-bottom:12px;margin-bottom:16px;">
+                    <h2 style="margin:0;color:#1e3a5f;">💹 우주 거래소의 시계: 모둠 탐구 활동 보고서</h2>
+                    <p style="margin:4px 0 0 0;font-size:0.9rem;color:#64748b;">거리에 따른 신호 지연과 상대론적 중력·속도 시간 지연을 고려한 공정한 금융 시장 규칙 탐구</p>
+                </div>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:0.9rem;">
+                    <tr style="background:#f1f5f9;">
+                        <th style="border:1px solid #cbd5e1;padding:6px;width:12%;">학급</th>
+                        <td style="border:1px solid #cbd5e1;padding:6px;width:18%;">""" + rep_cls + """</td>
+                        <th style="border:1px solid #cbd5e1;padding:6px;width:12%;">모둠명</th>
+                        <td style="border:1px solid #cbd5e1;padding:6px;width:18%;">""" + rep_grp + """</td>
+                        <th style="border:1px solid #cbd5e1;padding:6px;width:14%;">작성일자</th>
+                        <td style="border:1px solid #cbd5e1;padding:6px;width:26%;">""" + str(rep_date) + """</td>
+                    </tr>
+                    <tr>
+                        <th style="border:1px solid #cbd5e1;padding:6px;background:#f1f5f9;">모둠원</th>
+                        <td colspan="5" style="border:1px solid #cbd5e1;padding:6px;">""" + rep_mems + """</td>
+                    </tr>
+                </table>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        if st.button("🖨️ 인쇄 대화상자 실행 (PDF로 저장하기)", use_container_width=True):
+            components.html("<script>parent.window.print()</script>", height=0)
+
+    # ── 패들렛 제출 연결 배너 카드 ─────────────────────────────────
+    st.markdown(
+        f"""
+        <div style="background:linear-gradient(135deg, #0f2b48 0%, #1a365d 100%);
+                    border-radius:14px;padding:22px 24px;margin-top:24px;color:#ffffff;
+                    box-shadow:0 6px 18px rgba(15,43,72,0.25);border:1px solid #2e4d75;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                <span style="font-size:1.8rem;">🪐</span>
+                <div>
+                    <h3 style="margin:0;color:#ffffff;font-size:1.25rem;font-weight:800;">
+                        우주거래소 모둠별 발표 게시판 (패들렛)
+                    </h3>
+                    <p style="margin:2px 0 0 0;font-size:0.88rem;color:#cbd5e1;">
+                        작성 완료한 보고서 PDF를 아래 패들렛 게시판에 등록해 모둠별 탐구 결과를 공유하세요.
+                    </p>
+                </div>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border-radius:8px;padding:12px 16px;margin:12px 0;font-size:0.9rem;line-height:1.6;">
+                <b>📌 보고서 제출 방법 (3단계)</b><br/>
+                1. 상단의 <b>[⬇️ 모둠 탐구 활동 보고서 PDF 다운로드]</b> 버튼을 눌러 PDF 파일을 저장합니다.<br/>
+                2. 아래 <b>[패들렛 게시판 바로가기]</b> 버튼을 눌러 새 탭에서 패들렛을 엽니다.<br/>
+                3. 자신의 <b>모둠 카드(+)</b>를 클릭하고, 제목에 <code>[학급] 모둠명 - 모둠원</code>을 적은 뒤 다운로드한 <b>PDF 파일</b>을 첨부합니다.
+            </div>
+            <div style="margin-top:14px;text-align:right;">
+                <a href="{PADLET_URL}" target="_blank" rel="noopener noreferrer"
+                   style="display:inline-block;background:#c9a96e;color:#0f2942;font-weight:800;
+                          font-size:1rem;padding:10px 22px;border-radius:8px;text-decoration:none;
+                          box-shadow:0 3px 8px rgba(0,0,0,0.2);transition:all 0.2s;">
+                    🚀 우주거래소 모둠별 발표 게시판 열기 ↗
+                </a>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# ══════════════════════════════════════════════════════════════════
+# [TAB 3] 핵심 물리학 & 경제학 원리 정리
+# ══════════════════════════════════════════════════════════════════
+with tab_theory:
+    st.subheader("💡 우주 거래소의 시계 핵심 원리 및 배경 지식")
+
     st.markdown("""
 ### 1. 거리에 따른 시간 차 (신호 지연)
 - **빛의 속력 한계**: 신호는 진공에서 약 $c = 300,000\\text{ km/s}$로 이동합니다.
-  - 지구-우주정거장(고도 약 400 km): 신호 지연 $\\approx 0.0013\\text{ s}$
-  - 지구-달 기지(거리 약 384,000 km): 신호 지연 $\\approx 1.28\\text{ s}$
+  - 지구-우주정거장(고도 약 400 km): 신호 지연 $\\Delta t = 400 / 300,000 \\approx 0.0013\\text{ s}$
+  - 지구-달 기지(거리 약 384,000 km): 신호 지연 $\\Delta t = 384,000 / 300,000 \\approx 1.28\\text{ s}$
 - **거리 보정**: 신호가 도달하는 데 걸린 시간($\\Delta t = d / c$)을 미리 알고 있다면, 신호를 받는 순간 그 시간을 더해 거래소와 시계를 한 번에 맞출 수 있습니다.
+
+---
 
 ### 2. 상대성에 따른 시간 차 (중력 효과와 속도 효과)
 시계를 한 번 맞춰도, 위치한 곳의 중력과 운동 상태에 따라 **시간이 흐르는 빠르기** 자체가 달라집니다.
-- **우주 정거장 (ISS, 고도 400 km)**
-  - 중력 효과 (높은 고도): 지구 표면보다 중력이 약간 약해 시계가 빨라짐 ($+3.5\\ \\mu\\text{s}/\\text{일}$)
-  - 속도 효과 (빠른 궤도 속력 $v \\approx 7.7\\text{ km/s}$): 특수 상대성 이론에 의해 시계가 느려짐 ($-28.3\\ \\mu\\text{s}/\\text{일}$)
-  - **합계**: 속도 효과가 더 커서 하루에 **약 $-24.8\\ \\mu\\text{s}$ 느려짐**
-- **달 기지**
-  - 지구의 강한 중력 퍼텐셜 우물에서 멀리 벗어남: 시계가 크게 빨라짐 ($+59.1\\ \\mu\\text{s}/\\text{일}$)
-  - 달 자체의 약한 중력 및 공전 속도: 시계가 조금 느려짐 ($-3.2\\ \\mu\\text{s}/\\text{일}$)
-  - **합계**: 하루에 **약 $+58.7\\ \\mu\\text{s}$ 빨라짐** (NASA 달 표준시 기준)
+
+1. **우주 정거장 (ISS, 고도 400 km)**
+   - **중력 효과** (약한 중력): 지구 표면보다 중력이 약해 시계가 빨라짐 ($+3.5\\ \\mu\\text{s}/\\text{일}$)
+   - **속도 효과** (빠른 공전 $v \\approx 7.7\\text{ km/s}$): 특수 상대성 이론에 의해 시계가 느려짐 ($-28.3\\ \\mu\\text{s}/\\text{일}$)
+   - **합계**: 속도 효과가 더 커서 하루에 **약 $-24.8\\ \\mu\\text{s}$ 느려짐**
+
+2. **달 기지 (Moon Base)**
+   - **지구 중력 탈출 효과**: 지구의 깊은 중력 퍼텐셜 우물에서 멀리 벗어남 ($+59.1\\ \\mu\\text{s}/\\text{일}$)
+   - **달 자체 중력 및 공전**: 달의 질량과 느린 공전 속도 ($-3.2\\ \\mu\\text{s}/\\text{일}$)
+   - **합계**: 하루에 **약 $+58.7\\ \\mu\\text{s}$ 빨라짐** (NASA 달 표준시 공식 발표값)
+
+---
 
 ### 3. 경제·사회적 의미와 공공재로서의 시간 기준
-- **시간 우선 체결 규칙**: 동일 가격 주문 시 먼저 낸 사람에게 배정되는 시장 규칙에서, 시간 측정의 기준이 왜곡되면 공정성이 무너집니다.
-- **상대성 보정의 필수성**: GPS 인공위성이 하루 약 38 $\\mu\\text{s}$의 상대론적 오차를 보정하지 않으면 매일 11 km 이상의 위치 오차가 누적되는 것과 마찬가지로, 우주 시대의 금융 거래에서도 단일한 기준계로 환산하는 **우주 표준시(공공재)**가 반드시 필요합니다.
+- **희소성과 가격·시간 우선의 원칙**:
+  - 주문 수량(600주)이 매도 수량(300주)보다 많을 때, 동일한 가격에서는 먼저 주문한 사람에게 우선 배정하는 것이 자본시장의 공정한 규칙입니다.
+- **상대성 보정이 없으면 생기는 금융 왜곡**:
+  - 각자의 시계에 찍힌 시각을 그대로 사용하면, 시간이 느리게 가는 우주정거장은 부당하게 이득을 보고, 시간이 빠르게 흐르는 달 기지는 먼저 주문하고도 손해를 보게 됩니다.
+- **공공재(Public Good)로서의 우주 표준시**:
+  - GPS 위성이 하루 약 $38\\ \\mu\\text{s}$의 상대론적 오차를 보정하지 않으면 하루 11 km 이상의 위치 오차가 누적되는 것처럼, 우주 시대의 통신과 금융에서도 단일한 기준계로 환산하는 **공통 표준시(공공재)**가 필수적입니다.
 """)
+
+st.caption("사곡고등학교 물리학 학습 포털 | 2026학년도 역학과 에너지 가상실험실")
