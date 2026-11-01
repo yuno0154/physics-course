@@ -79,7 +79,7 @@ black_hole_page = st.Page("physics_sim/black_hole_sim.py", title="🌑 [탐구3]
 # 7. 수행평가 섹션
 video_analysis_eval_page = st.Page("physics_sim/video_analysis_eval.py", title="📹 [수행1] 포물선 운동 영상 분석 보고서")
 satellite_orbit_assessment_page = st.Page("physics_sim/satellite_orbit_assessment.py", title="🛰️ [수행자료] 실제 인공위성 궤도 데이터")
-satellite_launch_sim_page = st.Page("physics_sim/satellite_launch_sim.py", title="🚀 [수행자료] 위성 발사·궤도 시뮬레이션")
+satellite_launch_sim_page = st.Page("physics_sim/satellite_launch_sim.py", title="🚀 [수행자료] 위성 발사·궤도 시뮬레이션", url_path="satellite_launch_sim")
 submission_list_page = st.Page("physics_sim/submission_list_view.py", title="📋 [제출목록] 1차시 JSON 제출 목록", url_path="submission_list_1")
 # [수행평가 반영으로 인한 임시 비활성화]
 # satellite_orbit_eval_page = st.Page("physics_sim/satellite_orbit_sim.py", title="🛰️ [수행연습] 포물선과 궤도 역학적 연결")

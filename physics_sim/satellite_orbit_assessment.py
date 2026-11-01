@@ -118,6 +118,11 @@ st.markdown(
     "**③ 단위 변환** 탭에서 SI 단위 변환 및 케플러 비율 계산 과정을 확인하고, "
     "**④ 데이터 옮기기** 탭의 값($r, T, v, T^2/r^3$)을 평가지의 데이터 정리표에 옮겨 적으세요."
 )
+st.page_link(
+    "physics_sim/satellite_launch_sim.py",
+    label="🚀 [수행자료] 위성 발사·궤도 시뮬레이션 (자료 1~3) 바로가기",
+    icon="🚀",
+)
 
 # ---------- 상단 제어 패널 ----------
 with st.container(border=True):

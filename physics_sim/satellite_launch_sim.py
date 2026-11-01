@@ -16,6 +16,11 @@ st.markdown(
     "평가지 **[자료 1~3]**의 상황을 직접 움직여 보며 관찰하는 가상 실험입니다. "
     "화면의 값은 평가지 자료와 같으며, 답안은 **식과 자료를 근거로** 서술합니다."
 )
+st.page_link(
+    "physics_sim/satellite_orbit_assessment.py",
+    label="🛰️ [수행자료] 실제 인공위성 궤도 데이터 바로가기",
+    icon="🛰️",
+)
 
 html_path = os.path.join(os.path.dirname(__file__), "satellite-launch-sim.html")
 if os.path.exists(html_path):
