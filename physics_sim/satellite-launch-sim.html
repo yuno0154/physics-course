@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>위성 발사·궤도 시뮬레이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* 레이아웃: 상단 탭 3개(문항 1 / 2-① / 2-②) · 각 탭은 [상황] → [시뮬레이션 화면 | 조작·측정값] 2열, 좁은 화면에서 1열 */
+:root{
+  --paper:#f4f6fa; --card:#ffffff; --ink:#18202e; --muted:#5b6578; --line:#d7dce6;
+  --accent:#2f5bd3; --warm:#e0702a; --violet:#7a4fd0; --good:#1f8a5b; --bad:#c43c3c;
+  --space:#0d1424; --space-line:#26324d; --space-ink:#c9d3e8;
+  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10141c; --card:#171d29; --ink:#e6eaf2; --muted:#9aa4b8; --line:#2a3345;
+    --accent:#6f95ff; --warm:#f08a45; --violet:#a888ff; --good:#3fbf86; --bad:#ef6a6a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10141c; --card:#171d29; --ink:#e6eaf2; --muted:#9aa4b8; --line:#2a3345;
+  --accent:#6f95ff; --warm:#f08a45; --violet:#a888ff; --good:#3fbf86; --bad:#ef6a6a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{font-size:calc(16px * var(--s, 1.25))}
+.sizer{display:flex;gap:4px;align-items:center;font-size:.8rem;color:var(--muted)}
+.sizer button{font:inherit;padding:4px 10px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.sizer button[aria-pressed="true"]{background:var(--ink);color:var(--card);border-color:var(--ink)}
+header nav{align-items:center}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:0.9375rem;line-height:1.55}
+.wrap{max-width:1760px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px}
+h1{font-size:1.375rem;margin:0;text-wrap:balance;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:0.8125rem}
+nav{display:flex;flex-wrap:wrap;gap:6px}
+nav button{font:inherit;font-size:0.875rem;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+nav button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+nav button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.situation{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:10px;padding:12px 16px;display:grid;gap:4px}
+.situation b{font-size:0.8125rem;color:var(--accent)}
+.situation p{margin:0;max-width:110ch}
+.situation ul{margin:4px 0 0;padding-left:20px;color:var(--muted);font-size:0.875rem}
+.grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:12px}
+.panel h2{font-size:0.9375rem;margin:0}
+canvas{display:block;width:100%;border-radius:10px;background:var(--space)}
+.chart{background:transparent}
+.controls{display:grid;gap:10px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+label{font-size:0.875rem;color:var(--muted)}
+input[type=range]{flex:1;min-width:140px;accent-color:var(--accent)}
+.val{font-family:var(--font-num);font-variant-numeric:tabular-nums;min-width:6rem;text-align:right}
+.btn{font:inherit;font-size:0.875rem;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.warm{background:var(--warm);border-color:var(--warm);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:0.875rem}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+thead th{color:var(--muted);font-weight:500;font-size:0.8125rem}
+td.num{font-family:var(--font-num);font-size:0.8125rem}
+.chip{display:inline-block;padding:2px 10px;border-radius:999px;font-size:0.8125rem;border:1px solid currentColor}
+.chip.good{color:var(--good)} .chip.bad{color:var(--bad)} .chip.warn{color:var(--warm)} .chip.info{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:0.8125rem;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.note{font-size:0.7812rem;color:var(--muted)}
+.scroll{max-height:220px;overflow:auto}
+.hidden{display:none!important}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mom{display:grid;gap:6px;font-size:0.8125rem}
+.bar{height:14px;border-radius:4px}
+.hints{display:grid;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.hints h2 .note{font-weight:400}
+details{border:1px solid var(--line);border-radius:8px;background:var(--paper);padding:0 12px}
+details[open]{padding-bottom:10px}
+summary{cursor:pointer;padding:9px 0;font-weight:500;font-size:0.875rem;list-style-position:inside}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details p{margin:6px 0;font-size:0.875rem}
+.eq{display:block;margin:8px 0;padding:8px 12px;background:var(--card);border-left:3px solid var(--accent);border-radius:4px;font-size:0.9375rem;overflow-x:auto;white-space:nowrap}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 2px;font-size:.92em;line-height:1.15}
+.fr>span:first-child{border-bottom:1px solid currentColor;padding:0 3px}
+.fr>span:last-child{padding:0 3px}
+.blank{display:inline-block;min-width:2.6em;border-bottom:1.5px dashed var(--warm);text-align:center;color:var(--warm)}
+.check{display:grid;gap:8px;background:var(--paper);border:1px dashed var(--line);border-radius:8px;padding:10px 12px}
+.check input[type=number]{font:inherit;width:7rem;padding:5px 8px;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.fb{font-size:0.875rem;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.masked{display:grid;place-items:center;min-height:200px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:0.875rem;text-align:center;padding:16px}
+.verdict{font-size:0.875rem;padding:8px 12px;border-radius:8px;background:var(--paper);border:1px solid var(--line)}
+.preset{display:flex;flex-wrap:wrap;gap:6px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>위성 발사·궤도 시뮬레이터</h1>
+      <div class="sub">역학과 에너지 수행평가 · 위성 궤도 에너지와 다단 로켓 발사 · 학생 관찰용</div>
+    </div>
+    <div class="sizer" role="group" aria-label="글자 크기">글자 크기
+      <button type="button" data-s="1">보통</button><button type="button" data-s="1.25">크게</button><button type="button" data-s="1.5">아주 크게</button>
+    </div>
+    <nav role="tablist" aria-label="시뮬레이션 선택">
+      <button role="tab" id="tab-energy" data-view="energy" aria-selected="true">① 궤도별 에너지 · 문항 1 (자료 1)</button>
+      <button role="tab" id="tab-rocket" data-view="rocket" aria-selected="false">② 다단 로켓 · 문항 2-①, 2-③ (자료 2)</button>
+      <button role="tab" id="tab-orbit" data-view="orbit" aria-selected="false">③ 궤도 진입·유지 · 문항 2-② (자료 3)</button>
+    </nav>
+  </header>
+
+  <!-- ================= ① 궤도별 에너지 ================= -->
+  <section id="view-energy" role="tabpanel" aria-labelledby="tab-energy" class="wrap" style="padding:0;width:100%">
+    <div class="situation">
+      <b>상황 · 문항 1</b>
+      <p>대형 산불을 빨리 찾아내기 위해 재난 감시 위성 A를 지구 중심에서 r = 7,000 km(고도 약 600 km)인 낮은 원 궤도에 올리려 한다. 비교 대상인 정지궤도 위성 B는 지구 중심에서 6r(약 42,000 km)인 원 궤도를 돈다.</p>
+      <p>회의에서 두 연구원의 의견이 갈렸다. 가 연구원: “낮은 궤도니까 올리는 데 에너지가 덜 든다.” 나 연구원: “낮은 궤도 위성은 더 빨라 운동 에너지가 크니 에너지가 더 든다.”</p>
+      <ul>
+        <li>궤도 반지름이 r에서 6r이 되면 운동 에너지, 위치 에너지, 역학적 에너지는 각각 어떻게 달라질까요? (문항 1-①)</li>
+        <li>두 연구원 중 어느 쪽의 주장이 타당할지 자료를 근거로 생각해 보세요. (문항 1-②)</li>
+      </ul>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2>궤도 모습</h2>
+        <canvas id="cvEnergyOrbit" height="420" aria-label="지구와 두 위성 궤도 애니메이션"></canvas>
+        <div class="row">
+          <label for="rA">위성 A 궤도 반지름</label>
+          <input type="range" id="rA" min="6600" max="30000" step="100" value="7000">
+          <span class="val" id="rAval">7,000 km</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="energyPlay">일시 정지</button>
+          <button class="btn" id="energyReset">자료 1 상태로 (r = 7,000 km)</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>궤도별 에너지 비교 <span class="note">(가정: 위성 질량 1,000 kg, 1 GJ = 10⁹ J, 기준: 무한히 먼 곳 = 0)</span></h2>
+<div id="energyShown" style="display:grid;gap:12px">
+          <canvas id="cvEnergyBars" class="chart" height="330" aria-label="에너지 막대 그래프"></canvas>
+          <div class="legend">
+            <span><i style="background:var(--warm)"></i>운동 에너지</span>
+            <span><i style="background:var(--accent)"></i>위치 에너지</span>
+            <span><i style="background:var(--violet)"></i>역학적 에너지</span>
+            <span><i style="border:2px dashed var(--muted);background:transparent"></i>지표면 정지 위성의 역학적 에너지</span>
+          </div>
+          <table aria-label="두 위성 측정값">
+            <thead><tr><th>측정값 (자료 1)</th><th>위성 A</th><th>위성 B</th></tr></thead>
+            <tbody id="energyTable"></tbody>
+          </table>
+        </div>
+</div>
+    </div>
+  </section>
+
+  <!-- ================= ② 다단 로켓 ================= -->
+  <section id="view-rocket" role="tabpanel" aria-labelledby="tab-rocket" class="wrap hidden" style="padding:0;width:100%">
+    <div class="situation">
+      <b>상황 · 문항 2-①, 2-③</b>
+      <p>위성 A를 2단 로켓으로 발사한다. 발사체는 배기가스를 뒤로 분사하며 가속하고 다 쓴 1단(60 t)을 분리한 뒤, 7,000 km 지점에서 엔진을 끈다. 분사하는 동안 중력과 공기 저항은 무시한다.</p>
+      <p class="eq" style="font-size:1.05rem">MV = (M − Δm)(V + Δv) + Δm(V − u) &nbsp;⟹&nbsp; Δv = <span class="fr"><span>Δm · u</span><span>M − Δm</span></span></p>
+      <ul>
+        <li>식의 우변 두 항은 각각 무엇의 운동량일까요? 운동량 보존을 적용할 수 있는 까닭은? (2-①(1))</li>
+        <li>로켓은 어떻게 가속될까요? (2-①(2))</li>
+        <li>같은 양을 분사해도 1단을 분리하면 Δv가 어떻게 달라지나요? (2-①(3))</li>
+        <li>10회 누적 속도와 자료 3의 원 궤도 속력을 비교해 보세요. (2-③)</li>
+      </ul>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2>발사체 <span class="note">(분사하는 짧은 시간 동안 중력·공기 저항 무시)</span></h2>
+        <canvas id="cvRocket" height="400" aria-label="다단 로켓 그림"></canvas>
+</div>
+      <div class="panel">
+        <h2>분사 조작 <span class="note">(자료 2 조건: Δm = 2 t, u = 3 km/s)</span></h2>
+        <div class="controls">
+          <div class="row"><label for="dm">1회 분사량 Δm</label><input type="range" id="dm" min="1" max="4" step="0.5" value="2"><span class="val" id="dmVal">2.0 t</span></div>
+          <div class="row"><label for="u">분사 속력 u</label><input type="range" id="u" min="1" max="4" step="0.5" value="3"><span class="val" id="uVal">3.0 km/s</span></div>
+          <div class="row" style="justify-content:space-between">
+            <span>현재 발사체 질량 <b class="val" id="mNow" style="display:inline-block;min-width:0">100 t</b></span>
+            <span>누적 속도 증가 <b class="val" id="vNow" style="display:inline-block;min-width:0">0 km/s</b></span>
+          </div>
+          <div class="row">
+            <button class="btn warm" id="burn">분사 1회</button>
+            <button class="btn warm" id="burn10">10회 연속 분사</button>
+            <button class="btn primary" id="sep">1단 분리 (→ 40 t)</button>
+            <button class="btn" id="rocketReset">처음부터 (100 t)</button>
+          </div>
+        </div>
+        <div class="scroll">
+          <table aria-label="분사 기록">
+            <thead><tr><th>회차</th><th>분사 전 질량 M</th><th>Δv</th><th>누적 속도</th></tr></thead>
+            <tbody id="rocketLog"></tbody>
+          </table>
+        </div>
+        <h2>같은 조건으로 10회 분사할 때 누적 속도</h2>
+        <canvas id="cvRocketChart" class="chart" height="230" aria-label="단 분리 여부에 따른 누적 속도와 원 궤도 속력 비교"></canvas>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>1단을 분리함 (40 t부터)</span>
+          <span><i style="background:var(--muted)"></i>1단을 분리하지 않음 (100 t부터)</span>
+        </div>
+        <div class="verdict">가상 비행 기록: 1단 연소 후 분리할 때 속력 약 2.4 km/s → 2단 연소 후 7,000 km 지점 도달 시 약 7.56 km/s</div>
+</div>
+    </div>
+  </section>
+
+  <!-- ================= ③ 궤도 진입·유지 ================= -->
+  <section id="view-orbit" role="tabpanel" aria-labelledby="tab-orbit" class="wrap hidden" style="padding:0;width:100%">
+    <div class="situation">
+      <b>상황 · 문항 2-②</b>
+      <p>7,000 km 지점에서 엔진을 끈 위성이 지표면과 나란한 방향으로 출발한다. 출발 속력이 6.0 km/s, 7.56 km/s, 8.5 km/s일 때 위성의 운동을 비교한다. (자료 3)</p>
+      <p class="eq" style="font-size:1.05rem"><span class="fr"><span>GMm</span><span>r²</span></span> = <span class="fr"><span>mv²</span><span>r</span></span> &nbsp;⟹&nbsp; v = √<span class="fr"><span>GM</span><span>r</span></span> &nbsp;&nbsp;(GM = 4.0×10¹⁴ m³/s²)</p>
+      <ul>
+        <li>식의 좌변과 우변은 각각 무엇이며, 같다고 놓을 수 있는 까닭은? (2-②(1))</li>
+        <li>6.0 km/s일 때 좌변과 우변 중 어느 쪽이 더 큰가요? 그래서 위성은 어떻게 되나요? (2-②(2))</li>
+        <li>식에 값을 넣어 7.56 km/s를 확인하면, 엔진을 끈 위성이 계속 원 궤도를 도는 까닭을 알 수 있을까요? (2-②(3))</li>
+      </ul>
+    </div>
+    <div class="grid">
+      <div class="panel">
+        <h2>궤도 화면 <span id="orbitStatus" class="chip good">원 궤도 운동 중</span></h2>
+        <canvas id="cvOrbit" height="460" aria-label="위성 궤도 시뮬레이션"></canvas>
+        <div class="row">
+          <label for="view">화면 범위</label>
+          <select id="view" class="btn"><option value="15000" selected>반지름 15,000 km</option><option value="30000">반지름 30,000 km</option></select>
+          <label for="warp">시간 배속</label>
+          <input type="range" id="warp" min="300" max="4000" step="100" value="800"><span class="val" id="warpVal">×800</span>
+          <button class="btn" id="orbitPlay">일시 정지</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>출발 속력 정하기 <span class="note">(7,000 km 지점, 지표면과 나란한 방향, 엔진 끔)</span></h2>
+        <div class="preset">
+          <button class="btn" data-v="6.0">6.0 km/s로 출발</button>
+          <button class="btn primary" data-v="7.56">7.56 km/s로 출발</button>
+          <button class="btn" data-v="8.5">8.5 km/s로 출발</button>
+        </div>
+        <div class="row"><label for="v0">직접 정하기</label><input type="range" id="v0" min="5" max="10" step="0.01" value="7.56"><span class="val" id="v0Val">7.56 km/s</span>
+          <button class="btn" id="launch">이 속력으로 출발</button></div>
+        <table aria-label="현재 위성 상태">
+          <thead><tr><th>현재 위성 상태</th><th>값</th></tr></thead>
+          <tbody>
+            <tr><td>지구 중심까지 거리 r</td><td class="num" id="oR">–</td></tr>
+            <tr><td>속력 v</td><td class="num" id="oV">–</td></tr>
+          </tbody>
+        </table>
+</div>
+    </div>
+  </section>
+
+  <p class="note">교육용 모델: GM = 4.0×10¹⁴ m³/s², 지구 반지름 R = 6,400 km, 위성 질량 1,000 kg(가정), 공기 저항·지구 자전 무시, 위치 에너지의 기준은 무한히 먼 곳. 비행 기록은 교육용 가상 값입니다. 시뮬레이션은 상황 이해를 돕기 위한 것이며, 평가지 답안은 식과 자료를 근거로 서술합니다.</p>
+</div>
+<script>
+(() => {
+const GM = 4.0e14, RE = 6.4e6, MSAT = 1000;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt = (x, d=0) => x.toLocaleString('ko-KR', {minimumFractionDigits:d, maximumFractionDigits:d});
+const $ = id => document.getElementById(id);
+let S = 1;
+try { const v = parseFloat(localStorage.getItem('simScaleStudent')); if ([1,1.25,1.5].includes(v)) S = v; } catch(e) {}
+function applyScale(){ document.documentElement.style.setProperty('--s', S);
+  document.querySelectorAll('.sizer button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.s === S));
+  try { localStorage.setItem('simScaleStudent', S); } catch(e) {} }
+document.querySelectorAll('.sizer button').forEach(b => b.addEventListener('click', () => { S = +b.dataset.s; applyScale(); requestAnimationFrame(drawAll); }));
+applyScale();
+function fit(cv){
+  if (!cv.dataset.h) cv.dataset.h = cv.getAttribute('height');
+  const dpr = devicePixelRatio || 1, cw = cv.clientWidth, h = +cv.dataset.h;
+  if (!cw) return [cv.getContext('2d'),0,h];
+  const W = Math.round(cw*dpr), H = Math.round(h*S*dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; cv.style.height = (h*S)+'px'; }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr*S,0,0,dpr*S,0,0); return [ctx, cw/S, h];
+}
+/* ---------- tabs / hash ---------- */
+const views = ['energy','rocket','orbit']; let current = 'energy';
+function show(v){
+  if (!views.includes(v)) v = 'energy';
+  views.forEach(n => { $('view-'+n).classList.toggle('hidden', n!==v); $('tab-'+n).setAttribute('aria-selected', n===v); });
+  current = v; drawAll();
+}
+document.querySelectorAll('nav button').forEach(b => b.addEventListener('click', () => { show(b.dataset.view); }));
+addEventListener('hashchange', () => show(location.hash.slice(1)));
+
+/* ================= ① 궤도별 에너지 ================= */
+const rA = $('rA'); let energyRun = !reduce, phA = 0, phB = 0, masked = false;
+const RB = 4.2e7, ES = -GM*MSAT/RE/1e9;
+const en = r => ({ k: GM*MSAT/(2*r)/1e9, p: -GM*MSAT/r/1e9, e: -GM*MSAT/(2*r)/1e9, v: Math.sqrt(GM/r), T: 2*Math.PI*Math.sqrt(r**3/GM) });
+$('energyPlay').onclick = e => { energyRun = !energyRun; e.target.textContent = energyRun ? '일시 정지' : '재생'; };
+$('energyReset').onclick = () => { rA.value = 7000; updEnergy(); };
+rA.oninput = updEnergy;
+function updEnergy(){
+  const r = rA.value*1e3, a = en(r), b = en(RB);
+  $('rAval').textContent = fmt(+rA.value)+' km';
+  const rows = [
+    ['궤도 반지름', fmt(r/1e3)+' km', fmt(RB/1e3)+' km'],
+    ['공전 속력', fmt(a.v/1e3,2)+' km/s', fmt(b.v/1e3,2)+' km/s'],
+    ['운동 에너지', fmt(a.k,1)+' GJ', fmt(b.k,1)+' GJ'],
+    ['위치 에너지', fmt(a.p,1)+' GJ', fmt(b.p,1)+' GJ'],
+    ['역학적 에너지', fmt(a.e,1)+' GJ', fmt(b.e,1)+' GJ'],
+    ['지표면 정지 위성의 역학적 에너지', fmt(ES,1)+' GJ', fmt(ES,1)+' GJ'],
+  ];
+  $('energyTable').innerHTML = rows.map(r => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td></tr>`).join('');
+  drawBars();
+}
+function drawEnergyOrbit(){
+  const [c,w,h] = fit($('cvEnergyOrbit')); if(!w) return;
+  c.fillStyle = css('--space'); c.fillRect(0,0,w,h); stars(c,w,h);
+  const cx=w/2, cy=h/2, sc = Math.min(w,h)/2*0.92/RB, r = rA.value*1e3;
+  ring(c,cx,cy,RB*sc,'rgba(168,136,255,.75)'); ring(c,cx,cy,r*sc,'rgba(111,149,255,.9)');
+  earth(c,cx,cy,RE*sc);
+  sat(c,[cx+r*sc*Math.cos(phA), cy-r*sc*Math.sin(phA)],'#8fb0ff','A'); sat(c,[cx+RB*sc*Math.cos(phB), cy-RB*sc*Math.sin(phB)],'#c8b2ff','B');
+  c.fillStyle=css('--space-ink'); c.font='13px '+css('--font-body'); c.textAlign='left';
+  c.fillText('정지궤도 위성 B (6r ≈ 42,000 km)', 12, 22); c.fillText(`재난 감시 위성 A (${fmt(r/1e3)} km)`, 12, 40);
+  c.fillStyle='rgba(201,211,232,.6)'; c.fillText('같은 시간 동안 움직인 각도를 비교해 보세요', 12, h-12);
+}
+function drawBars(){
+  if (masked) return;
+  const [c,w,h] = fit($('cvEnergyBars')); if(!w) return; c.clearRect(0,0,w,h);
+  const top=24, bot=h-34, left=46, right=w-10, ymax=35, ymin=-70, y = v => top + (ymax - v)/(ymax-ymin)*(bot-top);
+  c.font='12px '+css('--font-body'); c.strokeStyle=css('--line'); c.fillStyle=css('--muted'); c.lineWidth=1;
+  for (let v=-70; v<=30; v+=10){ c.beginPath(); c.moveTo(left,y(v)); c.lineTo(right,y(v)); c.globalAlpha = v===0?1:.45; c.stroke(); c.globalAlpha=1; c.textAlign='right'; c.fillText(v, left-6, y(v)+4); }
+  c.strokeStyle=css('--ink'); c.beginPath(); c.moveTo(left,y(0)); c.lineTo(right,y(0)); c.stroke();
+  const groups=[['위성 A', en(rA.value*1e3)],['위성 B (6r)', en(RB)]], gw=(right-left)/2, bw=Math.min(34,gw/5);
+  groups.forEach(([name,d],i)=>{
+    const gx = left + gw*i + gw/2;
+    [['k','--warm'],['p','--accent'],['e','--violet']].forEach(([key,col],j)=>{
+      const x = gx + (j-1)*(bw+8) - bw/2, v=d[key];
+      c.fillStyle=css(col); c.fillRect(x, Math.min(y(0),y(v)), bw, Math.abs(y(v)-y(0)));
+      c.fillStyle=css('--ink'); c.textAlign='center'; c.fillText(fmt(v,1), x+bw/2, v>=0? y(v)-5 : y(v)+14);
+    });
+    c.fillStyle=css('--ink'); c.textAlign='center'; c.font='13px '+css('--font-body'); c.fillText(name, gx, h-12); c.font='12px '+css('--font-body');
+  });
+  c.setLineDash([6,4]); c.strokeStyle=css('--muted'); c.beginPath(); c.moveTo(left,y(ES)); c.lineTo(right,y(ES)); c.stroke(); c.setLineDash([]);
+  c.fillStyle=css('--muted'); c.textAlign='center'; c.fillText('지표면 정지 위성 E = '+fmt(ES,1), (left+right)/2, y(ES)+14);
+}
+
+/* ================= ② 다단 로켓 ================= */
+const R = { M:100, v:0, sep:false, n:0, flame:0, last:null, log:[] };
+const dmEl=$('dm'), uEl=$('u');
+function updRocketUI(){
+  $('dmVal').textContent = (+dmEl.value).toFixed(1)+' t'; $('uVal').textContent = (+uEl.value).toFixed(1)+' km/s';
+  $('mNow').textContent = fmt(R.M,1)+' t'; $('vNow').textContent = fmt(R.v,3)+' km/s';
+  $('sep').disabled = R.sep || R.busy;
+  $('burn').disabled = !canBurn() || R.busy; $('burn10').disabled = !canBurn() || R.busy;
+  $('rocketLog').innerHTML = R.log.length ? R.log.map(l => l.sep
+      ? `<tr><td>—</td><td colspan="3" style="text-align:left;color:var(--accent)">1단 분리: ${fmt(l.from,1)} t → ${fmt(l.to,1)} t</td></tr>`
+      : `<tr><td>${l.n}</td><td class="num">${fmt(l.M,1)} t</td><td class="num">${fmt(l.dv,3)} km/s (${fmt(l.dv*1000)} m/s)</td><td class="num">${fmt(l.v,3)} km/s</td></tr>`).join('')
+    : `<tr><td colspan="4" style="text-align:left;color:var(--muted)">'분사 1회' 또는 '10회 연속 분사'를 누르면 기록이 쌓입니다. 1단을 분리하면 발사체는 2단과 위성만 남은 40 t이 되고, 분리 후에도 10회 분사할 수 있습니다.</td></tr>`;
+  drawRocketChart(); drawRocket();
+}
+function canBurn(){ return R.M - (+dmEl.value) >= (R.sep ? 20 : 60) - 1e-9; }
+function doBurn(){ if (!canBurn()) return false; const dm=+dmEl.value, u=+uEl.value, M=R.M, dv = dm*u/(M-dm);
+  R.M = M-dm; R.v += dv; R.n++; R.flame = 1; R.last = {M,dm,u,dv}; R.log.push({n:R.n,M,dm,u,dv,v:R.v}); updRocketUI(); return true; }
+$('burn').onclick = doBurn;
+$('burn10').onclick = () => { let k=0; R.busy=true; updRocketUI();
+  const tick = () => { R.busy=false; const ok = doBurn(); k++; if (ok && k<10 && canBurn()) { R.busy=true; updRocketUI(); setTimeout(tick, reduce?0:180); } else { R.busy=false; updRocketUI(); } };
+  tick(); };
+$('sep').onclick = () => { R.log.push({sep:true,from:R.M,to:40}); R.M = 40; R.sep = true; updRocketUI(); };
+$('rocketReset').onclick = () => { Object.assign(R,{M:100,v:0,sep:false,n:0,flame:0,last:null,log:[],busy:false}); updRocketUI(); };
+dmEl.oninput = uEl.oninput = updRocketUI;
+function drawRocket(){
+  const [c,w,h] = fit($('cvRocket')); if(!w) return;
+  c.fillStyle=css('--space'); c.fillRect(0,0,w,h); stars(c,w,h);
+  const cx=w*0.42, bw=46, top=40, stage1 = !R.sep, s2h=120, s1h=150, nose=50, yBase = top+nose+s2h+(stage1?s1h:0);
+  c.fillStyle='#dfe6f5'; c.beginPath(); c.moveTo(cx,top); c.lineTo(cx+bw/2,top+nose); c.lineTo(cx-bw/2,top+nose); c.closePath(); c.fill();
+  c.fillStyle='#b9c6e2'; c.fillRect(cx-bw/2, top+nose, bw, s2h);
+  c.fillStyle='#0d1424'; c.font='12px '+css('--font-body'); c.textAlign='center';
+  c.fillText('2단', cx, top+nose+s2h/2); c.fillText('+ 위성', cx, top+nose+s2h/2+16);
+  if (stage1){ c.fillStyle='#8e9cbc'; c.fillRect(cx-bw/2, top+nose+s2h+3, bw, s1h-3); c.fillStyle='#0d1424'; c.fillText('1단', cx, top+nose+s2h+s1h/2); }
+  else { c.save(); c.globalAlpha=.35; c.fillStyle='#8e9cbc'; c.translate(cx+70, h-70); c.rotate(.5); c.fillRect(-bw/2,-s1h/2,bw,s1h); c.restore();
+         c.fillStyle='rgba(201,211,232,.7)'; c.textAlign='left'; c.fillText('분리된 1단', cx+40, h-14); c.textAlign='center'; }
+  if (R.flame>0){ const fl = 40+70*R.flame;
+    const g=c.createLinearGradient(0,yBase,0,yBase+fl); g.addColorStop(0,'rgba(255,214,120,.95)'); g.addColorStop(1,'rgba(240,138,69,0)');
+    c.fillStyle=g; c.beginPath(); c.moveTo(cx-bw/2+6,yBase); c.lineTo(cx+bw/2-6,yBase); c.lineTo(cx,yBase+fl); c.closePath(); c.fill();
+    c.fillStyle='rgba(255,214,120,.9)'; c.textAlign='left'; c.fillText('배기가스 (뒤쪽)', cx+bw/2+10, yBase+30); }
+  c.strokeStyle='#8fb0ff'; c.fillStyle='#8fb0ff'; c.lineWidth=3;
+  c.beginPath(); c.moveTo(cx+bw/2+40, top+120); c.lineTo(cx+bw/2+40, top+50); c.stroke();
+  c.beginPath(); c.moveTo(cx+bw/2+40, top+40); c.lineTo(cx+bw/2+33, top+54); c.lineTo(cx+bw/2+47, top+54); c.fill();
+  c.lineWidth=1; c.textAlign='left'; c.font='13px '+css('--font-body'); c.fillText('발사체', cx+bw/2+52, top+80);
+  c.fillStyle=css('--space-ink'); c.fillText(`질량 ${fmt(R.M,1)} t`, 12, 22); c.fillText(`누적 Δv ${fmt(R.v,3)} km/s`, 12, 40);
+}
+function drawRocketChart(){
+  const [c,w,h] = fit($('cvRocketChart')); if(!w) return; c.clearRect(0,0,w,h);
+  const dm=+dmEl.value, u=+uEl.value;
+  const run = M0 => { let M=M0, v=0, a=[0]; for(let i=0;i<10;i++){ v+=dm*u/(M-dm); M-=dm; a.push(v);} return a; };
+  const A=run(40), B=run(100), ymax=3;
+  const l=40,r=w-12,t=12,b=h-28, X=i=>l+(r-l)*i/10, Y=v=>b-(b-t)*v/ymax;
+  c.font='12px '+css('--font-body'); c.strokeStyle=css('--line'); c.fillStyle=css('--muted');
+  for(let v=0; v<=ymax; v+=1){ c.beginPath(); c.moveTo(l,Y(v)); c.lineTo(r,Y(v)); c.stroke(); c.textAlign='right'; c.fillText(v, l-6, Y(v)+4); }
+  c.textAlign='center'; for(let i=0;i<=10;i+=2) c.fillText(i+'회', X(i), h-10);
+  c.save(); c.translate(11,(t+b)/2); c.rotate(-Math.PI/2); c.fillText('누적 속도 (km/s)',0,0); c.restore();
+  [[B,'--muted'],[A,'--accent']].forEach(([arr,col])=>{ c.strokeStyle=css(col); c.lineWidth=2.5; c.beginPath(); arr.forEach((v,i)=> i?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v))); c.stroke();
+    c.fillStyle=css(col); c.beginPath(); c.arc(X(10),Y(arr[10]),4,0,7); c.fill(); c.textAlign='right'; c.fillText('약 '+fmt(arr[10],2)+' km/s', X(10)-8, Y(arr[10])-8); });
+  c.lineWidth=1;
+}
+
+/* ================= ③ 궤도 진입·유지 ================= */
+const O = { x:0,y:0,vx:0,vy:0, run:!reduce, state:'orbit', trail:[] };
+const v0El=$('v0'), warpEl=$('warp'), viewEl=$('view');
+function launch(v){ if(v!==undefined){ v0El.value=v; v0El.oninput(); }
+  const s=+v0El.value*1000; Object.assign(O,{x:0,y:7.0e6,vx:-s,vy:0,state:'orbit',trail:[],run:true}); $('orbitPlay').textContent='일시 정지'; classify(); }
+function classify(){
+  const r=Math.hypot(O.x,O.y), v=Math.hypot(O.vx,O.vy), E=v*v/2-GM/r, vc=Math.sqrt(GM/r), el=$('orbitStatus');
+  if (O.state==='crash'){ el.className='chip bad'; el.textContent='지구에 충돌'; return; }
+  if (E>=0){ el.className='chip warn'; el.textContent='지구를 벗어나는 중'; return; }
+  const rv=(O.x*O.vx+O.y*O.vy)/r;
+  if (Math.abs(v-vc)/vc<0.01 && Math.abs(rv)<0.01*vc){ el.className='chip good'; el.textContent='원 궤도 운동 중'; }
+  else { el.className='chip info'; el.textContent='거리가 변하는 운동 중'; }
+}
+function step(dt){
+  const acc=(x,y)=>{ const r=Math.hypot(x,y), a=-GM/(r*r*r); return [a*x,a*y]; };
+  let [ax,ay]=acc(O.x,O.y); O.vx+=ax*dt/2; O.vy+=ay*dt/2; O.x+=O.vx*dt; O.y+=O.vy*dt;
+  [ax,ay]=acc(O.x,O.y); O.vx+=ax*dt/2; O.vy+=ay*dt/2;
+  if (Math.hypot(O.x,O.y)<RE){ O.state='crash'; classify(); }
+}
+let classTimer=0;
+function advance(sec){
+  const simT=sec*(+warpEl.value), n=Math.ceil(simT/10);
+  for(let i=0;i<n && O.state!=='crash';i++) step(simT/n);
+  O.trail.push([O.x,O.y]); if(O.trail.length>4000) O.trail.shift();
+  classTimer+=sec; if(classTimer>.25){ classify(); classTimer=0; }
+  if (Math.hypot(O.x,O.y) > 2e8) O.run=false;
+}
+function forces(){
+  const r=Math.hypot(O.x,O.y), vt=Math.abs(O.x*O.vy-O.y*O.vx)/r; return {r, v:Math.hypot(O.vx,O.vy), g:GM/(r*r), cp:vt*vt/r};
+}
+function drawOrbit(){
+  const [c,w,h]=fit($('cvOrbit')); if(!w) return;
+  c.fillStyle=css('--space'); c.fillRect(0,0,w,h); stars(c,w,h);
+  const cx=w/2, cy=h/2, sc=Math.min(w,h)/2*0.95/(+viewEl.value*1e3);
+  ring(c,cx,cy,7.0e6*sc,'rgba(111,149,255,.6)');
+  c.fillStyle='rgba(201,211,232,.75)'; c.font='12px '+css('--font-body'); c.textAlign='left';
+  c.fillText('반지름 7,000 km', cx+7.0e6*sc*0.72+4, cy+7.0e6*sc*0.72+14);
+  earth(c,cx,cy,RE*sc);
+  c.strokeStyle='rgba(240,180,90,.9)'; c.lineWidth=1.6; c.beginPath();
+  O.trail.forEach(([x,y],i)=>{ const px=cx+x*sc, py=cy-y*sc; i?c.lineTo(px,py):c.moveTo(px,py); }); c.stroke(); c.lineWidth=1;
+  const px=cx+O.x*sc, py=cy-O.y*sc;
+  sat(c,[px,py], O.state==='crash' ? '#ef6a6a' : '#ffd38a','A');
+  if (O.state!=='crash'){ const v=Math.hypot(O.vx,O.vy), L=14+v/1000*5, r=Math.hypot(O.x,O.y);
+    c.strokeStyle='#7ee2b0'; c.lineWidth=2; c.beginPath(); c.moveTo(px,py); c.lineTo(px+O.vx/v*L, py-O.vy/v*L); c.stroke(); c.lineWidth=1; }
+
+  c.fillStyle='rgba(201,211,232,.7)'; c.fillText('녹색 화살표: 속도 방향', 12, h-12);
+  c.fillStyle=css('--space-ink'); c.fillText(`출발 속력 ${(+v0El.value).toFixed(2)} km/s`, 12, 22);
+  const f=forces();
+  $('oR').textContent = fmt(f.r/1e3)+' km'; $('oV').textContent = fmt(f.v/1e3,2)+' km/s';
+}
+v0El.oninput=()=>$('v0Val').textContent=(+v0El.value).toFixed(2)+' km/s';
+warpEl.oninput=()=>$('warpVal').textContent='×'+fmt(+warpEl.value);
+document.querySelectorAll('.preset button').forEach(b=>b.onclick=()=>{ document.querySelectorAll('.preset button').forEach(x=>x.classList.toggle('primary', x===b)); launch(+b.dataset.v); });
+$('launch').onclick=()=>{ document.querySelectorAll('.preset button').forEach(x=>x.classList.remove('primary')); launch(); };
+$('orbitPlay').onclick=e=>{ O.run=!O.run; e.target.textContent=O.run?'일시 정지':'재생'; };
+viewEl.onchange=drawOrbit;
+
+
+/* ---------- 공통 그림 ---------- */
+const starPts = Array.from({length:90},()=>[Math.random(),Math.random(),Math.random()]);
+function stars(c,w,h){ starPts.forEach(([x,y,s])=>{ c.fillStyle=`rgba(220,230,255,${.25+s*.5})`; c.fillRect(x*w,y*h,s<.85?1:1.8,s<.85?1:1.8); }); }
+function ring(c,x,y,r,col){ c.strokeStyle=col; c.setLineDash([5,5]); c.beginPath(); c.arc(x,y,r,0,7); c.stroke(); c.setLineDash([]); }
+function earth(c,x,y,r){ r=Math.max(r,4); const g=c.createRadialGradient(x-r*.35,y-r*.35,r*.1,x,y,r); g.addColorStop(0,'#7fb6ff'); g.addColorStop(.7,'#2c6fd1'); g.addColorStop(1,'#163f86'); c.fillStyle=g; c.beginPath(); c.arc(x,y,r,0,7); c.fill(); }
+function sat(c,[x,y],col,label){ c.fillStyle=col; c.beginPath(); c.arc(x,y,5,0,7); c.fill(); c.fillStyle='#fff'; c.font='bold 12px '+css('--font-body'); c.textAlign='left'; c.fillText(label,x+8,y-6); }
+
+/* ---------- loop ---------- */
+function drawAll(){
+  if (current==='energy'){ drawEnergyOrbit(); drawBars(); }
+  if (current==='rocket'){ drawRocket(); drawRocketChart(); }
+  if (current==='orbit'){ drawOrbit(); }
+}
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  if (energyRun){ const r=rA.value*1e3, k=1500; phA+=dt*k*2*Math.PI/en(r).T; phB+=dt*k*2*Math.PI/en(RB).T; }
+  if (O.run && O.state!=='crash') advance(dt);
+  if (R.flame>0) R.flame=Math.max(0,R.flame-dt*2);
+  drawAll(); requestAnimationFrame(loop);
+}
+addEventListener('resize', drawAll);
+launch(7.56); for(let i=0;i<30;i++) advance(0.05);
+updEnergy(); updRocketUI();
+show(location.hash.slice(1) || 'energy');
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
