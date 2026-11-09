@@ -103,6 +103,9 @@ market_resistor_page = st.Page("physics_sim/market_resistor_sim.py", title="🔌
 # 10. 트랜지스터 섹션 (신규)
 transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] PNP BJT 트랜지스터의 동작 원리와 포화")
 
+# 11. 탄성파와 소리 섹션 (신규)
+shm_components_page = st.Page("physics_sim/shm_components.py", title="〰️ [탐구] 단진동: 복원력 · 그림자 사영 · 주기")
+
 # 네비게이션 구성
 pg = st.navigation({
     "🏠 메인": [home_page],
@@ -182,6 +185,9 @@ pg = st.navigation({
     ],
     "🔌 학습주제 9: 트랜지스터": [
         transistor_page
+    ],
+    "🔊 학습주제 10: 탄성파와 소리": [
+        shm_components_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
