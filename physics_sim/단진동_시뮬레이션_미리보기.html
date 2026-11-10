@@ -28,12 +28,24 @@
   .derived b{color:var(--key);font-variant-numeric:tabular-nums}
 
   .view{display:none}
-  #app.vA #viewA,#app.vB #viewB,#app.vC #viewC{display:block}
-  #app.vA #viewA{display:grid}
+  #app.vH #viewH,#app.vA #viewA,#app.vB #viewB,#app.vC #viewC{display:block}
+  #app.vH #viewH,#app.vA #viewA{display:grid}
   svg{display:block}
   #svB{width:100%;height:auto}
   .keys{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px;align-items:center;font-size:12px;color:var(--sub)}
   .keys .btn{font-size:12px;padding:5px 10px}
+
+  #viewH{grid-template-columns:minmax(0,1.42fr) minmax(0,1fr);gap:14px;align-items:start}
+  @media(max-width:860px){#viewH{grid-template-columns:1fr}}
+  .hcol{display:grid;gap:12px}
+  .ws-list{margin:6px 0 0;padding:0;list-style:none;font-size:13.5px;line-height:1.85;color:#1e293b}
+  .ws-list li{margin-bottom:8px;padding:8px 10px;background:#f8fafc;border:1px solid var(--line);border-radius:10px}
+  .blank-pill{display:inline-block;min-width:64px;padding:1px 10px;margin:0 2px;border:1.5px dashed #9333ea;border-radius:6px;background:#faf5ff;color:#9333ea;font-weight:800;font-size:13px;text-align:center;cursor:pointer;user-select:none;transition:all .15s}
+  .blank-pill:hover{background:#f3e8ff}
+  .blank-pill.on{border-style:solid;background:#9333ea;color:#fff}
+  .ans-box{cursor:pointer}
+  .ans-box rect{transition:fill .15s,stroke .15s}
+  .ans-box:hover rect{fill:#f3e8ff}
 
   #viewA{grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:14px;align-items:start}
   @media(max-width:760px){#viewA{grid-template-columns:1fr}}
@@ -71,12 +83,13 @@
 </style>
 </head>
 <body>
-<div id="app" class="vA">
+<div id="app" class="vH">
   <h1>단진동 : 복원력 · 그림자 사영 · 주기</h1>
-  <p class="lead">탭을 ① → ⑥ 순서로 누르며 수업합니다. ②~④는 원운동 물체 P의 벡터를 스크린에 비춘 그림자가 그래프로 그려집니다.</p>
+  <p class="lead">맨 앞의 [A. 복원력(가로 용수철)]부터 ① → ⑥ 순서로 누르며 수업합니다. ②~④는 원운동 물체 P의 벡터를 스크린에 비춘 그림자가 그래프로 그려집니다.</p>
 
   <div class="tabs" id="tabs">
-    <button class="tab on" data-step="1">① 복원력 F–x</button>
+    <button class="tab on" data-step="0">A. 복원력 (가로 용수철)</button>
+    <button class="tab" data-step="1">① 복원력 F–x (세로)</button>
     <button class="tab" data-step="2">② 위치 x–t</button>
     <button class="tab" data-step="3">③ 속도 v–t</button>
     <button class="tab" data-step="4">④ 가속도 a–t</button>
@@ -96,6 +109,135 @@
     <div class="grp cmk">용수철 상수 k <input type="range" id="rk" min="2" max="12" step="0.5" value="4"><span class="val" id="vk"></span></div>
     <div class="grp cghost"><label style="cursor:pointer"><input type="checkbox" id="ghost"> 전체 곡선 미리 보기</label></div>
     <div class="derived" id="derived"></div>
+  </div>
+
+  <!-- ===== 뷰 H : 가로 용수철 복원력 + 학습지 A. ①~③ 비교 + F–x 그래프 (0) ===== -->
+  <div class="view" id="viewH">
+    <div class="hcol">
+      <div class="card">
+        <div class="gt">
+          <span style="color:var(--ink);font-size:13px">실시간 수평 용수철 진자 (평형점 O 기준, 오른쪽 +)</span>
+          <span id="hStateTag" style="color:var(--f)"></span>
+        </div>
+        <svg id="svH" viewBox="0 0 580 186" style="width:100%;height:auto">
+          <defs>
+            <marker id="hMF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#9333ea"/></marker>
+            <marker id="hMX" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
+          </defs>
+          <!-- 바닥면 및 왼쪽 벽 -->
+          <line x1="24" y1="132" x2="556" y2="132" stroke="#94a3b8" stroke-width="2"/>
+          <rect x="18" y="28" width="8" height="106" rx="2" fill="#334155"/>
+          <!-- -A, 평형점 O, +A 기준선 -->
+          <line id="hLineMinA" x1="162" y1="30" x2="162" y2="144" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text id="hTxtMinA" x="162" y="23" text-anchor="middle" font-size="11.5" font-weight="700" fill="#64748b">x = −A</text>
+          <line x1="290" y1="26" x2="290" y2="168" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="5 4"/>
+          <text x="290" y="19" text-anchor="middle" font-size="12.5" font-weight="800" fill="#2563eb">평형점 O (x = 0)</text>
+          <line id="hLinePlusA" x1="418" y1="30" x2="418" y2="144" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text id="hTxtPlusA" x="418" y="23" text-anchor="middle" font-size="11.5" font-weight="700" fill="#64748b">x = +A</text>
+          <!-- 수평 용수철 및 물체 m -->
+          <polyline id="hSpring" points="" fill="none" stroke="#334155" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>
+          <rect id="hMass" x="264" y="80" width="52" height="52" rx="4" fill="#e2e8f0" stroke="#334155" stroke-width="2.5"/>
+          <text id="hMassT" x="290" y="111" text-anchor="middle" font-size="16" font-weight="800" fill="#0f172a">m</text>
+          <!-- 복원력 F 화살표 (보라색) -->
+          <line id="haF" x1="290" y1="54" x2="290" y2="54" stroke="#9333ea" stroke-width="5" stroke-linecap="round" marker-end="url(#hMF)"/>
+          <text id="htF" x="290" y="42" text-anchor="middle" font-size="12.5" font-weight="800" fill="#9333ea" stroke="#fff" stroke-width="4" paint-order="stroke"></text>
+          <!-- 변위 x 화살표 (파란색) -->
+          <line id="haX" x1="290" y1="154" x2="290" y2="154" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" marker-end="url(#hMX)"/>
+          <circle cx="290" cy="154" r="3.5" fill="#2563eb"/>
+          <text id="htX" x="290" y="176" text-anchor="middle" font-size="12" font-weight="800" fill="#2563eb"></text>
+        </svg>
+        <div class="keys" style="justify-content:space-between">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+            <span>위치 바로가기:</span>
+            <button class="btn" data-ph="0.75">① x = −A (압축)</button>
+            <button class="btn" data-ph="0">② x = 0 (평형점 O)</button>
+            <button class="btn" data-ph="0.25">③ x = +A (늘어남)</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span>직접 끌기(x):</span>
+            <input type="range" id="rxH" min="-1" max="1" step="0.01" value="0" style="width:120px">
+          </div>
+        </div>
+      </div>
+
+      <!-- 학습지 A 그림 ①~③ 비교 카드 -->
+      <div class="card">
+        <div class="gt" style="align-items:center;margin-bottom:6px">
+          <span style="color:var(--ink);font-size:13px">학습지 [A] 그림 ①~③ — 위치별 복원력 F의 방향과 크기 (빈칸을 클릭해 보세요)</span>
+          <button class="btn" id="hShowAll" style="padding:4px 10px;font-size:12px">빈칸 정답 모두 보기</button>
+        </div>
+        <svg id="svH3" viewBox="0 0 580 282" style="width:100%;height:auto">
+          <defs>
+            <marker id="h3F" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#9333ea"/></marker>
+            <marker id="h3X1" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M10 0L0 5L10 10Z" fill="#2563eb"/></marker>
+            <marker id="h3X2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#2563eb"/></marker>
+          </defs>
+          <!-- 왼쪽 벽 -->
+          <rect x="18" y="18" width="6" height="232" fill="#334155"/>
+          <!-- 바닥선 3개 -->
+          <line x1="24" y1="82" x2="430" y2="82" stroke="#94a3b8" stroke-width="1.4"/>
+          <line x1="24" y1="164" x2="430" y2="164" stroke="#94a3b8" stroke-width="1.4"/>
+          <line x1="24" y1="246" x2="430" y2="246" stroke="#94a3b8" stroke-width="1.4"/>
+          <!-- 평형점 O 점선 -->
+          <line x1="225" y1="18" x2="225" y2="254" stroke="#2563eb" stroke-width="1.6" stroke-dasharray="4 4"/>
+          <text x="225" y="13" text-anchor="middle" font-size="11.5" font-weight="800" fill="#2563eb">평형점 O</text>
+
+          <!-- ① x = -A -->
+          <text x="32" y="34" font-size="12" font-weight="800" fill="#0f172a">① x = −A</text>
+          <polyline id="h3Sp1" points="" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/>
+          <rect id="h3M1" x="123" y="40" width="42" height="42" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+          <text id="h3T1" x="144" y="66" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0f172a">m</text>
+          <line id="h3F1" x1="170" y1="61" x2="218" y2="61" stroke="#9333ea" stroke-width="4" stroke-linecap="round" marker-end="url(#h3F)"/>
+          <text x="380" y="47" font-size="11.5" font-weight="700" fill="#9333ea">F의 방향</text>
+          <text x="380" y="73" font-size="11.5" font-weight="700" fill="#9333ea">F의 크기</text>
+          <g class="ans-box" data-b="0"><rect x="434" y="31" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb0" x="503" y="47" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+          <g class="ans-box" data-b="1"><rect x="434" y="57" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb1" x="503" y="73" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+
+          <!-- ② x = 0 (평형점 O) -->
+          <text x="32" y="116" font-size="12" font-weight="800" fill="#0f172a">② x = 0 (평형점 O)</text>
+          <polyline id="h3Sp2" points="" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/>
+          <rect id="h3M2" x="204" y="122" width="42" height="42" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+          <text id="h3T2" x="225" y="148" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0f172a">m</text>
+          <text x="380" y="129" font-size="11.5" font-weight="700" fill="#9333ea">F의 방향</text>
+          <text x="380" y="155" font-size="11.5" font-weight="700" fill="#9333ea">F의 크기</text>
+          <g class="ans-box" data-b="2"><rect x="434" y="113" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb2" x="503" y="129" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+          <g class="ans-box" data-b="3"><rect x="434" y="139" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb3" x="503" y="155" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+
+          <!-- ③ x = +A -->
+          <text x="32" y="198" font-size="12" font-weight="800" fill="#0f172a">③ x = +A</text>
+          <polyline id="h3Sp3" points="" fill="none" stroke="#334155" stroke-width="2" stroke-linejoin="round"/>
+          <rect id="h3M3" x="285" y="204" width="42" height="42" fill="#e2e8f0" stroke="#334155" stroke-width="2"/>
+          <text id="h3T3" x="306" y="230" text-anchor="middle" font-size="13.5" font-weight="800" fill="#0f172a">m</text>
+          <line id="h3F3" x1="280" y1="225" x2="232" y2="225" stroke="#9333ea" stroke-width="4" stroke-linecap="round" marker-end="url(#h3F)"/>
+          <text x="380" y="211" font-size="11.5" font-weight="700" fill="#9333ea">F의 방향</text>
+          <text x="380" y="237" font-size="11.5" font-weight="700" fill="#9333ea">F의 크기</text>
+          <g class="ans-box" data-b="4"><rect x="434" y="195" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb4" x="503" y="211" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+          <g class="ans-box" data-b="5"><rect x="434" y="221" width="138" height="23" rx="3" fill="#fff" stroke="#475569" stroke-width="1.5"/><text id="hb5" x="503" y="237" text-anchor="middle" font-size="12" font-weight="800" fill="#9333ea"></text></g>
+
+          <!-- 하단 변위 x (오른쪽 +) 화살표 -->
+          <line x1="228" y1="260" x2="302" y2="260" stroke="#2563eb" stroke-width="2" marker-start="url(#h3X1)" marker-end="url(#h3X2)"/>
+          <text x="265" y="276" text-anchor="middle" font-size="11.5" font-weight="800" fill="#2563eb">변위 x (오른쪽 +)</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="hcol">
+      <div class="card">
+        <div class="gt"><span style="color:var(--f)">복원력–변위 그래프 (F–x, 오른쪽 +)</span><span id="fxhs"></span></div>
+        <svg id="gFxH" viewBox="0 0 320 250" style="width:100%;height:auto;max-width:380px;margin:0 auto"></svg>
+      </div>
+      <div class="card">
+        <div class="gt" style="align-items:center">
+          <span style="color:var(--ink);font-size:13px">A. 용수철 진자에 작용하는 힘에는 어떤 특징이 있을까?</span>
+          <span style="font-size:11.5px;color:var(--f)">빈칸 클릭</span>
+        </div>
+        <ul class="ws-list">
+          <li><b>① 용수철 진자:</b> 용수철에 매단 물체가 <b>평형점 O</b>를 중심으로 왕복하는 장치. 평형점에서 물체까지의 위치를 변위 <i>x</i>라 하고 <b>오른쪽을 (+)</b>로 한다.</li>
+          <li><b>② 복원력의 특징:</b> 그림 ①~③에서 용수철이 물체에 작용하는 복원력 <i>F</i>의 방향은 항상 <span class="blank-pill" data-ws="0" data-ans="평형점 O">? (클릭)</span>을(를) 향하고, 크기는 변위의 크기 |<i>x</i>|에 <span class="blank-pill" data-ws="1" data-ans="비례">? (클릭)</span>한다.</li>
+          <li><b>③ 복원력의 식:</b> 복원력을 식으로 쓰면 <i>F</i> = −(<span class="blank-pill" data-ws="2" data-ans="k (용수철 상수)">?</span>)<i>x</i> 이다. 식의 (−) 부호는 <span class="blank-pill" data-ws="3" data-ans="복원력의 방향이 변위 x와 반대 방향임">? (클릭)</span>을(를) 뜻한다.</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <!-- ===== 뷰 A : 용수철 + 그래프 (① ⑥) ===== -->
@@ -204,7 +346,7 @@
   function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
   function clear(g){while(g.firstChild)g.removeChild(g.firstChild);}
   const TMAX=10, G=9.8;
-  const S={t:0,playing:true,A:0.8,w:2,m:1,k:4,step:1,speed:1,ghost:false,split:false,fshow:false,ov:{x:true,v:false,a:true}};
+  const S={t:0,playing:true,A:0.8,w:2,m:1,k:4,step:0,speed:1,ghost:false,split:false,fshow:false,ov:{x:true,v:false,a:true},hbox:[false,false,false,false,false,false],ws:[false,false,false,false]};
   const X=t=>S.A*Math.sin(S.w*t), V=t=>S.A*S.w*Math.cos(S.w*t), AC=t=>-S.A*S.w*S.w*Math.sin(S.w*t);
   const T=()=>2*Math.PI/S.w;
   const sg=v=>(v<-0.005?'−':'+')+Math.abs(v).toFixed(2);
@@ -212,7 +354,30 @@
 
   /* ================= 단계 내용 ================= */
   const ST={
-   1:{view:'A',title:'① 복원력과 단진동 — F–x 그래프',
+   0:{view:'H',title:'A. 용수철 진자에 작용하는 힘의 특징 (가로 용수철)',
+      key:'용수철에 매단 물체가 평형점 O를 중심으로 왕복할 때, 용수철이 물체에 작용하는 복원력 F의 방향은 항상 평형점 O를 향하고 크기는 변위의 크기 |x|에 비례한다 (F = −kx).',
+      given:'<b>부호 약속</b> 평형점 O에서 물체까지의 위치를 변위 <i>x</i>라 하고, <b>오른쪽을 (+)</b>, <b>왼쪽을 (−)</b>로 정한다.',
+      read:[
+        '① x = −A (압축): 변위는 왼쪽(−)이고, 복원력 F는 오른쪽(+, 평형점 O 방향), 크기는 kA로 최대',
+        '② x = 0 (평형점 O): 용수철이 늘어나지도 압축되지도 않아 복원력 F = 0',
+        '③ x = +A (늘어남): 변위는 오른쪽(+)이고, 복원력 F는 왼쪽(−, 평형점 O 방향), 크기는 kA로 최대',
+        'F–x 그래프는 원점을 지나는 직선(기울기 −k)이며, 복원력의 크기는 |x|에 비례한다'
+      ],
+      formula:'<div class="blue">F = −kx</div>',
+      sym:[
+        'F : 복원력(N) — 물체를 항상 평형점 O로 되돌리려는 힘',
+        'k : 용수철 상수(N/m) — 용수철의 뻣뻣한 정도 (F–x 그래프 기울기의 크기)',
+        'x : 평형점 O에서의 변위(m), 오른쪽을 (+)로 약속',
+        '(−) 부호 : 복원력 F의 방향이 변위 x의 방향과 항상 반대임을 뜻함'
+      ],
+      note:'학습지 [A]의 그림 ①~③ 빈칸과 오른쪽 정리 문장의 빈칸을 직접 클릭하여 정답을 확인할 수 있습니다. 「직접 끌기(x)」 슬라이더를 움직여 위치별 복원력 화살표를 관찰해 보세요.',
+      obs:[
+        ['그림 ①(x = −A)에서 복원력 F의 방향과 크기는?','방향: 오른쪽(+, 평형점 O 방향), 크기: kA (최대)'],
+        ['그림 ②(x = 0, 평형점 O)에서 복원력 F의 방향과 크기는?','방향: 없음, 크기: 0'],
+        ['그림 ③(x = +A)에서 복원력 F의 방향과 크기는?','방향: 왼쪽(−, 평형점 O 방향), 크기: kA (최대)'],
+        ['복원력 식 F = −kx에서 (−) 부호가 뜻하는 것은?','힘 F의 방향이 변위 x의 방향과 반대(항상 평형점 O를 향함)']
+      ]},
+   1:{view:'A',title:'① 복원력과 단진동 — F–x 그래프 (세로 용수철)',
       key:'복원력은 변위와 반대 방향으로 작용하고 크기는 변위에 비례한다. 복원력을 받아 평형점을 중심으로 주기적으로 왕복하는 운동이 단진동이다.',
       read:['F–x 그래프는 원점을 지나는 직선 → 복원력의 크기는 변위에 비례','기울기는 −k : 용수철이 뻣뻣할수록(k↑) 같은 변위에서 복원력이 크다','(+) 변위에서는 (−)힘, (−) 변위에서는 (+)힘 → 항상 평형점 쪽','점이 원점(평형점)에 있을 때 복원력은 0'],
       formula:'<div class="blue">F = −kx</div>',
@@ -335,8 +500,114 @@
     this.seg.setAttribute('x1',this.px(-A));this.seg.setAttribute('y1',this.py(-slope*A));this.seg.setAttribute('x2',this.px(A));this.seg.setAttribute('y2',this.py(slope*A));
   };
   XY.prototype.move=function(x,y){this.dot.setAttribute('cx',this.px(x));this.dot.setAttribute('cy',this.py(y));};
+  const xyFH=new XY('gFxH',{W:320,H:250,L:44,R:14,T:12,B:30,xm:1,ym:12.5,xt:[-1,-0.5,0.5,1],yt:[-10,-5,5,10],xlab:'x (m, 오른쪽 +)',ylab:'F (N)',color:'#9333ea',light:'#e9d5ff'});
   const xyF=new XY('gFx',{W:320,H:250,L:44,R:14,T:12,B:30,xm:1,ym:12.5,xt:[-1,-0.5,0.5,1],yt:[-10,-5,5,10],xlab:'x (m)',ylab:'F (N)',color:'#9333ea',light:'#e9d5ff'});
   const xyA=new XY('gAx',{W:320,H:250,L:44,R:14,T:12,B:30,xm:1,ym:12.5,xt:[-1,-0.5,0.5,1],yt:[-10,-5,5,10],xlab:'x (m)',ylab:'a (m/s²)',color:'#e11d48',light:'#fecdd3'});
+
+  /* ================= 뷰 H : 가로 용수철 복원력 (0) ================= */
+  const CXH=290, PXH=160;
+  function springPtsH(x0,x1,y0,n,amp){
+    const p=[];
+    const len=x1-x0;
+    const pad=Math.min(12,Math.max(4,len*0.08));
+    p.push(x0.toFixed(1)+','+y0.toFixed(1));
+    p.push((x0+pad).toFixed(1)+','+y0.toFixed(1));
+    const inner=len-2*pad;
+    for(let j=1;j<=n;j++){
+      const x=x0+pad+inner*(j-0.5)/n;
+      const y=y0+(j%2?-amp:amp);
+      p.push(x.toFixed(1)+','+y.toFixed(1));
+    }
+    p.push((x1-pad).toFixed(1)+','+y0.toFixed(1));
+    p.push(x1.toFixed(1)+','+y0.toFixed(1));
+    return p.join(' ');
+  }
+  function updateH3(){
+    const dpx=S.A*102;
+    const x1=225-dpx, x2=225, x3=225+dpx;
+    $('h3M1').setAttribute('x',x1-21); $('h3T1').setAttribute('x',x1);
+    $('h3Sp1').setAttribute('points',springPtsH(24,x1-21,61,14,11));
+    $('h3F1').setAttribute('x1',x1+25); $('h3F1').setAttribute('x2',Math.min(222,x1+25+Math.max(24,dpx*0.55)));
+
+    $('h3M2').setAttribute('x',x2-21); $('h3T2').setAttribute('x',x2);
+    $('h3Sp2').setAttribute('points',springPtsH(24,x2-21,143,14,11));
+
+    $('h3M3').setAttribute('x',x3-21); $('h3T3').setAttribute('x',x3);
+    $('h3Sp3').setAttribute('points',springPtsH(24,x3-21,225,14,11));
+    $('h3F3').setAttribute('x1',x3-25); $('h3F3').setAttribute('x2',Math.max(228,x3-25-Math.max(24,dpx*0.55)));
+
+    const fMax=(S.k*S.A).toFixed(1);
+    const ans=[
+      '오른쪽 (+, O 방향)',
+      'kA (최대, '+fMax+' N)',
+      '없음',
+      '0 (0 N)',
+      '왼쪽 (−, O 방향)',
+      'kA (최대, '+fMax+' N)'
+    ];
+    for(let i=0;i<6;i++){
+      const on=S.hbox[i];
+      const g=document.querySelector('.ans-box[data-b="'+i+'"] rect');
+      if(g){
+        g.setAttribute('fill',on?'#faf5ff':'#ffffff');
+        g.setAttribute('stroke',on?'#9333ea':'#475569');
+      }
+      $('hb'+i).textContent=on?ans[i]:'? (클릭)';
+      $('hb'+i).setAttribute('fill',on?'#7e22ce':'#94a3b8');
+    }
+    document.querySelectorAll('.blank-pill').forEach(el=>{
+      const idx=+el.dataset.ws;
+      const on=S.ws[idx];
+      el.classList.toggle('on',on);
+      el.textContent=on?el.dataset.ans:'? (클릭)';
+    });
+    const allOn=S.hbox.every(Boolean)&&S.ws.every(Boolean);
+    $('hShowAll').textContent=allOn?'빈칸 정답 모두 숨기기':'빈칸 정답 모두 보기';
+  }
+  function drawH(){
+    const x=X(S.t), xm=CXH+x*PXH, F=-S.k*x;
+    const minAx=CXH-S.A*PXH, plusAx=CXH+S.A*PXH;
+    $('hLineMinA').setAttribute('x1',minAx); $('hLineMinA').setAttribute('x2',minAx); $('hTxtMinA').setAttribute('x',minAx);
+    $('hLinePlusA').setAttribute('x1',plusAx); $('hLinePlusA').setAttribute('x2',plusAx); $('hTxtPlusA').setAttribute('x',plusAx);
+    $('hSpring').setAttribute('points',springPtsH(26,xm-26,106,14,13));
+    $('hMass').setAttribute('x',xm-26);
+    $('hMassT').setAttribute('x',xm);
+    $('rxH').value=(x/S.A).toFixed(2);
+
+    // 복원력 F 화살표 (수평)
+    const LM=115, fLen=(F/(S.k*S.A))*LM;
+    if(Math.abs(fLen)<4){
+      $('haF').style.display='none';
+      $('htF').textContent='F = 0 N (평형점)';
+      $('htF').setAttribute('x',CXH);
+    }else{
+      $('haF').style.display='';
+      $('haF').setAttribute('x1',xm);
+      $('haF').setAttribute('x2',xm+fLen);
+      $('htF').setAttribute('x',xm+fLen*0.5);
+      $('htF').textContent='복원력 F = '+sg(F)+' N ('+(F>0?'오른쪽 +':'왼쪽 −')+')';
+    }
+
+    // 변위 x 화살표 (수평)
+    const xLen=xm-CXH;
+    if(Math.abs(xLen)<4){
+      $('haX').style.display='none';
+      $('htX').setAttribute('x',CXH);
+      $('htX').textContent='변위 x = 0.00 m (평형점 O)';
+    }else{
+      $('haX').style.display='';
+      $('haX').setAttribute('x1',CXH);
+      $('haX').setAttribute('x2',xm);
+      $('htX').setAttribute('x',CXH+xLen*0.5);
+      $('htX').textContent='변위 x = '+sg(x)+' m ('+(x>0?'오른쪽 +':'왼쪽 −')+')';
+    }
+
+    if(x<-0.35*S.A) $('hStateTag').textContent='용수철 압축 (x < 0) → 복원력 F는 오른쪽(+)';
+    else if(x>0.35*S.A) $('hStateTag').textContent='용수철 늘어남 (x > 0) → 복원력 F는 왼쪽(−)';
+    else $('hStateTag').textContent='평형점 부근 (x ≈ 0) → 복원력 F ≈ 0';
+
+    xyFH.move(x,F);
+  }
 
   /* ================= 뷰 A : 용수철 ================= */
   const CYA=250,PXA=150;
@@ -492,7 +763,7 @@
   function draw(){
     const t=S.t,x=X(t),v=V(t),a=AC(t),th=S.w*t,thm=((th%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
     const vw=ST[S.step].view;
-    if(vw==='A')drawA();else if(vw==='B')drawB();else drawC();
+    if(vw==='H')drawH();else if(vw==='A')drawA();else if(vw==='B')drawB();else drawC();
     $('rt').textContent=t.toFixed(2)+' s';$('rth').textContent=thm.toFixed(2)+' rad';
     $('rx').textContent=sg(x)+' m';$('rv').textContent=sg(v)+' m/s';$('ra').textContent=sg(a)+' m/s²';$('rf').textContent=sg(-S.k*x)+' N';
   }
@@ -500,8 +771,9 @@
     $('vA').textContent=S.A.toFixed(2)+' m';$('vw').textContent=S.w.toFixed(1)+' rad/s';
     $('vm').textContent=S.m.toFixed(1)+' kg';$('vk').textContent=S.k.toFixed(1)+' N/m';
     const sv=S.step;
-    $('derived').innerHTML=sv===1?'':(sv===6?'ω = √(k/m) = <b>'+S.w.toFixed(2)+'</b> rad/s &nbsp; T = 2π/ω = <b>'+T().toFixed(2)+'</b> s':
+    $('derived').innerHTML=(sv===0||sv===1)?'최대 복원력 kA = <b>'+(S.k*S.A).toFixed(2)+'</b> N':(sv===6?'ω = √(k/m) = <b>'+S.w.toFixed(2)+'</b> rad/s &nbsp; T = 2π/ω = <b>'+T().toFixed(2)+'</b> s':
       'ω = <b>'+S.w.toFixed(1)+'</b> rad/s &nbsp; T = 2π/ω = <b>'+T().toFixed(2)+'</b> s &nbsp; f = 1/T = <b>'+(1/T()).toFixed(2)+'</b> Hz');
+    $('fxhs').textContent='기울기 = −k = −'+S.k.toFixed(1)+' N/m';
     $('fxs').textContent='기울기 = −k = −'+S.k.toFixed(1)+' N/m';
     $('axs').textContent='기울기 = −ω² = −'+(S.w*S.w).toFixed(1)+' s⁻²';
     $('xts').textContent='최댓값 A = '+S.A.toFixed(2)+' m';
@@ -510,14 +782,14 @@
   function redrawStatic(){
     syncText();
     gXt.redraw(X,S.A);
-    xyF.setLine(-S.k,S.A);xyA.setLine(-S.w*S.w,S.A);
-    ovRedraw();rebuildGridB();draw();
+    xyFH.setLine(-S.k,S.A);xyF.setLine(-S.k,S.A);xyA.setLine(-S.w*S.w,S.A);
+    updateH3();ovRedraw();rebuildGridB();draw();
   }
   function setStep(n){
     S.step=n;const d=ST[n];
     $('app').className='v'+d.view;
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',+b.dataset.step===n));
-    const circ=(n>=2&&n<=5),mk=(n===1||n===6);
+    const circ=(n>=2&&n<=5),mk=(n===0||n===1||n===6);
     if(circ){S.w=Math.min(3.4,Math.max(0.6,S.w));S.k=S.m*S.w*S.w;}
     if(mk){S.k=Math.min(12,Math.max(2,S.k));S.w=Math.sqrt(S.k/S.m);}
     setSliders();
@@ -544,11 +816,30 @@
   $('reset').addEventListener('click',()=>{S.t=0;draw();});
   document.querySelectorAll('.keys .btn[data-ph]').forEach(b=>b.addEventListener('click',()=>{
     S.playing=false;$('play').textContent='▶ 재생';S.t=(+b.dataset.ph)*T();draw();}));
+  $('rxH').addEventListener('input',e=>{
+    S.playing=false;$('play').textContent='▶ 재생';
+    const ratio=Math.max(-1,Math.min(1,+e.target.value));
+    const ang=Math.asin(ratio);
+    S.t=(ang>=0?ang:(ang+2*Math.PI))/S.w;
+    draw();
+  });
+  document.querySelectorAll('.ans-box').forEach(g=>g.addEventListener('click',()=>{
+    const idx=+g.dataset.b;S.hbox[idx]=!S.hbox[idx];updateH3();
+  }));
+  document.querySelectorAll('.blank-pill').forEach(el=>el.addEventListener('click',()=>{
+    const idx=+el.dataset.ws;S.ws[idx]=!S.ws[idx];updateH3();
+  }));
+  $('hShowAll').addEventListener('click',()=>{
+    const next=!(S.hbox.every(Boolean)&&S.ws.every(Boolean));
+    S.hbox=S.hbox.map(()=>next);
+    S.ws=S.ws.map(()=>next);
+    updateH3();
+  });
   function tick(ts){
     if(S.playing){if(S.last!=null){S.t+=Math.min(0.05,(ts-S.last)/1000)*S.speed;if(S.t>=TMAX)S.t-=TMAX;}S.last=ts;draw();}
     requestAnimationFrame(tick);
   }
-  setStep(1);requestAnimationFrame(tick);
+  setStep(0);requestAnimationFrame(tick);
   window.__S=S;window.__setStep=setStep;window.__draw=draw;window.__redraw=redrawStatic;
 })();
 </script>
