@@ -33,7 +33,7 @@ def sim(title, js, extra=""):
             '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px">'
             '<b style="font-size:13px">🎬 ' + title + '</b><span>' + extra + CTRL + '</span></div>'
             '<canvas id="cv" width="640" height="270" style="width:100%;border:1px solid #e2e8f0;border-radius:6px;background:#fafafa"></canvas></div>'
-            '<script>' + PRE + js + '\nrequestAnimationFrame(loop);</script>')
+            '<script>(function(){' + PRE + js + '\nrequestAnimationFrame(loop);})();</script>')
 
 
 # ---------------- 1. 횡파와 종파 ----------------
@@ -148,15 +148,15 @@ EX6 = '<button class="b" id="lh">가벼운→무거운</button><button class="b"
 
 # ---------------- 7. 초음파 비파괴 검사 ----------------
 JS7 = r"""
-SP=3;let crack=true;const v=.6,bx0=40,top=80,sc=52,ox=300,oy=232,ps=23;
+SP=3;let crack=true;const v=.6,bx0=40,topY=80,sc=52,ox=300,oy=232,ps=23;
 const G=(s,p,h)=>h*Math.exp(-Math.pow((s-p)/.22,2));
 function sig(s){return G(s,.3,150)+(crack?G(s,4,70):0)+G(s,10,crack?110:130)}
-function pulse(tt,td,px,col,lab){if(tt>2*td)return;const d=tt<=td?v*tt:v*(2*td-tt);const y=top+d*sc;dot(px,y,6,col);arrow(px,y,px,y+(tt<=td?16:-16),col,2);txt(lab,px+(lab=='ㄱ'?-14:14),y,col,13)}
+function pulse(tt,td,px,col,lab){if(tt>2*td)return;const d=tt<=td?v*tt:v*(2*td-tt);const y=topY+d*sc;dot(px,y,6,col);arrow(px,y,px,y+(tt<=td?16:-16),col,2);txt(lab,px+(lab=='ㄱ'?-14:14),y,col,13)}
 function draw(){const tt=t%14;
- c.fillStyle='#e2e8f0';c.fillRect(bx0,top,210,3*sc);c.strokeStyle='#1e293b';c.lineWidth=2;c.strokeRect(bx0,top,210,3*sc);
- c.fillStyle='#334155';c.fillRect(bx0+65,top-30,80,30);txt('탐촉자',bx0+105,top-15,'#fff',12);txt('강철',bx0+185,top+3*sc-14,'#0f172a',13);
- if(crack){line(bx0+30,top+1.2*sc,bx0+175,top+1.2*sc,'#be123c',5);txt('균열',bx0+198,top+1.2*sc-12,'#be123c',13)}
- dbl(bx0-14,top,bx0-14,top+3*sc,'#475569');txt('3 cm',bx0-14,top+1.5*sc,'#475569',11);
+ c.fillStyle='#e2e8f0';c.fillRect(bx0,topY,210,3*sc);c.strokeStyle='#1e293b';c.lineWidth=2;c.strokeRect(bx0,topY,210,3*sc);
+ c.fillStyle='#334155';c.fillRect(bx0+65,topY-30,80,30);txt('탐촉자',bx0+105,topY-15,'#fff',12);txt('강철',bx0+185,topY+3*sc-14,'#0f172a',13);
+ if(crack){line(bx0+30,topY+1.2*sc,bx0+175,topY+1.2*sc,'#be123c',5);txt('균열',bx0+198,topY+1.2*sc-12,'#be123c',13)}
+ dbl(bx0-14,topY,bx0-14,topY+3*sc,'#475569');txt('3 cm',bx0-14,topY+1.5*sc,'#475569',11);
  if(crack)pulse(tt,2,bx0+90,'#2563eb','ㄱ');pulse(tt,5,bx0+125,'#7c3aed','ㄴ');
  axes(ox,oy,310,150,'시간 (μs)','신호 세기');
  for(let s=2;s<=12;s+=2){line(ox+s*ps,oy-3,ox+s*ps,oy+3,'#0f172a',1);txt(String(s),ox+s*ps,oy+14,'#475569',10)}
@@ -344,3 +344,4 @@ def run_sim():
 
 
 run_sim()
+
