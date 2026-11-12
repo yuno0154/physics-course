@@ -107,6 +107,7 @@ transistor_page = st.Page("physics_sim/transistor_sim.py", title="🔌 [탐구] 
 shm_components_page = st.Page("physics_sim/shm_components.py", title="〰️ [탐구] 단진동: 복원력 · 그림자 사영 · 주기")
 shm_eval_page = st.Page("physics_sim/shm_eval.py", title="📝 [과제] 단진동 형성평가 문제 풀이", url_path="shm_eval")
 wave_components_page = st.Page("physics_sim/wave_components.py", title="🌊 [탐구] 탄성파: 진행 · 속력 · 반사와 투과")
+wave_eval_page = st.Page("physics_sim/wave_eval.py", title="📝 [과제] 탄성파 형성평가 문제 풀이", url_path="wave_eval")
 
 # 네비게이션 구성
 pg = st.navigation({
@@ -191,7 +192,8 @@ pg = st.navigation({
     "🔊 학습주제 10: 탄성파와 소리": [
         shm_components_page,
         shm_eval_page,
-        wave_components_page
+        wave_components_page,
+        wave_eval_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
