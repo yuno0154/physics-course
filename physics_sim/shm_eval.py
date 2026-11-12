@@ -35,7 +35,7 @@ def sim(title, js, extra=""):
             '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px">'
             '<b style="font-size:13px">🎬 ' + title + '</b><span>' + extra + CTRL + '</span></div>'
             '<canvas id="cv" width="640" height="270" style="width:100%;border:1px solid #e2e8f0;border-radius:6px;background:#fafafa"></canvas></div>'
-            '<script>' + PRE + js + '\nrequestAnimationFrame(loop);</script>')
+            '<script>(function(){' + PRE + js + '\nrequestAnimationFrame(loop);})();</script>')
 
 
 # ---------------- 1. 수평 용수철 ----------------
@@ -351,3 +351,4 @@ def run_sim():
 
 
 run_sim()
+
