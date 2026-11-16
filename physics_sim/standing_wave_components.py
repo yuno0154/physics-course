@@ -41,7 +41,7 @@ canvas{display:block;width:100%;height:auto}
 <button class="btn" data-sp="0.25">0.25×</button><button class="btn on" data-sp="0.5">0.5×</button><button class="btn" data-sp="1">1×</button>
 <button class="btn primary" id="pp">⏸ 일시정지</button><button class="btn" id="st">T/4씩 넘기기 ▶|</button></div>
 <div class="tabs" id="tabs"></div>
-<div id="c0" class="ctrl view"><label class="grp"><input type="checkbox" id="trav" checked> 두 진행파 보기</label><label class="grp"><input type="checkbox" id="env" checked> 진동 범위(배·마디) 보기</label></div>
+<div id="c0" class="ctrl view"><label class="grp"><input type="checkbox" id="ovl" checked> 합성파 축에 두 파동 합쳐(겹쳐) 보기</label><label class="grp"><input type="checkbox" id="trav" checked> 위쪽에 두 진행파 따로 보기</label><label class="grp"><input type="checkbox" id="env" checked> 진동 범위(배·마디) 보기</label></div>
 <div id="c1" class="ctrl view">
  <div class="grp">진동 <i>n</i><input type="range" id="n1" min="1" max="6" step="1" value="1"><span class="val" id="vn1"></span></div>
  <div class="grp">줄의 길이<input type="range" id="l1" min="0.3" max="0.8" step="0.01" value="0.65"><span class="val" id="vl1"></span></div>
@@ -90,18 +90,48 @@ function stop(){if(osc){osc.stop();osc=null}}
 function beep(f,dur){tone(f);setTimeout(()=>{if(!sndOn)stop()},dur||700)}
 function sndBtn(id,getf){$(id).onclick=()=>{sndOn=!sndOn;if(sndOn){tone(getf())}else stop();document.querySelectorAll('[id^=s][id$=""]');$(id).textContent=sndOn?'🔇 끄기':'🔊 소리'}}
 // ===== tab0
-function scene0(){clear();const x0=60,x1=940,lam=293.3,k=2*Math.PI/lam,w=2*Math.PI*0.25,A=34;
+function scene0(){clear();
+ const showSep=$('trav').checked,showOvl=$('ovl').checked,showEnv=$('env').checked;
+ const x0=60,x1=940,lam=293.3,k=2*Math.PI/lam,w=2*Math.PI*0.25,A=showSep?34:58;
  const fa=x=>A*Math.sin(k*(x-x0)-w*T),fb=x=>A*Math.sin(k*(x-x0)+w*T);
- if($('trav').checked){[[90,'오른쪽으로 진행하는 파동',fa,BL],[200,'왼쪽으로 진행하는 파동',fb,RD]].forEach(r=>{ln(x0,r[0],x1,r[0],'#e2e8f0',1);txt(r[1],x0,r[0]-48,{a:'left',b:1,s:13,c:r[3]});plot(r[2],x0,x1,r[0],r[3],2.2)});arr(x1-90,52,x1-20,52,BL);arr(x0+90,162,x0+20,162,RD)}
- const ys=$('trav').checked?350:240;ln(x0,ys,x1,ys,'#e2e8f0',1);txt('합성파 = 정상파',x0,ys-88,{a:'left',b:1,s:14,c:PU});
- if($('env').checked){plot(x=>2*A*Math.abs(Math.sin(k*(x-x0))),x0,x1,ys,'#ddd6fe',1.4,[4,4]);plot(x=>-2*A*Math.abs(Math.sin(k*(x-x0))),x0,x1,ys,'#ddd6fe',1.4,[4,4]);
-  for(let m=0;m<=6;m++){const xn=x0+m*lam/2;if(xn>x1+1)break;dot(xn,ys,5,RD);txt('마디',xn,ys+22,{s:11,c:RD,b:1})}
-  for(let m=0;m<6;m++){const xa=x0+lam/4+m*lam/2;if(xa>x1)break;txt('배',xa,ys-80,{s:11,c:BL,b:1})}
-  dbl(x0,ys+44,x0+lam/2,ys+44,GN);txt('반 파장 (λ/2)',x0+lam/4,ys+58,{s:12,c:GN,b:1})}
- plot(x=>fa(x)+fb(x),x0,x1,ys,PU,3);
- const ph=((T%4)+4)%4,lab=ph<0.05||Math.abs(ph-2)<0.05?'두 파동이 같은 위상으로 겹쳐 <b>변위가 가장 큼</b>':(Math.abs(ph-1)<0.05||Math.abs(ph-3)<0.05?'두 파동이 반대 위상으로 겹쳐 <b>줄 전체가 평평</b>(변위 0)':'');
+ if(showSep){
+  [[82,'오른쪽으로 진행하는 파동 (y₁)',fa,BL],[182,'왼쪽으로 진행하는 파동 (y₂)',fb,RD]].forEach(r=>{
+   ln(x0,r[0],x1,r[0],'#e2e8f0',1);txt(r[1],x0,r[0]-44,{a:'left',b:1,s:13,c:r[3]});plot(r[2],x0,x1,r[0],r[3],2.2);
+  });
+  arr(x1-90,44,x1-20,44,BL);arr(x0+90,144,x0+20,144,RD);
+ }
+ const ys=showSep?345:235;
+ ln(x0,ys,x1,ys,'#cbd5e1',1.5);
+ txt('합성파 = 정상파 (y = y₁ + y₂)',x0,ys-2*A-28,{a:'left',b:1,s:14,c:PU});
+ if(showOvl){
+  txt('── 파랑 점선: 오른쪽 진행파(y₁)   ── 빨강 점선: 왼쪽 진행파(y₂)   ━━ 보라 실선: 합성 정상파(y₁+y₂)',x0+235,ys-2*A-28,{a:'left',b:1,s:12.5,c:SUB});
+ }
+ if(showEnv){
+  plot(x=>2*A*Math.abs(Math.sin(k*(x-x0))),x0,x1,ys,'#ddd6fe',1.5,[4,4]);
+  plot(x=>-2*A*Math.abs(Math.sin(k*(x-x0))),x0,x1,ys,'#ddd6fe',1.5,[4,4]);
+ }
+ // 합성파 축 위에 두 진행파(파랑·빨강)를 함께 겹쳐 그리기
+ if(showOvl){
+  plot(fa,x0,x1,ys,'rgba(37,99,235,0.75)',2.2,[6,4]);
+  plot(fb,x0,x1,ys,'rgba(225,29,72,0.75)',2.2,[6,4]);
+  // 배 위치에서 두 파동의 변위가 더해지는 점 표시
+  for(let m=0;m<6;m++){
+   const xa=x0+lam/4+m*lam/2;if(xa>x1)break;
+   const y1=fa(xa),y2=fb(xa),ysum=y1+y2;
+   ln(xa,ys,xa,ys-ysum,'rgba(124,58,237,0.35)',2);
+   dot(xa,ys-y1,4,BL);dot(xa,ys-y2,4,RD);dot(xa,ys-ysum,5.5,PU);
+  }
+ }
+ // 합성 정상파 (보라색 굵은 실선)
+ plot(x=>fa(x)+fb(x),x0,x1,ys,PU,3.5);
+ if(showEnv){
+  for(let m=0;m<=6;m++){const xn=x0+m*lam/2;if(xn>x1+1)break;dot(xn,ys,5.5,RD);txt('마디',xn,ys+20,{s:11,c:RD,b:1})}
+  for(let m=0;m<6;m++){const xa=x0+lam/4+m*lam/2;if(xa>x1)break;txt('배',xa,ys-2*A-10,{s:11.5,c:BL,b:1})}
+  dbl(x0,ys+40,x0+lam/2,ys+40,GN);txt('반 파장 (λ/2)',x0+lam/4,ys+55,{s:12,c:GN,b:1});
+ }
+ const ph=((T%4)+4)%4,lab=ph<0.05||Math.abs(ph-2)<0.05?'두 파동(파랑·빨강)이 같은 위상으로 완전히 겹쳐 <b>합성 변위가 2배(±2A)로 최대</b>':(Math.abs(ph-1)<0.05||Math.abs(ph-3)<0.05?'두 파동(파랑·빨강)이 반대 위상으로 만나 <b>모든 곳에서 상쇄되어 줄 전체가 평평(변위 0)</b>':'');
  txt('t = '+(T%4).toFixed(2)+' T',W-30,24,{a:'right',b:1,s:14});
- $('step').innerHTML=(lab?lab+' · ':'')+'정상파는 옆으로 진행하지 않고 제자리에서 진동합니다. <b>마디</b>는 두 파동이 늘 반대 위상으로 만나 항상 정지하고, <b>배</b>는 늘 같은 위상으로 만나 원래 진폭의 2배로 진동합니다. 「T/4씩 넘기기」로 학습지 그림을 확인하세요.';}
+ $('step').innerHTML=(lab?lab+' · ':'')+'아래 합성파 축에서 <b style="color:#2563eb">파란 점선(오른쪽 진행파)</b>과 <b style="color:#e11d48">빨간 점선(왼쪽 진행파)</b>이 실시간으로 더해져 <b style="color:#7c3aed">보라색 정상파</b>가 됩니다. <b>마디</b>는 두 파동의 변위가 항상 (+y₁) + (−y₁) = 0으로 상쇄되고, <b>배</b>는 항상 같은 방향으로 만나 ±2A로 크게 진동합니다.';}
 // ===== tab1 string
 function f1(){return (+$('n1').value)*(+$('v1').value)/(2*(+$('l1').value))}
 function scene1(){clear();const n=+$('n1').value,L=+$('l1').value,v=+$('v1').value,f=f1(),lamn=2*L/n;
