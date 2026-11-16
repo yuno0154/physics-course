@@ -285,36 +285,51 @@ EX7 = '<button class="b" id="p2">(나) 멀어질 때 (2.2 ms)</button><button cl
 
 # ---------------- 8. 원운동하는 별의 스펙트럼 편이 (A, B, C, D) ----------------
 JS8 = r"""
-SP=0.8;const cx=165,cy=115,R=72;
+SP=0.8;const cx=135,cy=110,R=68;
 function draw(){
  const th=t%(2*Math.PI),sx=cx+R*Math.cos(th),sy=cy-R*Math.sin(th);
  c.beginPath();c.setLineDash([5,4]);c.strokeStyle='#94a3b8';c.lineWidth=1.8;c.arc(cx,cy,R,0,7);c.stroke();c.setLineDash([]);
  dot(cx,cy,3,'#0f172a');txt('O',cx+10,cy,'#475569',12);
- [['A',cx+R+15,cy],['B',cx,cy-R-13],['C',cx-R-15,cy],['D',cx,cy+R+14]].forEach(p=>{txt(p[0],p[1],p[2],'#0f172a',13)});
+ [['A',cx+R+14,cy],['B',cx,cy-R-13],['C',cx-R-14,cy],['D',cx,cy+R+14]].forEach(p=>{txt(p[0],p[1],p[2],'#0f172a',13)});
  // 지구
- dot(cx,242,12,'#60a5fa');txt('지구 (관측)',cx+52,242,'#0f172a',12);
- line(cx,228,cx,cy+R+22,'#cbd5e1',1,[3,3]);
+ dot(cx,238,11,'#60a5fa');txt('지구 (관측)',cx+48,238,'#0f172a',12);
+ line(cx,225,cx,cy+R+22,'#cbd5e1',1,[3,3]);
  // 별의 접선 속도 화살표 (반시계 공전: vx = -sin(th), vy = -cos(th))
  const vx=-Math.sin(th),vy=-Math.cos(th);
- arrow(sx,sy,sx+vx*32,sy+vy*32,'#e11d48',2.5);
+ arrow(sx,sy,sx+vx*30,sy+vy*30,'#e11d48',2.5);
  const vrad=-Math.cos(th); // +1 at C (approaching Earth), -1 at A (receding from Earth)
  const col=vrad>0.2?'#2563eb':(vrad<-0.2?'#e11d48':'#eab308');
  dot(sx,sy,9,col);
 
- // 우측 스펙트럼 창
- const x0=310,x1=610,yb=85;
+ // 우측 2단 흡수선 스펙트럼 비교 (기준 스펙트럼 vs 별빛 스펙트럼 — 선 스펙트럼 전체 묶음이 함께 이동)
+ const x0=265,x1=615,sw=x1-x0,yRef=44,yObs=132,bh=32;
  const grd=c.createLinearGradient(x0,0,x1,0);
  ['#7c3aed','#2563eb','#06b6d4','#22c55e','#eab308','#f97316','#dc2626'].forEach((cl,i)=>grd.addColorStop(i/6,cl));
- c.fillStyle=grd;c.fillRect(x0,yb,x1-x0,40);
- txt('짧은 파장 (청색)',x0,yb+54,'#2563eb',11.5,'left');txt('긴 파장 (적색)',x1,yb+54,'#e11d48',11.5,'right');
- const base=(x0+x1)/2,shift=-vrad*75;
- line(base,yb-12,base,yb+48,'#fff',1.5,[3,3]);txt('원래 파장 λ₀',base,yb-20,'#475569',11.5);
- c.fillStyle='#0f172a';c.fillRect(base+shift-2.5,yb,5,40);
- let st='B·D 부근: 시선 방향과 수직 운동 → 파장 변화 없음 (λ = λ₀)';
- if(vrad>0.2)st='C 부근: 지구로 다가옴 → 파장 짧아짐 (청색 편이)';
- else if(vrad<-0.2)st='A 부근: 지구에서 멀어짐 → 파장 길어짐 (적색 편이)';
- txt(st,460,175,col==='#eab308'?'#0f172a':col,13);
- txt('핵심: 관측자(지구·스피드건) 시선 방향 성분의 운동만 도플러 효과를 만든다!',460,210,'#475569',11.5);
+
+ txt('① 정지 광원 기준 스펙트럼 (고유 흡수선 묶음)',x0,yRef-12,'#0f172a',12,'left');
+ c.fillStyle=grd;c.fillRect(x0,yRef,sw,bh);
+ c.strokeStyle='#334155';c.lineWidth=1.2;c.strokeRect(x0,yRef,sw,bh);
+
+ txt('② 지구 관측 별빛 스펙트럼 (선 스펙트럼 전체가 함께 이동!)',x0,yObs-12,col==='#eab308'?'#0f172a':col,12,'left');
+ c.fillStyle=grd;c.fillRect(x0,yObs,sw,bh);
+ c.strokeStyle='#334155';c.lineWidth=1.2;c.strokeRect(x0,yObs,sw,bh);
+
+ const lines=[0.16,0.28,0.45,0.65,0.82],ws=[2.2,3.0,3.8,2.5,4.2];
+ const shift=-vrad*28,aCol=vrad>0.2?'#2563eb':(vrad<-0.2?'#e11d48':'#64748b');
+ lines.forEach((p,idx)=>{
+  const xr=x0+p*sw,xo=xr+shift,lw=ws[idx];
+  c.fillStyle='#0f172a';c.fillRect(xr-lw/2,yRef,lw,bh);
+  c.fillStyle='#0f172a';c.fillRect(xo-lw/2,yObs,lw,bh);
+  arrow(xr,yRef+bh+3,xo,yObs-22,aCol,1.6);
+ });
+
+ txt('◀ 짧은 파장 (청색)',x0,yObs+bh+14,'#2563eb',11.5,'left');
+ txt('긴 파장 (적색) ▶',x1,yObs+bh+14,'#e11d48',11.5,'right');
+ let st='B·D 부근: 시선 방향과 수직 운동 → 흡수선 전체가 기준 위치와 일치';
+ if(vrad>0.2)st='◀ C 부근: 지구로 다가옴 → 흡수선 전체가 짧은 파장 쪽으로 이동 (청색 편이)';
+ else if(vrad<-0.2)st='A 부근 ▶: 지구에서 멀어짐 → 흡수선 전체가 긴 파장 쪽으로 이동 (적색 편이)';
+ txt(st,440,210,col==='#eab308'?'#0f172a':col,12.5);
+ txt('핵심: 특정 선 하나만 움직이는 것이 아니라 흡수선 묶음 전체가 간격을 유지한 채 함께 편이된다!',440,242,'#475569',11.5);
 }
 """
 EX8 = ('<button class="b" data-t="0">위치 A</button>'

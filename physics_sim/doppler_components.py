@@ -66,6 +66,13 @@ canvas{display:block;width:100%;height:auto}
 <div id="c4" class="ctrl view">
  <button class="btn on" id="m4a">스피드건</button><button class="btn" id="m4b">별빛의 편이</button>
  <span id="g4" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn on" data-st="1">1단계: 스피드건 → 자동차</button><button class="btn" data-st="2">2단계: 자동차 → 스피드건</button><button class="btn" data-st="3">3단계: 합쳐 보기</button><span class="grp">자동차 속력<input type="range" id="r4" min="0" max="60" step="5" value="30"><span class="val" id="v4"></span></span></span>
+ <span id="g4star" style="display:none;gap:6px;align-items:center;flex-wrap:wrap">
+  <button class="btn" data-sth="0">위치 A (적색 편이)</button>
+  <button class="btn" data-sth="1.5708">위치 B (편이 없음)</button>
+  <button class="btn" data-sth="3.1416">위치 C (청색 편이)</button>
+  <button class="btn" data-sth="4.7124">위치 D (편이 없음)</button>
+  <button class="btn on" id="starPlay">▶ 연속 공전</button>
+ </span>
 </div>
 
 <div class="card"><canvas id="cv" width="1000" height="460"></canvas></div>
@@ -292,27 +299,76 @@ function scene4(dt){
    2:'<b>2단계</b> · 반사파를 <b>내보내는 쪽은 자동차</b>입니다. 이 단계에서는 자동차가 <b>움직이는 파원</b>이 되어 분모가 c − v가 됩니다. 보라색 반사파의 간격이 좁아진 것을 보세요.',
    3:'<b>3단계</b> · 스피드건을 든 사람은 두 단계 모두 <b>정지</b>해 있습니다. 자동차가 1단계에서는 관찰자, 2단계에서는 파원 역할을 하므로 도플러 효과가 <b>두 번</b> 일어나고, 진동수 차이는 약 <b>2v/c</b>에 비례합니다.'}[st];
  }else{
-  const cx=330,cy=190,R=110,w=0.5,th=T4.t*w;const sx=cx+R*Math.cos(th),sy=cy-R*Math.sin(th);
+  const cx=240,cy=185,R=110,w=0.5,th=T4.t*w;const sx=cx+R*Math.cos(th),sy=cy-R*Math.sin(th);
   ctx.beginPath();ctx.setLineDash([5,5]);ctx.strokeStyle='#94a3b8';ctx.arc(cx,cy,R,0,7);ctx.stroke();ctx.setLineDash([]);dot(cx,cy,3,INK);txt('O',cx+12,cy,{s:12,b:1,c:SUB});
   [['A',cx+R+18,cy],['B',cx,cy-R-16],['C',cx-R-18,cy],['D',cx,cy+R+16]].forEach(p=>txt(p[0],p[1],p[2],{s:13,b:1,c:INK}));
   const vx=-Math.sin(th),vy=-Math.cos(th);
   arr(sx,sy,sx+vx*34,sy+vy*34,RD,2.2);
   const vrad=Math.cos(th)*-1; // + = approaching earth (earth below)
   const col=vrad>0.15?'#60a5fa':(vrad<-0.15?'#f87171':'#fde047');dot(sx,sy,14,col);
-  dot(cx,410,18,'#93c5fd');txt('지구 (관측)',cx+34,410,{s:13,b:1,a:'left'});ln(cx,392,cx,cy+R+24,'#cbd5e1',1,[3,4]);
-  // spectrum
-  const x0=560,x1=960,yb=170;const grd=ctx.createLinearGradient(x0,0,x1,0);['#7c3aed','#2563eb','#06b6d4','#22c55e','#eab308','#f97316','#dc2626'].forEach((c,i)=>grd.addColorStop(i/6,c));
-  ctx.fillStyle=grd;ctx.fillRect(x0,yb,x1-x0,46);txt('짧은 파장',x0,yb+62,{s:12,a:'left'});txt('긴 파장',x1,yb+62,{s:12,a:'right'});
-  const base=(x0+x1)/2,shift=-vrad*90;ln(base,yb-14,base,yb+46+6,'#fff',1,[3,3]);ctx.fillStyle=INK;ctx.fillRect(base+shift-2,yb,4,46);
-  txt('원래 위치',base,yb-24,{s:12,c:SUB});
-  const lab=vrad>0.15?'청색 편이 (가까워짐 → 파장 짧아짐)':(vrad<-0.15?'적색 편이 (멀어짐 → 파장 길어짐)':'편이 거의 없음 (시선 방향 운동 없음)');
-  txt(lab,(x0+x1)/2,yb+100,{s:16,b:1,c:vrad>0.15?BL:(vrad<-0.15?RD:SUB)});
-  $('step').innerHTML='별이 지구 쪽으로 다가올 때는 스펙트럼의 선이 <b style="color:#2563eb">짧은 파장 쪽(청색 편이)</b>으로, 멀어질 때는 <b style="color:#e11d48">긴 파장 쪽(적색 편이)</b>으로 옮겨집니다. 지구와의 거리가 변하지 않는 방향으로 움직이는 순간에는 편이가 없습니다.';
+  dot(cx,405,18,'#93c5fd');txt('지구 (관측)',cx+34,405,{s:13,b:1,a:'left'});ln(cx,387,cx,cy+R+24,'#cbd5e1',1,[3,4]);
+
+  // 2단 흡수선 스펙트럼 비교 (기준 스펙트럼 vs 별빛 관측 스펙트럼 — 선 스펙트럼 전체 묶음이 함께 이동)
+  const x0=450,x1=950,sw=x1-x0,yRef=105,yObs=235,bh=48;
+  const grd=ctx.createLinearGradient(x0,0,x1,0);
+  ['#7c3aed','#2563eb','#06b6d4','#22c55e','#eab308','#f97316','#dc2626'].forEach((c,i)=>grd.addColorStop(i/6,c));
+
+  // 1) 상단: 정지한 광원의 기준 흡수선 스펙트럼
+  txt('① 기준 스펙트럼 (실험실 정지 광원의 고유 흡수선 무늬)',x0,yRef-18,{s:13.5,b:1,a:'left',c:INK});
+  ctx.fillStyle=grd;ctx.fillRect(x0,yRef,sw,bh);
+  ctx.strokeStyle='#334155';ctx.lineWidth=1.5;ctx.strokeRect(x0,yRef,sw,bh);
+
+  // 2) 하단: 지구에서 관측한 별빛 흡수선 스펙트럼
+  txt('② 지구에서 관측한 별빛 스펙트럼 (선 스펙트럼 전체가 함께 이동!)',x0,yObs-18,{s:13.5,b:1,a:'left',c:vrad>0.15?BL:(vrad<-0.15?RD:INK)});
+  ctx.fillStyle=grd;ctx.fillRect(x0,yObs,sw,bh);
+  ctx.strokeStyle='#334155';ctx.lineWidth=1.5;ctx.strokeRect(x0,yObs,sw,bh);
+
+  // 고유 흡수선 묶음 (비등간격 5개 선, 두께도 고유 패턴 유지)
+  const lines=[
+   {p:0.16,w:2.5,lab:'Hδ'},
+   {p:0.27,w:3.2,lab:'Hγ'},
+   {p:0.44,w:4.0,lab:'Hβ'},
+   {p:0.64,w:2.8,lab:'Na'},
+   {p:0.81,w:4.5,lab:'Hα'}
+  ];
+  const shift=-vrad*42; // 청색 편이: 왼쪽(-), 적색 편이: 오른쪽(+)
+  const aCol=vrad>0.15?BL:(vrad<-0.15?RD:'#64748b');
+  lines.forEach(L=>{
+   const xr=x0+L.p*sw, xo=xr+shift;
+   // 상단 기준 흡수선
+   ctx.fillStyle='#0f172a';ctx.fillRect(xr-L.w/2,yRef,L.w,bh);
+   txt(L.lab,xr,yRef+bh+13,{s:11,c:SUB,b:1});
+   // 하단 관측 흡수선 (전체 간격 그대로 평행 이동)
+   ctx.fillStyle='#0f172a';ctx.fillRect(xo-L.w/2,yObs,L.w,bh);
+   // 기준선 → 관측선 이동 화살표
+   ln(xr,yRef+bh+24,xo,yObs-28,aCol,1.8,[3,3]);
+   head(xo,yObs-28,xo-xr,(yObs-28)-(yRef+bh+24),aCol,7);
+  });
+
+  txt('◀ 짧은 파장 (청색·보라)',x0,yObs+bh+20,{s:12.5,b:1,a:'left',c:BL});
+  txt('긴 파장 (적색) ▶',x1,yObs+bh+20,{s:12.5,b:1,a:'right',c:RD});
+
+  const lab=vrad>0.15?'◀ 청색 편이: 별이 다가올 때 모든 흡수선이 일제히 짧은 파장(청색) 쪽으로 이동'
+           :(vrad<-0.15?'적색 편이 ▶: 별이 멀어질 때 모든 흡수선이 일제히 긴 파장(적색) 쪽으로 이동'
+                       :'편이 없음: 시선 방향과 수직으로 운동할 때는 기준 스펙트럼 위치와 일치');
+  txt(lab,(x0+x1)/2,yObs+bh+56,{s:15,b:1,c:vrad>0.15?BL:(vrad<-0.15?RD:SUB)});
+  txt('※ 특정 선 하나만 움직이는 것이 아니라, 원소 고유의 흡수선 간격(무늬)을 유지한 채 스펙트럼 선 전체가 함께 이동합니다.',(x0+x1)/2,yObs+bh+84,{s:12,c:SUB});
+  $('step').innerHTML='별빛 스펙트럼의 검은 선들은 별의 대기가 흡수한 원소 고유의 <b>흡수선 묶음</b>입니다. 별이 지구로 다가올 때(C)는 <b>모든 흡수선이 함께 짧은 파장 쪽(청색 편이)</b>으로, 멀어질 때(A)는 <b>모든 흡수선이 함께 긴 파장 쪽(적색 편이)</b>으로 이동합니다.';
  }
 }
-$('m4a').onclick=()=>{T4.mode=0;$('m4a').classList.add('on');$('m4b').classList.remove('on');$('g4').style.display='flex'};
+$('m4a').onclick=()=>{T4.mode=0;$('m4a').classList.add('on');$('m4b').classList.remove('on');$('g4').style.display='flex';$('g4star').style.display='none'};
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{T4.step=+b.dataset.st;document.querySelectorAll('[data-st]').forEach(x=>x.classList.toggle('on',x===b));T4.cx=820;T4.em=[];T4.ref=[];T4.last=Math.floor(T4.t/G4.P);warm4(true)});
-$('m4b').onclick=()=>{T4.mode=1;$('m4b').classList.add('on');$('m4a').classList.remove('on');$('g4').style.display='none'};
+$('m4b').onclick=()=>{T4.mode=1;$('m4b').classList.add('on');$('m4a').classList.remove('on');$('g4').style.display='none';$('g4star').style.display='flex'};
+document.querySelectorAll('[data-sth]').forEach(b=>b.onclick=()=>{
+ T4.t=(+b.dataset.sth)/0.5;paused=true;$('pp').textContent='▶ 재생';
+ document.querySelectorAll('[data-sth]').forEach(x=>x.classList.toggle('on',x===b));
+ $('starPlay').classList.remove('on');
+});
+$('starPlay').onclick=()=>{
+ paused=false;$('pp').textContent='⏸ 일시정지';
+ document.querySelectorAll('[data-sth]').forEach(x=>x.classList.remove('on'));
+ $('starPlay').classList.add('on');
+};
 $('r4').oninput=e=>{T4.r=+e.target.value;$('v4').textContent=T4.r+' m/s'};
 // ---------- tabs / loop
 function reset(){T0.t=0;T0.target=0;T1.t=0;T1.x2=0;T1.c1=0;T1.c2=0;T1.prev1=null;T1.prev2=null;T1.t0=0;reset2();T3.t=0;T3.hist=[];T3.run=(tab===3);T4.t=0;T4.cx=820;T4.em=[];T4.ref=[];T4.last=-1;warm4(true)}
