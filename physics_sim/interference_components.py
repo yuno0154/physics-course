@@ -101,8 +101,11 @@ function pulseB(x){
  return (Math.abs(u)<110?45*Math.cos(Math.PI*u/220)*Math.sin(Math.PI*u/55):0)*sg;
 }
 function scene0(dt){if(!paused){S0.t+=dt;if(S0.t>8.5)S0.t=0}clear();
- const rows=[[110,'곡선 파동 A → (+2칸)',x=>pulseA(x),BL],[230,'← 곡선 파동 B ('+(S0.inv?'−1칸':'+1칸')+')',x=>pulseB(x),RD],[370,'줄의 실제 모습 (합성파 = A + B)',x=>pulseA(x)+pulseB(x),PU]];
- rows.forEach(r=>{ln(40,r[0],960,r[0],'#e2e8f0',1);txt(r[1],40,r[0]-80,{a:'left',b:1,s:13,c:r[3]});plot(r[2],40,960,r[0],r[3],r[3]===PU?3.2:2.4)});
+ const rows=[[110,'곡선 파동 A → (+2칸)',x=>pulseA(x),BL],[230,'← 곡선 파동 B ('+(S0.inv?'−1칸':'+1칸')+')',x=>pulseB(x),RD],[370,'줄의 실제 모습 (합성파 = A + B, 점선은 각 파동)',x=>pulseA(x)+pulseB(x),PU]];
+ rows.forEach(r=>{ln(40,r[0],960,r[0],'#e2e8f0',1);txt(r[1],40,r[0]-80,{a:'left',b:1,s:13,c:r[3]});plot(r[2],40,960,r[0],r[3],r[3]===PU?3.4:2.4)});
+ // 합성파 축(y=370) 위에 두 개별 파동(A: 파랑 점선, B: 빨강 점선)을 함께 겹쳐 표시
+ plot(x=>pulseA(x),40,960,370,'rgba(37,99,235,0.7)',1.8,[5,4]);
+ plot(x=>pulseB(x),40,960,370,'rgba(225,29,72,0.7)',1.8,[5,4]);
  const cA=150+S0.t*95,cB=850-S0.t*95,ov=Math.abs(cA-cB)<(S0.multi?210:135);
  arr(Math.min(920,cA+45),55,Math.min(950,cA+85),55,BL);
  arr(Math.max(80,cB-45),175,Math.max(50,cB-85),175,RD);
@@ -116,7 +119,10 @@ $('p0go').onclick=()=>{S0.t=0;paused=false;$('pp').textContent='⏸ 일시정지
 // ===== tab1 phase
 function scene1(dt){clear();const ph=+$('ph1').value*Math.PI/180,k=2*Math.PI/260,w=2*Math.PI*0.5,A=45;
  const f1=x=>A*Math.sin(k*x-w*T),f2=x=>A*Math.sin(k*x-w*T+ph);
- [[95,'파동 1',f1,BL],[215,'파동 2',f2,RD],[355,'합성파 (파동 1 + 파동 2)',x=>f1(x)+f2(x),PU]].forEach(r=>{ln(150,r[0],960,r[0],'#e2e8f0',1);ln(150,r[0]-90,150,r[0]+90,'#f1f5f9',1);txt(r[1],20,r[0],{a:'left',b:1,s:13,c:r[3]});plot(r[2],150,960,r[0],r[3],r[3]===PU?3:2.2)});
+ [[95,'파동 1',f1,BL],[215,'파동 2',f2,RD],[355,'합성파 (파동 1 + 파동 2)',x=>f1(x)+f2(x),PU]].forEach(r=>{ln(150,r[0],960,r[0],'#e2e8f0',1);ln(150,r[0]-90,150,r[0]+90,'#f1f5f9',1);txt(r[1],20,r[0],{a:'left',b:1,s:13,c:r[3]});plot(r[2],150,960,r[0],r[3],r[3]===PU?3.4:2.2)});
+ // 합성파 축(y=355) 위에 파동 1(파랑 점선)과 파동 2(빨강 점선)를 함께 겹쳐 표시
+ plot(f1,150,960,355,'rgba(37,99,235,0.65)',1.8,[5,4]);
+ plot(f2,150,960,355,'rgba(225,29,72,0.65)',1.8,[5,4]);
  const amp=2*Math.abs(Math.cos(ph/2));ln(150,355-A*2,960,355-A*2,'#e9d5ff',1,[4,4]);ln(150,355+A*2,960,355+A*2,'#e9d5ff',1,[4,4]);txt('2A',140,355-A*2,{a:'right',s:12,c:PU});
  txt('합성파의 진폭 = '+amp.toFixed(2)+' A',W-30,440,{a:'right',b:1,s:17,c:PU});
  const deg=+$('ph1').value;$('vph1').textContent=deg+'°';
