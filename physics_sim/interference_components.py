@@ -41,7 +41,7 @@ canvas{display:block;width:100%;height:auto}
 <button class="btn" data-sp="0.25">0.25×</button><button class="btn on" data-sp="0.5">0.5×</button><button class="btn" data-sp="1">1×</button>
 <button class="btn primary" id="pp">⏸ 일시정지</button><button class="btn" id="rs">↺ 처음부터</button></div>
 <div class="tabs" id="tabs"></div>
-<div id="c0" class="ctrl view"><button class="btn on" id="p0a">B를 아래로 볼록(반대, −1칸)</button><button class="btn" id="p0b">B를 위로 볼록(같은 쪽, +1칸)</button><button class="btn" id="p0pk">📍 꼭짓점 겹침 순간 보기</button><button class="btn go" id="p0go">▶ 다시 보내기</button></div>
+<div id="c0" class="ctrl view"><button class="btn on" id="p0a">파동 B 아래로 볼록(반대, −1칸)</button><button class="btn" id="p0b">파동 B 위로 볼록(같은 쪽, +1칸)</button><button class="btn" id="p0w">파형: 단일 곡선파</button><button class="btn" id="p0pk">📍 꼭짓점 겹침 순간 보기</button><button class="btn go" id="p0go">▶ 다시 보내기</button></div>
 <div id="c1" class="ctrl view"><div class="grp">두 파동의 위상차<input type="range" id="ph1" min="0" max="360" step="15" value="0"><span class="val" id="vph1"></span></div><button class="btn" id="ph1a">같은 위상(0°)</button><button class="btn" id="ph1b">반대 위상(180°)</button></div>
 <div id="c2" class="ctrl view">
  <button class="btn on" id="m2a">순간 모습(마루·골)</button><button class="btn" id="m2b">소리의 세기 분포</button>
@@ -51,8 +51,11 @@ canvas{display:block;width:100%;height:auto}
  <span style="font-size:12px;color:#64748b">화면을 클릭하면 측정점 P가 옮겨집니다</span>
 </div>
 <div id="c3" class="ctrl view">
- <label class="grp"><input type="checkbox" id="anc" checked> 소음 제거 켜기</label>
- <div class="grp">만든 소리의 진폭<input type="range" id="a3" min="0" max="1.2" step="0.05" value="1"><span class="val" id="va3"></span></div>
+ <button class="btn on" data-m3="0">🎧 그림 Ⅲ-24 소음 제거 이어폰</button>
+ <button class="btn" data-m3="1">🚗 그림 Ⅲ-25 자동차 능동 소음 제어</button>
+ <button class="btn" data-m3="2">📈 파형 상세 실험</button>
+ <label class="grp"><input type="checkbox" id="anc" checked> 소음 제어(ANC) 켜기</label>
+ <div class="grp">반대 파동 진폭<input type="range" id="a3" min="0" max="1.2" step="0.05" value="1"><span class="val" id="va3"></span></div>
  <div class="grp">위상차<input type="range" id="p3" min="0" max="360" step="10" value="180"><span class="val" id="vp3"></span></div>
  <button class="btn" id="noise3">소음: 규칙적</button><button class="btn" id="snd3">🔊 귀에 들리는 소리</button>
 </div>
@@ -85,18 +88,29 @@ function arr(x0,y0,x1,y1,c){ln(x0,y0,x1,y1,c,2.5);head(x1,y1,x1-x0,y1-y0,c)}
 function dot(x,y,r,c){ctx.beginPath();ctx.fillStyle=c;ctx.arc(x,y,r,0,7);ctx.fill()}
 function plot(f,x0,x1,y0,c,w,dash){ctx.beginPath();ctx.setLineDash(dash||[]);ctx.strokeStyle=c;ctx.lineWidth=w||2;for(let x=x0;x<=x1;x+=2){const y=y0-f(x);x===x0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke();ctx.setLineDash([])}
 function clear(){ctx.clearRect(0,0,W,H)}
-// ===== tab0 pulses
-const S0={t:0,inv:true};
-function pulseA(x){const c=150+S0.t*95,d=Math.abs(x-c);return d<60?70*(1-d/60):0}
-function pulseB(x){const c=850-S0.t*95,d=Math.abs(x-c);return (d<60?35*(1-d/60):0)*(S0.inv?-1:1)}
+// ===== tab0 curved waves (곡선 파동)
+const S0={t:0,inv:true,multi:false};
+function pulseA(x){
+ const c=150+S0.t*95,u=x-c;
+ if(!S0.multi){return Math.abs(u)<70?70*Math.pow(Math.cos(Math.PI*u/140),2):0}
+ return Math.abs(u)<110?65*Math.cos(Math.PI*u/220)*Math.sin(Math.PI*u/55):0;
+}
+function pulseB(x){
+ const c=850-S0.t*95,u=x-c,sg=S0.inv?-1:1;
+ if(!S0.multi){return (Math.abs(u)<70?35*Math.pow(Math.cos(Math.PI*u/140),2):0)*sg}
+ return (Math.abs(u)<110?45*Math.cos(Math.PI*u/220)*Math.sin(Math.PI*u/55):0)*sg;
+}
 function scene0(dt){if(!paused){S0.t+=dt;if(S0.t>8.5)S0.t=0}clear();
- const rows=[[110,'펄스 A (+2칸)',x=>pulseA(x),BL],[230,'펄스 B ('+(S0.inv?'−1칸':'+1칸')+')',x=>pulseB(x),RD],[370,'줄의 실제 모습 (합성파 = A + B)',x=>pulseA(x)+pulseB(x),PU]];
- rows.forEach(r=>{ln(40,r[0],960,r[0],'#e2e8f0',1);txt(r[1],40,r[0]-80,{a:'left',b:1,s:13,c:r[3]});plot(r[2],40,960,r[0],r[3],r[3]===PU?3:2.2)});
- const cA=150+S0.t*95,cB=850-S0.t*95,ov=Math.abs(cA-cB)<120;
+ const rows=[[110,'곡선 파동 A → (+2칸)',x=>pulseA(x),BL],[230,'← 곡선 파동 B ('+(S0.inv?'−1칸':'+1칸')+')',x=>pulseB(x),RD],[370,'줄의 실제 모습 (합성파 = A + B)',x=>pulseA(x)+pulseB(x),PU]];
+ rows.forEach(r=>{ln(40,r[0],960,r[0],'#e2e8f0',1);txt(r[1],40,r[0]-80,{a:'left',b:1,s:13,c:r[3]});plot(r[2],40,960,r[0],r[3],r[3]===PU?3.2:2.4)});
+ const cA=150+S0.t*95,cB=850-S0.t*95,ov=Math.abs(cA-cB)<(S0.multi?210:135);
+ arr(Math.min(920,cA+45),55,Math.min(950,cA+85),55,BL);
+ arr(Math.max(80,cB-45),175,Math.max(50,cB-85),175,RD);
  if(ov){const xm=(cA+cB)/2;ln(xm,40,xm,440,'#cbd5e1',1,[4,4]);const ya=pulseA(xm),yb=pulseB(xm);txt('A: '+(ya/35).toFixed(1)+'  +  B: '+(yb/35).toFixed(1)+'  =  '+((ya+yb)/35).toFixed(1)+' (칸)',xm+12,300,{a:'left',b:1,s:14,c:PU})}
- $('step').innerHTML=ov?'두 펄스가 <b>겹치는 곳의 변위 = A의 변위 + B의 변위</b>입니다. '+(S0.inv?'B가 반대쪽(−1칸)이라 꼭짓점이 겹치면 <b>2 + (−1) = +1칸</b>으로 줄어듭니다(상쇄).':'같은 쪽(+1칸)이라 꼭짓점이 겹치면 <b>2 + 1 = +3칸</b>으로 더 커집니다(보강).'):(S0.t<3.68?'두 펄스가 서로를 향해 다가갑니다.':'만난 뒤에도 두 펄스는 <b>원래 모양과 크기 그대로</b> 각자 진행합니다(파동의 독립성).');}
+ $('step').innerHTML=ov?'두 곡선 파동이 <b>겹치는 곳의 변위 = A의 변위 + B의 변위</b>입니다. '+(S0.inv?'파동 B가 반대 위상(−1칸)이라 꼭짓점이 겹치면 <b>2 + (−1) = +1칸</b>으로 줄어듭니다(상쇄).':'같은 위상(+1칸)이라 꼭짓점이 겹치면 <b>2 + 1 = +3칸</b>으로 더 커집니다(보강).'):(S0.t<3.68?'두 곡선 파동이 서로를 향해 부드럽게 진행합니다.':'만난 뒤에도 두 파동은 <b>원래 곡선 모양과 크기 그대로</b> 각자 진행합니다(파동의 독립성).');}
 $('p0a').onclick=()=>{S0.inv=true;S0.t=0;$('p0a').classList.add('on');$('p0b').classList.remove('on')};
 $('p0b').onclick=()=>{S0.inv=false;S0.t=0;$('p0b').classList.add('on');$('p0a').classList.remove('on')};
+$('p0w').onclick=()=>{S0.multi=!S0.multi;S0.t=0;$('p0w').textContent=S0.multi?'파형: 연속 곡선파(사인파 묶음)':'파형: 단일 곡선파';$('p0w').classList.toggle('on',S0.multi)};
 $('p0pk').onclick=()=>{S0.t=350/95;paused=true;$('pp').textContent='▶ 재생'};
 $('p0go').onclick=()=>{S0.t=0;paused=false;$('pp').textContent='⏸ 일시정지'};
 // ===== tab1 phase
@@ -144,18 +158,171 @@ function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv
  $('step').innerHTML=(S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'아래 그래프처럼 스피커 앞을 걸으면 소리가 <b>커졌다 작아졌다</b>를 반복합니다.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':'');}
 cv.addEventListener('click',e=>{if(tab!==2)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}});
 $('m2a').onclick=()=>{S2.mode=0;$('m2a').classList.add('on');$('m2b').classList.remove('on')};$('m2b').onclick=()=>{S2.mode=1;$('m2b').classList.add('on');$('m2a').classList.remove('on')};
-// ===== tab3 ANC
-const S3={irr:false,snd:false};let AC=null,osc=null,gn=null;
+// ===== tab3 ANC (그림 III-24 이어폰 / 그림 III-25 자동차 능동 소음 제어 / 파형 상세 실험)
+const S3={mode:0,irr:false,snd:false};let AC=null,osc=null,gn=null;
 function noise(t){return S3.irr?(0.6*Math.sin(2*Math.PI*1.0*t)+0.35*Math.sin(2*Math.PI*2.7*t+1)+0.25*Math.sin(2*Math.PI*4.3*t+2)):Math.sin(2*Math.PI*1.0*t)}
-function scene3(dt){clear();const on=$('anc').checked,a=+$('a3').value,ph=+$('p3').value*Math.PI/180;$('va3').textContent=a.toFixed(2)+' × 소음';$('vp3').textContent=$('p3').value+'°';
- const pxs=0.004,A=60;
- const n=x=>A*noise(T-x*pxs);
- const anti=x=>on?(S3.irr?-A*a*noise(T-x*pxs-0.12):A*a*Math.sin(2*Math.PI*(T-x*pxs)+ph)):0;
- [[95,'외부 소음 (마이크가 감지)',n,SUB],[215,'이어폰이 만든 소리',anti,RD],[355,'귀에 들리는 소리 (합성파)',x=>n(x)+anti(x),BL]].forEach(r=>{ln(160,r[0],960,r[0],'#e2e8f0',1);txt(r[1],20,r[0]-60,{a:'left',b:1,s:13,c:r[3]});plot(r[2],160,960,r[0],r[3],r[3]===BL?3:2.2)});
- let s=0,s0=0;for(let x=0;x<400;x++){const v=n(x)+anti(x);s+=v*v;s0+=n(x)**2}const ratio=Math.sqrt(s/s0);
- txt('남은 소음의 크기: 원래의 '+Math.round(ratio*100)+'%',W-30,445,{a:'right',b:1,s:17,c:ratio<0.2?GN:(ratio<0.7?OR:RD)});
+function callout(x,y,w,h,t1,t2,col){
+ ctx.fillStyle='rgba(255,255,255,0.95)';ctx.strokeStyle=col||'#cbd5e1';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.roundRect(x,y,w,h,10);ctx.fill();ctx.stroke();
+ txt(t1,x+12,y+19,{a:'left',b:1,s:13,c:col||INK});
+ if(t2)txt(t2,x+12,y+39,{a:'left',s:12,c:SUB});
+}
+function scene3(dt){
+ clear();
+ const on=$('anc').checked,a=+$('a3').value,ph=+$('p3').value*Math.PI/180;
+ $('va3').textContent=a.toFixed(2)+' × 소음';$('vp3').textContent=$('p3').value+'°';
+ const pxs=0.004,A=44;
+ const nFn=x=>A*noise(T-x*pxs);
+ const antiFn=x=>on?(S3.irr?-A*a*noise(T-x*pxs-0.12):A*a*Math.sin(2*Math.PI*(T-x*pxs)+ph)):0;
+ let s=0,s0=0;for(let x=0;x<400;x++){const v=nFn(x)+antiFn(x);s+=v*v;s0+=nFn(x)**2}const ratio=Math.sqrt(s/s0);
  if(S3.snd&&osc)gn.gain.setTargetAtTime(0.08*Math.min(1.5,ratio),AC.currentTime,0.05);
- $('step').innerHTML=S3.irr?'<b>불규칙한 소음</b>은 모양이 계속 바뀌어, 감지한 뒤 반대 소리를 만드는 사이(지연)에 이미 소음이 달라집니다. 그래서 완전히 지우기 어렵습니다.':(!on?'소음 제거를 끄면 소음이 그대로 들립니다.':(Math.abs(+$('p3').value-180)<1&&Math.abs(a-1)<0.01?'진동수가 같고 <b>진폭이 같고 위상이 반대</b>인 소리를 더해 소음이 거의 사라졌습니다 → <b>상쇄 간섭</b>':'진폭과 위상차를 바꾸어 보세요. <b>진폭 1배, 위상차 180°</b>일 때 소음이 가장 많이 줄어듭니다.'));}
+
+ if(S3.mode===0){
+  // [그림 III-24] 소음 제거 이어폰의 원리
+  ctx.fillStyle='#fdf2ec';ctx.beginPath();ctx.roundRect(35,18,930,395,28);ctx.fill();
+  const cy=210,earX=340,canalX=760;
+
+  // 이어폰 하우징 & 이어팁
+  ctx.fillStyle='#cbd5e1';ctx.strokeStyle='#64748b';ctx.lineWidth=2;
+  ctx.beginPath();ctx.roundRect(310,145,115,130,18);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#94a3b8';ctx.beginPath();ctx.roundRect(415,155,58,110,28);ctx.fill();
+  // 이어폰 기둥(줄)
+  ctx.fillStyle='#e2e8f0';ctx.fillRect(338,275,26,95);ctx.strokeRect(338,275,26,95);
+  // ① 외부 마이크, ② 디지털 신호 처리 칩, 스피커, ③ 내부 마이크
+  ctx.fillStyle='#1e293b';ctx.fillRect(304,175,10,24); // ① 마이크
+  ctx.fillStyle='#0f172a';ctx.fillRect(330,178,44,36); // ② DSP 칩
+  txt('DSP',352,196,{c:'#38bdf8',b:1,s:11});
+  // 내부 스피커 유닛
+  ctx.fillStyle='#334155';ctx.beginPath();ctx.moveTo(392,192);ctx.lineTo(412,176);ctx.lineTo(412,244);ctx.lineTo(392,228);ctx.closePath();ctx.fill();
+  // ③ 피드백 마이크
+  ctx.fillStyle='#1e293b';ctx.fillRect(425,148,16,8);
+
+  // 방사형 음파 호 (스피커 → 귀)
+  for(let r=1;r<=4;r++){
+   ctx.beginPath();ctx.strokeStyle='rgba(148,163,184,0.35)';ctx.lineWidth=3;
+   ctx.arc(415,cy,35+r*36,-0.75,0.75);ctx.stroke();
+  }
+
+  // 오른쪽 귀(귓바퀴 & 외이도)
+  ctx.fillStyle='#f5d0c5';ctx.strokeStyle='#d99b82';ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(730,115);
+  ctx.bezierCurveTo(755,45,865,55,875,155);
+  ctx.bezierCurveTo(885,245,860,340,795,355);
+  ctx.bezierCurveTo(745,365,725,315,742,275);
+  ctx.lineTo(742,235);
+  ctx.lineTo(665,235);
+  ctx.lineTo(665,185);
+  ctx.lineTo(742,185);
+  ctx.closePath();ctx.fill();ctx.stroke();
+  // 귓속 어두운 입구
+  ctx.fillStyle='#9a5b4a';ctx.beginPath();ctx.ellipse(765,cy,18,24,0,0,7);ctx.fill();
+  txt('귀 (고막)',815,325,{b:1,s:14,c:'#7c2d12'});
+  if(ratio<0.25)txt('♪ ♫ 깨끗한 음악 소리',690,145,{b:1,s:14,c:PU});
+
+  // 1) 왼쪽에서 들어오는 주변 소음 (파란 곡선파: x = 70 .. 340)
+  plot(x=>nFn(x)*0.85,70,340,cy,BL,3);
+  txt('주변 소음',185,cy+52,{b:1,s:13.5,c:BL});
+
+  // 2) 이어폰 이후 구간 (x = 340 .. 765): 주변 소음(연한 파랑) + 반대 위상 신호(연한 주황) + 합성파(진한 보라)
+  ctx.save();ctx.globalAlpha=0.55;
+  plot(x=>nFn(x)*0.85,340,765,cy,BL,2.2);
+  if(on)plot(x=>antiFn(x)*0.85,340,765,cy,OR,2.2);
+  ctx.restore();
+  plot(x=>(nFn(x)+antiFn(x))*0.85,340,765,cy,PU,3.6);
+
+  // 교과서 ①~④ 단계 설명 콜아웃 및 지시선
+  ln(308,175,308,75,'#475569',1.2);ln(308,75,275,75,'#475569',1.2);
+  callout(65,44,215,58,'① 마이크로 주변 소음을','감지한다.',BL);
+
+  ln(352,214,352,330,'#475569',1.2);ln(352,330,305,330,'#475569',1.2);
+  callout(55,302,255,64,'② 소음을 디지털 신호로 바꾸어','반대 위상의 파동 신호를 발생시킨다.',OR);
+
+  ln(433,148,433,75,'#475569',1.2);ln(433,75,475,75,'#475569',1.2);
+  callout(475,44,225,58,'③ 사용자에게 들리는','소리를 감지한다.',INK);
+
+  ln(585,cy,585,330,'#475569',1.2);
+  callout(455,302,275,64,'④ 반대 위상 신호가 소음을 상쇄시켜','깨끗한 소리가 들리게 한다. (남은 소음 '+Math.round(ratio*100)+'%)',PU);
+
+  txt('그림 Ⅲ-24  소음 제거 이어폰의 원리 (위 슬라이더로 진폭·위상차를 바꿔 상쇄 정도를 실험해 보세요)',500,438,{b:1,s:13.5,c:INK});
+ } else if(S3.mode===1){
+  // [그림 III-25] 자동차 내부의 능동 소음 제어
+  ctx.fillStyle='#e2e8f0';ctx.beginPath();ctx.roundRect(35,18,930,395,28);ctx.fill();
+
+  // 상단 파형 수식: 노면 소음 + 반대 위상 음파 = 실내 소음
+  ctx.fillStyle='#ffffff';ctx.beginPath();ctx.roundRect(75,32,850,96,16);ctx.fill();
+  plot(x=>nFn(x)*0.48,105,305,72,RD,2.5);
+  txt('노면·엔진 소음',205,112,{b:1,s:13,c:RD});
+  txt('+',345,72,{b:1,s:24,c:INK});
+  plot(x=>antiFn(x)*0.48,385,585,72,BL,2.5);
+  txt('반대 위상 음파 (스피커)',485,112,{b:1,s:13,c:BL});
+  txt('=',625,72,{b:1,s:24,c:INK});
+  plot(x=>(nFn(x)+antiFn(x))*0.48,665,885,72,'#eab308',3.5);
+  txt('실내 소음 (남은 소음 '+Math.round(ratio*100)+'%)',775,112,{b:1,s:13,c:'#b45309'});
+
+  // 도로 배경
+  ctx.fillStyle='#94a3b8';ctx.fillRect(35,345,930,68);
+  ln(55,380,945,380,'#f8fafc',3,[28,18]);
+
+  // SUV 자동차 차체 실루엣
+  ctx.fillStyle='#1e3a5f';ctx.strokeStyle='#0f172a';ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.moveTo(155,335);
+  ctx.lineTo(165,265);
+  ctx.lineTo(275,245);
+  ctx.lineTo(380,165);
+  ctx.lineTo(715,165);
+  ctx.lineTo(785,235);
+  ctx.lineTo(815,335);
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  // 자동차 실내 창문 (내부 파형이 보이는 영역)
+  ctx.fillStyle='#0f172a';
+  ctx.beginPath();
+  ctx.moveTo(392,178);ctx.lineTo(702,178);ctx.lineTo(755,238);ctx.lineTo(315,238);
+  ctx.closePath();ctx.fill();
+
+  // 실내 공간 속 파동 중첩 시각화 (x = 340 .. 730, y = 208)
+  ctx.save();ctx.globalAlpha=0.65;
+  plot(x=>nFn(x)*0.45,340,725,208,RD,2);
+  if(on)plot(x=>antiFn(x)*0.45,340,725,208,'#38bdf8',2);
+  ctx.restore();
+  plot(x=>(nFn(x)+antiFn(x))*0.45,340,725,208,'#facc15',3.2);
+
+  // 바퀴 2개 (회전 애니메이션)
+  [275,695].forEach(wx=>{
+   dot(wx,338,42,'#0f172a');dot(wx,338,28,'#cbd5e1');dot(wx,338,8,'#334155');
+   for(let k=0;k<5;k++){
+    const ang=T*5+k*Math.PI*2/5;
+    ln(wx,338,wx+26*Math.cos(ang),338+26*Math.sin(ang),'#475569',3);
+   }
+  });
+
+  // 마이크 → 디지털 신호 처리기(DSP) → 스피커
+  dot(320,282,16,'#1e293b');txt('마이크',262,282,{b:1,s:13,c:'#ffffff'});
+  ctx.fillStyle='#10b981';ctx.fillRect(435,292,36,28);txt('DSP',453,306,{b:1,s:11,c:'#0f172a'});
+  txt('디지털 신호 처리기',453,332,{b:1,s:12.5,c:'#a7f3d0'});
+  dot(590,262,18,'#1e293b');txt('스피커',642,262,{b:1,s:13,c:'#ffffff'});
+
+  // 신호 전달 점선
+  ln(336,282,435,306,'#38bdf8',2,[4,4]);
+  ln(471,306,590,280,'#38bdf8',2,[4,4]);
+
+  txt('그림 Ⅲ-25  자동차 내부의 능동 소음 제어 (마이크가 노면·엔진 소음을 감지해 스피커로 반대 위상 음파를 내보냄)',500,438,{b:1,s:13.5,c:INK});
+ } else {
+  // [파형 상세 실험] 3단 파형 비교
+  [[95,'외부 소음 (마이크가 감지한 곡선 파동)',nFn,SUB],[215,'이어폰·스피커가 만든 반대 위상 소리',antiFn,RD],[355,'귀에 들리는 소리 (합성파)',x=>nFn(x)+antiFn(x),BL]].forEach(r=>{
+   ln(160,r[0],960,r[0],'#e2e8f0',1);txt(r[1],20,r[0]-60,{a:'left',b:1,s:13,c:r[3]});plot(r[2],160,960,r[0],r[3],r[3]===BL?3.2:2.4);
+  });
+  txt('남은 소음의 크기: 원래의 '+Math.round(ratio*100)+'%',W-30,442,{a:'right',b:1,s:17,c:ratio<0.2?GN:(ratio<0.7?OR:RD)});
+ }
+
+ $('step').innerHTML=S3.irr?'<b>불규칙한 소음</b>은 파형이 계속 바뀌어, 마이크가 감지한 뒤 반대 위상 소리를 만드는 사이(지연)에 이미 소음이 달라집니다. 그래서 완전히 지우기 어렵고 규칙적인 소음(엔진음·비행기 소음 등)을 더 잘 줄입니다.':(!on?'소음 제어(ANC)를 끄면 외부 소음이 상쇄되지 않고 그대로 들립니다.':(Math.abs(+$('p3').value-180)<1&&Math.abs(a-1)<0.01?'소음과 <b>진동수·진폭이 같고 위상이 반대(180°)</b>인 음파를 발생시켜 <b>상쇄 간섭</b>으로 소음을 제거합니다!':'위 슬라이더로 <b>반대 파동 진폭(1배)</b>과 <b>위상차(180°)</b>를 조절해 소음이 완전히 상쇄되는 조건을 찾아보세요.'));
+}
+document.querySelectorAll('[data-m3]').forEach(b=>b.onclick=()=>{
+ S3.mode=+b.dataset.m3;
+ document.querySelectorAll('[data-m3]').forEach(x=>x.classList.toggle('on',x===b));
+});
 $('noise3').onclick=()=>{S3.irr=!S3.irr;$('noise3').textContent=S3.irr?'소음: 불규칙':'소음: 규칙적'};
 $('snd3').onclick=()=>{S3.snd=!S3.snd;if(S3.snd){if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();osc=AC.createOscillator();gn=AC.createGain();osc.frequency.value=220;osc.type='sawtooth';gn.gain.value=0.05;osc.connect(gn).connect(AC.destination);osc.start()}else if(osc){osc.stop();osc=null}$('snd3').textContent=S3.snd?'🔇 소리 끄기':'🔊 귀에 들리는 소리'};
 // ===== tab4 muffler

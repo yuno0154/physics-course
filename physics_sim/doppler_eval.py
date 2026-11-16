@@ -67,26 +67,38 @@ function draw(){
 
 # ---------------- 2. 동심원 파면 간격 (X쪽 1.2 m, Y쪽 0.8 m) ----------------
 JS2 = r"""
-SP=1;const cy=120,x0=285,Rstep=32,dx=Rstep*0.2;
+SP=1;const cy=118,xStart=210,Rstep=28,dx=Rstep*0.2;
 function draw(){
- txt('X 쪽',95,32,'#ea580c',14);txt('Y 쪽',535,32,'#059669',14);
- for(let k=1;k<=4;k++){
-  const R=k*Rstep,cx=x0-k*dx;
-  c.beginPath();c.strokeStyle='#2563eb';c.lineWidth=1.8;c.arc(cx,cy,R,0,7);c.stroke();
+ const s=(t*1.1)%5.2;
+ txt('X 쪽 (뒤쪽 · 파장 길어짐)',110,24,'#ea580c',13);txt('Y 쪽 (앞쪽 · 파장 짧아짐)',520,24,'#059669',13);
+ line(30,cy,610,cy,'#e2e8f0',1);
+ const N=Math.floor(s);
+ for(let n=0;n<=N;n++){
+  const age=s-n,R=age*Rstep,cx=xStart+n*dx;
+  if(R>0.5){
+   c.beginPath();c.strokeStyle=n===N?'#1d4ed8':'#2563eb';c.lineWidth=n===N?2.3:1.8;
+   c.arc(cx,cy,R,0,7);c.stroke();
+   dot(cx,cy,2.5,'#94a3b8');
+  }
  }
- dot(x0,cy,6,'#e11d48');txt('음원',x0,cy+16,'#0f172a',12);
- arrow(x0+10,cy-14,x0+48,cy-14,'#e11d48',2.5);txt('운동 방향 (Y 쪽)',x0+55,cy-14,'#e11d48',12,'left');
- // X 쪽 1.2 m (k=3 to k=4 left edge)
- const xL4=(x0-4*dx)-4*Rstep,xL3=(x0-3*dx)-3*Rstep;
- line(xL4,cy,xL4,cy+105,'#94a3b8',1,[3,3]);line(xL3,cy,xL3,cy+105,'#94a3b8',1,[3,3]);
- dbl(xL4,cy+98,xL3,cy+98,'#ea580c');txt('1.2 m = λ + vₛT',(xL4+xL3)/2,cy+114,'#ea580c',12);
- // Y 쪽 0.8 m (k=3 to k=4 right edge)
- const xR3=(x0-3*dx)+3*Rstep,xR4=(x0-4*dx)+4*Rstep;
- line(xR3,cy,xR3,cy+105,'#94a3b8',1,[3,3]);line(xR4,cy,xR4,cy+105,'#94a3b8',1,[3,3]);
- dbl(xR3,cy+98,xR4,cy+98,'#059669');txt('0.8 m = λ − vₛT',(xR3+xR4)/2,cy+114,'#059669',12);
+ const curX=xStart+s*dx;
+ dot(curX,cy,7,'#e11d48');txt('음원',curX,cy+18,'#0f172a',12);
+ arrow(curX+10,cy-14,curX+52,cy-14,'#e11d48',2.5);txt('운동 방향 (Y 쪽, 68 m/s)',curX+58,cy-14,'#e11d48',12,'left');
+
+ // 가장 바깥 두 파면(n=0, n=1) 사이의 간격 표시
+ if(s>=1.2){
+  const xL0=xStart-s*Rstep,xL1=(xStart+dx)-(s-1)*Rstep;
+  const xR1=(xStart+dx)+(s-1)*Rstep,xR0=xStart+s*Rstep;
+  const yBar=cy+Math.min(96,s*Rstep*0.75+18);
+  line(xL0,cy,xL0,yBar+6,'#94a3b8',1,[3,3]);line(xL1,cy,xL1,yBar+6,'#94a3b8',1,[3,3]);
+  dbl(xL0,yBar,xL1,yBar,'#ea580c');txt('1.2 m = λ + vₛT',(xL0+xL1)/2,yBar+15,'#ea580c',12);
+  line(xR1,cy,xR1,yBar+6,'#94a3b8',1,[3,3]);line(xR0,cy,xR0,yBar+6,'#94a3b8',1,[3,3]);
+  dbl(xR1,yBar,xR0,yBar,'#059669');txt('0.8 m = λ − vₛT',(xR1+xR0)/2,yBar+15,'#059669',12);
+ }
  txt('정지 파장 λ = (1.2 + 0.8)/2 = 1.0 m  |  진동수 f = 340/1.0 = 340 Hz  |  음원 속력 vₛ = 0.2×340 = 68 m/s',320,254,'#1d4ed8',12.5);
 }
 """
+EX2 = '<button class="b" data-t="3.8">파면 4개 순간 보기</button>'
 
 # ---------------- 3. (가) 음원 10 m/s 이동 vs (나) 관찰자 10 m/s 이동 ----------------
 JS3 = r"""
@@ -236,31 +248,38 @@ EX6 = '<button class="b" id="b1">(1) B 10 m/s 다가감</button><button class="b
 
 # ---------------- 7. 압력-시간 그래프와 주기 변화 (2.0 ms / 2.2 ms / 1.8 ms) ----------------
 JS7 = r"""
-SP=1;let mode=2;
+SP=1.8;let mode=2;
 function draw(){
- const ox=55,oy1=82,oy2=188,gw=540,ps=58; // 1 ms = 58 px
+ const s=t%8.8;
+ const ox=55,oy1=85,oy2=190,gw=540,ps=58; // 1 ms = 58 px
  // (가) 자동차 정지: T = 2.0 ms (f = 500 Hz)
- axes(ox,oy1,gw,36,'시간(ms)','압력');
- txt('(가) 자동차 정지: 주기 T = 2.0 ms, 진동수 f = 1 / 0.002 s = 500 Hz',ox+90,oy1-42,'#0f172a',12.5,'left');
+ axes(ox,oy1,gw,34,'시간(ms)','압력');
+ txt('(가) 자동차 정지: 주기 T = 2.0 ms, f = 500 Hz',ox+215,oy1-42,'#0f172a',12,'left');
  for(let m=2;m<=8;m+=2){line(ox+m*ps,oy1-3,ox+m*ps,oy1+3,'#0f172a',1);txt(String(m),ox+m*ps,oy1+14,'#475569',10)}
- c.beginPath();c.strokeStyle='#2563eb';c.lineWidth=2.5;
- for(let ms=0;ms<=8.8;ms+=0.03){const x=ox+ms*ps,y=oy1-28*Math.sin(2*Math.PI*ms/2.0);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
- dbl(ox+0.5*ps,oy1-32,ox+2.5*ps,oy1-32,'#2563eb');txt('2.0 ms',ox+1.5*ps,oy1-43,'#2563eb',11);
+ c.beginPath();c.strokeStyle='#bfdbfe';c.lineWidth=1.5;
+ for(let ms=0;ms<=8.8;ms+=0.03){const x=ox+ms*ps,y=oy1-25*Math.sin(2*Math.PI*ms/2.0);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+ c.beginPath();c.strokeStyle='#2563eb';c.lineWidth=2.8;
+ for(let ms=0;ms<=s;ms+=0.03){const x=ox+ms*ps,y=oy1-25*Math.sin(2*Math.PI*ms/2.0);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+ dot(ox+s*ps,oy1-25*Math.sin(2*Math.PI*s/2.0),5.5,'#2563eb');
+ dbl(ox+0.5*ps,oy1-30,ox+2.5*ps,oy1-30,'#2563eb');txt('T = 2.0 ms',ox+1.5*ps,oy1-42,'#2563eb',11.5);
 
  // (나) 자동차 운동: mode=2 멀어짐 (T'=2.2 ms), mode=3 다가옴 (T'=1.8 ms)
  const T2=mode===2?2.2:1.8,col=mode===2?'#e11d48':'#059669';
- axes(ox,oy2,gw,36,'시간(ms)','압력');
- const lab=mode===2?'(나) 자동차 34 m/s로 멀어짐: T′ = 2.2 ms (길어짐), f′ ≈ 455 Hz':'(4) 자동차 34 m/s로 다가옴: T′ = 1.8 ms (짧아짐), f′ ≈ 556 Hz';
- txt(lab,ox+90,oy2-42,col,12.5,'left');
+ axes(ox,oy2,gw,34,'시간(ms)','압력');
+ const lab=mode===2?'(나) 34 m/s 멀어짐: T′ = 2.2 ms, f′ ≈ 455 Hz':'(4) 34 m/s 다가옴: T′ = 1.8 ms, f′ ≈ 556 Hz';
+ txt(lab,ox+215,oy2-42,col,12,'left');
  for(let m=2;m<=8;m+=2){line(ox+m*ps,oy2-3,ox+m*ps,oy2+3,'#0f172a',1);txt(String(m),ox+m*ps,oy2+14,'#475569',10)}
- c.beginPath();c.strokeStyle=col;c.lineWidth=2.5;
- for(let ms=0;ms<=8.8;ms+=0.03){const x=ox+ms*ps,y=oy2-28*Math.sin(2*Math.PI*ms/T2);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
- dbl(ox+0.25*T2*ps,oy2-32,ox+1.25*T2*ps,oy2-32,col);txt(T2.toFixed(1)+' ms',ox+0.75*T2*ps,oy2-43,col,11);
+ c.beginPath();c.strokeStyle='#e2e8f0';c.lineWidth=1.5;
+ for(let ms=0;ms<=8.8;ms+=0.03){const x=ox+ms*ps,y=oy2-25*Math.sin(2*Math.PI*ms/T2);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+ c.beginPath();c.strokeStyle=col;c.lineWidth=2.8;
+ for(let ms=0;ms<=s;ms+=0.03){const x=ox+ms*ps,y=oy2-25*Math.sin(2*Math.PI*ms/T2);ms?c.lineTo(x,y):c.moveTo(x,y)}c.stroke();
+ dot(ox+s*ps,oy2-25*Math.sin(2*Math.PI*s/T2),5.5,col);
+ dbl(ox+0.25*T2*ps,oy2-30,ox+1.25*T2*ps,oy2-30,col);txt('T′ = '+T2.toFixed(1)+' ms',ox+0.75*T2*ps,oy2-42,col,11.5);
 
- txt('식: T′ = T(v ± v_s)/v  →  2.2 = 2.0×(340 + v_s)/340  →  v_s = 34 m/s  |  다가올 때 T′ = 2.0×(340 − 34)/340 = 1.8 ms',320,252,'#0f172a',12);
+ txt('T′ = T(v ± vₛ)/v → 멀어질 때 2.2 ms (vₛ = 34 m/s), 다가올 때 1.8 ms',320,254,'#0f172a',12);
 }
-document.getElementById('p2').onclick=()=>{mode=2};
-document.getElementById('p3').onclick=()=>{mode=3};
+document.getElementById('p2').onclick=()=>{mode=2;t=0};
+document.getElementById('p3').onclick=()=>{mode=3;t=0};
 """
 EX7 = '<button class="b" id="p2">(나) 멀어질 때 (2.2 ms)</button><button class="b" id="p3">(4) 다가올 때 (1.8 ms)</button>'
 
@@ -305,7 +324,7 @@ EX8 = ('<button class="b" data-t="0">위치 A</button>'
 
 SIMS = {
     1: ("음원이 A 쪽으로 40 m/s 이동할 때 파장과 진동수", JS1, ""),
-    2: ("운동하는 음원의 동심원 파면 간격 (1.2 m vs 0.8 m)", JS2, ""),
+    2: ("운동하는 음원의 동심원 파면 간격 (1.2 m vs 0.8 m)", JS2, EX2),
     3: ("(가) 음원 이동 vs (나) 관찰자 이동 (10 m/s)", JS3, ""),
     4: ("자동차 A(640 Hz)와 자전거 B의 상대 운동", JS4, EX4),
     5: ("음원–측정기 거리–시간 그래프와 구간별 진동수", JS5, EX5),

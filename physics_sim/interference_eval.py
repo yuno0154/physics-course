@@ -40,25 +40,25 @@ def sim(title, js, extra=""):
 # ---------------- 1. 두 펄스 A(+2 cm), B(-1 cm / +1 cm) 중첩 ----------------
 JS1 = r"""
 SP=1;let upB=false;const ox=50,sc=45,by=135;
-const tri=(u,h)=>{const d=Math.abs(u);return d<1?h*(1-d):0};
+const wave=(u,h)=>{const d=Math.abs(u);return d<1.2?h*Math.pow(Math.cos(Math.PI*u/2.4),2):0};
 function draw(){
  const s=t%7;
  for(let i=0;i<=12;i++)line(ox+i*sc,by-90,ox+i*sc,by+90,'#e2e8f0',1);
  for(let j=-2;j<=2;j++)line(ox,by+j*sc,ox+12*sc,by+j*sc,'#e2e8f0',1);
  line(ox,by,ox+12*sc,by,'#64748b',1.5);
  const cA=2.5+s,cB=9.5-s,hB=upB?1:-1;
- // 개별 펄스 점선
+ // 개별 곡선 파동 점선
  c.beginPath();c.setLineDash([4,3]);c.strokeStyle='#3b82f6';c.lineWidth=1.8;
- for(let X=0;X<=12;X+=.04){const px=ox+X*sc,py=by-tri(X-cA,2)*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();
+ for(let X=0;X<=12;X+=.03){const px=ox+X*sc,py=by-wave(X-cA,2)*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();
  c.beginPath();c.strokeStyle='#e11d48';
- for(let X=0;X<=12;X+=.04){const px=ox+X*sc,py=by-tri(X-cB,hB)*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();c.setLineDash([]);
+ for(let X=0;X<=12;X+=.03){const px=ox+X*sc,py=by-wave(X-cB,hB)*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();c.setLineDash([]);
  // 합성파 실선
  c.beginPath();c.strokeStyle='#7c3aed';c.lineWidth=3.5;
- for(let X=0;X<=12;X+=.03){const y=tri(X-cA,2)+tri(X-cB,hB);const px=ox+X*sc,py=by-y*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();
- const ym=tri(6-cA,2)+tri(6-cB,hB);
+ for(let X=0;X<=12;X+=.03){const y=wave(X-cA,2)+wave(X-cB,hB);const px=ox+X*sc,py=by-y*sc;X?c.lineTo(px,py):c.moveTo(px,py)}c.stroke();
+ const ym=wave(6-cA,2)+wave(6-cB,hB);
  dot(ox+6*sc,by-ym*sc,6,'#7c3aed');
  txt('t = '+s.toFixed(1)+' s (모눈 1칸 = 1 cm, 속력 1 cm/s)',ox,20,'#0f172a',13,'left');
- txt('중앙(x=6) 합성 변위 = '+(tri(6-cA,2)).toFixed(1)+' + ('+(tri(6-cB,hB)).toFixed(1)+') = '+ym.toFixed(1)+' cm',320,250,'#7c3aed',13.5);
+ txt('중앙(x=6) 합성 변위 = '+(wave(6-cA,2)).toFixed(1)+' + ('+(wave(6-cB,hB)).toFixed(1)+') = '+ym.toFixed(1)+' cm',320,250,'#7c3aed',13.5);
 }
 document.getElementById('b_dn').onclick=()=>{upB=false};
 document.getElementById('b_up').onclick=()=>{upB=true};
@@ -101,35 +101,46 @@ function draw(){
 JS3 = r"""
 SP=0.8;let invS1=false;
 function draw(){
- const s1x=250,s2x=390,sy=225,lam=44;
- // 동심원 파면 (k = 1..4.5)
+ const s1x=250,s2x=390,sy=222,lam=44,sh=(t*0.6)%1;
+ // 실시간 퍼져나가는 보조 파면(연한 원)
+ for(let m=0;m<=4;m++){
+  const R=(m+sh)*lam;
+  if(R>2&&R<210){
+   c.beginPath();c.strokeStyle='rgba(37,99,235,0.22)';c.lineWidth=3;c.arc(s1x,sy,R,Math.PI,2*Math.PI);c.stroke();
+   c.beginPath();c.strokeStyle='rgba(225,29,72,0.22)';c.lineWidth=3;c.arc(s2x,sy,R,Math.PI,2*Math.PI);c.stroke();
+  }
+ }
+ // 문제지의 기준 순간 마루(실선)·골(점선)
  for(let m=1;m<=8;m++){
   const R=m*(lam/2),isCrest=(m%2===0);
-  // S1
   const c1=invS1?!isCrest:isCrest;
   c.beginPath();c.setLineDash(c1?[]:[5,4]);c.strokeStyle='#2563eb';c.lineWidth=1.5;
   c.arc(s1x,sy,R,Math.PI,2*Math.PI);c.stroke();
-  // S2
   c.beginPath();c.setLineDash(isCrest?[]:[5,4]);c.strokeStyle='#e11d48';c.lineWidth=1.5;
   c.arc(s2x,sy,R,Math.PI,2*Math.PI);c.stroke();
  }
  c.setLineDash([]);
- dot(s1x,sy,6,'#2563eb');txt('S₁'+(invS1?'(위상반대)':''),s1x,sy+15,'#2563eb',12);
+ dot(s1x,sy,6,'#2563eb');txt('S₁'+(invS1?'(반전)':''),s1x,sy+15,'#2563eb',12);
  dot(s2x,sy,6,'#e11d48');txt('S₂',s2x,sy+15,'#e11d48',12);
 
- // 교점 계산 함수 (r1, r2 거리인 위쪽 교점)
  function pt(r1,r2){
   const d=s2x-s1x,x=(r1*r1-r2*r2+d*d)/(2*d),y=Math.sqrt(Math.max(0,r1*r1-x*x));
   return [s1x+x,sy-y];
  }
  const pA=pt(3*lam,3*lam),pB=pt(3*lam,2.5*lam),pC=pt(3.5*lam,2.5*lam),pD=pt(3.5*lam,2*lam);
+ const osc=Math.sin(2*Math.PI*t*1.2);
  [[pA,'A (Δr=0)',!invS1],[pB,'B (Δr=λ/2)',invS1],[pC,'C (Δr=λ)',!invS1],[pD,'D (Δr=3λ/2)',invS1]].forEach(q=>{
-  dot(q[0][0],q[0][1],6,q[2]?'#059669':'#ea580c');
-  txt(q[1],q[0][0]+6,q[0][1]-13,q[2]?'#059669':'#ea580c',12,'left');
+  const rDot=q[2]?(5+2.5*Math.abs(osc)):5;
+  dot(q[0][0],q[0][1],rDot,q[2]?'#059669':'#ea580c');
+  txt(q[1],q[0][0]+7,q[0][1]-12,q[2]?'#059669':'#ea580c',12,'left');
  });
- txt('실선 = 마루, 점선 = 골  |  초록 점 = 보강 간섭, 주황 점 = 상쇄 간섭',320,18,'#0f172a',12.5);
- const cyC=Math.cos(2*Math.PI*t)*2;
- txt('C 지점(골+골 보강)의 현재 변위 = '+f(cyC,1)+' A (+2A와 −2A 사이를 크게 진동!)',320,256,'#7c3aed',12.5);
+ // 우측 C 지점 실시간 진동 미터
+ const mx=575,my=125;
+ line(mx,my-45,mx,my+45,'#cbd5e1',2);txt('+2A',mx+22,my-40,'#7c3aed',11);txt('0',mx+16,my,'#64748b',11);txt('−2A',mx+22,my+40,'#7c3aed',11);
+ const cyC=(invS1?0:-2*Math.cos(2*Math.PI*t*1.2));
+ dot(mx,my-cyC*20,7,'#7c3aed');txt('C 변위',mx,my+60,'#7c3aed',11.5);
+ txt('실선=마루, 점선=골 | 초록=보강, 주황=상쇄',300,18,'#0f172a',12.5);
+ txt('C 지점 실시간 변위 = '+f(cyC,1)+' A (+2A ↔ −2A 크게 진동!)',300,255,'#7c3aed',12.5);
 }
 document.getElementById('s1_0').onclick=()=>{invS1=false};
 document.getElementById('s1_1').onclick=()=>{invS1=true};
@@ -139,30 +150,40 @@ EX3 = '<button class="b" id="s1_0">같은 위상 (기본)</button><button class=
 # ---------------- 4. 스피커 S1, S2와 측정 경로 O -> Q (L1=3.17 m, L2=3.00 m) ----------------
 JS4 = r"""
 SP=1;let hiF=false;
+function drawWaveLine(x0,y0,x1,y1,lamPx,ph,col){
+ const L=Math.hypot(x1-x0,y1-y0),ux=(x1-x0)/L,uy=(y1-y0)/L,nx=-uy,ny=ux;
+ c.beginPath();c.strokeStyle=col;c.lineWidth=2;
+ for(let s=0;s<=L;s+=2){
+  const amp=7*Math.sin(2*Math.PI*s/lamPx-ph);
+  const px=x0+ux*s+nx*amp,py=y0+uy*s+ny*amp;
+  s===0?c.moveTo(px,py):c.lineTo(px,py);
+ }
+ c.stroke();
+}
 function draw(){
- const cx=320,s1x=250,s2x=390,sy=215,py=85;
- const qx=hiF?cx+52:cx+78;
+ const cx=320,s1x=240,s2x=400,sy=210,py=85;
+ const qx=hiF?cx+52:cx+78,lamPx=hiF?24:36,ph=2*Math.PI*t*1.5;
  // 측정 경로 및 세기 곡선
  line(80,py,560,py,'#64748b',1.5,[5,4]);txt('측정 경로',560,py+15,'#475569',11,'right');
  c.beginPath();c.strokeStyle='#7c3aed';c.lineWidth=2.2;
- const wSp=hiF?Math.PI/(52):Math.PI/(78);
- for(let x=90;x<=550;x+=2){const I=Math.pow(Math.cos((x-cx)*wSp/2),2);const y=py-I*42;x===90?c.moveTo(x,y):c.lineTo(x,y)}c.stroke();
- txt('소리 세기 분포',135,py-48,'#7c3aed',11.5);
+ const wSp=hiF?Math.PI/52:Math.PI/78;
+ for(let x=90;x<=550;x+=2){const I=Math.pow(Math.cos((x-cx)*wSp/2),2);const y=py-I*40;x===90?c.moveTo(x,y):c.lineTo(x,y)}c.stroke();
+ txt('소리 세기',125,py-46,'#7c3aed',11.5);
 
- // 스피커 S1, S2
+ // 스피커 S1, S2에서 Q까지 진행하는 파동 애니메이션
+ drawWaveLine(s1x,sy-12,qx,py,lamPx,ph,'#2563eb');
+ drawWaveLine(s2x,sy-12,qx,py,lamPx,ph+Math.PI,'#e11d48');
  box(s1x-18,sy-12,36,24,'S₁','#dbeafe');
  box(s2x-18,sy-12,36,24,'S₂','#fee2e2');
- // 점 O, 점 Q
- dot(cx,py,6,'#059669');txt('O (중심 보강)',cx,py+16,'#059669',12);
+ dot(cx,py,6,'#059669');txt('O (보강)',cx-10,py+16,'#059669',12,'right');
  dot(qx,py,6,'#e11d48');txt('Q (첫 상쇄)',qx+8,py+16,'#e11d48',12,'left');
- line(s1x,sy-12,qx,py,'#2563eb',2);line(s2x,sy-12,qx,py,'#e11d48',2);
  if(!hiF){
-  txt('L₁ = 3.17 m',(s1x+qx)/2-28,(sy+py)/2,'#2563eb',12);
-  txt('L₂ = 3.00 m',(s2x+qx)/2+28,(sy+py)/2,'#e11d48',12);
-  txt('Q 경로차 ΔL = 3.17 − 3.00 = 0.17 m = λ/2 (반 파장의 1배) → λ = 0.34 m, f = 340/0.34 = 1000 Hz',320,252,'#0f172a',12);
+  txt('L₁ = 3.17 m',(s1x+qx)/2-34,(sy+py)/2,'#2563eb',12);
+  txt('L₂ = 3.00 m',(s2x+qx)/2+34,(sy+py)/2,'#e11d48',12);
+  txt('ΔL = 0.17 m = λ/2 → λ = 0.34 m, f = 340/0.34 = 1000 Hz',320,252,'#0f172a',12.5);
  }else{
-  dbl(cx,py-16,qx,py-16,'#e11d48');txt('거리 가까워짐!',(cx+qx)/2,py-28,'#e11d48',12);
-  txt('(4) 진동수를 높이면 파장 λ가 짧아져 경로차가 λ/2가 되는 첫 상쇄 지점 Q가 O에 더 가까워진다!',320,252,'#1d4ed8',12);
+  dbl(cx,py-16,qx,py-16,'#e11d48');txt('간격 좁아짐!',(cx+qx)/2,py-28,'#e11d48',12);
+  txt('(4) 진동수를 높이면 파장 λ가 짧아져 첫 상쇄 지점 Q가 O에 가까워진다!',320,252,'#1d4ed8',12.5);
  }
 }
 document.getElementById('f_1000').onclick=()=>{hiF=false};
@@ -173,33 +194,49 @@ EX4 = '<button class="b" id="f_1000">f = 1000 Hz (문제 조건)</button><button
 # ---------------- 5. 두 스피커 680 Hz와 점 A(4.0, 5.0 m), B(3.75, 3.00 m) ----------------
 JS5 = r"""
 SP=1;let mode=1;
+function wLine(x0,y0,x1,y1,nWaves,ph,col){
+ const L=Math.hypot(x1-x0,y1-y0),ux=(x1-x0)/L,uy=(y1-y0)/L,nx=-uy,ny=ux;
+ c.beginPath();c.strokeStyle=col;c.lineWidth=1.8;
+ for(let s=0;s<=L;s+=2){
+  const amp=5.5*Math.sin(2*Math.PI*nWaves*(s/L)-ph);
+  const px=x0+ux*s+nx*amp,py=y0+uy*s+ny*amp;
+  s===0?c.moveTo(px,py):c.lineTo(px,py);
+ }
+ c.stroke();
+}
 function draw(){
- const s1x=65,s1y=75,s2x=65,s2y=185,ax=510,ay=55,bx=430,by=175;
+ const s1x=60,s1y=75,s2x=60,s2y=185,ax=460,ay=58,bx=410,by=175,ph=2*Math.PI*t*1.5;
+ const inv=(mode===3)?Math.PI:0;
+ const scF=(mode===2)?(453.3/680):1;
+ wLine(s1x+18,s1y,ax,ay,8*scF,ph,'#2563eb');
+ wLine(s2x+18,s2y,ax,ay,10*scF,ph+inv,'#e11d48');
+ wLine(s1x+18,s1y,bx,by,7.5*scF,ph,'#2563eb');
+ wLine(s2x+18,s2y,bx,by,6*scF,ph+inv,'#e11d48');
  box(s1x-18,s1y-14,36,28,'S₁','#dbeafe');
  box(s2x-18,s2y-14,36,28,'S₂'+(mode===3?'(반전)':''),'#fee2e2');
- line(s1x+18,s1y,ax,ay,'#2563eb',1.8);line(s2x+18,s2y,ax,ay,'#e11d48',1.8,[5,4]);
- line(s1x+18,s1y,bx,by,'#2563eb',1.8);line(s2x+18,s2y,bx,by,'#e11d48',1.8,[5,4]);
- txt('4.0 m',280,52,'#2563eb',11.5);txt('5.0 m',310,112,'#e11d48',11.5);
- txt('3.75 m',230,138,'#2563eb',11.5);txt('3.00 m',250,192,'#e11d48',11.5);
+ txt('4.0 m',250,48,'#2563eb',11.5);txt('5.0 m',280,105,'#e11d48',11.5);
+ txt('3.75 m',215,138,'#2563eb',11.5);txt('3.00 m',235,194,'#e11d48',11.5);
 
  let aCon=true,bCon=false,msg1='',msg2='';
  if(mode===1){
   aCon=true;bCon=false;
-  msg1='f = 680 Hz → 파장 λ = 340/680 = 0.5 m (반 파장 = 0.25 m)';
-  msg2='A: Δr = 1.0 m = 4×(λ/2) [짝수배 → 보강]  |  B: Δr = 0.75 m = 3×(λ/2) [홀수배 → 상쇄]';
+  msg1='f = 680 Hz → 파장 λ = 0.5 m (반 파장 = 0.25 m)';
+  msg2='A: Δr=1.0 m=4×(λ/2) [보강] | B: Δr=0.75 m=3×(λ/2) [상쇄]';
  }else if(mode===2){
   aCon=false;bCon=true;
-  msg1='(3) 진동수를 낮춰 B(Δr = 0.75 m)에서 보강 간섭이 되는 최대 진동수: λ = 0.75 m';
-  msg2='f = v / λ = 340 / 0.75 ≈ 453 Hz → B에서 경로차가 1λ(반 파장의 2배)가 되어 보강 간섭!';
+  msg1='(3) B(Δr = 0.75 m)에서 보강 간섭이 되는 최대 진동수: λ = 0.75 m';
+  msg2='f = 340 / 0.75 ≈ 453 Hz → B에서 경로차가 1λ(반 파장 2배)로 보강!';
  }else{
   aCon=false;bCon=true;
-  msg1='(4) f = 680 Hz에서 S₂의 위상만 반대로 바꾼 경우 (보강 ↔ 상쇄 반전)';
-  msg2='A: 보강 → 상쇄 (소리 작아짐)  |  B: 상쇄 → 보강 (소리 커짐)';
+  msg1='(4) f = 680 Hz에서 S₂ 위상만 반대로 바꾼 경우 (보강 ↔ 상쇄 반전)';
+  msg2='A: 보강 → 상쇄 (소리 작아짐) | B: 상쇄 → 보강 (소리 커짐)';
  }
- dot(ax,ay,8,aCon?'#059669':'#ea580c');txt('A ('+(aCon?'보강·소리 큼':'상쇄·소리 작음')+')',ax+14,ay,aCon?'#059669':'#ea580c',13,'left');
- dot(bx,by,8,bCon?'#059669':'#ea580c');txt('B ('+(bCon?'보강·소리 큼':'상쇄·소리 작음')+')',bx+14,by,bCon?'#059669':'#ea580c',13,'left');
- txt(msg1,320,22,'#0f172a',13);
- txt(msg2,320,248,'#1d4ed8',12.5);
+ const rA=aCon?(6+2.5*Math.abs(Math.sin(ph))):6;
+ const rB=bCon?(6+2.5*Math.abs(Math.sin(ph))):6;
+ dot(ax,ay,rA,aCon?'#059669':'#ea580c');txt('A ('+(aCon?'보강·큼':'상쇄·작음')+')',ax+12,ay,aCon?'#059669':'#ea580c',12.5,'left');
+ dot(bx,by,rB,bCon?'#059669':'#ea580c');txt('B ('+(bCon?'보강·큼':'상쇄·작음')+')',bx+12,by,bCon?'#059669':'#ea580c',12.5,'left');
+ txt(msg1,320,20,'#0f172a',12.5);
+ txt(msg2,320,250,'#1d4ed8',12.5);
 }
 document.getElementById('q5_1').onclick=()=>{mode=1};
 document.getElementById('q5_2').onclick=()=>{mode=2};
@@ -211,45 +248,60 @@ EX5 = ('<button class="b" id="q5_1">(1)(2) 680 Hz 기본</button>'
 
 # ---------------- 6. 소음 제거 이어폰 (주기 2 ms, 500 Hz) ----------------
 JS6 = r"""
-SP=1;let mode=1;
+SP=1.4;let mode=1;
 function draw(){
- const ox=60,gw=530,ps=115,y1=68,y2=175,A=26;
+ const s=t%4.2;
+ const ox=60,gw=530,ps=115,y1=72,y2=180,A=25;
  // (가) 소음
- axes(ox,y1,gw,38,'시간(ms)','압력');
- txt('(가) 감지된 소음: 주기 T = 2 ms → 진동수 f = 1 / 0.002 s = 500 Hz',ox+70,y1-42,'#0f172a',12.5,'left');
+ axes(ox,y1,gw,36,'시간(ms)','압력');
+ txt('(가) 감지된 소음: 주기 T = 2 ms → 진동수 f = 500 Hz',ox+80,y1-42,'#0f172a',12,'left');
  for(let m=1;m<=4;m++){line(ox+m*ps,y1-3,ox+m*ps,y1+3,'#0f172a',1);txt(String(m),ox+m*ps,y1+13,'#475569',10)}
- c.beginPath();c.strokeStyle='#0f172a';c.lineWidth=2.5;
- for(let ms=0;ms<=4.3;ms+=0.02){
+ c.beginPath();c.strokeStyle='#cbd5e1';c.lineWidth=1.5;
+ for(let ms=0;ms<=4.2;ms+=0.02){
   const n=mode===3?(0.65*Math.sin(Math.PI*ms)+0.35*Math.sin(2.7*Math.PI*ms+1)):Math.sin(Math.PI*ms);
   const x=ox+ms*ps,y=y1-A*n;ms?c.lineTo(x,y):c.moveTo(x,y);
  }c.stroke();
+ c.beginPath();c.strokeStyle='#0f172a';c.lineWidth=2.6;
+ for(let ms=0;ms<=s;ms+=0.02){
+  const n=mode===3?(0.65*Math.sin(Math.PI*ms)+0.35*Math.sin(2.7*Math.PI*ms+1)):Math.sin(Math.PI*ms);
+  const x=ox+ms*ps,y=y1-A*n;ms?c.lineTo(x,y):c.moveTo(x,y);
+ }c.stroke();
+ const nCur=mode===3?(0.65*Math.sin(Math.PI*s)+0.35*Math.sin(2.7*Math.PI*s+1)):Math.sin(Math.PI*s);
+ dot(ox+s*ps,y1-A*nCur,5,'#0f172a');
 
  // (나) 이어폰이 만들 소리 + 남은 합성 소음(점선)
- axes(ox,y2,gw,38,'시간(ms)','압력');
+ axes(ox,y2,gw,36,'시간(ms)','압력');
  for(let m=1;m<=4;m++){line(ox+m*ps,y2-3,ox+m*ps,y2+3,'#0f172a',1);txt(String(m),ox+m*ps,y2+13,'#475569',10)}
  const amp=mode===2?0.55:1.0;
- c.beginPath();c.strokeStyle='#e11d48';c.lineWidth=2.5;
- for(let ms=0;ms<=4.3;ms+=0.02){
+ c.beginPath();c.strokeStyle='#fecdd3';c.lineWidth=1.5;
+ for(let ms=0;ms<=4.2;ms+=0.02){
+  const anti=mode===3?(-0.8*(0.65*Math.sin(Math.PI*(ms-0.25))+0.35*Math.sin(2.7*Math.PI*(ms-0.25)+1))):(-amp*Math.sin(Math.PI*ms));
+  const x=ox+ms*ps,y=y2-A*anti;ms?c.lineTo(x,y):c.moveTo(x,y);
+ }c.stroke();
+ c.beginPath();c.strokeStyle='#e11d48';c.lineWidth=2.6;
+ for(let ms=0;ms<=s;ms+=0.02){
   const anti=mode===3?(-0.8*(0.65*Math.sin(Math.PI*(ms-0.25))+0.35*Math.sin(2.7*Math.PI*(ms-0.25)+1))):(-amp*Math.sin(Math.PI*ms));
   const x=ox+ms*ps,y=y2-A*anti;ms?c.lineTo(x,y):c.moveTo(x,y);
  }c.stroke();
  // 합성파 (보라색 점선)
  c.beginPath();c.setLineDash([5,3]);c.strokeStyle='#7c3aed';c.lineWidth=2.5;
- for(let ms=0;ms<=4.3;ms+=0.02){
+ for(let ms=0;ms<=s;ms+=0.02){
   const n=mode===3?(0.65*Math.sin(Math.PI*ms)+0.35*Math.sin(2.7*Math.PI*ms+1)):Math.sin(Math.PI*ms);
   const anti=mode===3?(-0.8*(0.65*Math.sin(Math.PI*(ms-0.25))+0.35*Math.sin(2.7*Math.PI*(ms-0.25)+1))):(-amp*Math.sin(Math.PI*ms));
   const x=ox+ms*ps,y=y2-A*(n+anti);ms?c.lineTo(x,y):c.moveTo(x,y);
  }c.stroke();c.setLineDash([]);
+ const aCur=mode===3?(-0.8*(0.65*Math.sin(Math.PI*(s-0.25))+0.35*Math.sin(2.7*Math.PI*(s-0.25)+1))):(-amp*Math.sin(Math.PI*s));
+ dot(ox+s*ps,y2-A*aCur,5,'#e11d48');
 
- const lab=mode===1?'(나) 이어폰 소리(빨강): 500 Hz, 같은 진폭, 반대 위상(위아래 뒤집음) → 합성파(보라) = 0!'
-          :(mode===2?'(3) 이어폰 소리 진폭이 작을 때: 완전히 상쇄되지 않고 진폭 차이만큼 소음이 남음(보라 점선)'
-                   :'(4) 불규칙 소음: 파형이 계속 변해 반대 위상을 정확히 맞추기 어려워 잔여 소음이 남음');
- txt(lab,ox+70,y2-42,'#e11d48',12,'left');
- txt('빨간 실선 = (나) 이어폰이 만든 소리  |  보라 점선 = 귀에 들리는 남은 소리(합성파)',320,252,'#7c3aed',12.5);
+ const lab=mode===1?'(나) 이어폰 소리(빨강): 500 Hz, 같은 진폭, 반대 위상 → 합성파(보라) = 0!'
+          :(mode===2?'(3) 이어폰 진폭이 작을 때: 진폭 차이만큼 소음이 남음(보라 점선)'
+                   :'(4) 불규칙 소음: 파형이 계속 변해 반대 위상을 맞추기 어려움');
+ txt(lab,ox+80,y2-42,'#e11d48',12,'left');
+ txt('빨간 실선 = (나) 이어폰이 만든 소리 | 보라 점선 = 귀에 들리는 남은 소리(합성파)',320,252,'#7c3aed',12);
 }
-document.getElementById('a_ok').onclick=()=>{mode=1};
-document.getElementById('a_sm').onclick=()=>{mode=2};
-document.getElementById('a_ir').onclick=()=>{mode=3};
+document.getElementById('a_ok').onclick=()=>{mode=1;t=0};
+document.getElementById('a_sm').onclick=()=>{mode=2;t=0};
+document.getElementById('a_ir').onclick=()=>{mode=3;t=0};
 """
 EX6 = ('<button class="b" id="a_ok">(2) 반대 위상·같은 진폭</button>'
        '<button class="b" id="a_sm">(3) 진폭 작을 때</button>'
@@ -265,9 +317,14 @@ function draw(){
  c.strokeRect(30,68,70,26);c.strokeRect(540,68,70,26);
  c.beginPath();c.moveTo(100,68);c.lineTo(150,32);c.lineTo(490,32);c.lineTo(540,68);c.stroke();
  c.beginPath();c.moveTo(100,94);c.lineTo(150,130);c.lineTo(490,130);c.lineTo(540,94);c.stroke();
+ // 관 내부 진행 파동 애니메이션
+ c.beginPath();c.strokeStyle='#2563eb';c.lineWidth=1.8;
+ for(let x=155;x<=485;x+=3){const y=44-7*Math.sin((x-155)/22-t*3);x===155?c.moveTo(x,y):c.lineTo(x,y)}c.stroke();
+ c.beginPath();c.strokeStyle='#e11d48';c.lineWidth=1.8;
+ for(let x=155;x<=485;x+=3){const y=118-7*Math.sin((x-155)/22-t*3-ph*(x-155)/330);x===155?c.moveTo(x,y):c.lineTo(x,y)}c.stroke();
  txt('엔진 소음',65,110,'#475569',11.5);txt('배출',575,110,'#475569',11.5);
- txt('통로 1 (길이 l₁)',320,20,'#2563eb',12);
- txt('통로 2 (길이 l₂ = l₁ + 1.0 m)',320,145,'#e11d48',12);
+ txt('통로 1 (길이 l₁)',320,18,'#2563eb',12);
+ txt('통로 2 (길이 l₂ = l₁ + 1.0 m)',320,146,'#e11d48',12);
 
  // 통로 1, 통로 2, 합쳐진 파형
  const ox=140,gw=360,y0=202;
@@ -280,7 +337,7 @@ function draw(){
  for(let x=0;x<=gw;x+=3){const y=y0-18*(Math.sin(x/22-t*3)+Math.sin(x/22-t*3-ph));x?c.lineTo(ox+x,y):c.moveTo(ox+x,y)}c.stroke();
 
  const nHalf=dl/(lam/2),isCancel=Math.abs(nHalf-Math.round(nHalf))<0.05&&(Math.round(nHalf)%2===1);
- txt('진동수 f = '+fr+' Hz → 파장 λ = '+lam.toFixed(2)+' m  |  길이 차 1 m = 반 파장('+(lam/2).toFixed(2)+' m)의 '+nHalf.toFixed(0)+'배 ('+(isCancel?'홀수 → 상쇄 간섭!':'짝수 → 보강 간섭!')+')',320,252,isCancel?'#059669':'#e11d48',12.5);
+ txt('f = '+fr+' Hz (λ = '+lam.toFixed(2)+' m) | 길이 차 1 m = 반 파장의 '+nHalf.toFixed(0)+'배 ('+(isCancel?'홀수 → 상쇄 간섭!':'짝수 → 보강 간섭!')+')',320,252,isCancel?'#059669':'#e11d48',12);
 }
 document.getElementById('mf170').onclick=()=>{fr=170};
 document.getElementById('mf510').onclick=()=>{fr=510};
@@ -293,31 +350,42 @@ EX7 = ('<button class="b" id="mf170">(1) 170 Hz (상쇄)</button>'
 # ---------------- 8. 공연장 두 스피커(6.5 m, 6.0 m)와 좌석 X ----------------
 JS8 = r"""
 SP=1;let mode=1;
+function wLine8(x0,y0,x1,y1,nW,ph,col){
+ const L=Math.hypot(x1-x0,y1-y0),ux=(x1-x0)/L,uy=(y1-y0)/L,nx=-uy,ny=ux;
+ c.beginPath();c.strokeStyle=col;c.lineWidth=2;
+ for(let s=0;s<=L;s+=2){
+  const amp=6*Math.sin(2*Math.PI*nW*(s/L)-ph);
+  const px=x0+ux*s+nx*amp,py=y0+uy*s+ny*amp;
+  s===0?c.moveTo(px,py):c.lineTo(px,py);
+ }
+ c.stroke();
+}
 function draw(){
- const sx=85,s1y=60,s2y=185,xx=490,xy=135;
- c.fillStyle='#fef3c7';c.fillRect(25,40,36,165);c.strokeStyle='#b45309';c.strokeRect(25,40,36,165);
- txt('무대',43,122,'#92400e',13);
+ const sx=85,s1y=62,s2y=185,xx=490,xy=135,ph=2*Math.PI*t*1.5;
+ c.fillStyle='#fef3c7';c.fillRect(25,42,36,165);c.strokeStyle='#b45309';c.strokeRect(25,42,36,165);
+ txt('무대',43,124,'#92400e',13);
+ const scW=(mode===3)?2:1,inv=(mode===2)?Math.PI:0;
+ wLine8(sx+18,s1y,xx,xy,6.5*scW,ph,'#2563eb');
+ wLine8(sx+18,s2y,xx,xy,6.0*scW,ph+inv,'#e11d48');
  box(sx-16,s1y-14,34,28,'S₁','#dbeafe');
  box(sx-16,s2y-14,34,28,'S₂'+(mode===2?'(반전)':''),'#fee2e2');
- line(sx+18,s1y,xx,xy,'#2563eb',2,[5,4]);
- line(sx+18,s2y,xx,xy,'#e11d48',2,[5,4]);
- txt('6.5 m',290,82,'#2563eb',12.5);
- txt('6.0 m',290,175,'#e11d48',12.5);
+ txt('6.5 m',285,78,'#2563eb',12.5);
+ txt('6.0 m',285,178,'#e11d48',12.5);
 
  const isLoud=(mode!==1);
- box(xx-22,xy-18,44,36,'좌석 X',isLoud?'#dcfce7':'#fee2e2');
- txt(isLoud?'🔊 소리 크게 들림 (보강)':'🔇 소리 작게 들림 (상쇄)',xx,xy-32,isLoud?'#059669':'#e11d48',13);
+ box(xx-24,xy-18,48,36,'좌석 X',isLoud?'#dcfce7':'#fee2e2');
+ txt(isLoud?'🔊 크게 들림 (보강)':'🔇 작게 들림 (상쇄)',xx,xy-32,isLoud?'#059669':'#e11d48',12.5);
 
  let m1='',m2='';
  if(mode===1){
-  m1='(1) f = 340 Hz → 파장 λ = 340/340 = 1.0 m  |  경로차 Δr = 6.5 − 6.0 = 0.5 m';
-  m2='경로차 0.5 m = 반 파장(0.5 m)의 1배(홀수) → 상쇄 간섭이 일어나 소리가 작게 들린다!';
+  m1='(1) f = 340 Hz → 파장 λ = 1.0 m | 경로차 Δr = 6.5 − 6.0 = 0.5 m';
+  m2='경로차 0.5 m = 반 파장(0.5 m)의 1배(홀수) → 상쇄 간섭 (소리 작게 들림)';
  }else if(mode===2){
-  m1='(2) 해결 방법 ①: 한쪽 스피커(S₂)의 위상을 반대로 바꾼다 (또는 스피커 위치를 옮겨 경로차를 0이나 1 m로 조정)';
-  m2='위상을 반대로 바꾸면 반 파장 홀수 배(0.5 m) 지점인 좌석 X에서 같은 위상으로 만나 보강 간섭이 일어난다!';
+  m1='(2) 해결 방법: 한쪽 스피커(S₂) 위상 반전 (또는 스피커 이동으로 경로차 0·1 m 조정)';
+  m2='위상을 반대로 바꾸면 좌석 X에서 같은 위상으로 만나 보강 간섭 (소리 커짐)';
  }else{
-  m1='(3) f = 680 Hz → 파장 λ = 340/680 = 0.5 m  |  경로차 Δr = 0.5 m';
-  m2='경로차 0.5 m = 한 파장(λ = 0.5 m, 반 파장의 2배·짝수) → 보강 간섭이 일어나 소리가 크게 들린다!';
+  m1='(3) f = 680 Hz → 파장 λ = 0.5 m | 경로차 Δr = 0.5 m';
+  m2='경로차 0.5 m = 한 파장(반 파장의 2배·짝수) → 보강 간섭 (소리 커짐)';
  }
  txt(m1,320,20,'#0f172a',12.5);
  txt(m2,320,250,isLoud?'#059669':'#e11d48',12.5);
