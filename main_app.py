@@ -112,6 +112,8 @@ doppler_components_page = st.Page("physics_sim/doppler_components.py", title="�
 doppler_eval_page = st.Page("physics_sim/doppler_eval.py", title="📝 [과제] 도플러 효과 형성평가 문제 풀이", url_path="doppler_eval")
 interference_components_page = st.Page("physics_sim/interference_components.py", title="🔊 [탐구] 음파의 간섭과 소음 제어", url_path="interference_components")
 interference_eval_page = st.Page("physics_sim/interference_eval.py", title="📝 [과제] 음파의 간섭과 소음 제어 형성평가 문제 풀이", url_path="interference_eval")
+standing_wave_components_page = st.Page("physics_sim/standing_wave_components.py", title="🎸 [탐구] 정상파와 악기", url_path="standing_wave_components")
+standing_wave_eval_page = st.Page("physics_sim/standing_wave_eval.py", title="📝 [과제] 정상파와 악기 형성평가 문제 풀이", url_path="standing_wave_eval")
 
 # 네비게이션 구성
 pg = st.navigation({
@@ -201,7 +203,9 @@ pg = st.navigation({
         doppler_components_page,
         doppler_eval_page,
         interference_components_page,
-        interference_eval_page
+        interference_eval_page,
+        standing_wave_components_page,
+        standing_wave_eval_page
     ],
     "⚡ 기타 탐구 주제": [
         nerve_conduction_page
