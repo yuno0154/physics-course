@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💹 [융합] 우주 거래소의 시계 — 물리학습 지원 포털</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f6f4ef;
+    --bg-card: #ffffff;
+    --bg-subtle: #eeeae0;
+    --ink: #1a1d24;
+    --ink-muted: #5a6070;
+    --ink-faint: #8a90a0;
+    --line: #dcd6c8;
+    --line-strong: #b8b0a0;
+    --earth: #1f5fa8;
+    --earth-bg: #e8f0fa;
+    --iss: #b8621b;
+    --iss-bg: #fbf0e4;
+    --moon: #5b3fa6;
+    --moon-bg: #efeaf9;
+    --win: #16794b;
+    --win-bg: #e3f5ec;
+    --lose: #b82e2e;
+    --lose-bg: #fbe8e8;
+    --accent: #0f2942;
+    --gold: #c9a96e;
+    --yellow-bg: #fffef0;
+    --yellow-card: #fffdf2;
+    --yellow-border: #e6b800;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── 포털 최상단 컨테이너 ── */
+  .portal-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+
+  /* ── 포털 헤더 ── */
+  .portal-header {
+    background: linear-gradient(135deg, #0f2942 0%, #1a3a5c 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(15, 41, 66, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .portal-header-main {
+    flex: 1 1 520px;
+  }
+  .portal-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+    background: rgba(201, 169, 110, 0.15);
+    border: 1px solid rgba(201, 169, 110, 0.4);
+    padding: 3px 10px;
+    border-radius: 99px;
+    margin-bottom: 8px;
+  }
+  .portal-title {
+    font-size: clamp(22px, 3vw, 30px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .portal-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.65;
+  }
+  .portal-desc strong { color: #fde68a; }
+  .portal-header-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+  .padlet-top-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--gold);
+    color: #0f2942;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 11px 18px;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.15s, background 0.15s;
+    white-space: nowrap;
+  }
+  .padlet-top-btn:hover {
+    background: #d8b97e;
+    transform: translateY(-1px);
+  }
+
+  /* ── 최상위 포털 탭 (가상 실험실 / 모둠 보고서 / 원리 정리) ── */
+  .main-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 22px;
+    background: #e6e1d5;
+    padding: 6px;
+    border-radius: 12px;
+  }
+  .main-tab-btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ink-muted);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px 16px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .main-tab-btn:hover {
+    color: var(--ink);
+    background: rgba(255,255,255,0.5);
+  }
+  .main-tab-btn.active {
+    background: #fff;
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(15, 41, 66, 0.12);
+  }
+  .main-tab-panel { display: none; }
+  .main-tab-panel.active { display: block; }
+
+  /* ════════════════════════════════════════════════════════════════
+     [TAB 1] 가상 실험실 (space-exchange.html 스타일)
+     ════════════════════════════════════════════════════════════════ */
+  .sim-subtabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .sim-tab-btn {
+    background: var(--bg-card);
+    border: 1.5px solid var(--line);
+    color: var(--ink-muted);
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 10px;
+    text-align: left;
+    transition: all .15s;
+  }
+  .sim-tab-btn:hover { border-color: var(--line-strong); color: var(--ink); }
+  .sim-tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(15, 41, 66, 0.18);
+  }
+  .sim-tab-btn .num {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    opacity: .65;
+    margin-bottom: 2px;
+  }
+  .sim-tab-btn.active .num { color: var(--gold); opacity: 1; }
+
+  .sim-panel { display: none; }
+  .sim-panel.active { display: block; }
+
+  .situation {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+  .situation-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .situation p { font-size: 14.5px; color: var(--ink); }
+  .situation strong { color: var(--accent); font-weight: 700; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card-sub { font-size: 12.5px; color: var(--ink-muted); font-weight: 400; }
+
+  .place-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 4px;
+  }
+  .place-earth { background: var(--earth-bg); color: var(--earth); }
+  .place-iss   { background: var(--iss-bg);   color: var(--iss); }
+  .place-moon  { background: var(--moon-bg);  color: var(--moon); }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn {
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 7px;
+    border: 1.5px solid var(--line-strong);
+    background: var(--bg-card);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--ink); background: var(--bg-subtle); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover:not(:disabled) { background: #183a5c; border-color: #183a5c; }
+  .btn-gold {
+    background: #fef9e7;
+    border-color: #d4ac0d;
+    color: #7d6608;
+  }
+  .btn-gold:hover { background: #fcf3cf; }
+
+  .toggle-group {
+    display: inline-flex;
+    background: var(--bg-subtle);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    padding: 3px;
+  }
+  .toggle-group button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 13px;
+    border: none;
+    background: transparent;
+    color: var(--ink-muted);
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.15s;
+  }
+  .toggle-group button.active {
+    background: var(--bg-card);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(0,0,0,.08);
+  }
+
+  .space-stage {
+    background: #0d1626;
+    border-radius: 8px;
+    padding: 14px;
+    color: #e6ecf5;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .space-svg { width: 100%; min-width: 600px; height: 220px; display: block; }
+
+  .clock-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .clock-box {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--bg);
+  }
+  .clock-box .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .clock-box .dist {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-muted);
+  }
+  .clock-readout {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(18px, 2.2vw, 22px);
+    font-weight: 700;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    text-align: center;
+    letter-spacing: .02em;
+  }
+  .clock-note {
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    min-height: 36px;
+  }
+  .clock-note .err { color: var(--lose); font-weight: 600; }
+  .clock-note .ok  { color: var(--win);  font-weight: 600; }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  table.tbl {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.tbl th, table.tbl td {
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+  table.tbl th {
+    background: var(--bg-subtle);
+    font-weight: 700;
+    font-size: 12px;
+    color: var(--ink-muted);
+    border-top: 1.5px solid var(--line-strong);
+    border-bottom: 1.5px solid var(--line-strong);
+  }
+  table.tbl td.num, table.tbl th.num { text-align: right; }
+  table.tbl td.center, table.tbl th.center { text-align: center; }
+  table.tbl tr.win-row { background: var(--win-bg); }
+  table.tbl tr.lose-row { background: #faf8f3; color: var(--ink-muted); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .badge-win  { background: var(--win);  color: #fff; }
+  .badge-lose { background: var(--line); color: var(--ink-muted); }
+  .badge-gain { background: #fbe8e8; color: var(--lose); border: 1px solid #e5b4b4; }
+  .badge-hurt { background: #fff3cd; color: #8a5a00; border: 1px solid #e6cf8b; }
+
+  .slider-wrap {
+    padding: 14px 16px;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .slider-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .slider-top .day-big {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+  .slider-marks {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  .drift-bars {
+    display: grid;
+    grid-template-columns: 110px 1fr 120px;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .drift-bars:last-child { border-bottom: none; }
+  .bar-track {
+    position: relative;
+    height: 26px;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .bar-zero {
+    position: absolute;
+    left: 40%;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: var(--ink);
+    z-index: 2;
+  }
+  .bar-fill {
+    position: absolute;
+    top: 4px; bottom: 4px;
+    border-radius: 3px;
+    transition: width .15s, left .15s;
+  }
+
+  .factor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .factor-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--bg);
+    font-size: 13px;
+  }
+  .factor-card h4 { font-size: 13.5px; margin-bottom: 8px; }
+  .factor-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12.5px;
+    border-bottom: 1px dotted var(--line);
+  }
+  .factor-row.total {
+    border-bottom: none;
+    border-top: 1.5px solid var(--ink);
+    margin-top: 4px;
+    padding-top: 6px;
+    font-weight: 700;
+  }
+
+  .compare-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .sum-box {
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .sum-box.active-mode {
+    border-color: var(--accent);
+    background: #f2f6fb;
+  }
+  .sum-box h4 {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+  .sum-box .winners {
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .sum-box .detail { font-size: 12.5px; color: var(--ink-muted); }
+
+  .hint {
+    background: #fdf8e7;
+    border: 1px solid #ead89b;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 13px;
+    color: #5c4813;
+    margin-top: 12px;
+  }
+  .hint strong { color: #3d2e08; }
+
+  /* ════════════════════════════════════════════════════════════════
+     [TAB 2] 모둠 탐구 활동 보고서 스타일
+     ════════════════════════════════════════════════════════════════ */
+  .student-guide-banner {
+    background: linear-gradient(90deg, #fff9db 0%, #fff3bf 100%);
+    border: 2px solid #f59f00;
+    border-left: 8px solid #f59f00;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .report-section-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  }
+  .report-sec-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .report-sec-desc {
+    font-size: 13.5px;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+  }
+  .group-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 2fr 1.2fr;
+    gap: 12px;
+  }
+  .form-field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #5c4813;
+    margin-bottom: 5px;
+  }
+  .student-input, .student-textarea, .student-select {
+    width: 100%;
+    font-family: inherit;
+    font-size: 14px;
+    background-color: var(--yellow-bg);
+    border: 2px solid var(--yellow-border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+  }
+  .student-input:focus, .student-textarea:focus, .student-select:focus {
+    outline: none;
+    background-color: #fff9db;
+    border-color: #d97706;
+    box-shadow: 0 0 0 3px rgba(245, 159, 0, 0.2);
+  }
+  .student-textarea {
+    resize: vertical;
+    min-height: 92px;
+    line-height: 1.6;
+  }
+
+  /* Q1 편집 가능 테이블 */
+  table.q1-edit-tbl {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-bottom: 14px;
+  }
+  table.q1-edit-tbl th {
+    background: #0f2942;
+    color: #fff;
+    padding: 10px 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-align: center;
+    border: 1px solid #1e3a5f;
+  }
+  table.q1-edit-tbl td {
+    padding: 7px 8px;
+    border: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  table.q1-edit-tbl td.readonly-cell {
+    background: #f8fafc;
+    color: #334155;
+    font-size: 13px;
+  }
+  table.q1-edit-tbl td.editable-cell {
+    background: var(--yellow-bg);
+    padding: 5px;
+  }
+  .tbl-input {
+    width: 100%;
+    font-family: 'JetBrains Mono', 'Noto Sans KR', monospace;
+    font-size: 13px;
+    background: transparent;
+    border: 1.5px solid #e6b800;
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: var(--ink);
+  }
+  .tbl-input:focus {
+    outline: none;
+    background: #fff9db;
+    border-color: #d97706;
+  }
+
+  /* Q1 6열 미리보기 카드 */
+  .q1-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .q1-chip-card {
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+    border: 1.5px solid var(--line);
+    background: #f8f9fa;
+  }
+  .q1-chip-card.buy {
+    background: #e3f5ec;
+    border-color: #16794b;
+  }
+
+  /* Q2 카드 비교 */
+  .q2-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .q2-card {
+    background: var(--yellow-card);
+    border: 2px solid #f59f00;
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .q2-card h4 {
+    font-size: 15px;
+    color: #7c2d12;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #f59f00;
+  }
+  .q2-card .form-field { margin-bottom: 12px; }
+  .q2-card .form-field:last-child { margin-bottom: 0; }
+
+  /* Q3 주가 계산 */
+  .q3-calc-bar {
+    background: var(--yellow-card);
+    border: 2px solid #f59f00;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .q3-inline-input {
+    width: 140px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    text-align: right;
+    background: #fff;
+    border: 2px solid #d97706;
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+
+  /* Q4 라디오 선택 */
+  .method-radio-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 14px 0;
+  }
+  .method-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--yellow-card);
+    border: 2px solid #e6b800;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .method-radio-label:hover { background: #fff9db; }
+  .method-radio-label input[type="radio"] {
+    accent-color: #b45309;
+    width: 17px;
+    height: 17px;
+  }
+
+  /* 패들렛 배너 */
+  .padlet-banner {
+    background: linear-gradient(135deg, #0f2b48 0%, #1a365d 100%);
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-top: 22px;
+    color: #ffffff;
+    box-shadow: 0 6px 18px rgba(15,43,72,0.22);
+    border: 1px solid #2e4d75;
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     [TAB 3] 핵심 물리학 & 경제학 원리 정리 스타일
+     ════════════════════════════════════════════════════════════════ */
+  .theory-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 12px;
+  }
+  .theory-box {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .theory-box h4 {
+    font-size: 15px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .theory-box ul {
+    padding-left: 18px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .theory-box li { margin-bottom: 6px; }
+
+  /* ════════════════════════════════════════════════════════════════
+     인쇄용 A4 전용 영역 (@media print)
+     ════════════════════════════════════════════════════════════════ */
+  #printable-report-area {
+    background: #fff;
+    border: 2px solid var(--line-strong);
+    border-radius: 10px;
+    padding: 28px;
+    margin-top: 16px;
+  }
+
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body {
+      background: #fff !important;
+      color: #000 !important;
+      font-size: 11pt;
+    }
+    .no-print,
+    .portal-header,
+    .main-tabs,
+    #main-panel-sim,
+    #main-panel-theory,
+    .report-editor-only,
+    .padlet-banner {
+      display: none !important;
+    }
+    .portal-container {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    #main-panel-report {
+      display: block !important;
+    }
+    #printable-report-area {
+      display: block !important;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════
+     반응형 미디어 쿼리 (태블릿 / 모바일)
+     ════════════════════════════════════════════════════════════════ */
+  @media (max-width: 960px) {
+    .main-tabs { grid-template-columns: 1fr; }
+    .sim-subtabs { grid-template-columns: repeat(2, 1fr); }
+    .clock-grid { grid-template-columns: 1fr; }
+    .factor-grid, .compare-summary, .q2-grid, .theory-grid { grid-template-columns: 1fr; }
+    .group-info-grid { grid-template-columns: repeat(2, 1fr); }
+    .q1-preview-grid { grid-template-columns: repeat(3, 1fr); }
+    .method-radio-group { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 600px) {
+    .portal-container { padding: 14px 12px 48px; }
+    .portal-header { padding: 18px 16px; }
+    .sim-subtabs { grid-template-columns: 1fr; }
+    .group-info-grid { grid-template-columns: 1fr; }
+    .q1-preview-grid { grid-template-columns: repeat(2, 1fr); }
+    .drift-bars { grid-template-columns: 85px 1fr 95px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="portal-container">
+
+  <!-- ── 상단 포털 헤더 ── -->
+  <header class="portal-header">
+    <div class="portal-header-main">
+      <span class="portal-badge">2022 개정 역학과 에너지 [12역학01-08] 중력 시간 지연의 적용 × 경제·금융 융합 탐구</span>
+      <h1 class="portal-title">💹 [융합] 우주 거래소의 시계</h1>
+      <p class="portal-desc">
+        지구·우주정거장(ISS)·달 기지 사이의 <strong>거리에 따른 신호 지연</strong>과
+        <strong>중력·속도에 따른 상대론적 시간 지연</strong>을 시뮬레이션하고,
+        <strong>우주 시대 금융 거래의 공정한 시간 기준</strong>을 탐구하여 모둠 보고서로 완성해 봅시다.
+      </p>
+    </div>
+    <div class="portal-header-side">
+      <a class="padlet-top-btn" href="https://padlet.com/sgh/padlet-s024y3iekcz0b0xn6dtu" target="_blank" rel="noopener noreferrer">
+        🪐 우주거래소 모둠별 발표 게시판 ↗
+      </a>
+    </div>
+  </header>
+
+  <!-- ── 최상위 3개 탭 네비게이션 ── -->
+  <nav class="main-tabs no-print" aria-label="포털 주요 탭">
+    <button type="button" class="main-tab-btn active" data-main-tab="sim">
+      🎮 1. 가상 실험실 (인터랙티브 시뮬레이션)
+    </button>
+    <button type="button" class="main-tab-btn" data-main-tab="report">
+      📝 2. 모둠 탐구 활동 보고서 (작성 및 PDF 출력)
+    </button>
+    <button type="button" class="main-tab-btn" data-main-tab="theory">
+      💡 3. 핵심 물리학 &amp; 경제학 원리 정리
+    </button>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       [MAIN TAB 1] 가상 실험실 (인터랙티브 시뮬레이션)
+       ════════════════════════════════════════════════════════════════ -->
+  <section id="main-panel-sim" class="main-tab-panel active">
+
+    <nav class="sim-subtabs">
+      <button type="button" class="sim-tab-btn active" data-sim-tab="t1">
+        <span class="num">① 활동 1</span>시계 맞추기
+      </button>
+      <button type="button" class="sim-tab-btn" data-sim-tab="t2">
+        <span class="num">② 활동 1</span>주문하기
+      </button>
+      <button type="button" class="sim-tab-btn" data-sim-tab="t3">
+        <span class="num">③ 활동 1~2</span>하루가 지나면
+      </button>
+      <button type="button" class="sim-tab-btn" data-sim-tab="t4">
+        <span class="num">④ 활동 3</span>체결 비교
+      </button>
+    </nav>
+
+    <!-- ① 시계 맞추기 -->
+    <div id="t1" class="sim-panel active">
+      <div class="situation">
+        <div class="situation-label">상황 · 활동 1 첫 번째 이야기</div>
+        <p>장소가 다른 사람들과 같은 시각에 거래하려면 먼저 시계를 맞춰야 합니다. 지구 거래소가 <strong>오전 9시 정각</strong>에 "지금 9시입니다"라는 빛(전파) 신호를 우주정거장과 달에 보냅니다. 신호가 도착하는 순간 그곳 시계를 9시로 맞추면 어떻게 될까요?</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>신호 전파 실험 <span class="card-sub">· 빛의 속력 c = 300,000 km/s</span></span>
+          <div class="controls">
+            <div class="toggle-group" id="syncModeGroup">
+              <button type="button" data-mode="naive" class="active">그냥 9시로 맞추기</button>
+              <button type="button" data-mode="corrected">거리(걸린 시간) 보정해서 맞추기</button>
+            </div>
+            <button type="button" class="btn btn-primary" id="fireSignalBtn">▶ 9시 신호 보내기</button>
+            <button type="button" class="btn" id="resetSignalBtn">초기화</button>
+          </div>
+        </div>
+
+        <div class="space-stage">
+          <svg class="space-svg" viewBox="0 0 800 220" id="spaceSvg">
+            <g fill="#ffffff" opacity=".35">
+              <circle cx="70" cy="30" r="1"/><circle cx="190" cy="50" r="1.2"/><circle cx="310" cy="25" r="1"/>
+              <circle cx="460" cy="40" r="1.5"/><circle cx="580" cy="28" r="1"/><circle cx="720" cy="48" r="1.2"/>
+              <circle cx="140" cy="190" r="1"/><circle cx="400" cy="195" r="1.2"/><circle cx="640" cy="185" r="1"/>
+            </g>
+            <line x1="90" y1="115" x2="700" y2="115" stroke="#2c3e5a" stroke-width="2" stroke-dasharray="4 4"/>
+            <text x="200" y="102" fill="#8fa4c4" font-size="11" text-anchor="middle" font-family="JetBrains Mono">400 km (약 0.0013초)</text>
+            <text x="510" y="102" fill="#8fa4c4" font-size="11" text-anchor="middle" font-family="JetBrains Mono">384,000 km (약 1.28초)</text>
+            <text x="400" y="205" fill="#5e7290" font-size="10.5" text-anchor="middle">※ 보기 쉽도록 거리를 줄여 그렸습니다 (실제로 달은 우주정거장보다 960배 멀리 있습니다)</text>
+            <g transform="translate(90,115)">
+              <circle r="30" fill="#2b6cb0" stroke="#63b3ed" stroke-width="2"/>
+              <path d="M-12,-15 Q-2,-20 8,-10 Q15,0 5,12 Q-8,18 -15,5 Z" fill="#48bb78" opacity=".8"/>
+              <text y="50" fill="#e6ecf5" font-size="13" font-weight="700" text-anchor="middle">지구 거래소</text>
+            </g>
+            <g transform="translate(310,115)">
+              <rect x="-22" y="-5" width="44" height="10" fill="#ed8936" rx="2"/>
+              <rect x="-8" y="-14" width="16" height="28" fill="#cbd5e0" rx="2"/>
+              <line x1="-22" y1="-12" x2="-22" y2="12" stroke="#fbd38d" stroke-width="3"/>
+              <line x1="22" y1="-12" x2="22" y2="12" stroke="#fbd38d" stroke-width="3"/>
+              <text y="50" fill="#e6ecf5" font-size="13" font-weight="700" text-anchor="middle">우주정거장</text>
+            </g>
+            <g transform="translate(700,115)">
+              <circle r="22" fill="#b7b2c8" stroke="#dcd6ec" stroke-width="2"/>
+              <circle cx="-6" cy="-5" r="4" fill="#9690a8"/>
+              <circle cx="7" cy="6" r="5" fill="#9690a8"/>
+              <circle cx="4" cy="-8" r="2.5" fill="#9690a8"/>
+              <text y="50" fill="#e6ecf5" font-size="13" font-weight="700" text-anchor="middle">달 기지</text>
+            </g>
+            <g id="pulseGroup" style="display:none">
+              <circle id="pulseDot" cx="90" cy="115" r="9" fill="#ffd166"/>
+              <circle id="pulseRing" cx="90" cy="115" r="16" fill="none" stroke="#ffd166" stroke-width="2" opacity=".6"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="clock-grid">
+          <div class="clock-box">
+            <div class="head">
+              <span class="place-tag place-earth">지구 거래소</span>
+              <span class="dist">기준 (0 km)</span>
+            </div>
+            <div class="clock-readout" id="clkEarth">09:00:00.0000</div>
+            <div class="clock-note" id="noteEarth">기준 시계입니다.</div>
+          </div>
+          <div class="clock-box">
+            <div class="head">
+              <span class="place-tag place-iss">우주정거장</span>
+              <span class="dist">지구에서 400 km</span>
+            </div>
+            <div class="clock-readout" id="clkISS">대기 중</div>
+            <div class="clock-note" id="noteISS">신호가 도착하면 시계를 맞춥니다.</div>
+          </div>
+          <div class="clock-box">
+            <div class="head">
+              <span class="place-tag place-moon">달 기지</span>
+              <span class="dist">지구에서 384,000 km</span>
+            </div>
+            <div class="clock-readout" id="clkMoon">대기 중</div>
+            <div class="clock-note" id="noteMoon">신호가 도착하면 시계를 맞춥니다.</div>
+          </div>
+        </div>
+
+        <div class="hint" id="syncConclusion">
+          <strong>생각해 보기 ·</strong> 위에서 <strong>[▶ 9시 신호 보내기]</strong>를 눌러 본 뒤, <strong>[거리(걸린 시간) 보정해서 맞추기]</strong>로 바꾸어 다시 눌러 보세요. 거리에 따른 신호 지연은 미리 계산해 더해주면 해결할 수 있습니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 주문하기 -->
+    <div id="t2" class="sim-panel">
+      <div class="situation">
+        <div class="situation-label">상황 · 활동 1 첫 번째 이야기 (계속)</div>
+        <p>거리 문제는 해결했습니다! 신호가 가는 데 걸리는 시간을 미리 계산해 세 곳의 시계를 <strong>똑같이 맞춘 직후</strong>, 우주기업 주식을 사려는 여섯 사람(가~바)이 주문을 넣었습니다. 파는 주식은 <strong>300주뿐</strong>이고 한 사람당 <strong>100주씩</strong>만 살 수 있어서, <strong>가장 먼저 주문한 세 사람</strong>만 주식을 살 수 있습니다.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>주문 접수 현황 <span class="card-sub">· 시계를 맞춘 직후 (같은 날 오전 9시)</span></span>
+          <div class="controls">
+            <button type="button" class="btn btn-primary" id="judgeT2Btn">도착 순서로 체결 판정하기</button>
+            <button type="button" class="btn" id="resetT2Btn">초기화</button>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="tbl" id="tblT2">
+            <thead>
+              <tr>
+                <th>신청자</th>
+                <th>장소</th>
+                <th>자기 시계에 찍힌 주문 시각</th>
+                <th class="num">수량</th>
+                <th class="center">접수 순위</th>
+                <th class="center">체결 결과 (300주 한도)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="hint" id="t2Hint">
+          <strong>확인 포인트 ·</strong> 세 곳의 시계를 방금 똑같이 맞춰 놓았기 때문에, 시계를 맞춘 <strong>직후</strong>에는 자기 시계에 찍힌 시각 그대로 비교해도 아무 문제가 없습니다. <strong>그런데 하루가 지나면 어떻게 될까요?</strong> ③번 탭으로 이동해 보세요.
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 하루가 지나면 -->
+    <div id="t3" class="sim-panel">
+      <div class="situation">
+        <div class="situation-label">상황 · 활동 1 두 번째 이야기 &amp; 활동 2</div>
+        <p>시계를 한 번 맞췄다고 끝이 아닙니다. 아인슈타인의 상대성 이론에 따르면 <strong>중력이 약할수록 시계가 빠르게</strong> 가고, <strong>빠르게 움직일수록 시계가 느리게</strong> 갑니다. 날짜 슬라이더를 움직여 하루, 열흘, 한 달이 지날 때 세 곳의 시계가 얼마나 어긋나는지 확인해 보세요.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>날짜 경과에 따른 시계 오차 누적 <span class="card-sub">· 1 μs(마이크로초) = 100만분의 1초 = 0.000001초</span></span>
+          <div class="controls">
+            <button type="button" class="btn" data-setday="1">1일 후 (활동지 기준)</button>
+            <button type="button" class="btn" data-setday="10">10일 후</button>
+            <button type="button" class="btn" data-setday="30">30일 후</button>
+          </div>
+        </div>
+
+        <div class="slider-wrap">
+          <div class="slider-top">
+            <span>시계를 맞춘 뒤 경과한 날수</span>
+            <span class="day-big" id="dayLabel">1일 후</span>
+          </div>
+          <input type="range" id="daySlider" min="0" max="30" step="1" value="1">
+          <div class="slider-marks">
+            <span>0일 (방금 맞춤)</span><span>10일</span><span>20일</span><span>30일</span>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <div class="drift-bars">
+            <div><span class="place-tag place-earth">지구 거래소</span></div>
+            <div class="bar-track"><div class="bar-zero"></div></div>
+            <div class="mono" style="text-align:right; font-weight:700;">기준 (0.0 μs)</div>
+          </div>
+          <div class="drift-bars">
+            <div><span class="place-tag place-iss">우주정거장</span></div>
+            <div class="bar-track">
+              <div class="bar-zero"></div>
+              <div class="bar-fill" id="barISS" style="background: var(--iss);"></div>
+            </div>
+            <div class="mono" id="valISS" style="text-align:right; font-weight:700; color: var(--iss);">-24.8 μs (느림)</div>
+          </div>
+          <div class="drift-bars">
+            <div><span class="place-tag place-moon">달 기지</span></div>
+            <div class="bar-track">
+              <div class="bar-zero"></div>
+              <div class="bar-fill" id="barMoon" style="background: var(--moon);"></div>
+            </div>
+            <div class="mono" id="valMoon" style="text-align:right; font-weight:700; color: var(--moon);">+58.7 μs (빠름)</div>
+          </div>
+        </div>
+
+        <div class="hint" id="sameMomentBox">
+          <strong>핵심 이해 ·</strong> 시계를 맞춘 지 <strong><span id="smDay">1</span>일 뒤</strong>, 지구 시계가 정확히 <span class="mono">09:00:00.000000</span>을 가리키는 <strong>바로 그 순간</strong>에:<br>
+          · 우주정거장 시계는 아직 <span class="mono" style="color:var(--iss); font-weight:700;" id="smISS">08:59:59.9999752</span> (지구보다 <strong><span id="smISSd">24.8</span> μs 뒤처짐</strong>)<br>
+          · 달 기지 시계는 이미 <span class="mono" style="color:var(--moon); font-weight:700;" id="smMoon">09:00:00.0000587</span> (지구보다 <strong><span id="smMoond">58.7</span> μs 앞서감</strong>)을 가리킵니다.
+        </div>
+
+        <div class="factor-grid">
+          <div class="factor-card">
+            <h4><span class="place-tag place-iss">우주정거장</span> 왜 하루에 약 25 μs 느려질까?</h4>
+            <div class="factor-row"><span>① 중력 효과 (고도 400 km, 중력 조금 약함)</span><span class="mono" style="color:var(--win)">+3.5 μs/일 (빨라짐)</span></div>
+            <div class="factor-row"><span>② 속도 효과 (초속 7.7 km로 매우 빠르게 공전)</span><span class="mono" style="color:var(--lose)">-28.3 μs/일 (느려짐)</span></div>
+            <div class="factor-row total"><span>합계 (① + ②)</span><span class="mono" style="color:var(--iss)">-24.8 μs/일 (지구보다 느림)</span></div>
+          </div>
+          <div class="factor-card">
+            <h4><span class="place-tag place-moon">달 기지</span> 왜 하루에 약 59 μs 빨라질까?</h4>
+            <div class="factor-row"><span>① 중력 효과 (지구에서 멀고 달 중력은 지구의 1/6)</span><span class="mono" style="color:var(--win)">+59.1 μs/일 (빨라짐)</span></div>
+            <div class="factor-row"><span>② 속도 효과 (초속 1.0 km로 천천히 공전)</span><span class="mono" style="color:var(--lose)">-0.4 μs/일 (느려짐)</span></div>
+            <div class="factor-row total"><span>합계 (① + ②)</span><span class="mono" style="color:var(--moon)">+58.7 μs/일 (지구보다 빠름)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 체결 비교 -->
+    <div id="t4" class="sim-panel">
+      <div class="situation">
+        <div class="situation-label">상황 · 활동 3 우주 거래소의 주문을 체결하라!</div>
+        <p>시계를 맞춘 뒤 <strong>하루가 지난 날 오전 9시</strong>, 어제와 똑같은 시각에 여섯 사람이 주문을 넣었습니다. 파는 주식은 <strong>300주</strong>(한 사람당 100주, <strong>선착순 3명</strong>). 주문서에 찍힌 시각 그대로 체결할 때와, 모두 <strong>지구 시계 기준으로 환산</strong>해서 체결할 때 결과가 어떻게 달라지는지 비교해 보세요.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>하루 뒤 주문 체결 비교 <span class="card-sub">· 우주정거장 -25 μs/일, 달 +59 μs/일 (활동지 반올림 값 적용 가능)</span></span>
+          <div class="controls">
+            <div class="toggle-group" id="ruleToggle">
+              <button type="button" data-rule="raw" class="active">환산 전 (찍힌 시각 그대로)</button>
+              <button type="button" data-rule="earth">환산 후 (지구 시계 기준)</button>
+            </div>
+            <div class="toggle-group" id="roundToggle" title="활동지 표는 계산하기 쉽게 -25, +59로 반올림한 값을 씁니다">
+              <button type="button" data-round="sheet" class="active">활동지 값 (-25 / +59 μs)</button>
+              <button type="button" data-round="exact">정밀 값 (-24.8 / +58.7 μs)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="tbl" id="tblT4">
+            <thead>
+              <tr>
+                <th>신청자</th>
+                <th>장소</th>
+                <th>자기 시계 주문 시각</th>
+                <th>환산 계산</th>
+                <th>지구 시계로 환산한 시각</th>
+                <th class="center">현재 기준 순위</th>
+                <th class="center">체결 여부</th>
+                <th class="center">환산 전·후 변화</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="compare-summary">
+          <div class="sum-box active-mode" id="sumRaw">
+            <h4>방법 ① 환산 전 · 찍힌 시각 그대로 체결하면</h4>
+            <div class="winners">주식을 사는 사람: 가, 나, 라</div>
+            <div class="detail">우주정거장 시계가 25 μs 느리게 가기 때문에, <strong>라</strong>는 실제로는 <strong>다·바</strong>보다 늦게 주문했는데도 시계 숫자가 작게 찍혀 주식을 가져갑니다.</div>
+          </div>
+          <div class="sum-box" id="sumEarth">
+            <h4>방법 ② 환산 후 · 지구 시계 기준으로 체결하면</h4>
+            <div class="winners">주식을 사는 사람: 가, 다, 바</div>
+            <div class="detail">달 시계가 59 μs 앞서가서 손해를 보던 <strong>다, 바</strong>가 실제 주문 순서(1위 다, 2위 가, 3위 바)대로 정당하게 주식을 사게 됩니다.</div>
+          </div>
+        </div>
+
+        <div class="hint">
+          <strong>활동지 질문 연결 ·</strong> 주가가 1주당 10,000원에서 <strong>11,000원</strong>으로 올랐다면, 환산하지 않았을 때 억울하게 주식을 못 산 사람(<strong>다, 바</strong>)은 각각 <span class="mono">(11,000 - 10,000) × 100주 = <strong>100,000원</strong></span>의 이익을 놓치게 됩니다.<br>
+          👉 이제 상단의 <strong>[📝 2. 모둠 탐구 활동 보고서]</strong> 탭을 눌러 모둠원들과 함께 탐구 보고서를 작성해 보세요!
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       [MAIN TAB 2] 모둠 탐구 활동 보고서 (작성 및 PDF 출력)
+       ════════════════════════════════════════════════════════════════ -->
+  <section id="main-panel-report" class="main-tab-panel">
+
+    <div class="report-editor-only">
+      <div class="student-guide-banner">
+        <div>
+          <strong style="font-size:15px; color:#7c2d12;">✏️ 노란색 입력칸은 모둠 학생 작성 영역입니다</strong>
+          <p style="font-size:13px; color:#92400e; margin-top:2px;">
+            시뮬레이션 결과를 바탕으로 노란색 칸을 직접 채워 보세요. 작성한 내용은 하단 인쇄/PDF 보고서에 실시간으로 반영됩니다.
+          </p>
+        </div>
+        <div class="controls">
+          <button type="button" class="btn btn-gold" id="btnFillSample">💡 모범 답안 채우기</button>
+          <button type="button" class="btn" id="btnClearReport">🧹 빈칸으로 초기화</button>
+        </div>
+      </div>
+
+      <!-- 0. 모둠 기본 정보 -->
+      <div class="report-section-card">
+        <div class="report-sec-title">👥 0. 모둠 기본 정보</div>
+        <div class="report-sec-desc">보고서 상단에 표시될 학급과 모둠원 정보를 입력하세요.</div>
+        <div class="group-info-grid">
+          <div class="form-field">
+            <label for="inpClass">학급 (예: 2학년 3반)</label>
+            <input type="text" id="inpClass" class="student-input" placeholder="예: 2학년 1반">
+          </div>
+          <div class="form-field">
+            <label for="inpGroup">모둠명 (예: 1모둠 / 상대성팀)</label>
+            <input type="text" id="inpGroup" class="student-input" placeholder="예: 1모둠">
+          </div>
+          <div class="form-field">
+            <label for="inpMembers">모둠원 이름</label>
+            <input type="text" id="inpMembers" class="student-input" placeholder="예: 김물리, 이우주, 박경제, 최시간">
+          </div>
+          <div class="form-field">
+            <label for="inpDate">작성일자</label>
+            <input type="date" id="inpDate" class="student-input">
+          </div>
+        </div>
+      </div>
+
+      <!-- 1. 질문 1: 시각 환산 표 완성하기 -->
+      <div class="report-section-card">
+        <div class="report-sec-title">📊 질문 1. 낸 시각 환산 표 완성하기</div>
+        <div class="report-sec-desc">
+          하루가 지난 뒤 우주정거장 시계는 <strong>-25 μs (느림)</strong>, 달 기지 시계는 <strong>+59 μs (빠름)</strong> 오차가 생깁니다.<br>
+          ※ <strong>환산 공식</strong>: <code>지구 시계로 환산한 시각 = 자기 시계에 찍힌 시각 - (그곳 시계의 하루 오차)</code>
+        </div>
+
+        <div class="table-scroll">
+          <table class="q1-edit-tbl" id="q1EditTable">
+            <thead>
+              <tr>
+                <th style="width:70px;">신청자</th>
+                <th style="width:105px;">장소</th>
+                <th style="width:155px;">주문 시각 (자기 시계)</th>
+                <th style="width:110px;">환산 전 순위</th>
+                <th>환산 계산 과정 ✏️</th>
+                <th style="width:165px;">지구 환산 시각 ✏️</th>
+                <th style="width:85px;">환산 순위 ✏️</th>
+                <th style="width:115px;">체결 여부 ✏️</th>
+              </tr>
+            </thead>
+            <tbody id="q1Tbody"></tbody>
+          </table>
+        </div>
+
+        <div style="font-size:13px; font-weight:700; color:var(--ink-muted); margin-top:8px;">
+          🔍 환산 순위 및 구매 판정 실시간 미리보기
+        </div>
+        <div class="q1-preview-grid" id="q1PreviewGrid"></div>
+      </div>
+
+      <!-- 2. 질문 2: 환산 전과 환산 후 비교 -->
+      <div class="report-section-card">
+        <div class="report-sec-title">⚖️ 질문 2. 지구 시계로 환산해 다시 체결하고, 환산 전과 비교하시오</div>
+        <div class="report-sec-desc">파는 주식은 300주(1인당 100주, 선착순 3명)입니다. 질문 1의 표를 바탕으로 환산 전·후 결과를 정리하세요.</div>
+
+        <div class="q2-grid">
+          <div class="q2-card">
+            <h4>① 환산 전 (자기 시계에 찍힌 시각 그대로 체결)</h4>
+            <div class="form-field">
+              <label for="q2BeforeBuyers">주식을 사는 사람 (3명)</label>
+              <input type="text" id="q2BeforeBuyers" class="student-input" placeholder="예: 가, 나, 라">
+            </div>
+            <div class="form-field">
+              <label for="q2BeforeLosers">억울하게 손해 본 사람과 그 이유</label>
+              <input type="text" id="q2BeforeLosers" class="student-input" placeholder="예: 다, 바 (달 시계가 59 μs 빨라 숫자가 크게 찍힘)">
+            </div>
+            <div class="form-field">
+              <label for="q2BeforeWinners">부당하게 이득 본 사람과 그 이유</label>
+              <input type="text" id="q2BeforeWinners" class="student-input" placeholder="예: 나, 라 (우주정거장 시계가 25 μs 느려 숫자가 작게 찍힘)">
+            </div>
+          </div>
+
+          <div class="q2-card">
+            <h4>② 환산 후 (지구 시계 기준으로 환산해 체결)</h4>
+            <div class="form-field">
+              <label for="q2AfterBuyers">주식을 사는 사람 (3명)</label>
+              <input type="text" id="q2AfterBuyers" class="student-input" placeholder="예: 다(1위), 가(2위), 바(3위)">
+            </div>
+            <div class="form-field">
+              <label for="q2AfterFair">정당한 순위를 되찾은 사람</label>
+              <input type="text" id="q2AfterFair" class="student-input" placeholder="예: 다, 바 (달 기지 신청자)">
+            </div>
+            <div class="form-field">
+              <label for="q2AfterSummary">환산 전과 비교한 핵심 변화 요약</label>
+              <input type="text" id="q2AfterSummary" class="student-input" placeholder="예: 나, 라 대신 실제로 먼저 주문한 다, 바가 주식을 사게 된다.">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 질문 3: 주가 상승 시 손해 계산 -->
+      <div class="report-section-card">
+        <div class="report-sec-title">💰 질문 3. 주가 상승 시 손해 본 사람의 놓친 이익 계산</div>
+        <div class="report-sec-desc">
+          이 우주기업 주식이 <strong>1주당 10,000원 → 11,000원</strong>으로 올랐을 때, 환산하지 않아 주식을 사지 못한 사람(1인당 100주)이 놓친 이익을 계산해 보세요.
+        </div>
+
+        <div class="q3-calc-bar">
+          <span>1인당 놓친 시세 차익 = 100주 × 1주당 상승액 (</span>
+          <input type="text" id="q3Diff" class="q3-inline-input" placeholder="예: 1,000">
+          <span>)원 = 총 (</span>
+          <input type="text" id="q3Total" class="q3-inline-input" placeholder="예: 100,000">
+          <span>)원</span>
+        </div>
+
+        <div class="form-field">
+          <label for="q3Note">✏️ 손해 분석 및 계산 과정 서술</label>
+          <textarea id="q3Note" class="student-textarea" placeholder="누가 각각 얼마의 이익을 놓쳤는지, 왜 이러한 경제적 피해가 발생했는지 서술하세요."></textarea>
+        </div>
+      </div>
+
+      <!-- 4. 질문 4: 경제금융 통합질문 -->
+      <div class="report-section-card">
+        <div class="report-sec-title">🏛️ 질문 4. [경제금융 통합질문] 세 가지 체결 방법 중 어느 것이 공정할까?</div>
+        <div class="report-sec-desc">아래 세 가지 방법의 특징을 비교해 보고, 우리 모둠이 생각하는 가장 공정한 방법과 시간 기준 제정 주체를 작성하세요.</div>
+
+        <div class="table-scroll" style="margin-bottom:14px;">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:210px;">체결 방법</th>
+                <th>핵심 기준</th>
+                <th>장점</th>
+                <th>문제점 / 한계</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>방법 ①</strong> 찍힌 시각 그대로</td>
+                <td>각자 시계에 기록된 숫자 순서</td>
+                <td>별도의 계산 없이 단순함</td>
+                <td>상대론적 시간 지연 때문에 달 기지 투자자가 구조적으로 불리함</td>
+              </tr>
+              <tr>
+                <td><strong>방법 ②</strong> 거래소에 도착한 순서</td>
+                <td>전파 신호가 지구에 도착한 순서</td>
+                <td>거래소 입장에서 판정이 즉각적임</td>
+                <td>거리가 먼 달 기지(약 1.28초 지연)는 절대 선착순 거래에 이길 수 없음</td>
+              </tr>
+              <tr class="win-row">
+                <td><strong>방법 ③</strong> 지구 시계로 환산한 순서</td>
+                <td>거리·상대론적 시간차를 보정한 실제 동시성 순서</td>
+                <td>어느 천체에 있든 실제 주문 시점 기준으로 공정하게 경쟁 가능</td>
+                <td>정밀한 우주 표준시 합의와 공공 시간 보정 인프라가 필요함</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="font-size:13.5px; font-weight:700; color:#5c4813;">✏️ 우리 모둠이 선택한 가장 공정한 체결 방법</div>
+        <div class="method-radio-group">
+          <label class="method-radio-label">
+            <input type="radio" name="q4Method" value="방법 ①: 주문서에 찍힌 시각 그대로 체결">
+            <span>방법 ① 찍힌 시각 그대로</span>
+          </label>
+          <label class="method-radio-label">
+            <input type="radio" name="q4Method" value="방법 ②: 거래소에 신호가 도착한 순서로 체결">
+            <span>방법 ② 거래소에 도착한 순서</span>
+          </label>
+          <label class="method-radio-label">
+            <input type="radio" name="q4Method" value="방법 ③: 모두 지구 시계로 환산한 순서로 체결" checked>
+            <span>방법 ③ 지구 시계로 환산한 순서</span>
+          </label>
+        </div>
+
+        <div class="form-field" style="margin-bottom:14px;">
+          <label for="q4Reason">✏️ 선택 근거 (모둠 발표 내용 — 물리학적·경제학적 관점)</label>
+          <textarea id="q4Reason" class="student-textarea" placeholder="그 방법을 선택한 까닭과 다른 두 방법이 공정하지 않은 이유를 작성하세요."></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="q4Authority">✏️ 공통 시간 기준은 누가 만들어야 할까? (개인/기업 자율 vs 정부·국제기구 공공재)</label>
+          <textarea id="q4Authority" class="student-textarea" placeholder="우주 거래소의 공통 시간 기준을 누가 만들고 관리해야 하는지 공공재(Public Good) 관점에서 서술하세요."></textarea>
+        </div>
+      </div>
+
+      <!-- 5. 보고서 인쇄 / PDF 출력 컨트롤 -->
+      <div class="report-section-card" style="background:#f0f7ff; border-color:#93c5fd;">
+        <div class="card-title" style="margin-bottom:6px;">
+          <span style="font-size:17px; color:#0f2942;">🖨️ 5. 모둠 탐구 활동 보고서 인쇄 및 PDF 저장</span>
+          <div class="controls">
+            <button type="button" class="btn btn-primary" id="btnPrintReport" style="font-size:14.5px; padding:11px 20px;">
+              🖨️ 보고서 인쇄 / PDF로 저장하기 (A4 최적화)
+            </button>
+          </div>
+        </div>
+        <p style="font-size:13.5px; color:#334155;">
+          위 버튼을 누르면 브라우저 인쇄 창이 열립니다. 대상 프린터를 <strong>[PDF로 저장 (Save as PDF)]</strong>으로 선택하면 아래 A4 보고서 양식만 깔끔하게 PDF 파일로 저장됩니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── A4 인쇄/PDF 전용 미리보기 시트 (실시간 동기화) ── -->
+    <div id="printable-report-area">
+      <div style="border-bottom:2px solid #0f2942; padding-bottom:10px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div style="font-size:11px; color:#1f5fa8; font-weight:700;">2022 개정 역학과 에너지 [12역학01-08] 중력 시간 지연 × 경제·금융 융합 탐구</div>
+          <h2 style="margin:3px 0 0 0; color:#0f2942; font-size:21px;">[융합] 우주 거래소의 시계 — 모둠 탐구 활동 보고서</h2>
+        </div>
+        <div style="font-size:12px; color:#475569; font-weight:600;" id="prDate">작성일: -</div>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; margin-bottom:14px; font-size:12.5px;">
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:6px 10px; width:12%;">학급</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:6px 10px; width:20%; font-weight:700;" id="prClass">-</td>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:6px 10px; width:12%;">모둠명</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:6px 10px; width:20%; font-weight:700;" id="prGroup">-</td>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:6px 10px; width:12%;">모둠원</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:6px 10px; font-weight:700;" id="prMembers">-</td>
+        </tr>
+      </table>
+
+      <h3 style="font-size:14px; color:#0f2942; margin:12px 0 6px 0;">1. 낸 시각 환산 표 완성하기 (우주정거장 -25 μs/일, 달 +59 μs/일)</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:14px;">
+        <thead>
+          <tr style="background:#0f2942; color:#fff;">
+            <th style="border:1px solid #cbd5e1; padding:5px;">신청자</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">장소</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">주문 시각(자기 시계)</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">환산 전</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">환산 계산 과정 (학생 작성)</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">지구 환산 시각 (학생 작성)</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">환산 순위</th>
+            <th style="border:1px solid #cbd5e1; padding:5px;">체결 여부</th>
+          </tr>
+        </thead>
+        <tbody id="prQ1Tbody"></tbody>
+      </table>
+
+      <h3 style="font-size:14px; color:#0f2942; margin:12px 0 6px 0;">2. 지구 시계 환산 체결 결과 및 환산 전·후 비교</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px;">
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:7px; width:22%;">환산 전 (찍힌 시각 그대로)</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:7px;" id="prQ2Before"></td>
+        </tr>
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:7px;">환산 후 (지구 시계 기준)</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:7px;" id="prQ2After"></td>
+        </tr>
+      </table>
+
+      <h3 style="font-size:14px; color:#0f2942; margin:12px 0 6px 0;">3. 주가 상승(10,000원 → 11,000원) 시 손해 본 사람의 놓친 이익 계산</h3>
+      <div style="border:1px solid #e0b84a; background:#fff8dc; padding:9px 12px; border-radius:6px; font-size:12px; margin-bottom:14px;" id="prQ3Box"></div>
+
+      <h3 style="font-size:14px; color:#0f2942; margin:12px 0 6px 0;">4. [경제금융 통합질문] 공정한 체결 방법과 공통 시간 기준</h3>
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:7px; width:22%;">선택한 공정한 방법</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:7px; font-weight:700;" id="prQ4Method"></td>
+        </tr>
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:7px;">선택 근거 (모둠 발표 내용)</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:7px; white-space:pre-wrap;" id="prQ4Reason"></td>
+        </tr>
+        <tr>
+          <th style="background:#eef2f7; border:1px solid #cbd5e1; padding:7px;">공통 시간 기준 제정 주체</th>
+          <td style="background:#fff8dc; border:1px solid #e0b84a; padding:7px; white-space:pre-wrap;" id="prQ4Authority"></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 패들렛 제출 연결 배너 -->
+    <div class="padlet-banner">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+        <span style="font-size:1.8rem;">🪐</span>
+        <div>
+          <h3 style="margin:0; color:#ffffff; font-size:1.2rem; font-weight:800;">
+            우주거래소 모둠별 발표 게시판 (패들렛)
+          </h3>
+          <p style="margin:2px 0 0 0; font-size:0.88rem; color:#cbd5e1;">
+            작성 완료한 보고서 PDF를 아래 패들렛 게시판에 등록해 모둠별 탐구 결과를 공유하세요.
+          </p>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.08); border-radius:8px; padding:12px 16px; margin:12px 0; font-size:0.9rem; line-height:1.65;">
+        <b>📌 보고서 제출 방법 (3단계)</b><br>
+        1. 상단의 <b>[🖨️ 보고서 인쇄 / PDF로 저장하기]</b> 버튼을 눌러 PDF 파일을 저장합니다.<br>
+        2. 아래 <b>[우주거래소 모둠별 발표 게시판 열기]</b> 버튼을 눌러 새 탭에서 패들렛을 엽니다.<br>
+        3. 자신의 <b>모둠 카드(+)</b>를 클릭하고, 제목에 <code>[학급] 모둠명 - 모둠원</code>을 적은 뒤 저장한 <b>PDF 파일</b>을 첨부합니다.
+      </div>
+      <div style="margin-top:14px; text-align:right;">
+        <a href="https://padlet.com/sgh/padlet-s024y3iekcz0b0xn6dtu" target="_blank" rel="noopener noreferrer"
+           style="display:inline-block; background:#c9a96e; color:#0f2942; font-weight:800; font-size:0.95rem; padding:10px 22px; border-radius:8px; text-decoration:none; box-shadow:0 3px 8px rgba(0,0,0,0.2);">
+          🚀 우주거래소 모둠별 발표 게시판 열기 ↗
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       [MAIN TAB 3] 핵심 물리학 & 경제학 원리 정리
+       ════════════════════════════════════════════════════════════════ -->
+  <section id="main-panel-theory" class="main-tab-panel">
+
+    <div class="card">
+      <div class="card-title">
+        <span style="font-size:18px; color:var(--accent);">💡 우주 거래소의 시계 핵심 원리 및 배경 지식</span>
+      </div>
+
+      <div class="theory-box" style="margin-bottom:16px;">
+        <h4>1. 거리에 따른 시간 차 (신호 지연)</h4>
+        <ul>
+          <li><strong>빛의 속력 한계</strong>: 전파(빛) 신호는 진공에서 약 <span class="mono">c = 300,000 km/s</span>로 이동합니다.
+            <ul style="margin-top:4px;">
+              <li>지구 ↔ 우주정거장(고도 약 400 km): 신호 지연 <span class="mono">Δt = 400 / 300,000 ≈ 0.0013 s</span></li>
+              <li>지구 ↔ 달 기지(거리 약 384,000 km): 신호 지연 <span class="mono">Δt = 384,000 / 300,000 ≈ 1.28 s</span></li>
+            </ul>
+          </li>
+          <li><strong>거리 보정</strong>: 신호가 도달하는 데 걸린 시간(<span class="mono">Δt = d / c</span>)을 미리 알고 있다면, 신호를 받는 순간 그 시간을 더해 거래소와 시계를 한 번에 맞출 수 있습니다.</li>
+        </ul>
+      </div>
+
+      <div class="theory-box" style="margin-bottom:16px;">
+        <h4>2. 상대성에 따른 시간 차 (중력 효과와 속도 효과)</h4>
+        <p style="font-size:13.5px; color:var(--ink-muted); margin-bottom:10px;">
+          시계를 한 번 맞춰도, 위치한 곳의 <strong>중력 퍼텐셜(일반 상대성 이론)</strong>과 <strong>운동 속도(특수 상대성 이론)</strong>에 따라 시간이 흐르는 빠르기 자체가 달라집니다.
+        </p>
+        <div class="theory-grid">
+          <div class="factor-card" style="background:#fff;">
+            <h4><span class="place-tag place-iss">우주정거장 (ISS, 고도 400 km)</span></h4>
+            <ul style="padding-left:18px; font-size:13.5px;">
+              <li><strong>중력 효과</strong> (약한 중력): 지표면보다 중력이 약해 시계가 빨라짐 (<span class="mono">+3.5 μs/일</span>)</li>
+              <li><strong>속도 효과</strong> (빠른 공전 <span class="mono">v ≈ 7.7 km/s</span>): 특수 상대성 이론에 의해 시계가 느려짐 (<span class="mono">-28.3 μs/일</span>)</li>
+              <li><strong>합계</strong>: 속도 효과가 더 커서 하루에 <strong>약 <span class="mono">-24.8 μs</span> 느려짐</strong></li>
+            </ul>
+          </div>
+          <div class="factor-card" style="background:#fff;">
+            <h4><span class="place-tag place-moon">달 기지 (Moon Base)</span></h4>
+            <ul style="padding-left:18px; font-size:13.5px;">
+              <li><strong>지구 중력 탈출 효과</strong>: 지구의 깊은 중력 퍼텐셜 우물에서 멀리 벗어남 (<span class="mono">+59.1 μs/일</span>)</li>
+              <li><strong>달 자체 중력 및 공전</strong>: 달의 질량과 공전 속도 효과 (<span class="mono">-0.4 μs/일</span> 내외)</li>
+              <li><strong>합계</strong>: 하루에 <strong>약 <span class="mono">+58.7 μs</span> 빨라짐</strong> (NASA 달 표준시 LTC 공식 발표값)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="theory-box">
+        <h4>3. 경제·사회적 의미와 공공재로서의 시간 기준</h4>
+        <ul>
+          <li><strong>희소성과 가격·시간 우선의 원칙</strong>: 주문 수량(600주)이 매도 수량(300주)보다 많을 때, 동일한 가격에서는 먼저 주문한 사람에게 우선 배정하는 것이 자본시장의 공정한 규칙입니다.</li>
+          <li><strong>상대성 보정이 없으면 생기는 금융 왜곡</strong>: 각자의 시계에 찍힌 시각을 그대로 사용하면, 시간이 느리게 가는 우주정거장은 부당하게 이득을 보고, 시간이 빠르게 흐르는 달 기지는 먼저 주문하고도 손해를 보게 됩니다.</li>
+          <li><strong>공공재(Public Good)로서의 우주 표준시</strong>: GPS 위성이 하루 약 <span class="mono">38 μs</span>의 상대론적 오차를 보정하지 않으면 하루 11 km 이상의 위치 오차가 누적되는 것처럼, 우주 시대의 통신과 금융에서도 단일한 기준계로 환산하는 <strong>공통 표준시(공공재)</strong>가 필수적입니다.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="text-align:center; font-size:12.5px; color:var(--ink-muted); margin-top:18px;">
+      사곡고등학교 물리학 학습 포털 | 2026학년도 역학과 에너지 가상실험실
+    </div>
+
+  </section>
+
+</div>
+
+<script>
+  // ════════════════════════════════════════════════════════════════
+  // 0. 최상위 탭 & 시뮬레이션 서브탭 전환
+  // ════════════════════════════════════════════════════════════════
+  document.querySelectorAll('.main-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.main-tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('main-panel-' + btn.dataset.mainTab).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.sim-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sim-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sim-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.simTab).classList.add('active');
+    });
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // ① 시계 맞추기 시뮬레이션
+  // ════════════════════════════════════════════════════════════════
+  let syncMode = 'naive';
+  let animId = null;
+
+  const syncModeGroup = document.getElementById('syncModeGroup');
+  syncModeGroup.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      syncModeGroup.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      syncMode = b.dataset.mode;
+      resetSignal();
+    });
+  });
+
+  function resetSignal() {
+    if (animId) cancelAnimationFrame(animId);
+    animId = null;
+    document.getElementById('pulseGroup').style.display = 'none';
+    document.getElementById('clkEarth').textContent = '09:00:00.0000';
+    document.getElementById('clkISS').textContent = '대기 중';
+    document.getElementById('clkMoon').textContent = '대기 중';
+    document.getElementById('noteEarth').innerHTML = '9시 정각에 신호를 보냅니다.';
+    document.getElementById('noteISS').innerHTML = '신호가 도착하면 시계를 맞춥니다.';
+    document.getElementById('noteMoon').innerHTML = '신호가 도착하면 시계를 맞춥니다.';
+    document.getElementById('fireSignalBtn').disabled = false;
+  }
+
+  document.getElementById('resetSignalBtn').addEventListener('click', resetSignal);
+
+  document.getElementById('fireSignalBtn').addEventListener('click', () => {
+    resetSignal();
+    const fireBtn = document.getElementById('fireSignalBtn');
+    fireBtn.disabled = true;
+    const pulseGroup = document.getElementById('pulseGroup');
+    const pulseDot = document.getElementById('pulseDot');
+    const pulseRing = document.getElementById('pulseRing');
+    pulseGroup.style.display = 'block';
+
+    const startX = 90, issX = 310, moonX = 700;
+    const duration = 2600;
+    const t0 = performance.now();
+    let issReached = false;
+
+    function step(now) {
+      const p = Math.min(1, (now - t0) / duration);
+      const x = startX + (moonX - startX) * p;
+      pulseDot.setAttribute('cx', x);
+      pulseRing.setAttribute('cx', x);
+
+      const earthSec = (p * 1.28).toFixed(4);
+      document.getElementById('clkEarth').textContent = `09:00:0${earthSec}`;
+
+      if (!issReached && x >= issX) {
+        issReached = true;
+        if (syncMode === 'naive') {
+          document.getElementById('clkISS').textContent = '09:00:00.0000';
+          document.getElementById('noteISS').innerHTML =
+            '신호 도착 즉시 9시로 맞춤 → <span class="err">지구보다 0.0013초 늦은 시계</span>가 됨';
+        } else {
+          document.getElementById('clkISS').textContent = '09:00:00.0013';
+          document.getElementById('noteISS').innerHTML =
+            '걸린 시간(+0.0013초)을 더해 맞춤 → <span class="ok">지구 시계와 정확히 일치!</span>';
+        }
+      }
+
+      if (p < 1) {
+        animId = requestAnimationFrame(step);
+      } else {
+        document.getElementById('clkEarth').textContent = '09:00:01.2800';
+        if (syncMode === 'naive') {
+          document.getElementById('clkMoon').textContent = '09:00:00.0000';
+          document.getElementById('noteMoon').innerHTML =
+            '신호 도착 즉시 9시로 맞춤 → <span class="err">지구보다 1.28초나 늦은 시계</span>가 됨';
+          document.getElementById('syncConclusion').innerHTML =
+            '<strong>결과 ·</strong> 신호가 가는 동안 지구 시계는 이미 흘러갔기 때문에, 도착한 순간 그냥 9시로 맞추면 먼 곳일수록 시계가 늦어집니다. 이제 위에서 <strong>[거리(걸린 시간) 보정해서 맞추기]</strong>를 선택해 다시 실험해 보세요.';
+        } else {
+          document.getElementById('clkMoon').textContent = '09:00:01.2800';
+          document.getElementById(' clkISS' );
+          document.getElementById('clkISS').textContent = '09:00:01.2800';
+          document.getElementById('noteMoon').innerHTML =
+            '걸린 시간(+1.28초)을 더해 맞춤 → <span class="ok">지구 시계와 정확히 일치!</span>';
+          document.getElementById('syncConclusion').innerHTML =
+            '<strong>결과 ·</strong> 신호가 가는 데 걸리는 시간(우주정거장 0.0013초, 달 1.28초)을 미리 계산해 더해주면 <strong>세 곳의 시계를 똑같은 시각으로 맞출 수 있습니다.</strong> 이제 ②번 탭으로 이동해 주문을 넣어 보세요.';
+        }
+        fireBtn.disabled = false;
+      }
+    }
+    animId = requestAnimationFrame(step);
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // ② & ④ 주문 데이터
+  // ════════════════════════════════════════════════════════════════
+  const orders = [
+    { name: '가', place: 'earth', placeLabel: '지구',       rawUs: 100 },
+    { name: '나', place: 'iss',   placeLabel: '우주정거장', rawUs: 110 },
+    { name: '라', place: 'iss',   placeLabel: '우주정거장', rawUs: 120 },
+    { name: '마', place: 'earth', placeLabel: '지구',       rawUs: 140 },
+    { name: '다', place: 'moon',  placeLabel: '달',         rawUs: 150 },
+    { name: '바', place: 'moon',  placeLabel: '달',         rawUs: 190 },
+  ];
+
+  function fmtUs(us) {
+    const v = Math.round(us * 10) / 10;
+    const intPart = Math.floor(v);
+    const frac = Math.round((v - intPart) * 10);
+    const pad = String(intPart).padStart(6, '0');
+    return frac === 0
+      ? `09:00:00.${pad}초 (9시 + ${intPart} μs)`
+      : `09:00:00.${pad}${frac}초 (9시 + ${v.toFixed(1)} μs)`;
+  }
+
+  function placeBadge(p, label) {
+    const cls = p === 'earth' ? 'place-earth' : p === 'iss' ? 'place-iss' : 'place-moon';
+    return `<span class="place-tag ${cls}">${label}</span>`;
+  }
+
+  let t2Judged = false;
+  function renderT2() {
+    const tbody = document.querySelector('#tblT2 tbody');
+    const sorted = [...orders].sort((a, b) => a.rawUs - b.rawUs);
+    tbody.innerHTML = sorted.map((o, i) => {
+      const rank = i + 1;
+      const win = rank <= 3;
+      const rowCls = t2Judged ? (win ? 'win-row' : 'lose-row') : '';
+      return `
+        <tr class="${rowCls}">
+          <td><strong>${o.name}</strong></td>
+          <td>${placeBadge(o.place, o.placeLabel)}</td>
+          <td class="mono">${fmtUs(o.rawUs)}</td>
+          <td class="num mono">100주</td>
+          <td class="center mono">${t2Judged ? rank + '위' : '—'}</td>
+          <td class="center">${
+            !t2Judged ? '<span class="badge badge-lose">판정 전</span>'
+            : win ? '<span class="badge badge-win">체결 (100주 매수)</span>'
+                  : '<span class="badge badge-lose">미체결 (수량 소진)</span>'
+          }</td>
+        </tr>`;
+    }).join('');
+  }
+  renderT2();
+
+  document.getElementById('judgeT2Btn').addEventListener('click', () => {
+    t2Judged = true;
+    renderT2();
+    document.getElementById('t2Hint').innerHTML =
+      '<strong>판정 완료 ·</strong> 시계를 맞춘 직후에는 <strong>가(100 μs) → 나(110 μs) → 라(120 μs)</strong> 세 사람이 순서대로 100주씩 사서 300주가 모두 팔렸습니다. 이제 <strong>③ 하루가 지나면</strong> 탭으로 넘어가 보세요.';
+  });
+  document.getElementById('resetT2Btn').addEventListener('click', () => {
+    t2Judged = false;
+    renderT2();
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // ③ 하루가 지나면
+  // ════════════════════════════════════════════════════════════════
+  const daySlider = document.getElementById('daySlider');
+  const RATE_ISS = -24.8;
+  const RATE_MOON = 58.7;
+
+  function updateDrift() {
+    const d = Number(daySlider.value);
+    document.getElementById('dayLabel').textContent = d === 0 ? '0일 (방금 맞춤)' : `${d}일 후`;
+
+    const issShift = RATE_ISS * d;
+    const moonShift = RATE_MOON * d;
+
+    document.getElementById('valISS').textContent =
+      `${issShift.toFixed(1)} μs (${d === 0 ? '일치' : '느림'})`;
+    document.getElementById('valMoon').textContent =
+      `+${moonShift.toFixed(1)} μs (${d === 0 ? '일치' : '빠름'})`;
+
+    const maxScale = 1800;
+    const issW = Math.min(38, Math.abs(issShift) / maxScale * 55);
+    const moonW = Math.min(58, Math.abs(moonShift) / maxScale * 55);
+
+    const barISS = document.getElementById('barISS');
+    barISS.style.left = (40 - issW) + '%';
+    barISS.style.width = issW + '%';
+
+    const barMoon = document.getElementById('barMoon');
+    barMoon.style.left = '40%';
+    barMoon.style.width = moonW + '%';
+
+    document.getElementById('smDay').textContent = d;
+    document.getElementById('smISSd').textContent = Math.abs(issShift).toFixed(1);
+    document.getElementById('smMoond').textContent = moonShift.toFixed(1);
+
+    if (d === 0) {
+      document.getElementById('smISS').textContent = '09:00:00.0000000';
+      document.getElementById('smMoon').textContent = '09:00:00.0000000';
+    } else {
+      const issRemain = (1000000 + issShift).toFixed(1).replace('.', '');
+      document.getElementById('smISS').textContent = `08:59:59.${issRemain.padStart(7, '0')}`;
+      const moonUsStr = moonShift.toFixed(1).replace('.', '');
+      document.getElementById('smMoon').textContent = `09:00:00.${moonUsStr.padStart(7, '0')}`;
+    }
+  }
+  daySlider.addEventListener('input', updateDrift);
+  document.querySelectorAll('[data-setday]').forEach(b => {
+    b.addEventListener('click', () => {
+      daySlider.value = b.dataset.setday;
+      updateDrift();
+    });
+  });
+  updateDrift();
+
+  // ════════════════════════════════════════════════════════════════
+  // ④ 체결 비교
+  // ════════════════════════════════════════════════════════════════
+  let currentRule = 'raw';
+  let currentRound = 'sheet';
+
+  document.querySelectorAll('#ruleToggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#ruleToggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentRule = b.dataset.rule;
+      renderT4();
+    });
+  });
+  document.querySelectorAll('#roundToggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('#roundToggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      currentRound = b.dataset.round;
+      renderT4();
+    });
+  });
+
+  function renderT4() {
+    const issDelta = currentRound === 'sheet' ? -25 : -24.8;
+    const moonDelta = currentRound === 'sheet' ? 59 : 58.7;
+
+    const enriched = orders.map(o => {
+      let shift = 0;
+      if (o.place === 'iss') shift = issDelta;
+      if (o.place === 'moon') shift = moonDelta;
+      const earthUs = o.rawUs - shift;
+      let formula = '그대로 (지구 기준)';
+      if (o.place === 'iss') formula = `${o.rawUs} + ${Math.abs(shift)} = ${earthUs}`;
+      if (o.place === 'moon') formula = `${o.rawUs} - ${shift} = ${earthUs}`;
+      return { ...o, earthUs, formula };
+    });
+
+    const rawOrder = [...enriched].sort((a, b) => a.rawUs - b.rawUs).map(x => x.name);
+    const earthOrder = [...enriched].sort((a, b) => a.earthUs - b.earthUs).map(x => x.name);
+
+    const sorted = [...enriched].sort((a, b) =>
+      currentRule === 'raw' ? a.rawUs - b.rawUs : a.earthUs - b.earthUs
+    );
+
+    const tbody = document.querySelector('#tblT4 tbody');
+    tbody.innerHTML = sorted.map((o, idx) => {
+      const rank = idx + 1;
+      const win = rank <= 3;
+      const wasWinRaw = rawOrder.indexOf(o.name) < 3;
+      const isWinEarth = earthOrder.indexOf(o.name) < 3;
+
+      let changeBadge = '<span style="color:var(--ink-faint); font-size:12px;">변동 없음</span>';
+      if (wasWinRaw && !isWinEarth) {
+        changeBadge = '<span class="badge badge-gain">환산 전 이득 → 환산 후 탈락</span>';
+      } else if (!wasWinRaw && isWinEarth) {
+        changeBadge = '<span class="badge badge-hurt">환산 전 손해 → 환산 후 체결!</span>';
+      }
+
+      return `
+        <tr class="${win ? 'win-row' : 'lose-row'}">
+          <td><strong>${o.name}</strong></td>
+          <td>${placeBadge(o.place, o.placeLabel)}</td>
+          <td class="mono">9시 + ${o.rawUs} μs</td>
+          <td class="mono" style="color:var(--ink-muted)">${o.formula} μs</td>
+          <td class="mono"><strong>9시 + ${o.earthUs} μs</strong></td>
+          <td class="center mono"><strong>${rank}위</strong></td>
+          <td class="center">${
+            win ? '<span class="badge badge-win">체결 (100주)</span>'
+                : '<span class="badge badge-lose">미체결</span>'
+          }</td>
+          <td class="center">${changeBadge}</td>
+        </tr>`;
+    }).join('');
+
+    document.getElementById('sumRaw').classList.toggle('active-mode', currentRule === 'raw');
+    document.getElementById('sumEarth').classList.toggle('active-mode', currentRule === 'earth');
+  }
+  renderT4();
+
+  // ════════════════════════════════════════════════════════════════
+  // [TAB 2] 모둠 탐구 활동 보고서 데이터 및 실시간 동기화
+  // ════════════════════════════════════════════════════════════════
+  const q1BaseRows = [
+    { name: '가', place: '지구',       raw: '9시 + 100 μs', rawRank: '1위 (구매)' },
+    { name: '나', place: '우주정거장', raw: '9시 + 110 μs', rawRank: '2위 (구매)' },
+    { name: '라', place: '우주정거장', raw: '9시 + 120 μs', rawRank: '3위 (구매)' },
+    { name: '마', place: '지구',       raw: '9시 + 140 μs', rawRank: '4위 (미체결)' },
+    { name: '다', place: '달',         raw: '9시 + 150 μs', rawRank: '5위 (미체결)' },
+    { name: '바', place: '달',         raw: '9시 + 190 μs', rawRank: '6위 (미체결)' },
+  ];
+
+  const q1SampleRows = [
+    { calc: '100 + 0 = 100 μs (지구 기준)',  earth: '9시 + 100 μs', rank: '2위', buy: '구매 (100주)' },
+    { calc: '110 - (-25) = 135 μs',          earth: '9시 + 135 μs', rank: '4위', buy: '미체결' },
+    { calc: '120 - (-25) = 145 μs',          earth: '9시 + 145 μs', rank: '6위', buy: '미체결' },
+    { calc: '140 + 0 = 140 μs (지구 기준)',  earth: '9시 + 140 μs', rank: '5위', buy: '미체결' },
+    { calc: '150 - (+59) = 91 μs',           earth: '9시 + 91 μs',  rank: '1위', buy: '구매 (100주)' },
+    { calc: '190 - (+59) = 131 μs',          earth: '9시 + 131 μs', rank: '3위', buy: '구매 (100주)' },
+  ];
+
+  // 오늘 날짜 기본 설정
+  const todayStr = new Date().toISOString().slice(0, 10);
+  document.getElementById('inpDate').value = todayStr;
+
+  function buildQ1Table() {
+    const tbody = document.getElementById('q1Tbody');
+    tbody.innerHTML = q1BaseRows.map((r, i) => `
+      <tr>
+        <td class="readonly-cell" style="text-align:center; font-weight:800;">${r.name}</td>
+        <td class="readonly-cell" style="text-align:center;">${r.place}</td>
+        <td class="readonly-cell mono" style="text-align:center;">${r.raw}</td>
+        <td class="readonly-cell" style="text-align:center;">${r.rawRank}</td>
+        <td class="editable-cell">
+          <input type="text" class="tbl-input" id="q1Calc_${i}" placeholder="예: 150 - 59 = 91 μs">
+        </td>
+        <td class="editable-cell">
+          <input type="text" class="tbl-input" id="q1Earth_${i}" placeholder="예: 9시 + 91 μs">
+        </td>
+        <td class="editable-cell">
+          <input type="text" class="tbl-input" id="q1Rank_${i}" placeholder="예: 1위" style="text-align:center;">
+        </td>
+        <td class="editable-cell">
+          <input type="text" class="tbl-input" id="q1Buy_${i}" placeholder="구매 / 미체결" style="text-align:center;">
+        </td>
+      </tr>
+    `).join('');
+
+    tbody.querySelectorAll('input').forEach(inp => {
+      inp.addEventListener('input', syncPrintableReport);
+    });
+  }
+
+  function syncPrintableReport() {
+    // 0. 모둠 기본 정보
+    const cls = document.getElementById('inpClass').value.trim() || '(미입력)';
+    const grp = document.getElementById('inpGroup').value.trim() || '(미입력)';
+    const mem = document.getElementById('inpMembers').value.trim() || '(미입력)';
+    const dt  = document.getElementById('inpDate').value || todayStr;
+
+    document.getElementById('prClass').textContent = cls;
+    document.getElementById('prGroup').textContent = grp;
+    document.getElementById('prMembers').textContent = mem;
+    document.getElementById('prDate').textContent = '작성일: ' + dt;
+
+    // 1. Q1 테이블 & 6열 칩 미리보기
+    const previewGrid = document.getElementById('q1PreviewGrid');
+    const prQ1Tbody = document.getElementById('prQ1Tbody');
+
+    let chipsHtml = '';
+    let prRowsHtml = '';
+
+    q1BaseRows.forEach((r, i) => {
+      const calc  = document.getElementById(`q1Calc_${i}`).value.trim();
+      const earth = document.getElementById(`q1Earth_${i}`).value.trim();
+      const rank  = document.getElementById(`q1Rank_${i}`).value.trim();
+      const buy   = document.getElementById(`q1Buy_${i}`).value.trim();
+
+      const isBuy = buy.includes('구매') || (buy.includes('체결') && !buy.includes('미체결'));
+
+      chipsHtml += `
+        <div class="q1-chip-card ${isBuy ? 'buy' : ''}">
+          <div style="font-weight:800; font-size:14px; color:#0f2942;">${r.name} (${r.place})</div>
+          <div class="mono" style="font-size:12px; color:#475569; margin:3px 0;">${earth || '미입력'}</div>
+          <div style="font-size:12px; font-weight:700; color:${isBuy ? '#16794b' : '#64748b'};">
+            ${rank || '-'} · ${buy || '미판정'}
+          </div>
+        </div>
+      `;
+
+      prRowsHtml += `
+        <tr>
+          <td style="border:1px solid #cbd5e1; padding:5px; text-align:center; font-weight:700;">${r.name}</td>
+          <td style="border:1px solid #cbd5e1; padding:5px; text-align:center;">${r.place}</td>
+          <td style="border:1px solid #cbd5e1; padding:5px; text-align:center;">${r.raw}</td>
+          <td style="border:1px solid #cbd5e1; padding:5px; text-align:center;">${r.rawRank}</td>
+          <td style="border:1px solid #e0b84a; background:#fff8dc; padding:5px;">${calc || '(미작성)'}</td>
+          <td style="border:1px solid #e0b84a; background:#fff8dc; padding:5px; text-align:center; font-weight:700;">${earth || '(미작성)'}</td>
+          <td style="border:1px solid #e0b84a; background:#fff8dc; padding:5px; text-align:center; font-weight:700;">${rank || '-'}</td>
+          <td style="border:1px solid #e0b84a; background:#fff8dc; padding:5px; text-align:center; font-weight:700; color:${isBuy ? '#16794b' : '#475569'};">${buy || '-'}</td>
+        </tr>
+      `;
+    });
+
+    previewGrid.innerHTML = chipsHtml;
+    prQ1Tbody.innerHTML = prRowsHtml;
+
+    // 2. Q2
+    const q2BB = document.getElementById('q2BeforeBuyers').value.trim() || '(미작성)';
+    const q2BL = document.getElementById('q2BeforeLosers').value.trim() || '(미작성)';
+    const q2BW = document.getElementById('q2BeforeWinners').value.trim() || '(미작성)';
+
+    const q2AB = document.getElementById('q2AfterBuyers').value.trim() || '(미작성)';
+    const q2AF = document.getElementById('q2AfterFair').value.trim() || '(미작성)';
+    const q2AS = document.getElementById('q2AfterSummary').value.trim() || '(미작성)';
+
+    document.getElementById('prQ2Before').innerHTML =
+      `<b>· 사는 사람:</b> ${q2BB}<br><b>· 억울하게 손해 본 사람:</b> ${q2BL}<br><b>· 부당하게 이득 본 사람:</b> ${q2BW}`;
+    document.getElementById('prQ2After').innerHTML =
+      `<b>· 사는 사람:</b> ${q2AB}<br><b>· 정당한 순위를 되찾은 사람:</b> ${q2AF}<br><b>· 환산 전·후 비교 요약:</b> ${q2AS}`;
+
+    // 3. Q3
+    const q3Diff  = document.getElementById('q3Diff').value.trim() || '____';
+    const q3Total = document.getElementById('q3Total').value.trim() || '________';
+    const q3Note  = document.getElementById('q3Note').value.trim() || '(미작성)';
+    document.getElementById('prQ3Box').innerHTML =
+      `<b>· 계산식:</b> 100주 × (${q3Diff})원 = <b>(${q3Total})원</b><br><b>· 손해 분석:</b> ${q3Note}`;
+
+    // 4. Q4
+    const checkedRadio = document.querySelector('input[name="q4Method"]:checked');
+    const q4Method = checkedRadio ? checkedRadio.value : '(미선택)';
+    const q4Reason = document.getElementById('q4Reason').value.trim() || '(미작성)';
+    const q4Auth   = document.getElementById('q4Authority').value.trim() || '(미작성)';
+
+    document.getElementById('prQ4Method').textContent = q4Method;
+    document.getElementById('prQ4Reason').textContent = q4Reason;
+    document.getElementById('prQ4Authority').textContent = q4Auth;
+  }
+
+  function fillSampleAnswers() {
+    q1SampleRows.forEach((s, i) => {
+      document.getElementById(`q1Calc_${i}`).value = s.calc;
+      document.getElementById(`q1Earth_${i}`).value = s.earth;
+      document.getElementById(`q1Rank_${i}`).value = s.rank;
+      document.getElementById(`q1Buy_${i}`).value = s.buy;
+    });
+
+    document.getElementById('q2BeforeBuyers').value = '가, 나, 라';
+    document.getElementById('q2BeforeLosers').value = '다, 바 (달 시계가 하루 동안 59 μs 빨라져서 실제보다 늦게 주문한 것처럼 기록됨)';
+    document.getElementById('q2BeforeWinners').value = '나, 라 (우주정거장 시계가 하루 동안 25 μs 느려져서 실제보다 일찍 주문한 것처럼 기록됨)';
+
+    document.getElementById('q2AfterBuyers').value = '다(1위, 91 μs), 가(2위, 100 μs), 바(3위, 131 μs)';
+    document.getElementById('q2AfterFair').value = '다, 바 (달 기지 투자자)';
+    document.getElementById('q2AfterSummary').value = '모두 지구 시계로 환산하면 실제로는 달 기지의 다(91 μs)와 바(131 μs)가 우주정거장의 나(135 μs)·라(145 μs)보다 먼저 주문했으므로 다, 가, 바가 주식을 사게 된다.';
+
+    document.getElementById('q3Diff').value = '1,000';
+    document.getElementById('q3Total').value = '100,000';
+    document.getElementById('q3Note').value = '환산하지 않으면 실제로 먼저 주문한 다와 바가 주식을 배정받지 못해 각각 100주 × 1,000원 = 100,000원(두 사람 합계 200,000원)의 시세 차익을 놓치는 금전적 피해를 입는다.';
+
+    const radios = document.querySelectorAll('input[name="q4Method"]');
+    radios.forEach(r => {
+      r.checked = r.value.includes('방법 ③');
+    });
+
+    document.getElementById('q4Reason').value =
+      '방법 ①은 중력과 속도에 따른 상대론적 시간 지연 때문에 시간이 느리게 가는 우주정거장에 부당한 특혜를 주고, 방법 ②는 지구에서 거리가 먼 달 기지(신호 전달 약 1.28초 소요)가 절대 이길 수 없게 만듭니다. 따라서 거리에 따른 신호 지연과 상대론적 시간 지연을 모두 보정해 단일 기준(지구 표준시)으로 환산하는 방법 ③이 가장 공정합니다.';
+    document.getElementById('q4Authority').value =
+      '시간 기준은 모든 시장 참여자가 신뢰하고 동시에 사용해야 하는 비배제성·비경합성을 지닌 사회 기반 인프라(공공재)입니다. 만약 특정 사기업이나 개인이 각자 유리한 시간 기준을 쓰면 시장의 공정성이 무너지므로, 정부나 국제기구(예: 국제도량형국, 우주표준기구 등)가 공신력 있는 우주 표준시를 제정·관리해야 합니다.';
+
+    syncPrintableReport();
+  }
+
+  function clearReportInputs() {
+    q1BaseRows.forEach((_, i) => {
+      document.getElementById(`q1Calc_${i}`).value = '';
+      document.getElementById(`q1Earth_${i}`).value = '';
+      document.getElementById(`q1Rank_${i}`).value = '';
+      document.getElementById(`q1Buy_${i}`).value = '';
+    });
+
+    [
+      'q2BeforeBuyers', 'q2BeforeLosers', 'q2BeforeWinners',
+      'q2AfterBuyers', 'q2AfterFair', 'q2AfterSummary',
+      'q3Diff', 'q3Total', 'q3Note',
+      'q4Reason', 'q4Authority'
+    ].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+
+    syncPrintableReport();
+  }
+
+  buildQ1Table();
+  syncPrintableReport();
+
+  // 모든 입력 요소 변경 시 실시간 미리보기 업데이트
+  [
+    'inpClass', 'inpGroup', 'inpMembers', 'inpDate',
+    'q2BeforeBuyers', 'q2BeforeLosers', 'q2BeforeWinners',
+    'q2AfterBuyers', 'q2AfterFair', 'q2AfterSummary',
+    'q3Diff', 'q3Total', 'q3Note',
+    'q4Reason', 'q4Authority'
+  ].forEach(id => {
+    document.getElementById(id).addEventListener('input', syncPrintableReport);
+  });
+
+  document.querySelectorAll('input[name="q4Method"]').forEach(r => {
+    r.addEventListener('change', syncPrintableReport);
+  });
+
+  document.getElementById('btnFillSample').addEventListener('click', fillSampleAnswers);
+  document.getElementById('btnClearReport').addEventListener('click', clearReportInputs);
+  document.getElementById('btnPrintReport').addEventListener('click', () => {
+    syncPrintableReport();
+    window.print();
+  });
+</script>
+</body>
+</html>
