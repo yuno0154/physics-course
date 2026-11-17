@@ -52,6 +52,7 @@ kepler_history_page = st.Page("physics_sim/kepler_history_sim.py", title="📜 [
 kepler_sim_page = st.Page("physics_sim/kepler_sim.py", title="🪐 [제1법칙] 타원 궤도와 원운동 근사")
 kepler_area_page = st.Page("physics_sim/kepler_area_sim.py", title="🪐 [제2법칙] 면적 속도와 역학적 에너지")
 kepler_derivation_page = st.Page("physics_sim/kepler_derivation.py", title="🪐 [제3법칙] 조화의 법칙 수학적 유도")
+newton_cannon_page = st.Page("physics_sim/newton_cannon_sim.py", title="🚀 [탐구] 뉴턴 대포와 인공위성", url_path="newton_cannon_sim")
 kepler_data_page = st.Page("physics_sim/kepler_data.py", title="🪐 [분석] 조화의 법칙 데이터")
 kepler_gravity_page = st.Page("physics_sim/gravity_sim.py", title="🔭 [탐구] 중력 물리 계산기")
 kepler_practice_page = st.Page("physics_sim/kepler_practice.py", title="📝 [마무리] 케플러 법칙 연습")
@@ -159,6 +160,7 @@ pg = st.navigation({
         kepler_sim_page,
         kepler_area_page,
         kepler_derivation_page,
+        newton_cannon_page,
         kepler_data_page,
         kepler_gravity_page,
         kepler_practice_page,

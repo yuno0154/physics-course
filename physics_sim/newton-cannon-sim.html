@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>뉴턴 대포 시뮬레이션</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+:root{--ink:#1a2640;--mute:#6478a0;--line:#d1dcf0;--bg:#eef3fa;--panel:#fff;--blue:#2f6fd6;--red:#d64545;--green:#1f9d6b;--gold:#d99a1e}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--ink);word-break:keep-all}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 18px 22px}
+h1{font-size:24px;margin:0 0 4px}
+.sub{font-size:14px;color:var(--mute);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 330px;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.stage{position:relative;padding:0;overflow:hidden;background:#0b1530;border:0}
+canvas{display:block;width:100%;height:auto}
+.viewbtns{position:absolute;top:10px;left:10px;display:flex;gap:6px}
+.viewbtns button,.chip{border:1px solid #3a4c78;background:rgba(14,26,56,.85);color:#dfe7ff;border-radius:999px;padding:5px 12px;font:600 13px 'Noto Sans KR',sans-serif;cursor:pointer}
+.viewbtns button.on{background:#e8b84a;color:#1a2640;border-color:#e8b84a}
+.hud{position:absolute;right:10px;top:10px;background:rgba(14,26,56,.85);color:#dfe7ff;border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.6;min-width:170px}
+.hud b{color:#fff}
+.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;font-size:12px;color:#c8d4f5}
+.legend i{display:inline-block;width:16px;height:3px;margin-right:5px;vertical-align:middle}
+label.t{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
+.speed{display:flex;align-items:center;gap:10px}
+input[type=range]{flex:1;accent-color:var(--blue)}
+.val{font:700 20px 'Noto Sans KR',sans-serif;color:var(--blue);min-width:92px;text-align:right}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.presets button{border:1px solid var(--line);background:#f4f7fd;border-radius:999px;padding:5px 11px;font:600 13px 'Noto Sans KR',sans-serif;cursor:pointer;color:var(--ink)}
+.presets button:hover{background:#e6eefc}
+.row{display:flex;gap:8px;margin-top:12px}
+.btn{flex:1;border:0;border-radius:10px;padding:10px;font:700 15px 'Noto Sans KR',sans-serif;cursor:pointer}
+.fire{background:var(--blue);color:#fff}.clear{background:#e9edf5;color:var(--ink)}
+.opts{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:13px}
+.opts label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.tspeed{display:flex;gap:6px;margin-top:10px;align-items:center;font-size:13px;color:var(--mute)}
+.tspeed button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 9px;font:600 12px 'Noto Sans KR',sans-serif;cursor:pointer}
+.tspeed button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ref{margin-top:12px;font-size:13px;line-height:1.7;background:#f4f7fd;border-radius:10px;padding:10px 12px}
+.ref b{color:var(--blue)}
+.log{margin-top:12px}
+.log h3{font-size:14px;margin:0 0 6px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #e3e9f4;padding:5px 4px;text-align:left}
+th{color:var(--mute);font-weight:600}
+td i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
+.qs{margin-top:14px}
+.qs h3{font-size:15px;margin:0 0 8px}
+.qs ol{margin:0;padding-left:20px;font-size:14px;line-height:1.75}
+.note{font-size:12px;color:var(--mute);margin-top:8px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🚀 뉴턴 대포: 던진 포탄에서 인공위성까지</h1>
+  <div class="sub">높은 산꼭대기에서 포탄을 수평으로 쏘아 보자. 발사 속력을 바꾸면 포탄의 경로는 어떻게 달라질까?</div>
+  <div class="grid">
+    <div class="card stage">
+      <canvas id="cv" width="1400" height="1050"></canvas>
+      <div class="viewbtns"><button id="vWide" class="on">지구 전체 보기</button><button id="vNear">산 근처 확대</button></div>
+      <div class="hud" id="hud"></div>
+      <div class="legend"><span><i style="background:#ff6b6b"></i>중력(지구 중심 방향)</span><span><i style="background:#5ee0a0"></i>속도</span></div>
+    </div>
+    <div>
+      <div class="card">
+        <label class="t">수평 발사 속력 v</label>
+        <div class="speed"><input id="v" type="range" min="0.5" max="12" step="0.01" value="4"><span class="val" id="vv">4.00 km/s</span></div>
+        <div class="presets">
+          <button data-v="3">3 km/s</button><button data-v="6">6 km/s</button><button data-v="7.79">7.79 km/s</button><button data-v="9.3">9.3 km/s</button><button data-v="11.2">11.2 km/s</button>
+        </div>
+        <div class="row"><button class="btn fire" id="fire">발사</button><button class="btn clear" id="clr">궤적 지우기</button></div>
+        <div class="opts">
+          <label><input type="checkbox" id="oF" checked>중력 화살표</label>
+          <label><input type="checkbox" id="oV" checked>속도 화살표</label>
+          <label><input type="checkbox" id="oG">원 궤도 안내선</label>
+        </div>
+        <div class="tspeed">시간 배속 <button data-s="150">150×</button><button data-s="400" class="on">400×</button><button data-s="1200">1200×</button></div>
+        <div class="ref">산꼭대기 높이 <b>h = 200 km</b> (그림의 산은 크게 과장)<br>지구 반지름 R = 6371 km, GM = 3.986 × 10¹⁴ m³/s²<br>공기 저항은 없다고 가정</div>
+      </div>
+      <div class="card log">
+        <h3>발사 기록</h3>
+        <table><thead><tr><th>속력</th><th>결과</th><th>비고</th></tr></thead><tbody id="tb"><tr><td colspan="3" style="color:#9aa8c4">아직 발사하지 않았습니다.</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="card qs">
+    <h3>관찰하며 생각해 보기</h3>
+    <ol>
+      <li>속력이 작을 때 포탄은 왜 지면으로 떨어질까? 날아가는 동안 포탄에 작용하는 힘의 방향은 어디를 향하는가?</li>
+      <li>속력을 조금씩 키우면 포탄이 떨어지는 곳은 어떻게 달라지는가? ‘산 근처 확대’에서 보이는 경로는 지표면에서 던진 공의 경로와 무엇이 같은가?</li>
+      <li>어떤 속력에서 포탄이 지면에 닿지 않고 지구 주위를 계속 도는가? 이때도 포탄은 지구 쪽으로 떨어지고 있다고 말할 수 있는가?</li>
+      <li>속력을 더 키우면 궤도의 모양은 어떻게 변하는가?</li>
+    </ol>
+    <div class="note">활동지 19쪽 「E. 지구 주위를 도는 행성의 운동도 같은 원리일까? 1. 뉴턴 대포」와 함께 사용합니다.</div>
+  </div>
+</div>
+<script>
+(()=>{
+const R=6.371e6, GM=3.986e14, H=2.0e5, R0=R+H, VC=Math.sqrt(GM/R0), VE=Math.sqrt(2*GM/R0);
+const cv=document.getElementById('cv'), cx=cv.getContext('2d'), W=cv.width, Hh=cv.height;
+const $=id=>document.getElementById(id);
+const COLORS=['#ffd166','#5ec8ff','#ff8fab','#9b8cff','#7ee081','#ffa94d','#4dd4c6','#f783ac'];
+let view='wide', tScale=400, shots=[], cur=null, ci=0, last=null;
+const stars=[...Array(160)].map(()=>[Math.random()*W,Math.random()*Hh,Math.random()*1.3+.3]);
+function camera(){
+  if(view==='wide') return {cx:0,cy:-0.0*R, s:Math.min(W,Hh)/(2*2.75*R)};
+  return {cx:0,cy:R0-0.02*R, s:Math.min(W,Hh)/(2*0.16*R)};
+}
+function P(x,y,c){return [W/2+(x-c.cx)*c.s, Hh/2-(y-c.cy)*c.s];}
+function drawEarth(c){
+  const [ex,ey]=P(0,0,c), er=R*c.s;
+  const g=cx.createRadialGradient(ex-er*.3,ey-er*.3,er*.1,ex,ey,er);
+  g.addColorStop(0,'#5aa9ff');g.addColorStop(.7,'#2463c9');g.addColorStop(1,'#163f8a');
+  cx.fillStyle=g;cx.beginPath();cx.arc(ex,ey,er,0,Math.PI*2);cx.fill();
+  cx.fillStyle='rgba(80,190,120,.55)';
+  [[.2,.55,.28],[-.45,.1,.22],[.35,-.35,.2],[-.15,-.6,.16]].forEach(([a,b,r])=>{cx.beginPath();cx.arc(ex+a*er,ey+b*er,r*er,0,Math.PI*2);cx.fill()});
+  cx.strokeStyle='rgba(150,200,255,.35)';cx.lineWidth=Math.max(2,er*.03);cx.beginPath();cx.arc(ex,ey,er*1.01,0,Math.PI*2);cx.stroke();
+  // mountain (exaggerated in wide view)
+  const mh=(view==='wide'?0.12*R:H), mw=(view==='wide'?0.10*R:0.06*R);
+  cx.fillStyle='#8a6f4e';cx.beginPath();
+  const a=P(-mw,Math.sqrt(R*R-mw*mw)-1000,c), b=P(0,R+mh,c), d=P(mw,Math.sqrt(R*R-mw*mw)-1000,c);
+  cx.moveTo(...a);cx.lineTo(...b);cx.lineTo(...d);cx.closePath();cx.fill();
+  cx.fillStyle='#f2f2f2';cx.beginPath();const s1=P(-mw*.25,R+mh*.75,c),s2=P(mw*.25,R+mh*.75,c);cx.moveTo(...s1);cx.lineTo(...b);cx.lineTo(...s2);cx.closePath();cx.fill();
+  // cannon
+  cx.save();cx.translate(...b);cx.fillStyle='#2b2b2b';cx.fillRect(-6,-14,30,10);cx.beginPath();cx.arc(0,-6,8,0,Math.PI*2);cx.fill();cx.restore();
+  return mh;
+}
+function launchPoint(){return view==='wide'?{x:0,y:R+0.12*R}:{x:0,y:R0};}
+function arrow(x1,y1,x2,y2,col){cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=4;cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1);cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x2-14*Math.cos(a-.4),y2-14*Math.sin(a-.4));cx.lineTo(x2-14*Math.cos(a+.4),y2-14*Math.sin(a+.4));cx.closePath();cx.fill();}
+// physics: real coordinates; drawing in wide view maps radius r -> display radius with exaggerated mountain offset
+function dispPos(x,y,c){
+  if(view==='wide'){const r=Math.hypot(x,y),alt=r-R,K=0.12*R/H,d=R+(alt<=H?alt*K:H*K+(alt-H)),k=d/r;return P(x*k,y*k,c);} // 산 높이만큼의 고도는 과장, 그 위는 실제 비율
+  return P(x,y,c);
+}
+function draw(){
+  const c=camera();
+  cx.fillStyle='#0b1530';cx.fillRect(0,0,W,Hh);
+  cx.fillStyle='#fff';stars.forEach(([x,y,r])=>{cx.globalAlpha=.5;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()});cx.globalAlpha=1;
+  if($('oG').checked){const [ex,ey]=P(0,0,c);const rr=(view==='wide'?R+0.12*R:R0)*c.s;cx.setLineDash([10,10]);cx.strokeStyle='rgba(232,184,74,.6)';cx.lineWidth=2;cx.beginPath();cx.arc(ex,ey,rr,0,Math.PI*2);cx.stroke();cx.setLineDash([]);}
+  drawEarth(c);
+  shots.concat(cur?[cur]:[]).forEach(sh=>{cx.strokeStyle=sh.col;cx.lineWidth=3;cx.beginPath();sh.path.forEach((p,i)=>{const q=dispPos(p[0],p[1],c);i?cx.lineTo(...q):cx.moveTo(...q)});cx.stroke();
+    if(sh.done&&sh.res==='hit'){const p=sh.path[sh.path.length-1],q=dispPos(p[0],p[1],c);cx.fillStyle=sh.col;cx.beginPath();cx.arc(q[0],q[1],6,0,7);cx.fill();}});
+  if(cur){const q=dispPos(cur.x,cur.y,c);cx.fillStyle='#fff';cx.beginPath();cx.arc(q[0],q[1],7,0,7);cx.fill();
+    const r=Math.hypot(cur.x,cur.y);
+    if($('oF').checked){const L=60;arrow(q[0],q[1],q[0]-L*cur.x/r,q[1]+L*cur.y/r,'#ff6b6b');}
+    if($('oV').checked){const sp=Math.hypot(cur.vx,cur.vy),L=40+50*sp/VC;arrow(q[0],q[1],q[0]+L*cur.vx/sp,q[1]-L*cur.vy/sp,'#5ee0a0');}}
+  hud();
+}
+function hud(){
+  if(!cur){$('hud').innerHTML=`원 궤도 속력 <b>${(VC/1000).toFixed(2)} km/s</b><br>탈출 속력 <b>${(VE/1000).toFixed(2)} km/s</b><br><span style="color:#9fb0d8">(h = 200 km에서)</span>`;return}
+  const r=Math.hypot(cur.x,cur.y),sp=Math.hypot(cur.vx,cur.vy);
+  $('hud').innerHTML=`발사 속력 <b>${(cur.v0/1000).toFixed(2)} km/s</b><br>현재 속력 <b>${(sp/1000).toFixed(2)} km/s</b><br>고도 <b>${Math.max(0,(r-R)/1000).toFixed(0)} km</b><br>경과 시간 <b>${fmtT(cur.t)}</b>`;
+}
+function fmtT(t){const m=Math.floor(t/60),s=Math.floor(t%60);return m?`${m}분 ${s}초`:`${s}초`}
+function fire(){
+  const v0=+$('v').value*1000;
+  if(cur&&!cur.done){cur.done=true;shots.push(cur);}
+  cur={x:0,y:R0,vx:v0,vy:0,v0,t:0,ang:0,prevA:Math.PI/2,path:[[0,R0]],col:COLORS[ci++%COLORS.length],done:false,rmax:R0,rmin:R0};
+  last=null;
+}
+function step(dt){
+  const r=Math.hypot(cur.x,cur.y),a=-GM/(r*r*r);
+  // velocity Verlet
+  const ax=a*cur.x,ay=a*cur.y;
+  cur.x+=cur.vx*dt+.5*ax*dt*dt;cur.y+=cur.vy*dt+.5*ay*dt*dt;
+  const r2=Math.hypot(cur.x,cur.y),a2=-GM/(r2*r2*r2);
+  cur.vx+=.5*(ax+a2*cur.x)*dt;cur.vy+=.5*(ay+a2*cur.y)*dt;cur.t+=dt;
+  cur.rmax=Math.max(cur.rmax,r2);cur.rmin=Math.min(cur.rmin,r2);
+  const A=Math.atan2(cur.y,cur.x);let d=A-cur.prevA;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;cur.ang+=d;cur.prevA=A;
+}
+function finish(res,note){cur.done=true;cur.res=res;shots.push(cur);addLog(cur,res,note);cur=null;}
+function addLog(sh,res,note){
+  const tb=$('tb');if(tb.dataset.empty!=='0'){tb.innerHTML='';tb.dataset.empty='0'}
+  const name={hit:'지면에 떨어짐',circle:'원 궤도',ellipse:'타원 궤도',escape:'지구에서 멀어짐'}[res];
+  const tr=document.createElement('tr');tr.innerHTML=`<td><i style="background:${sh.col}"></i>${(sh.v0/1000).toFixed(2)} km/s</td><td>${name}</td><td>${note}</td>`;tb.prepend(tr);
+}
+function loop(ts){
+  if(cur&&!cur.done){
+    const dtReal=last?Math.min(.05,(ts-last)/1000):0;last=ts;let T=dtReal*tScale;
+    while(T>0&&cur&&!cur.done){
+      const r=Math.hypot(cur.x,cur.y),h=Math.min(T,Math.max(.5,0.002*r/Math.max(1,Math.hypot(cur.vx,cur.vy))*10));step(h);T-=h;
+      const rn=Math.hypot(cur.x,cur.y);
+      if(cur.path.length===0||cur.t-(cur.lastRec||0)>Math.max(2,rn/2e6)){cur.path.push([cur.x,cur.y]);cur.lastRec=cur.t;}
+      if(rn<=R){const s=R/rn;cur.x*=s;cur.y*=s;cur.path.push([cur.x,cur.y]);const dist=R*Math.abs(cur.ang)/1000;finish('hit',`수평 거리 약 ${dist.toFixed(0)} km`);break;}
+      const E=.5*(cur.vx*cur.vx+cur.vy*cur.vy)-GM/rn;
+      if(E>=0&&rn>2.7*R){finish('escape','돌아오지 않음');break;}
+      if(Math.abs(cur.ang)>=2*Math.PI){cur.path.push([cur.x,cur.y]);const e=(cur.rmax-cur.rmin)/(cur.rmax+cur.rmin);
+        if(e<0.01)finish('circle',`고도 약 ${((cur.rmin-R)/1000).toFixed(0)} km 유지, 주기 ${fmtT(cur.t)}`);
+        else finish('ellipse',`최고 고도 약 ${((cur.rmax-R)/1000).toFixed(0)} km, 주기 ${fmtT(cur.t)}`);break;}
+    }
+  } else last=null;
+  draw();requestAnimationFrame(loop);
+}
+$('v').addEventListener('input',()=>{$('vv').textContent=(+$('v').value).toFixed(2)+' km/s'});
+document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>{$('v').value=b.dataset.v;$('vv').textContent=(+b.dataset.v).toFixed(2)+' km/s';fire()}));
+document.querySelectorAll('.tspeed button').forEach(b=>b.addEventListener('click',()=>{tScale=+b.dataset.s;document.querySelectorAll('.tspeed button').forEach(x=>x.classList.toggle('on',x===b))}));
+$('fire').addEventListener('click',fire);
+$('clr').addEventListener('click',()=>{shots=[];cur=null;ci=0;const tb=$('tb');tb.dataset.empty='1';tb.innerHTML='<tr><td colspan="3" style="color:#9aa8c4">아직 발사하지 않았습니다.</td></tr>'});
+$('vWide').addEventListener('click',()=>{view='wide';$('vWide').classList.add('on');$('vNear').classList.remove('on')});
+$('vNear').addEventListener('click',()=>{view='near';$('vNear').classList.add('on');$('vWide').classList.remove('on')});
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
