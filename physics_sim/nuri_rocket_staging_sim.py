@@ -172,6 +172,15 @@ function NuriSimTab() {
   const containerRef = useRef(null);
   const canvas2dRef = useRef(null);
   const animRef = useRef(null);
+  const modeRef = useRef(mode);
+  const speedRef = useRef(speedMult);
+  const viewModeRef = useRef(viewMode);
+  const camRef = useRef(cameraView);
+
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  useEffect(() => { speedRef.current = speedMult; }, [speedMult]);
+  useEffect(() => { viewModeRef.current = viewMode; }, [viewMode]);
+  useEffect(() => { camRef.current = cameraView; }, [cameraView]);
 
   // 물리 파라미터 및 3D 참조
   const simRef = useRef({
@@ -179,6 +188,9 @@ function NuriSimTab() {
     stagePhase: 1,
     stage1Sep: false, fairingSep: false, stage2Sep: false, satDeployed: false,
     status: 'ready',
+    path: [],
+    debris: [],
+    events: [],
     
     // 3D 객체
     scene: null, camera: null, renderer: null, rocketGroup: null,
@@ -195,96 +207,223 @@ function NuriSimTab() {
     payload: 1.5
   };
 
-  /* 물리 업데이트 루프 */
+  // 고도(km), 수평거리(km) -> 2D 캔버스 좌표 변환
+  const to2D = (downKm, altKm, W, H) => {
+    const x = 68 + (downKm / 920) * (W - 120);
+    const y = (H - 42) - (altKm / 780) * (H - 86);
+    return { x, y };
+  };
+
+  /* 물리 업데이트 루프 (3가지 발사 조건별 정밀 궤적 및 분리 이벤트) */
   const updatePhysics = (dt) => {
     const s = simRef.current;
-    const mMode = mode;
+    const mMode = modeRef.current;
 
+    const prevT = s.t;
     s.t += dt;
     const t = s.t;
 
-    let thrust = 0;
     let totalM = SPECS.payload;
     let phaseMsg = '';
     let fairingMsg = '';
+    let targetAlt = 0;
+    let targetVel = 0;
+    let targetDown = 0;
+    let accelGVal = 0;
 
+    // 1) 구간별 질량 및 분리 상태 업데이트
     if (t <= 125) {
       s.stagePhase = 1;
-      const fuelRem1 = Math.max(0, SPECS.stage1.fuel * (1 - t / 125));
-      totalM += fuelRem1 + SPECS.stage1.dry + SPECS.stage2.fuel + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.fairing.mass;
-      thrust = SPECS.stage1.thrustKn;
-      phaseMsg = '🔥 1단 엔진 분사 중 (300톤 추진력)';
-      fairingMsg = '🛡️ 위성 덮개 닫힘 (공기 저항 방어)';
-    } else if (t > 125 && t <= 255) {
+      const p = t / 125;
+      const fuelRem1 = SPECS.stage1.fuel * (1 - p);
+      totalM = fuelRem1 + SPECS.stage1.dry + SPECS.stage2.fuel + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.fairing.mass + SPECS.payload;
+      targetAlt = 59.0 * Math.pow(p, 1.35);
+      targetVel = 1.80 * Math.pow(p, 1.1);
+      targetDown = 75.0 * Math.pow(p, 1.4);
+      accelGVal = 1.5 + 1.8 * p;
+      phaseMsg = '🔥 1단 엔진 연소 중 (300톤급 추력 · 대기권 돌파)';
+      fairingMsg = '🛡️ 위성 보호 덮개(페어링) 닫힘';
+    } else if (t <= 255) {
       s.stagePhase = 2;
-      if (mMode !== 'no_stage_sep') s.stage1Sep = true;
-      else totalM += SPECS.stage1.dry;
-
-      if (t >= 204) {
-        if (mMode === 'normal') s.fairingSep = true;
-        else totalM += SPECS.fairing.mass;
-        fairingMsg = s.fairingSep ? '✨ 페어링 분리 완료 (우주 진공)' : '⚠️ 페어링 미분리 (1.5t 불필요한 무거운 짐 탑재!)';
+      // 125초: 1단 분리 이벤트
+      if (mMode !== 'no_stage_sep') {
+        if (!s.stage1Sep) {
+          s.stage1Sep = true;
+          s.debris.push({ type: 'stage1', down: s.downrange, alt: s.alt, vx: 0.4, vy: 0.1, rot: 0, label: '1단 분리 (20t)' });
+          s.events.push({ down: s.downrange, alt: s.alt, text: '1단 분리 (125s, 59km)', col: '#38bdf8' });
+        }
       } else {
-        totalM += SPECS.fairing.mass;
-        fairingMsg = '🛡️ 대기권 탈출 비행 중';
+        if (prevT <= 125) s.events.push({ down: s.downrange, alt: s.alt, text: '❌ 1단 미분리 (20t 짐 잔류)', col: '#ef4444' });
       }
 
-      const dt2 = t - 125;
-      const fuelRem2 = Math.max(0, SPECS.stage2.fuel * (1 - dt2 / 130));
-      totalM += fuelRem2 + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry;
-      thrust = SPECS.stage2.thrustKn;
-      phaseMsg = s.stage1Sep ? '🚀 2단 엔진 연소 중 (75톤 힘)' : '⚠️ 2단 연소 (다 탄 1단 20톤 무거운 짐 견인!)';
-    } else if (t > 255 && t <= 755) {
+      // 204초: 페어링 분리 이벤트
+      if (t >= 204) {
+        if (mMode === 'normal') {
+          if (!s.fairingSep) {
+            s.fairingSep = true;
+            s.debris.push({ type: 'fairingL', down: s.downrange, alt: s.alt, vx: 0.3, vy: 0.35, rot: -0.2, label: '페어링 좌측' });
+            s.debris.push({ type: 'fairingR', down: s.downrange, alt: s.alt, vx: 0.5, vy: -0.15, rot: 0.2, label: '페어링 우측' });
+            s.events.push({ down: s.downrange, alt: s.alt, text: '✨ 페어링 분리 (204s, 191km)', col: '#a3e635' });
+          }
+          fairingMsg = '✨ 페어링(1.5t) 분리 완료! (위성 노출)';
+        } else {
+          if (prevT < 204) {
+            s.events.push({ down: s.downrange, alt: s.alt, text: '⚠️ 페어링 미분리 고착! (204s)', col: '#f59e0b' });
+          }
+          fairingMsg = '⚠️ 페어링 미분리 (1.5t 덮개 고착 → 가속 저하!)';
+        }
+      } else {
+        fairingMsg = '🛡️ 대기권 탈출 상승 중';
+      }
+
+      const p2 = (t - 125) / 130;
+      const fuelRem2 = Math.max(0, SPECS.stage2.fuel * (1 - p2));
+      totalM = fuelRem2 + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.payload
+               + (s.stage1Sep ? 0 : SPECS.stage1.dry)
+               + (s.fairingSep ? 0 : SPECS.fairing.mass);
+
+      if (mMode === 'normal') {
+        targetAlt = 59.0 + 199.0 * Math.pow(p2, 0.92); // 255s -> 258 km
+        targetVel = 1.80 + 2.00 * p2;                  // 255s -> 3.80 km/s
+        targetDown = 75.0 + 165.0 * p2;                // 255s -> 240 km
+        accelGVal = 1.6 + 1.1 * p2;
+        phaseMsg = '🚀 2단 엔진 연소 중 (75톤급 추력)';
+      } else if (mMode === 'no_fairing_sep') {
+        targetAlt = 59.0 + 186.0 * Math.pow(p2, 0.92); // 255s -> 245 km
+        targetVel = 1.80 + 1.75 * p2;                  // 255s -> 3.55 km/s
+        targetDown = 75.0 + 155.0 * p2;
+        accelGVal = 1.4 + 0.9 * p2;
+        phaseMsg = '⚠️ 2단 연소 중 (204초 이후 1.5t 덮개 짐 끌고 비행)';
+      } else {
+        // 단분리 미실시: 무거운 1단 20t 때문에 고도 180km 부근까지만 겨우 상승
+        targetAlt = 59.0 + 115.0 * Math.sin(p2 * Math.PI * 0.55); // ~174 km
+        targetVel = 1.80 + 0.30 * Math.sin(p2 * Math.PI * 0.6);   // 최고 2.10 km/s
+        targetDown = 75.0 + 110.0 * p2;
+        accelGVal = 0.3;
+        phaseMsg = '❌ 2단 연소 (다 탄 1단 20톤 껍데기 때문에 가속 불능!)';
+      }
+    } else if (t <= 755) {
       s.stagePhase = 3;
-      if (mMode !== 'no_stage_sep') s.stage2Sep = true;
-      else totalM += SPECS.stage1.dry + SPECS.stage2.dry;
+      const p3 = (t - 255) / 500;
+      const fuelRem3 = Math.max(0, SPECS.stage3.fuel * (1 - p3));
 
-      if (mMode !== 'normal') totalM += SPECS.fairing.mass;
-      s.fairingSep = (mMode === 'normal');
+      if (mMode !== 'no_stage_sep') {
+        if (!s.stage2Sep) {
+          s.stage2Sep = true;
+          s.debris.push({ type: 'stage2', down: s.downrange, alt: s.alt, vx: 0.5, vy: 0.05, rot: 0, label: '2단 분리 (4.5t)' });
+          s.events.push({ down: s.downrange, alt: s.alt, text: '2단 분리 (255s)', col: '#38bdf8' });
+        }
+      }
 
-      const dt3 = t - 255;
-      const fuelRem3 = Math.max(0, SPECS.stage3.fuel * (1 - dt3 / 500));
-      totalM += fuelRem3 + SPECS.stage3.dry;
-      thrust = SPECS.stage3.thrustKn;
-      phaseMsg = s.stage2Sep ? '🌌 3단 정밀 엔진 연소 (7톤 힘)' : '⚠️ 3단 연소 (24.5t 빈 껍데기 무거운 짐 가속 방해!)';
-      fairingMsg = s.fairingSep ? '✨ 페어링 분리 상태' : '❌ 덮개 무게로 추가 속도 저하';
+      if (mMode === 'normal') {
+        s.fairingSep = true;
+        // 3단 연소 종료 시 3단 껍데기(1.5t)도 분리되어 최종 위성 질량 1.5t 달성
+        totalM = SPECS.payload + fuelRem3 + (p3 < 0.98 ? SPECS.stage3.dry : 0);
+        // 258 km -> 700.0 km 매끄러운 궤도 진입 곡선
+        targetAlt = 258.0 + 442.0 * (1 - Math.pow(1 - p3, 1.85));
+        targetVel = 3.80 + 3.70 * Math.pow(p3, 0.88); // 755s -> 7.50 km/s
+        targetDown = 240.0 + 500.0 * p3;
+        accelGVal = 0.8 + 1.6 * p3;
+        phaseMsg = '🌌 3단 정밀 엔진 가속 중 (700km 궤도 진입 속도 7.5 km/s 향해 가속!)';
+        fairingMsg = '✨ 페어링 분리 상태 (가벼운 위성체만 가속)';
+      } else if (mMode === 'no_fairing_sep') {
+        s.fairingSep = false;
+        totalM = SPECS.payload + SPECS.fairing.mass + fuelRem3; // 종료 시 3.0 톤 (위성 1.5t + 덮개 1.5t)
+        // 1.5t 덮개 무게 때문에 620 km에서 정점 찍고 속도 6.40 km/s에 그침
+        targetAlt = 245.0 + 375.0 * Math.sin(p3 * Math.PI * 0.56); // 755s 부근 최고 620 km 후 완만히 처짐
+        targetVel = 3.55 + 2.85 * Math.pow(p3, 0.9);               // 755s -> 6.40 km/s
+        targetDown = 230.0 + 430.0 * p3;
+        accelGVal = 0.5 + 0.7 * p3;
+        phaseMsg = '⚠️ 3단 연소 중 (1.5t 덮개 무게 때문에 가속도 크게 저하!)';
+        fairingMsg = '❌ 페어링 덮개 고착 (위성 분리 불가 + 속도 1.1 km/s 부족)';
+      } else {
+        // 단분리 미실시: 최고 고도 180 km 찍고 바다(고도 0 km)로 추락!
+        totalM = 26.0 + fuelRem3;
+        const fallP = Math.min(1, (t - 255) / 260);
+        targetAlt = Math.max(0, 180.0 * (1 - Math.pow(fallP, 1.65)));
+        targetVel = 2.10 * (1 - 0.35 * fallP);
+        targetDown = 185.0 + 190.0 * fallP;
+        accelGVal = -0.8;
+        phaseMsg = '❌ 추락 중 (다 탄 1·2단 24.5t 무게를 이기지 못하고 해상 추락!)';
+        fairingMsg = '❌ 전 단 미분리 (총 26.0t 무거운 짐)';
+        if (targetAlt <= 0.2) {
+          s.alt = 0;
+          s.vel = 2.10;
+          s.mass = 26.0;
+          s.events.push({ down: targetDown, alt: 0, text: '💥 해상 추락 (속도 부족 2.1 km/s)', col: '#ef4444' });
+          s.status = 'failed';
+        }
+      }
     } else {
+      // 755초 이후: 궤도 순항(normal) vs 궤도 미달 강하(no_fairing_sep)
       s.stagePhase = 4;
-      thrust = 0;
-      phaseMsg = '🏁 비행 엔진 연소 완료';
-      if (mMode === 'normal') s.satDeployed = true;
+      const postT = t - 755;
+      if (mMode === 'normal') {
+        s.satDeployed = true;
+        totalM = 1.5;
+        targetAlt = 700.0;
+        targetVel = 7.50;
+        targetDown = 740.0 + postT * 2.2;
+        accelGVal = 0;
+        phaseMsg = '🛰️ 목표 고도 700km 원궤도 안착 & 위성 사출 성공!';
+        fairingMsg = '✨ 태양전지판 전개 및 지상국 교신 성공';
+        if (prevT <= 755) {
+          s.events.push({ down: 740.0, alt: 700.0, text: '🎉 700km 궤도 진입 & 위성 사출 (7.5 km/s)', col: '#a3e635' });
+        }
+        if (postT >= 60) s.status = 'completed';
+      } else if (mMode === 'no_fairing_sep') {
+        totalM = 3.0;
+        // 6.4 km/s는 700km 원궤도 속도(7.5 km/s)보다 느려 원심력 부족으로 고도가 점점 강하함!
+        targetAlt = Math.max(420, 614.0 - postT * 1.8);
+        targetVel = 6.40;
+        targetDown = 660.0 + postT * 1.8;
+        accelGVal = -0.35;
+        phaseMsg = '⚠️ 3단 연소 종료 — 속도 부족(6.4 km/s)으로 700km 궤도 진입 실패 (고도 강하 중)';
+        fairingMsg = '❌ 1.5t 페어링 덮개 안에 위성 갇힘 (임무 실패)';
+        if (prevT <= 755) {
+          s.events.push({ down: 660.0, alt: 614.0, text: '⚠️ 속도 부족(6.4 km/s) → 궤도 미달 강하', col: '#f59e0b' });
+        }
+        if (postT >= 60) s.status = 'failed';
+      }
     }
 
-    s.mass = totalM;
+    if (s.status === 'launching') {
+      s.alt = targetAlt;
+      s.vel = targetVel;
+      s.downrange = targetDown;
+      s.mass = totalM;
+      s.accel = accelGVal * 9.81;
+    }
 
-    const g = 9.81 * Math.pow(6371 / (6371 + s.alt), 2);
-    const netKn = thrust - totalM * g * 0.35;
-    const accelMss = Math.max(-g, netKn / totalM);
-    s.accel = accelMss;
-    s.vel += (accelMss / 1000) * dt;
-    if (s.vel < 0 && s.alt <= 0) s.vel = 0;
-    s.alt += s.vel * dt;
-    s.downrange += (s.vel * 0.8) * dt;
+    // 분리된 낙하물(1단, 페어링, 2단) 물리 업데이트
+    s.debris.forEach(d => {
+      d.down += d.vx * dt;
+      d.vy -= 0.012 * dt;
+      d.alt = Math.max(0, d.alt + d.vy * dt * 8);
+      d.rot += 0.04 * dt;
+    });
 
-    let resultStr = '🚀 정상 비행 중...';
-    if (t > 755 || s.alt >= 700) {
-      if (mMode === 'normal' && s.vel >= 7.4) {
-        resultStr = '🎉 [성공] 700km 우주 궤도 진입 성공! (최종 속도 7.5 km/s)';
-        s.status = 'completed';
-      } else if (mMode === 'no_fairing_sep') {
-        resultStr = '⚠️ [실패] 페어링 덮개 1.5t 안 열림 -> 최종 속도 모자람(6.4 km/s)으로 궤도 진입 실패!';
-        s.status = 'failed';
+    // 비행 궤적 기록
+    if (s.path.length === 0 || Math.hypot(s.downrange - s.path[s.path.length - 1].down, s.alt - s.path[s.path.length - 1].alt) > 4) {
+      s.path.push({ down: s.downrange, alt: s.alt });
+    }
+
+    let resultStr = '🚀 누리호 비행 진행 중...';
+    if (s.status === 'completed') {
+      resultStr = '🎉 [성공] 700km 우주 궤도 진입 및 위성 분리 성공! (최종 속도 7.5 km/s, 최종 질량 1.5t)';
+    } else if (s.status === 'failed') {
+      if (mMode === 'no_fairing_sep') {
+        resultStr = '⚠️ [실패] 페어링 덮개(1.5t) 미분리 → 최종 속도 부족(6.4 km/s)으로 700km 궤도 안착 실패 및 고도 강하!';
       } else {
-        resultStr = '❌ [실패] 다 탄 빈 로켓 24.5t 무거운 짐 안 버림 -> 속도 부족(2.1 km/s)으로 해상 추락!';
-        s.status = 'failed';
+        resultStr = '❌ [실패] 다 탄 1·2단(24.5t) 미분리 → 최종 속도 2.1 km/s에 그쳐 고도 180km에서 해상 추락!';
       }
     }
 
     setTelemetry({
-      time: Math.round(t),
+      time: Math.min(755, Math.round(t)),
       altKm: Math.max(0, +s.alt.toFixed(1)),
       velKms: Math.max(0, +s.vel.toFixed(2)),
-      accelG: +(accelMss / 9.81).toFixed(2),
+      accelG: +accelGVal.toFixed(2),
       massTon: +s.mass.toFixed(1),
       phaseText: phaseMsg,
       fairingText: fairingMsg,
@@ -299,51 +438,144 @@ function NuriSimTab() {
     const ctx = cvs.getContext('2d');
     const W = cvs.width, H = cvs.height;
     const s = simRef.current;
+    const mMode = modeRef.current;
 
-    // 배경
-    const skyFactor = Math.max(0, 1 - s.alt / 100);
+    // 1) 우주/대기권 배경
+    const skyFactor = Math.max(0, 1 - s.alt / 150);
     const bgGrad = ctx.createLinearGradient(0, H, 0, 0);
-    bgGrad.addColorStop(0, `rgb(${Math.round(14 + 100*skyFactor)}, ${Math.round(23 + 140*skyFactor)}, ${Math.round(42 + 200*skyFactor)})`);
-    bgGrad.addColorStop(1, '#030712');
+    bgGrad.addColorStop(0, `rgb(${Math.round(14 + 70*skyFactor)}, ${Math.round(25 + 100*skyFactor)}, ${Math.round(52 + 150*skyFactor)})`);
+    bgGrad.addColorStop(0.55, '#071026');
+    bgGrad.addColorStop(1, '#020617');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // 별
-    ctx.fillStyle = `rgba(255,255,255,${(1 - skyFactor)*0.8})`;
-    for (let i = 0; i < 40; i++) {
-      ctx.beginPath(); ctx.arc((i * 47) % W, (i * 31) % (H * 0.7), (i % 3 === 0 ? 1.5 : 1), 0, Math.PI * 2); ctx.fill();
+    // 2) 별 배경
+    ctx.fillStyle = 'rgba(255,255,255,0.75)';
+    for (let i = 0; i < 45; i++) {
+      ctx.beginPath();
+      ctx.arc((i * 53 + 17) % W, (i * 29 + 11) % (H * 0.72), (i % 3 === 0 ? 1.5 : 1), 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // 지구 곡선
-    const earthY = H + 500 - (s.alt / 700) * 380;
-    ctx.fillStyle = '#0ea5e9';
-    ctx.beginPath(); ctx.arc(W / 2, earthY, 550, 0, Math.PI * 2); ctx.fill();
+    // 3) 고도 기준선: 목표 700 km 우주 궤도선 & 대기권 경계(100 km 카르만 라인)
+    const y700 = to2D(0, 700, W, H).y;
+    const y100 = to2D(0, 100, W, H).y;
 
-    // 로켓 궤적
-    const trajX = 80 + (s.downrange / 800) * (W - 160);
-    const trajY = H - 40 - (s.alt / 750) * (H - 80);
-
-    ctx.strokeStyle = 'rgba(56,189,248,0.5)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath(); ctx.moveTo(80, H - 40); ctx.quadraticCurveTo(W * 0.3, H - 150, trajX, trajY); ctx.stroke();
+    ctx.strokeStyle = 'rgba(163, 230, 53, 0.55)';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([7, 5]);
+    ctx.beginPath(); ctx.moveTo(40, y700); ctx.lineTo(W - 20, y700); ctx.stroke();
     ctx.setLineDash([]);
+    ctx.fillStyle = '#a3e635';
+    ctx.font = 'bold 11.5px Noto Sans KR';
+    ctx.fillText('🎯 목표 우주 궤도 (고도 700 km · 필요 궤도 속도 7.5 km/s)', W - 335, y700 - 7);
 
-    // 로켓 아이콘
-    const rx = Math.max(80, Math.min(W - 80, trajX));
-    const ry = Math.max(30, Math.min(H - 30, trajY));
-    const pitch = Math.max(0.1, (Math.PI / 2) * Math.exp(-s.alt / 220));
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(40, y100); ctx.lineTo(W - 20, y100); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.75)';
+    ctx.font = '10.5px Noto Sans KR';
+    ctx.fillText('대기권 경계 (고도 100 km)', W - 165, y100 - 5);
+
+    // 4) 하단 지구 표면 및 바다 곡선
+    ctx.fillStyle = '#0284c7';
+    ctx.beginPath();
+    ctx.arc(W / 2, H + 860, 900, 0, Math.PI * 2);
+    ctx.fill();
+    // 나로 우주센터 발사대
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(54, H - 52, 28, 12);
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(58, H - 82, 4, 30);
+
+    // 5) 다른 조건 비교용 기준 궤적 안내선 (연한 점선으로 정상 700km 궤적 표시)
+    if (mMode !== 'normal') {
+      ctx.strokeStyle = 'rgba(163, 230, 53, 0.22)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      const p0 = to2D(0, 0, W, H);
+      const p1 = to2D(240, 258, W, H);
+      const p2 = to2D(740, 700, W, H);
+      const p3 = to2D(860, 700, W, H);
+      ctx.moveTo(p0.x, p0.y);
+      ctx.quadraticCurveTo(p1.x, p1.y, p2.x, p2.y);
+      ctx.lineTo(p3.x, p3.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // 6) 실제 비행 궤적 실선 그리기
+    if (s.path.length > 1) {
+      ctx.strokeStyle = mMode === 'normal' ? '#38bdf8' : (mMode === 'no_fairing_sep' ? '#f59e0b' : '#ef4444');
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      s.path.forEach((pt, idx) => {
+        const p = to2D(pt.down, pt.alt, W, H);
+        if (idx === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+    }
+
+    // 7) 주요 분리·이벤트 마커 표시
+    s.events.forEach(ev => {
+      const p = to2D(ev.down, ev.alt, W, H);
+      ctx.fillStyle = ev.col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2); ctx.fill();
+      ctx.font = 'bold 11px Noto Sans KR';
+      ctx.fillText(ev.text, Math.min(W - 185, Math.max(15, p.x - 20)), Math.max(24, p.y - 10));
+    });
+
+    // 8) 분리되어 낙하하는 부품(1단, 페어링 좌·우, 2단) 렌더링
+    s.debris.forEach(d => {
+      if (d.alt <= 0) return;
+      const p = to2D(d.down, d.alt, W, H);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(d.rot);
+      if (d.type === 'stage1') {
+        ctx.fillStyle = '#e2e8f0'; ctx.fillRect(-5, -9, 10, 18);
+        ctx.fillStyle = '#dc2626'; ctx.fillRect(-5, -3, 10, 3);
+      } else if (d.type === 'stage2') {
+        ctx.fillStyle = '#94a3b8'; ctx.fillRect(-4, -6, 8, 12);
+      } else {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.moveTo(-3, -6); ctx.lineTo(3, 0); ctx.lineTo(-3, 6); ctx.closePath(); ctx.fill();
+      }
+      ctx.restore();
+    });
+
+    // 9) 현재 로켓 / 위성 본체 렌더링
+    const curP = to2D(s.downrange, s.alt, W, H);
+    const rx = Math.max(60, Math.min(W - 45, curP.x));
+    const ry = Math.max(28, Math.min(H - 35, curP.y));
+
+    let pitchAngle = Math.max(0.02, (Math.PI / 2) * Math.exp(-s.downrange / 240));
+    if (mMode === 'normal' && s.t >= 755) pitchAngle = 0; // 700km 원궤도 수평 비행
+    if (mMode === 'no_fairing_sep' && s.t > 680) pitchAngle = -0.22; // 궤도 미달 하강 기울기
+    if (mMode === 'no_stage_sep' && s.t > 240) pitchAngle = -0.65;   // 해상 추락 기울기
 
     ctx.save();
     ctx.translate(rx, ry);
-    ctx.rotate(Math.PI / 2 - pitch);
+    ctx.rotate(Math.PI / 2 - pitchAngle);
 
     // 엔진 화염
-    if (s.t < 755 && s.status === 'launching') {
-      const flameGrad = ctx.createLinearGradient(0, 20, 0, 45);
-      flameGrad.addColorStop(0, '#ffffff'); flameGrad.addColorStop(0.3, '#38bdf8'); flameGrad.addColorStop(1, 'rgba(239,68,68,0)');
+    if (s.t > 0 && s.t < 755 && s.status === 'launching') {
+      const flameY = !s.stage1Sep ? 22 : (!s.stage2Sep ? 4 : -12);
+      const flameGrad = ctx.createLinearGradient(0, flameY, 0, flameY + 26);
+      flameGrad.addColorStop(0, '#ffffff');
+      flameGrad.addColorStop(0.35, '#38bdf8');
+      flameGrad.addColorStop(1, 'rgba(239,68,68,0)');
       ctx.fillStyle = flameGrad;
-      ctx.beginPath(); ctx.moveTo(-6, 20); ctx.lineTo(0, 45 + Math.random()*6); ctx.lineTo(6, 20); ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-5, flameY);
+      ctx.lineTo(0, flameY + 22 + Math.random() * 6);
+      ctx.lineTo(5, flameY);
+      ctx.closePath();
+      ctx.fill();
     }
 
     // 1단
@@ -355,32 +587,55 @@ function NuriSimTab() {
     if (!s.stage2Sep) {
       ctx.fillStyle = '#cbd5e1'; ctx.fillRect(-6, -14, 12, 16);
     }
-    // 3단
-    ctx.fillStyle = '#64748b'; ctx.fillRect(-5, -26, 10, 12);
+    // 3단 (위성 단독 사출 전까지 표시)
+    if (!s.satDeployed) {
+      ctx.fillStyle = '#64748b'; ctx.fillRect(-5, -26, 10, 12);
+    }
 
-    // 페어링
+    // 페어링 또는 위성
     if (!s.fairingSep) {
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath(); ctx.moveTo(-6, -26); ctx.quadraticCurveTo(0, -42, 6, -26); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = mMode !== 'normal' && s.t >= 204 ? '#fca5a5' : '#ffffff';
+      ctx.strokeStyle = mMode !== 'normal' && s.t >= 204 ? '#ef4444' : '#cbd5e1';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-6, -26); ctx.quadraticCurveTo(0, -44, 6, -26); ctx.closePath();
+      ctx.fill(); ctx.stroke();
     } else {
-      ctx.fillStyle = '#fbbf24'; ctx.fillRect(-4, -34, 8, 8);
+      // 황금색 인공위성 본체
+      ctx.fillStyle = '#fbbf24'; ctx.fillRect(-5, -35, 10, 9);
       if (s.satDeployed) {
-        ctx.fillStyle = '#0284c7'; ctx.fillRect(-12, -32, 6, 4); ctx.fillRect(6, -32, 6, 4);
+        // 태양전지판 전개!
+        ctx.fillStyle = '#0284c7';
+        ctx.strokeStyle = '#bae6fd';
+        ctx.lineWidth = 1;
+        ctx.fillRect(-20, -34, 13, 7); ctx.strokeRect(-20, -34, 13, 7);
+        ctx.fillRect(7, -34, 13, 7);   ctx.strokeRect(7, -34, 13, 7);
       }
     }
     ctx.restore();
 
-    // 텍스트 HUD
-    ctx.fillStyle = 'rgba(11, 19, 43, 0.85)';
-    ctx.strokeStyle = '#1e3a8a';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.roundRect(12, 12, 280, 80, 8); ctx.fill(); ctx.stroke();
+    // 페어링 미분리 경고 말풍선 (로켓 위)
+    if (mMode === 'no_fairing_sep' && s.t >= 204) {
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 11.5px Noto Sans KR';
+      ctx.fillText('⚠️ 1.5t 덮개 고착! (속도 부족)', Math.min(W - 170, rx - 30), Math.max(22, ry - 26));
+    }
 
-    ctx.fillStyle = '#60a5fa'; ctx.font = 'bold 11px Noto Sans KR';
-    ctx.fillText(`🚀 누리호 2D 비행 텔레메트리 (t = ${Math.round(s.t)}초)`, 20, 28);
-    ctx.fillStyle = '#cbd5e1'; ctx.font = '10.5px Space Mono';
-    ctx.fillText(`고도 (h): ${s.alt.toFixed(1)} km | 속도: ${s.vel.toFixed(2)} km/s`, 20, 46);
-    ctx.fillText(`남은 무게 (m): ${s.mass.toFixed(1)} 톤`, 20, 64);
+    // 좌측 상단 HUD
+    ctx.fillStyle = 'rgba(11, 19, 43, 0.88)';
+    ctx.strokeStyle = mMode === 'normal' ? '#2563eb' : (mMode === 'no_fairing_sep' ? '#d97706' : '#dc2626');
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(12, 12, 315, 86, 8); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#60a5fa'; ctx.font = 'bold 11.5px Noto Sans KR';
+    const modeTitle = mMode === 'normal' ? '🟢 정상 다단·덮개 분리' : (mMode === 'no_fairing_sep' ? '⚠️ 페어링(덮개) 미분리' : '❌ 단분리 미실시');
+    ctx.fillText(`${modeTitle} (t = ${Math.min(755, Math.round(s.t))}초)`, 20, 30);
+    ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 11.5px Space Mono';
+    ctx.fillText(`고도(h): ${s.alt.toFixed(1)} km / 700 km | 속도: ${s.vel.toFixed(2)} km/s`, 20, 50);
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillText(`현재 총 질량(m): ${s.mass.toFixed(1)} 톤`, 20, 70);
+    ctx.fillStyle = s.status === 'completed' ? '#a3e635' : (s.status === 'failed' ? '#fca5a5' : '#93c5fd');
+    ctx.font = 'bold 11px Noto Sans KR';
+    ctx.fillText(s.status === 'completed' ? '✅ 700km 원궤도 진입 & 위성 사출 성공!' : (s.status === 'failed' ? '❌ 궤도 진입 실패 (속도·고도 미달)' : `현재 상태: ${s.fairingSep ? '페어링 분리됨' : '페어링 닫힘'}`), 20, 88);
   };
 
   /* Three.js 3D 씬 초기화 (폴링 및 세이프티 로드) */
@@ -487,10 +742,10 @@ function NuriSimTab() {
       s.fairingRight.position.x += 0.2; s.fairingRight.rotation.z -= 0.03;
     }
 
-    if (cameraView === 'follow') {
+    if (camRef.current === 'follow') {
       s.camera.position.set(scaleX - 25, scaleAlt + 18, 45);
       s.camera.lookAt(scaleX, scaleAlt + 5, 0);
-    } else if (cameraView === 'orbit') {
+    } else if (camRef.current === 'orbit') {
       s.camera.position.set(120, 150, 260);
       s.camera.lookAt(0, 50, 0);
     } else {
@@ -507,13 +762,14 @@ function NuriSimTab() {
     const s = simRef.current;
     s.t = 0; s.alt = 0; s.vel = 0; s.mass = 200.0; s.downrange = 0;
     s.stage1Sep = false; s.fairingSep = false; s.stage2Sep = false; s.satDeployed = false;
+    s.path = [{ down: 0, alt: 0 }]; s.debris = []; s.events = [];
     s.status = 'launching';
 
     if (s.rocketGroup) {
       s.rocketGroup.position.set(0, 0.5, 0);
       s.rocketGroup.rotation.set(0, 0, 0);
     }
-    if (s.stage1Mesh) s.stage1Mesh.position.set(0, 7, 0);
+    if (s.stage1Mesh) { s.stage1Mesh.position.set(0, 7, 0); s.stage1Mesh.rotation.set(0, 0, 0); }
     if (s.fairingLeft) { s.fairingLeft.position.set(0, 29.25, 0); s.fairingLeft.rotation.set(0, 0, 0); }
     if (s.fairingRight) { s.fairingRight.position.set(0, 29.25, 0); s.fairingRight.rotation.set(0, 0, 0); }
 
@@ -521,18 +777,18 @@ function NuriSimTab() {
 
     let lastNow = performance.now();
     const step = (now) => {
-      const dtReal = (now - lastNow) / 1000;
+      const dtReal = Math.min(0.05, (now - lastNow) / 1000);
       lastNow = now;
-      const dtSim = Math.min(0.2, dtReal * speedMult * 2.8);
+      const dtSim = dtReal * speedRef.current * 14.0;
 
       if (s.status === 'launching') {
         updatePhysics(dtSim);
-        if (viewMode === '3d' && s.is3DInited) render3D();
+        if (viewModeRef.current === '3d' && s.is3DInited) render3D();
         else render2D();
 
         animRef.current = requestAnimationFrame(step);
       } else {
-        if (viewMode === '3d' && s.is3DInited) render3D();
+        if (viewModeRef.current === '3d' && s.is3DInited) render3D();
         else render2D();
         setSimState(s.status);
       }
@@ -545,13 +801,14 @@ function NuriSimTab() {
     const s = simRef.current;
     s.t = 0; s.alt = 0; s.vel = 0; s.mass = 200.0; s.downrange = 0;
     s.stage1Sep = false; s.fairingSep = false; s.stage2Sep = false; s.satDeployed = false;
+    s.path = []; s.debris = []; s.events = [];
     s.status = 'ready';
 
     if (s.rocketGroup) {
       s.rocketGroup.position.set(0, 0.5, 0);
       s.rocketGroup.rotation.set(0, 0, 0);
     }
-    if (s.stage1Mesh) s.stage1Mesh.position.set(0, 7, 0);
+    if (s.stage1Mesh) { s.stage1Mesh.position.set(0, 7, 0); s.stage1Mesh.rotation.set(0, 0, 0); }
     if (s.fairingLeft) { s.fairingLeft.position.set(0, 29.25, 0); s.fairingLeft.rotation.set(0, 0, 0); }
     if (s.fairingRight) { s.fairingRight.position.set(0, 29.25, 0); s.fairingRight.rotation.set(0, 0, 0); }
 
@@ -561,7 +818,7 @@ function NuriSimTab() {
       phaseText: '발사대 대기 중', fairingText: '위성 덮개 닫힘 (공기 저항 방어)', resultText: '발사 버튼을 눌러보세요!'
     });
 
-    if (viewMode === '3d' && s.is3DInited) render3D();
+    if (viewModeRef.current === '3d' && s.is3DInited) render3D();
     else render2D();
   };
 
@@ -694,7 +951,7 @@ function NuriSimTab() {
             style={{padding:'10px 30px',fontSize:14.5,boxShadow:'0 0 16px rgba(22,163,74,0.4)'}}>
             🚀 {simState==='launching'?'누리호 비행 가속 중...':'누리호 비행 발사 개시!'}
           </button>
-          <button className="btn-secondary" onClick={resetSim} disabled={simState==='launching'}
+          <button className="btn-secondary" onClick={resetSim}
             style={{padding:'10px 20px',fontSize:13}}>
             🔄 발사대 리셋 (초기화)
           </button>
