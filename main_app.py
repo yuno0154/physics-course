@@ -34,7 +34,7 @@ compare_page = st.Page("physics_sim/projectile_comparison.py", title="🧪 [보�
 oblique_page = st.Page("physics_sim/oblique_projectile.py", title="🏹 [분석2] 비스듬히 던진 물체의 운동")
 projectile_energy_page = st.Page("physics_sim/projectile_energy_sim.py", title="⚡ [활동6] 포물선 운동의 역학적 에너지 보존")
 excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="📊 [정밀] 데이터 분석")
-video_analysis_page = st.Page("physics_sim/video_analysis.py", title="📹 [영상] 분석 보고서")
+video_analysis_page = st.Page("physics_sim/video_analysis.py", title="📹 [영상] 분석 보고서 실습")
 practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [과제] 포물선운동 문제풀이")
 
 # 4. 등속 원운동 섹션
