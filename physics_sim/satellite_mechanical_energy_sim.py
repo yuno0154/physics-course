@@ -222,6 +222,7 @@ HTML = r"""<!DOCTYPE html>
     font-weight: 800;
     margin-right: 6px;
   }
+  .mvar{font-family:KaTeX_Math,"Times New Roman",serif;font-style:italic;font-size:1.08em;padding:0 1px}
 </style>
 </head>
 <body>
@@ -307,22 +308,22 @@ HTML = r"""<!DOCTYPE html>
         </div>
 
         <div class="eq-step">
-          <div><b>① 역학적 에너지의 정의</b> (운동 에너지 $K$ + 중력 퍼텐셜 에너지 $U$)</div>
+          <div><b>① 역학적 에너지의 정의</b> (운동 에너지 <i class="mvar">K</i> + 중력 퍼텐셜 에너지 <i class="mvar">U</i>)</div>
           <div id="k_eq1" style="margin-top:3px;"></div>
         </div>
 
         <div class="eq-step">
-          <div><b>② 중력이 구심력 역할</b>을 하므로 궤도 속력 $v$는</div>
+          <div><b>② 중력이 구심력 역할</b>을 하므로 궤도 속력 <i class="mvar">v</i>는</div>
           <div id="k_eq2" style="margin-top:3px;"></div>
         </div>
 
         <div class="eq-step hl-k">
-          <div><b>③ 원운동하는 인공위성의 운동 에너지 $K$</b></div>
+          <div><b>③ 원운동하는 인공위성의 운동 에너지 <i class="mvar">K</i></b></div>
           <div id="k_eq3" style="margin-top:3px;"></div>
         </div>
 
         <div class="eq-step hl-e">
-          <div><b>④ 따라서 인공위성의 역학적 에너지 $E$는</b></div>
+          <div><b>④ 따라서 인공위성의 역학적 에너지 <i class="mvar">E</i>는</b></div>
           <div id="k_eq4" style="margin-top:3px;"></div>
         </div>
 
