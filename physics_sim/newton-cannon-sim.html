@@ -4,205 +4,938 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>뉴턴 대포 시뮬레이션</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
-:root{--ink:#1a2640;--mute:#6478a0;--line:#d1dcf0;--bg:#eef3fa;--panel:#fff;--blue:#2f6fd6;--red:#d64545;--green:#1f9d6b;--gold:#d99a1e}
-*{box-sizing:border-box}
-body{margin:0;font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--ink);word-break:keep-all}
-.wrap{max-width:1100px;margin:0 auto;padding:16px 18px 22px}
-h1{font-size:24px;margin:0 0 4px}
-.sub{font-size:14px;color:var(--mute);margin-bottom:12px}
-.grid{display:grid;grid-template-columns:1fr 330px;gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-.stage{position:relative;padding:0;overflow:hidden;background:#0b1530;border:0}
-canvas{display:block;width:100%;height:auto}
-.viewbtns{position:absolute;top:10px;left:10px;display:flex;gap:6px}
-.viewbtns button,.chip{border:1px solid #3a4c78;background:rgba(14,26,56,.85);color:#dfe7ff;border-radius:999px;padding:5px 12px;font:600 13px 'Noto Sans KR',sans-serif;cursor:pointer}
-.viewbtns button.on{background:#e8b84a;color:#1a2640;border-color:#e8b84a}
-.hud{position:absolute;right:10px;top:10px;background:rgba(14,26,56,.85);color:#dfe7ff;border-radius:10px;padding:8px 12px;font-size:13px;line-height:1.6;min-width:170px}
-.hud b{color:#fff}
-.legend{position:absolute;left:10px;bottom:10px;display:flex;gap:12px;font-size:12px;color:#c8d4f5}
-.legend i{display:inline-block;width:16px;height:3px;margin-right:5px;vertical-align:middle}
-label.t{display:block;font-size:14px;font-weight:700;margin-bottom:6px}
-.speed{display:flex;align-items:center;gap:10px}
-input[type=range]{flex:1;accent-color:var(--blue)}
-.val{font:700 20px 'Noto Sans KR',sans-serif;color:var(--blue);min-width:92px;text-align:right}
-.presets{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
-.presets button{border:1px solid var(--line);background:#f4f7fd;border-radius:999px;padding:5px 11px;font:600 13px 'Noto Sans KR',sans-serif;cursor:pointer;color:var(--ink)}
-.presets button:hover{background:#e6eefc}
-.row{display:flex;gap:8px;margin-top:12px}
-.btn{flex:1;border:0;border-radius:10px;padding:10px;font:700 15px 'Noto Sans KR',sans-serif;cursor:pointer}
-.fire{background:var(--blue);color:#fff}.clear{background:#e9edf5;color:var(--ink)}
-.opts{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:13px}
-.opts label{display:flex;align-items:center;gap:5px;cursor:pointer}
-.tspeed{display:flex;gap:6px;margin-top:10px;align-items:center;font-size:13px;color:var(--mute)}
-.tspeed button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:3px 9px;font:600 12px 'Noto Sans KR',sans-serif;cursor:pointer}
-.tspeed button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.ref{margin-top:12px;font-size:13px;line-height:1.7;background:#f4f7fd;border-radius:10px;padding:10px 12px}
-.ref b{color:var(--blue)}
-.log{margin-top:12px}
-.log h3{font-size:14px;margin:0 0 6px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{border-bottom:1px solid #e3e9f4;padding:5px 4px;text-align:left}
-th{color:var(--mute);font-weight:600}
-td i{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;margin-right:4px}
-.qs{margin-top:14px}
-.qs h3{font-size:15px;margin:0 0 8px}
-.qs ol{margin:0;padding-left:20px;font-size:14px;line-height:1.75}
-.note{font-size:12px;color:var(--mute);margin-top:8px}
-@media (max-width:860px){.grid{grid-template-columns:1fr}}
+  :root {
+    --ink: #0f172a;
+    --sub: #64748b;
+    --line: #e2e8f0;
+    --key: #1d4ed8;
+    --blue: #2563eb;
+    --red: #e11d48;
+    --green: #059669;
+    --purple: #7c3aed;
+    --amber: #d97706;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: var(--ink);
+    background: transparent;
+    word-break: keep-all;
+  }
+  #app {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 4px 4px 20px;
+  }
+  .tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+  }
+  .tab {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 15px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--sub);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .tab.on {
+    background: var(--key);
+    border-color: var(--key);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(29, 78, 216, 0.2);
+  }
+  .ctrl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px 14px;
+    margin-bottom: 10px;
+  }
+  .ctrl.speed-bar {
+    background: #fffbeb;
+    border-color: #fde68a;
+  }
+  .grp {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  input[type=range] {
+    accent-color: var(--key);
+    cursor: pointer;
+  }
+  .val {
+    color: var(--key);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 9px;
+    padding: 6px 11px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+  .btn.on {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1e3a8a;
+  }
+  .btn.primary {
+    background: #0f172a;
+    color: #fff;
+    border-color: #0f172a;
+  }
+  .btn.go {
+    background: var(--key);
+    color: #fff;
+    border-color: var(--key);
+    font-size: 14px;
+    padding: 9px 16px;
+  }
+  .btn.go:hover { background: #1e40af; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 12px;
+    align-items: start;
+  }
+  @media (max-width: 920px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  .stage-card {
+    position: relative;
+    padding: 0;
+    overflow: hidden;
+    background: #071026;
+    border: 1px solid #1e293b;
+    border-radius: 16px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    cursor: grab;
+  }
+  canvas:active { cursor: grabbing; }
+
+  /* 캔버스 상단 오버레이 (뷰 & 확대/축소) */
+  .canvas-top-bar {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    pointer-events: none;
+    flex-wrap: wrap;
+  }
+  .overlay-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    background: rgba(11, 21, 48, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 10px;
+    padding: 5px 8px;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
+  }
+  .ov-btn {
+    border: 1px solid #334155;
+    background: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+    border-radius: 7px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .ov-btn:hover { background: #334155; color: #fff; }
+  .ov-btn.on {
+    background: #f59e0b;
+    color: #0f172a;
+    border-color: #f59e0b;
+  }
+  .hud-box {
+    background: rgba(11, 21, 48, 0.88);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    min-width: 185px;
+    pointer-events: auto;
+  }
+  .hud-box b { color: #38bdf8; font-variant-numeric: tabular-nums; }
+
+  .canvas-bottom-bar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .legend-box {
+    display: flex;
+    gap: 14px;
+    font-size: 12px;
+    color: #cbd5e1;
+    background: rgba(11, 21, 48, 0.78);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+  .legend-box i {
+    display: inline-block;
+    width: 14px;
+    height: 3px;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .zoom-hint {
+    font-size: 11.5px;
+    color: #94a3b8;
+    background: rgba(11, 21, 48, 0.78);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+
+  /* 우측 패널 컨트롤 */
+  .presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin: 10px 0;
+  }
+  .preset-chip {
+    border: 1px solid var(--line);
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--ink);
+    text-align: left;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .preset-chip:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+  }
+  .preset-chip span {
+    display: block;
+    font-size: 11px;
+    color: var(--sub);
+    font-weight: 500;
+  }
+
+  table.log-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  table.log-tbl th, table.log-tbl td {
+    border-bottom: 1px solid var(--line);
+    padding: 6px 5px;
+    text-align: left;
+  }
+  table.log-tbl th {
+    color: var(--sub);
+    font-weight: 700;
+    background: #f8fafc;
+  }
+  table.log-tbl td i {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 5px;
+  }
+
+  .step-box {
+    margin-top: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+    padding: 11px 15px;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .step-box b { color: var(--key); }
+
+  .qa-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: #f8fafc;
+  }
+  .qa-card h4 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    color: #1e3a8a;
+  }
+  .qa-card p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #334155;
+  }
+  .pane { display: none; }
+  .pane.show { display: block; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>🚀 뉴턴 대포: 던진 포탄에서 인공위성까지</h1>
-  <div class="sub">높은 산꼭대기에서 포탄을 수평으로 쏘아 보자. 발사 속력을 바꾸면 포탄의 경로는 어떻게 달라질까?</div>
-  <div class="grid">
-    <div class="card stage">
-      <canvas id="cv" width="1400" height="1050"></canvas>
-      <div class="viewbtns"><button id="vWide" class="on">지구 전체 보기</button><button id="vNear">산 근처 확대</button></div>
-      <div class="hud" id="hud"></div>
-      <div class="legend"><span><i style="background:#ff6b6b"></i>중력(지구 중심 방향)</span><span><i style="background:#5ee0a0"></i>속도</span></div>
+<div id="app">
+
+  <!-- 상단 공통 속도·확대 컨트롤 바 -->
+  <div class="ctrl speed-bar">
+    <div class="grp">⏱ 시간 배속</div>
+    <button class="btn" data-ts="150">150×</button>
+    <button class="btn on" data-ts="400">400×</button>
+    <button class="btn" data-ts="1000">1000×</button>
+    <button class="btn primary" id="pp">⏸ 일시정지</button>
+
+    <div class="grp" style="margin-left:auto;">
+      <span>🔍 화면 확대/축소</span>
+      <button class="btn" id="zmOut" title="축소">−</button>
+      <input type="range" id="zmSlider" min="0.30" max="7.50" step="0.05" value="1.00" style="width:120px;">
+      <button class="btn" id="zmIn" title="확대">+</button>
+      <span class="val" id="zmVal" style="min-width:48px;">1.00×</span>
+      <button class="btn" id="zmReset">화면 맞춤</button>
     </div>
-    <div>
-      <div class="card">
-        <label class="t">수평 발사 속력 v</label>
-        <div class="speed"><input id="v" type="range" min="0.5" max="12" step="0.01" value="4"><span class="val" id="vv">4.00 km/s</span></div>
-        <div class="presets">
-          <button data-v="3">3 km/s</button><button data-v="6">6 km/s</button><button data-v="7.79">7.79 km/s</button><button data-v="9.3">9.3 km/s</button><button data-v="11.2">11.2 km/s</button>
+  </div>
+
+  <!-- 탭 네비게이션 -->
+  <div class="tabs">
+    <button class="tab on" data-tab="0">① 뉴턴 대포 가상 실험실 (자유 발사 · 확대/축소)</button>
+    <button class="tab" data-tab="1">② 대표 속력 5가지 동시 비교 (포물선 · 원 · 타원 · 탈출)</button>
+    <button class="tab" data-tab="2">③ 활동지 탐구 질문 &amp; 핵심 원리 정리</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       탭 0 & 탭 1: 시뮬레이션 스테이지
+       ════════════════════════════════════════════════════════════════ -->
+  <div id="paneSim" class="pane show">
+    <div class="main-grid">
+
+      <!-- 좌측: 캔버스 스테이지 -->
+      <div class="stage-card">
+        <canvas id="cv" width="960" height="660"></canvas>
+
+        <!-- 캔버스 상단 시점 프리셋 & HUD -->
+        <div class="canvas-top-bar">
+          <div class="overlay-group">
+            <button class="ov-btn on" data-cam="wide">🌍 지구 전체 (1.0×)</button>
+            <button class="ov-btn" data-cam="near">⛰️ 산 근처 확대 (6.0×)</button>
+            <button class="ov-btn" data-cam="far">🪐 큰 궤도 축소 (0.4×)</button>
+            <label style="color:#e2e8f0;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;margin-left:4px;cursor:pointer;">
+              <input type="checkbox" id="followBall"> 🎯 포탄 추적
+            </label>
+          </div>
+          <div class="hud-box" id="hud"></div>
         </div>
-        <div class="row"><button class="btn fire" id="fire">발사</button><button class="btn clear" id="clr">궤적 지우기</button></div>
-        <div class="opts">
-          <label><input type="checkbox" id="oF" checked>중력 화살표</label>
-          <label><input type="checkbox" id="oV" checked>속도 화살표</label>
-          <label><input type="checkbox" id="oG">원 궤도 안내선</label>
+
+        <!-- 캔버스 하단 범례 & 조작 안내 -->
+        <div class="canvas-bottom-bar">
+          <div class="legend-box">
+            <span><i style="background:#ff6b6b"></i>중력 F (지구 중심 방향)</span>
+            <span><i style="background:#5ee0a0"></i>속도 v (접선 방향)</span>
+            <span><i style="background:#e8b84a"></i>원 궤도 기준선</span>
+          </div>
+          <div class="zoom-hint">💡 마우스 휠: 확대/축소 · 드래그: 화면 이동</div>
         </div>
-        <div class="tspeed">시간 배속 <button data-s="150">150×</button><button data-s="400" class="on">400×</button><button data-s="1200">1200×</button></div>
-        <div class="ref">산꼭대기 높이 <b>h = 200 km</b> (그림의 산은 크게 과장)<br>지구 반지름 R = 6371 km, GM = 3.986 × 10¹⁴ m³/s²<br>공기 저항은 없다고 가정</div>
       </div>
-      <div class="card log">
-        <h3>발사 기록</h3>
-        <table><thead><tr><th>속력</th><th>결과</th><th>비고</th></tr></thead><tbody id="tb"><tr><td colspan="3" style="color:#9aa8c4">아직 발사하지 않았습니다.</td></tr></tbody></table>
+
+      <!-- 우측: 발사 제어 패널 & 발사 기록 -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:14px;font-weight:800;">🎯 수평 발사 속력 <i>v</i></span>
+            <span class="val" id="vv" style="font-size:20px;">7.79 km/s</span>
+          </div>
+          <input id="v" type="range" min="0.50" max="12.00" step="0.01" value="7.79" style="width:100%;">
+
+          <div style="font-size:12px;font-weight:700;color:var(--sub);margin-top:8px;">⚡ 대표 발사 속력 프리셋 (클릭 시 즉시 발사)</div>
+          <div class="presets-grid">
+            <button class="preset-chip" data-v="3.00">
+              3.00 km/s <span>가까운 지면 낙하</span>
+            </button>
+            <button class="preset-chip" data-v="6.00">
+              6.00 km/s <span>먼 지면 낙하</span>
+            </button>
+            <button class="preset-chip" data-v="7.79" style="border-color:#93c5fd;background:#eff6ff;">
+              7.79 km/s (v_원) <span>원 궤도 공전!</span>
+            </button>
+            <button class="preset-chip" data-v="9.30">
+              9.30 km/s <span>타원 궤도 공전</span>
+            </button>
+            <button class="preset-chip" data-v="11.01" style="border-color:#fde68a;background:#fffbeb;">
+              11.01 km/s (v_탈출) <span>포물선 지구 탈출!</span>
+            </button>
+            <button class="preset-chip" data-v="11.60">
+              11.60 km/s <span>쌍곡선 지구 탈출</span>
+            </button>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn go" id="fire" style="flex:1.3;">🚀 포탄 발사</button>
+            <button class="btn" id="fireAll" style="flex:1;" title="5가지 대표 속력을 한 번에 비교">🌈 5종 동시 발사</button>
+            <button class="btn" id="clr">🧹 지우기</button>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;font-size:12.5px;font-weight:600;">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="oF" checked> 중력 화살표</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="oV" checked> 속도 화살표</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" id="oG" checked> 원 궤도 안내선</label>
+          </div>
+
+          <div style="margin-top:12px;font-size:12px;line-height:1.65;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:9px 11px;color:#334155;">
+            · 발사 높이: <b>h = 200 km</b> (산 모양은 보기 쉽게 과장)<br>
+            · 원 궤도 속력: <b style="color:var(--blue)">v_원 = √(GM/r) ≈ 7.79 km/s</b><br>
+            · 탈출 속력: <b style="color:var(--amber)">v_탈출 = √2 v_원 ≈ 11.01 km/s</b>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="font-size:13.5px;font-weight:800;margin-bottom:6px;">📋 발사 기록표</div>
+          <div style="max-height:210px;overflow-y:auto;">
+            <table class="log-tbl">
+              <thead>
+                <tr><th>발사 속력</th><th>궤도 결과</th><th>특징 (거리·주기·고도)</th></tr>
+              </thead>
+              <tbody id="tb">
+                <tr><td colspan="3" style="color:#94a3b8;text-align:center;padding:12px;">포탄을 발사하면 기록이 추가됩니다.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="step-box" id="stepText">
+      <b>탐구 안내 ·</b> 산꼭대기에서 수평으로 쏜 포탄은 지구가 당기는 <b>중력</b> 때문에 계속 아래(지구 중심 쪽)로 휘어집니다. 속력이 <b>7.79 km/s</b>에 이르면 포탄이 떨어지는 곡률과 지구의 둥근 표면 곡률이 일치해 땅에 닿지 않고 영원히 도는 <b>원 궤도 인공위성</b>이 됩니다!
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       탭 2: 활동지 탐구 질문 & 핵심 원리 정리
+       ════════════════════════════════════════════════════════════════ -->
+  <div id="paneTheory" class="pane">
+    <div class="card">
+      <h3 style="margin:0 0 12px;font-size:16px;color:#0f172a;">📘 활동지 19쪽 「E-1. 뉴턴 대포」 관찰 질문 및 해설</h3>
+
+      <div class="qa-card">
+        <h4>질문 1. 속력이 작을 때 포탄은 왜 지면으로 떨어질까? 날아가는 동안 포탄에 작용하는 힘의 방향은 어디를 향하는가?</h4>
+        <p>
+          포탄에는 지구가 잡아당기는 <b>만유인력(중력)</b>이 작용하며, 그 방향은 항상 <b>지구의 중심</b>을 향합니다. 발사 속력이 작을 때는 수평으로 나아가는 거리보다 지구 중심 쪽으로 끌려 내려오는 정도가 더 커서 결국 지면에 닿게 됩니다.
+        </p>
+      </div>
+
+      <div class="qa-card">
+        <h4>질문 2. 속력을 조금씩 키우면 포탄이 떨어지는 곳은 어떻게 달라지는가? '산 근처 확대'에서 보이는 경로는 지표면에서 던진 공의 경로와 무엇이 같은가?</h4>
+        <p>
+          발사 속력이 클수록 더 멀리 날아가 지면에 떨어집니다. <b>[⛰️ 산 근처 확대 (6.0×)]</b> 화면으로 보면 짧은 구간에서는 지구의 표면이 거의 평평해 보이므로, 지표면 근처에서 수평으로 던진 물체의 <b>포물선 운동</b>과 같은 모양입니다.
+        </p>
+      </div>
+
+      <div class="qa-card">
+        <h4>질문 3. 어떤 속력에서 포탄이 지면에 닿지 않고 지구 주위를 계속 도는가? 이때도 포탄은 지구 쪽으로 떨어지고 있다고 말할 수 있는가?</h4>
+        <p>
+          고도 200 km 기준 약 <b>7.79 km/s ($v_{\text{원}} = \sqrt{GM/r}$)</b>로 쏘면 지면에 닿지 않고 원 궤도를 돕니다. 이때도 포탄은 매 순간 지구 중심을 향해 <b>계속 자유 낙하(떨어지고 있음)</b>하고 있지만, 지구의 표면도 똑같은 비율로 둥글게 휘어져 내려가기 때문에 고도가 일정하게 유지됩니다.
+        </p>
+      </div>
+
+      <div class="qa-card" style="margin-bottom:0;">
+        <h4>질문 4. 속력을 원 궤도 속력(7.79 km/s)보다 더 키우면 궤도의 모양은 어떻게 변하는가?</h4>
+        <p>
+          · <b>7.79 km/s &lt; v &lt; 11.01 km/s</b>: 발사 지점이 근지점이 되어 지구 반대편에서 고도가 높아졌다가 다시 돌아오는 <b>타원 궤도</b>를 그립니다. (<b>[🪐 큰 궤도 축소 (0.4×)]</b>로 전체 타원을 확인해 보세요!)<br>
+          · <b>v ≥ 11.01 km/s ($v_{\text{탈출}} = \sqrt{2GM/r}$)</b>: 역학적 에너지가 $E \ge 0$이 되어 다시 돌아오지 않고 지구의 중력장을 벗어나는 <b>포물선·쌍곡선 탈출 궤도</b>가 됩니다.
+        </p>
       </div>
     </div>
   </div>
-  <div class="card qs">
-    <h3>관찰하며 생각해 보기</h3>
-    <ol>
-      <li>속력이 작을 때 포탄은 왜 지면으로 떨어질까? 날아가는 동안 포탄에 작용하는 힘의 방향은 어디를 향하는가?</li>
-      <li>속력을 조금씩 키우면 포탄이 떨어지는 곳은 어떻게 달라지는가? ‘산 근처 확대’에서 보이는 경로는 지표면에서 던진 공의 경로와 무엇이 같은가?</li>
-      <li>어떤 속력에서 포탄이 지면에 닿지 않고 지구 주위를 계속 도는가? 이때도 포탄은 지구 쪽으로 떨어지고 있다고 말할 수 있는가?</li>
-      <li>속력을 더 키우면 궤도의 모양은 어떻게 변하는가?</li>
-    </ol>
-    <div class="note">활동지 19쪽 「E. 지구 주위를 도는 행성의 운동도 같은 원리일까? 1. 뉴턴 대포」와 함께 사용합니다.</div>
-  </div>
+
 </div>
+
 <script>
-(()=>{
-const R=6.371e6, GM=3.986e14, H=2.0e5, R0=R+H, VC=Math.sqrt(GM/R0), VE=Math.sqrt(2*GM/R0);
-const cv=document.getElementById('cv'), cx=cv.getContext('2d'), W=cv.width, Hh=cv.height;
-const $=id=>document.getElementById(id);
-const COLORS=['#ffd166','#5ec8ff','#ff8fab','#9b8cff','#7ee081','#ffa94d','#4dd4c6','#f783ac'];
-let view='wide', tScale=400, shots=[], cur=null, ci=0, last=null;
-const stars=[...Array(160)].map(()=>[Math.random()*W,Math.random()*Hh,Math.random()*1.3+.3]);
-function camera(){
-  if(view==='wide') return {cx:0,cy:-0.0*R, s:Math.min(W,Hh)/(2*2.75*R)};
-  return {cx:0,cy:R0-0.02*R, s:Math.min(W,Hh)/(2*0.16*R)};
-}
-function P(x,y,c){return [W/2+(x-c.cx)*c.s, Hh/2-(y-c.cy)*c.s];}
-function drawEarth(c){
-  const [ex,ey]=P(0,0,c), er=R*c.s;
-  const g=cx.createRadialGradient(ex-er*.3,ey-er*.3,er*.1,ex,ey,er);
-  g.addColorStop(0,'#5aa9ff');g.addColorStop(.7,'#2463c9');g.addColorStop(1,'#163f8a');
-  cx.fillStyle=g;cx.beginPath();cx.arc(ex,ey,er,0,Math.PI*2);cx.fill();
-  cx.fillStyle='rgba(80,190,120,.55)';
-  [[.2,.55,.28],[-.45,.1,.22],[.35,-.35,.2],[-.15,-.6,.16]].forEach(([a,b,r])=>{cx.beginPath();cx.arc(ex+a*er,ey+b*er,r*er,0,Math.PI*2);cx.fill()});
-  cx.strokeStyle='rgba(150,200,255,.35)';cx.lineWidth=Math.max(2,er*.03);cx.beginPath();cx.arc(ex,ey,er*1.01,0,Math.PI*2);cx.stroke();
-  // mountain (exaggerated in wide view)
-  const mh=(view==='wide'?0.12*R:H), mw=(view==='wide'?0.10*R:0.06*R);
-  cx.fillStyle='#8a6f4e';cx.beginPath();
-  const a=P(-mw,Math.sqrt(R*R-mw*mw)-1000,c), b=P(0,R+mh,c), d=P(mw,Math.sqrt(R*R-mw*mw)-1000,c);
-  cx.moveTo(...a);cx.lineTo(...b);cx.lineTo(...d);cx.closePath();cx.fill();
-  cx.fillStyle='#f2f2f2';cx.beginPath();const s1=P(-mw*.25,R+mh*.75,c),s2=P(mw*.25,R+mh*.75,c);cx.moveTo(...s1);cx.lineTo(...b);cx.lineTo(...s2);cx.closePath();cx.fill();
-  // cannon
-  cx.save();cx.translate(...b);cx.fillStyle='#2b2b2b';cx.fillRect(-6,-14,30,10);cx.beginPath();cx.arc(0,-6,8,0,Math.PI*2);cx.fill();cx.restore();
-  return mh;
-}
-function launchPoint(){return view==='wide'?{x:0,y:R+0.12*R}:{x:0,y:R0};}
-function arrow(x1,y1,x2,y2,col){cx.strokeStyle=col;cx.fillStyle=col;cx.lineWidth=4;cx.beginPath();cx.moveTo(x1,y1);cx.lineTo(x2,y2);cx.stroke();
-  const a=Math.atan2(y2-y1,x2-x1);cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x2-14*Math.cos(a-.4),y2-14*Math.sin(a-.4));cx.lineTo(x2-14*Math.cos(a+.4),y2-14*Math.sin(a+.4));cx.closePath();cx.fill();}
-// physics: real coordinates; drawing in wide view maps radius r -> display radius with exaggerated mountain offset
-function dispPos(x,y,c){
-  if(view==='wide'){const r=Math.hypot(x,y),alt=r-R,K=0.12*R/H,d=R+(alt<=H?alt*K:H*K+(alt-H)),k=d/r;return P(x*k,y*k,c);} // 산 높이만큼의 고도는 과장, 그 위는 실제 비율
-  return P(x,y,c);
-}
-function draw(){
-  const c=camera();
-  cx.fillStyle='#0b1530';cx.fillRect(0,0,W,Hh);
-  cx.fillStyle='#fff';stars.forEach(([x,y,r])=>{cx.globalAlpha=.5;cx.beginPath();cx.arc(x,y,r,0,7);cx.fill()});cx.globalAlpha=1;
-  if($('oG').checked){const [ex,ey]=P(0,0,c);const rr=(view==='wide'?R+0.12*R:R0)*c.s;cx.setLineDash([10,10]);cx.strokeStyle='rgba(232,184,74,.6)';cx.lineWidth=2;cx.beginPath();cx.arc(ex,ey,rr,0,Math.PI*2);cx.stroke();cx.setLineDash([]);}
-  drawEarth(c);
-  shots.concat(cur?[cur]:[]).forEach(sh=>{cx.strokeStyle=sh.col;cx.lineWidth=3;cx.beginPath();sh.path.forEach((p,i)=>{const q=dispPos(p[0],p[1],c);i?cx.lineTo(...q):cx.moveTo(...q)});cx.stroke();
-    if(sh.done&&sh.res==='hit'){const p=sh.path[sh.path.length-1],q=dispPos(p[0],p[1],c);cx.fillStyle=sh.col;cx.beginPath();cx.arc(q[0],q[1],6,0,7);cx.fill();}});
-  if(cur){const q=dispPos(cur.x,cur.y,c);cx.fillStyle='#fff';cx.beginPath();cx.arc(q[0],q[1],7,0,7);cx.fill();
-    const r=Math.hypot(cur.x,cur.y);
-    if($('oF').checked){const L=60;arrow(q[0],q[1],q[0]-L*cur.x/r,q[1]+L*cur.y/r,'#ff6b6b');}
-    if($('oV').checked){const sp=Math.hypot(cur.vx,cur.vy),L=40+50*sp/VC;arrow(q[0],q[1],q[0]+L*cur.vx/sp,q[1]-L*cur.vy/sp,'#5ee0a0');}}
-  hud();
-}
-function hud(){
-  if(!cur){$('hud').innerHTML=`원 궤도 속력 <b>${(VC/1000).toFixed(2)} km/s</b><br>탈출 속력 <b>${(VE/1000).toFixed(2)} km/s</b><br><span style="color:#9fb0d8">(h = 200 km에서)</span>`;return}
-  const r=Math.hypot(cur.x,cur.y),sp=Math.hypot(cur.vx,cur.vy);
-  $('hud').innerHTML=`발사 속력 <b>${(cur.v0/1000).toFixed(2)} km/s</b><br>현재 속력 <b>${(sp/1000).toFixed(2)} km/s</b><br>고도 <b>${Math.max(0,(r-R)/1000).toFixed(0)} km</b><br>경과 시간 <b>${fmtT(cur.t)}</b>`;
-}
-function fmtT(t){const m=Math.floor(t/60),s=Math.floor(t%60);return m?`${m}분 ${s}초`:`${s}초`}
-function fire(){
-  const v0=+$('v').value*1000;
-  if(cur&&!cur.done){cur.done=true;shots.push(cur);}
-  cur={x:0,y:R0,vx:v0,vy:0,v0,t:0,ang:0,prevA:Math.PI/2,path:[[0,R0]],col:COLORS[ci++%COLORS.length],done:false,rmax:R0,rmin:R0};
-  last=null;
-}
-function step(dt){
-  const r=Math.hypot(cur.x,cur.y),a=-GM/(r*r*r);
-  // velocity Verlet
-  const ax=a*cur.x,ay=a*cur.y;
-  cur.x+=cur.vx*dt+.5*ax*dt*dt;cur.y+=cur.vy*dt+.5*ay*dt*dt;
-  const r2=Math.hypot(cur.x,cur.y),a2=-GM/(r2*r2*r2);
-  cur.vx+=.5*(ax+a2*cur.x)*dt;cur.vy+=.5*(ay+a2*cur.y)*dt;cur.t+=dt;
-  cur.rmax=Math.max(cur.rmax,r2);cur.rmin=Math.min(cur.rmin,r2);
-  const A=Math.atan2(cur.y,cur.x);let d=A-cur.prevA;if(d>Math.PI)d-=2*Math.PI;if(d<-Math.PI)d+=2*Math.PI;cur.ang+=d;cur.prevA=A;
-}
-function finish(res,note){cur.done=true;cur.res=res;shots.push(cur);addLog(cur,res,note);cur=null;}
-function addLog(sh,res,note){
-  const tb=$('tb');if(tb.dataset.empty!=='0'){tb.innerHTML='';tb.dataset.empty='0'}
-  const name={hit:'지면에 떨어짐',circle:'원 궤도',ellipse:'타원 궤도',escape:'지구에서 멀어짐'}[res];
-  const tr=document.createElement('tr');tr.innerHTML=`<td><i style="background:${sh.col}"></i>${(sh.v0/1000).toFixed(2)} km/s</td><td>${name}</td><td>${note}</td>`;tb.prepend(tr);
-}
-function loop(ts){
-  if(cur&&!cur.done){
-    const dtReal=last?Math.min(.05,(ts-last)/1000):0;last=ts;let T=dtReal*tScale;
-    while(T>0&&cur&&!cur.done){
-      const r=Math.hypot(cur.x,cur.y),h=Math.min(T,Math.max(.5,0.002*r/Math.max(1,Math.hypot(cur.vx,cur.vy))*10));step(h);T-=h;
-      const rn=Math.hypot(cur.x,cur.y);
-      if(cur.path.length===0||cur.t-(cur.lastRec||0)>Math.max(2,rn/2e6)){cur.path.push([cur.x,cur.y]);cur.lastRec=cur.t;}
-      if(rn<=R){const s=R/rn;cur.x*=s;cur.y*=s;cur.path.push([cur.x,cur.y]);const dist=R*Math.abs(cur.ang)/1000;finish('hit',`수평 거리 약 ${dist.toFixed(0)} km`);break;}
-      const E=.5*(cur.vx*cur.vx+cur.vy*cur.vy)-GM/rn;
-      if(E>=0&&rn>2.7*R){finish('escape','돌아오지 않음');break;}
-      if(Math.abs(cur.ang)>=2*Math.PI){cur.path.push([cur.x,cur.y]);const e=(cur.rmax-cur.rmin)/(cur.rmax+cur.rmin);
-        if(e<0.01)finish('circle',`고도 약 ${((cur.rmin-R)/1000).toFixed(0)} km 유지, 주기 ${fmtT(cur.t)}`);
-        else finish('ellipse',`최고 고도 약 ${((cur.rmax-R)/1000).toFixed(0)} km, 주기 ${fmtT(cur.t)}`);break;}
+(() => {
+  const R = 6.371e6, GM = 3.986e14, H = 2.0e5, R0 = R + H;
+  const VC = Math.sqrt(GM / R0), VE = Math.sqrt(2 * GM / R0);
+  const cv = document.getElementById('cv'), cx = cv.getContext('2d'), W = cv.width, Hh = cv.height;
+  const $ = id => document.getElementById(id);
+  const COLORS = ['#ffd166', '#38bdf8', '#ff8fab', '#a78bfa', '#4ade80', '#fb923c', '#2dd4bf', '#f472b6'];
+
+  let paused = false;
+  let tScale = 400;
+  let zoom = 1.0;        // 1.0 = 지구 전체 기본 배율 (0.30 ~ 7.50)
+  let camX = 0, camY = 0; // 월드 좌표계 카메라 중심 (m)
+  let isDragging = false, dragStartX = 0, dragStartY = 0, camStartX = 0, camStartY = 0;
+
+  let shots = [], cur = null, multiShots = [], ci = 0, last = null;
+  const stars = [...Array(180)].map(() => [Math.random() * W, Math.random() * Hh, Math.random() * 1.4 + 0.3]);
+
+  // 현재 카메라 스케일 (px per meter)
+  function getCamera() {
+    const baseScale = Math.min(W, Hh) / (2 * 2.55 * R);
+    const s = baseScale * zoom;
+    if ($('followBall').checked && cur && !cur.done) {
+      const dp = dispWorldPos(cur.x, cur.y);
+      camX = dp[0];
+      camY = dp[1];
     }
-  } else last=null;
-  draw();requestAnimationFrame(loop);
-}
-$('v').addEventListener('input',()=>{$('vv').textContent=(+$('v').value).toFixed(2)+' km/s'});
-document.querySelectorAll('.presets button').forEach(b=>b.addEventListener('click',()=>{$('v').value=b.dataset.v;$('vv').textContent=(+b.dataset.v).toFixed(2)+' km/s';fire()}));
-document.querySelectorAll('.tspeed button').forEach(b=>b.addEventListener('click',()=>{tScale=+b.dataset.s;document.querySelectorAll('.tspeed button').forEach(x=>x.classList.toggle('on',x===b))}));
-$('fire').addEventListener('click',fire);
-$('clr').addEventListener('click',()=>{shots=[];cur=null;ci=0;const tb=$('tb');tb.dataset.empty='1';tb.innerHTML='<tr><td colspan="3" style="color:#9aa8c4">아직 발사하지 않았습니다.</td></tr>'});
-$('vWide').addEventListener('click',()=>{view='wide';$('vWide').classList.add('on');$('vNear').classList.remove('on')});
-$('vNear').addEventListener('click',()=>{view='near';$('vNear').classList.add('on');$('vWide').classList.remove('on')});
-requestAnimationFrame(loop);
+    return { cx: camX, cy: camY, s };
+  }
+
+  // 산 높이를 지구 전체 보기에서도 잘 보이도록 시각 반지름 보정
+  function getMtnVisualHeight() {
+    // 줌이 크게 확대될수록 실제 200km 비율에 가까워지고, 축소될수록 산이 보이도록 보정
+    const blend = Math.max(0, Math.min(1, (zoom - 1.5) / 3.5));
+    return (1 - blend) * (0.11 * R) + blend * H;
+  }
+
+  function dispWorldPos(x, y) {
+    const mh = getMtnVisualHeight();
+    const r = Math.hypot(x, y), alt = r - R;
+    const K = mh / H;
+    const d = R + (alt <= H ? alt * K : mh + (alt - H));
+    const k = d / r;
+    return [x * k, y * k];
+  }
+
+  function worldToScreen(wx, wy, cam) {
+    return [W / 2 + (wx - cam.cx) * cam.s, Hh / 2 - (wy - cam.cy) * cam.s];
+  }
+
+  function dispPos(x, y, cam) {
+    const [wx, wy] = dispWorldPos(x, y);
+    return worldToScreen(wx, wy, cam);
+  }
+
+  function drawEarth(cam) {
+    const [ex, ey] = worldToScreen(0, 0, cam), er = R * cam.s;
+    const g = cx.createRadialGradient(ex - er * 0.3, ey - er * 0.3, er * 0.1, ex, ey, er);
+    g.addColorStop(0, '#60a5fa');
+    g.addColorStop(0.7, '#2563eb');
+    g.addColorStop(1, '#1e3a8a');
+    cx.fillStyle = g;
+    cx.beginPath();
+    cx.arc(ex, ey, er, 0, Math.PI * 2);
+    cx.fill();
+
+    // 대륙
+    cx.fillStyle = 'rgba(74, 222, 128, 0.55)';
+    [[0.2, 0.55, 0.28], [-0.45, 0.1, 0.22], [0.35, -0.35, 0.2], [-0.15, -0.6, 0.16]].forEach(([a, b, r]) => {
+      cx.beginPath();
+      cx.arc(ex + a * er, ey + b * er, r * er, 0, Math.PI * 2);
+      cx.fill();
+    });
+
+    // 대기권 테두리
+    cx.strokeStyle = 'rgba(147, 197, 253, 0.38)';
+    cx.lineWidth = Math.max(2, er * 0.028);
+    cx.beginPath();
+    cx.arc(ex, ey, er * 1.01, 0, Math.PI * 2);
+    cx.fill();
+    cx.stroke();
+
+    // 산과 대포
+    const mh = getMtnVisualHeight();
+    const mw = zoom > 3 ? 0.055 * R : 0.095 * R;
+    cx.fillStyle = '#8a6f4e';
+    cx.beginPath();
+    const a = worldToScreen(-mw, Math.sqrt(R * R - mw * mw) - 1000, cam);
+    const b = worldToScreen(0, R + mh, cam);
+    const d = worldToScreen(mw, Math.sqrt(R * R - mw * mw) - 1000, cam);
+    cx.moveTo(...a); cx.lineTo(...b); cx.lineTo(...d); cx.closePath(); cx.fill();
+
+    // 만년설
+    cx.fillStyle = '#f8fafc';
+    cx.beginPath();
+    const s1 = worldToScreen(-mw * 0.28, R + mh * 0.72, cam);
+    const s2 = worldToScreen(mw * 0.28, R + mh * 0.72, cam);
+    cx.moveTo(...s1); cx.lineTo(...b); cx.lineTo(...s2); cx.closePath(); cx.fill();
+
+    // 대포
+    cx.save();
+    cx.translate(...b);
+    cx.fillStyle = '#1e293b';
+    cx.fillRect(-4, -10, 22, 7);
+    cx.fillStyle = '#475569';
+    cx.beginPath(); cx.arc(0, -4, 6, 0, Math.PI * 2); cx.fill();
+    cx.restore();
+  }
+
+  function arrow(x1, y1, x2, y2, col) {
+    cx.strokeStyle = col; cx.fillStyle = col; cx.lineWidth = 3;
+    cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke();
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    cx.beginPath();
+    cx.moveTo(x2, y2);
+    cx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+    cx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+    cx.closePath(); cx.fill();
+  }
+
+  function draw() {
+    const cam = getCamera();
+    cx.fillStyle = '#071026';
+    cx.fillRect(0, 0, W, Hh);
+
+    // 별
+    cx.fillStyle = '#fff';
+    stars.forEach(([x, y, r]) => {
+      cx.globalAlpha = 0.55;
+      cx.beginPath(); cx.arc(x, y, r, 0, 7); cx.fill();
+    });
+    cx.globalAlpha = 1;
+
+    // 원 궤도 안내선
+    if ($('oG').checked) {
+      const [ex, ey] = worldToScreen(0, 0, cam);
+      const rr = (R + getMtnVisualHeight()) * cam.s;
+      cx.setLineDash([7, 7]);
+      cx.strokeStyle = 'rgba(232, 184, 74, 0.65)';
+      cx.lineWidth = 1.8;
+      cx.beginPath(); cx.arc(ex, ey, rr, 0, Math.PI * 2); cx.stroke();
+      cx.setLineDash([]);
+    }
+
+    drawEarth(cam);
+
+    const activeList = shots.concat(cur ? [cur] : []).concat(multiShots);
+    activeList.forEach(sh => {
+      cx.strokeStyle = sh.col;
+      cx.lineWidth = 2.6;
+      cx.beginPath();
+      sh.path.forEach((p, i) => {
+        const q = dispPos(p[0], p[1], cam);
+        i ? cx.lineTo(...q) : cx.moveTo(...q);
+      });
+      cx.stroke();
+
+      if (sh.done && sh.res === 'hit') {
+        const p = sh.path[sh.path.length - 1], q = dispPos(p[0], p[1], cam);
+        cx.fillStyle = sh.col;
+        cx.beginPath(); cx.arc(q[0], q[1], 5, 0, 7); cx.fill();
+      } else if (!sh.done) {
+        const q = dispPos(sh.x, sh.y, cam);
+        cx.fillStyle = '#fff';
+        cx.beginPath(); cx.arc(q[0], q[1], 5.5, 0, 7); cx.fill();
+        const r = Math.hypot(sh.x, sh.y);
+        if ($('oF').checked) {
+          const L = 42;
+          arrow(q[0], q[1], q[0] - L * sh.x / r, q[1] + L * sh.y / r, '#ff6b6b');
+        }
+        if ($('oV').checked) {
+          const sp = Math.hypot(sh.vx, sh.vy), L = 30 + 38 * sp / VC;
+          arrow(q[0], q[1], q[0] + L * sh.vx / sp, q[1] - L * sh.vy / sp, '#5ee0a0');
+        }
+      }
+    });
+
+    updateHud();
+  }
+
+  function updateHud() {
+    const active = cur || multiShots.find(s => !s.done);
+    if (!active) {
+      $('hud').innerHTML =
+        `원 궤도 속력 <b>${(VC / 1000).toFixed(2)} km/s</b><br>` +
+        `탈출 속력 <b>${(VE / 1000).toFixed(2)} km/s</b><br>` +
+        `현재 배율 <b>${zoom.toFixed(2)}×</b>`;
+      return;
+    }
+    const r = Math.hypot(active.x, active.y), sp = Math.hypot(active.vx, active.vy);
+    $('hud').innerHTML =
+      `발사 속력 <b>${(active.v0 / 1000).toFixed(2)} km/s</b><br>` +
+      `현재 속력 <b>${(sp / 1000).toFixed(2)} km/s</b><br>` +
+      `현재 고도 <b>${Math.max(0, (r - R) / 1000).toFixed(0)} km</b><br>` +
+      `경과 시간 <b>${fmtT(active.t)}</b>`;
+  }
+
+  function fmtT(t) {
+    const m = Math.floor(t / 60), s = Math.floor(t % 60);
+    return m ? `${m}분 ${s}초` : `${s}초`;
+  }
+
+  function createShot(vKms, color) {
+    const v0 = vKms * 1000;
+    return {
+      x: 0, y: R0, vx: v0, vy: 0, v0, t: 0, ang: 0, prevA: Math.PI / 2,
+      path: [[0, R0]], col: color, done: false, rmax: R0, rmin: R0, lastRec: 0
+    };
+  }
+
+  function fire() {
+    const vKms = +$('v').value;
+    if (cur && !cur.done) { cur.done = true; shots.push(cur); }
+    multiShots.forEach(s => { s.done = true; shots.push(s); });
+    multiShots = [];
+    cur = createShot(vKms, COLORS[ci++ % COLORS.length]);
+    last = null;
+
+    if (vKms < 7.6) {
+      $('stepText').innerHTML = `<b>v = ${vKms.toFixed(2)} km/s (원 궤도 속력 7.79 km/s 미만) ·</b> 속력이 부족하여 중력에 끌려 지면으로 낙하합니다. [⛰️ 산 근처 확대 (6.0×)]를 눌러 포물선 궤적을 확인해 보세요.`;
+    } else if (Math.abs(vKms - 7.79) < 0.08) {
+      $('stepText').innerHTML = `<b>v = ${vKms.toFixed(2)} km/s (원 궤도 속력!) ·</b> 만유인력이 정확히 원운동의 구심력 역할을 하여 일정한 고도(200 km)를 유지하며 지구를 한 바퀴 공전합니다.`;
+    } else if (vKms < 11.0) {
+      $('stepText').innerHTML = `<b>v = ${vKms.toFixed(2)} km/s (타원 궤도) ·</b> 원 궤도 속력보다 빨라 지구 반대편에서 고도가 높아지는 <b>타원 궤도</b>를 그립니다. 궤도가 화면 밖으로 커지면 <b>[🪐 큰 궤도 축소 (0.4×)]</b> 또는 축소(−) 버튼을 눌러 보세요!`;
+    } else {
+      $('stepText').innerHTML = `<b>v = ${vKms.toFixed(2)} km/s (탈출 속력 11.01 km/s 이상!) ·</b> 역학적 에너지가 0 이상이 되어 다시 돌아오지 않고 지구 중력장을 탈출합니다.`;
+    }
+  }
+
+  function fireFivePresets() {
+    if (cur && !cur.done) { cur.done = true; shots.push(cur); }
+    cur = null;
+    shots = [];
+    const list = [3.00, 6.00, 7.79, 9.30, 11.01];
+    multiShots = list.map((v, idx) => createShot(v, COLORS[idx]));
+    last = null;
+    $('stepText').innerHTML = `<b>대표 속력 5가지 동시 비교 ·</b> 3.0 km/s(노랑), 6.0 km/s(하늘), 7.79 km/s(분홍·원궤도), 9.3 km/s(보라·타원궤도), 11.01 km/s(초록·탈출궤도) 포탄을 동시에 발사했습니다!`;
+  }
+
+  function stepShot(sh, dt) {
+    const r = Math.hypot(sh.x, sh.y), a = -GM / (r * r * r);
+    const ax = a * sh.x, ay = a * sh.y;
+    sh.x += sh.vx * dt + 0.5 * ax * dt * dt;
+    sh.y += sh.vy * dt + 0.5 * ay * dt * dt;
+    const r2 = Math.hypot(sh.x, sh.y), a2 = -GM / (r2 * r2 * r2);
+    sh.vx += 0.5 * (ax + a2 * sh.x) * dt;
+    sh.vy += 0.5 * (ay + a2 * sh.y) * dt;
+    sh.t += dt;
+    sh.rmax = Math.max(sh.rmax, r2);
+    sh.rmin = Math.min(sh.rmin, r2);
+    const A = Math.atan2(sh.y, sh.x);
+    let d = A - sh.prevA;
+    if (d > Math.PI) d -= 2 * Math.PI;
+    if (d < -Math.PI) d += 2 * Math.PI;
+    sh.ang += d;
+    sh.prevA = A;
+  }
+
+  function finishShot(sh, res, note) {
+    sh.done = true;
+    sh.res = res;
+    shots.push(sh);
+    addLog(sh, res, note);
+  }
+
+  function addLog(sh, res, note) {
+    const tb = $('tb');
+    if (tb.dataset.empty !== '0') { tb.innerHTML = ''; tb.dataset.empty = '0'; }
+    const name = { hit: '지면에 떨어짐', circle: '원 궤도', ellipse: '타원 궤도', escape: '지구 탈출' }[res];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><i style="background:${sh.col}"></i><b>${(sh.v0 / 1000).toFixed(2)} km/s</b></td><td>${name}</td><td>${note}</td>`;
+    tb.prepend(tr);
+  }
+
+  function advanceOneShot(sh, totalDt) {
+    let T = totalDt;
+    while (T > 0 && !sh.done) {
+      const r = Math.hypot(sh.x, sh.y);
+      const h = Math.min(T, Math.max(0.5, 0.002 * r / Math.max(1, Math.hypot(sh.vx, sh.vy)) * 10));
+      stepShot(sh, h);
+      T -= h;
+      const rn = Math.hypot(sh.x, sh.y);
+      if (sh.path.length === 0 || sh.t - (sh.lastRec || 0) > Math.max(2, rn / 2e6)) {
+        sh.path.push([sh.x, sh.y]);
+        sh.lastRec = sh.t;
+      }
+      if (rn <= R) {
+        const s = R / rn;
+        sh.x *= s; sh.y *= s;
+        sh.path.push([sh.x, sh.y]);
+        const dist = R * Math.abs(sh.ang) / 1000;
+        finishShot(sh, 'hit', `수평 거리 약 ${dist.toFixed(0)} km`);
+        break;
+      }
+      const E = 0.5 * (sh.vx * sh.vx + sh.vy * sh.vy) - GM / rn;
+      if (E >= 0 && rn > 7.5 * R) {
+        finishShot(sh, 'escape', '중력장 탈출 (돌아오지 않음)');
+        break;
+      }
+      if (Math.abs(sh.ang) >= 2 * Math.PI) {
+        sh.path.push([sh.x, sh.y]);
+        const e = (sh.rmax - sh.rmin) / (sh.rmax + sh.rmin);
+        if (e < 0.015) finishShot(sh, 'circle', `고도 약 ${((sh.rmin - R) / 1000).toFixed(0)} km, 주기 ${fmtT(sh.t)}`);
+        else finishShot(sh, 'ellipse', `원지점 고도 약 ${((sh.rmax - R) / 1000).toFixed(0)} km, 주기 ${fmtT(sh.t)}`);
+        break;
+      }
+    }
+  }
+
+  function loop(ts) {
+    if (!paused) {
+      const dtReal = last ? Math.max(0.001, Math.min(0.05, (ts - last) / 1000)) : 0.016;
+      last = ts;
+      const simDt = dtReal * tScale;
+      if (cur && !cur.done) {
+        advanceOneShot(cur, simDt);
+        if (cur.done) cur = null;
+      }
+      if (multiShots.length > 0) {
+        multiShots.forEach(sh => { if (!sh.done) advanceOneShot(sh, simDt); });
+        multiShots = multiShots.filter(sh => !sh.done);
+      }
+    } else {
+      last = null;
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // 줌 설정 함수
+  function setZoomLevel(z, newCx, newCy) {
+    zoom = Math.max(0.30, Math.min(7.50, z));
+    $('zmSlider').value = zoom;
+    $('zmVal').textContent = zoom.toFixed(2) + '×';
+    if (newCx !== undefined) camX = newCx;
+    if (newCy !== undefined) camY = newCy;
+  }
+
+  $('zmSlider').addEventListener('input', e => setZoomLevel(+e.target.value));
+  $('zmIn').addEventListener('click', () => setZoomLevel(zoom * 1.25));
+  $('zmOut').addEventListener('click', () => setZoomLevel(zoom / 1.25));
+  $('zmReset').addEventListener('click', () => {
+    $('followBall').checked = false;
+    setZoomLevel(1.0, 0, 0);
+    document.querySelectorAll('[data-cam]').forEach(b => b.classList.toggle('on', b.dataset.cam === 'wide'));
+  });
+
+  // 카메라 시점 프리셋 버튼
+  document.querySelectorAll('[data-cam]').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('[data-cam]').forEach(x => x.classList.toggle('on', x === b));
+      $('followBall').checked = false;
+      const mode = b.dataset.cam;
+      if (mode === 'wide') setZoomLevel(1.0, 0, 0);
+      else if (mode === 'near') setZoomLevel(6.0, 0, R0 - 0.02 * R);
+      else if (mode === 'far') setZoomLevel(0.40, 0, -0.35 * R);
+    });
+  });
+
+  // 캔버스 마우스 휠 확대/축소 & 드래그 이동(Pan)
+  cv.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    setZoomLevel(zoom * factor);
+    document.querySelectorAll('[data-cam]').forEach(x => x.classList.remove('on'));
+  }, { passive: false });
+
+  cv.addEventListener('mousedown', e => {
+    isDragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    camStartX = camX;
+    camStartY = camY;
+    $('followBall').checked = false;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const rect = cv.getBoundingClientRect();
+    const dxPx = (e.clientX - dragStartX) * (W / rect.width);
+    const dyPx = (e.clientY - dragStartY) * (Hh / rect.height);
+    const cam = getCamera();
+    camX = camStartX - dxPx / cam.s;
+    camY = camStartY + dyPx / cam.s;
+  });
+  window.addEventListener('mouseup', () => { isDragging = false; });
+
+  // 발사 컨트롤 이벤트
+  $('v').addEventListener('input', () => { $('vv').textContent = (+$('v').value).toFixed(2) + ' km/s'; });
+  document.querySelectorAll('.preset-chip').forEach(b => {
+    b.addEventListener('click', () => {
+      $('v').value = b.dataset.v;
+      $('vv').textContent = (+b.dataset.v).toFixed(2) + ' km/s';
+      fire();
+    });
+  });
+  document.querySelectorAll('[data-ts]').forEach(b => {
+    b.addEventListener('click', () => {
+      tScale = +b.dataset.ts;
+      document.querySelectorAll('[data-ts]').forEach(x => x.classList.toggle('on', x === b));
+    });
+  });
+  $('pp').addEventListener('click', () => {
+    paused = !paused;
+    $('pp').textContent = paused ? '▶ 재생' : '⏸ 일시정지';
+  });
+  $('fire').addEventListener('click', fire);
+  $('fireAll').addEventListener('click', fireFivePresets);
+  $('clr').addEventListener('click', () => {
+    shots = []; cur = null; multiShots = []; ci = 0;
+    const tb = $('tb');
+    tb.dataset.empty = '1';
+    tb.innerHTML = '<tr><td colspan="3" style="color:#94a3b8;text-align:center;padding:12px;">포탄을 발사하면 기록이 추가됩니다.</td></tr>';
+  });
+
+  // 상단 탭 전환
+  document.querySelectorAll('.tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      const idx = +b.dataset.tab;
+      if (idx === 0) {
+        $('paneSim').classList.add('show');
+        $('paneTheory').classList.remove('show');
+      } else if (idx === 1) {
+        $('paneSim').classList.add('show');
+        $('paneTheory').classList.remove('show');
+        setZoomLevel(0.55, 0, -0.2 * R);
+        fireFivePresets();
+      } else {
+        $('paneSim').classList.remove('show');
+        $('paneTheory').classList.add('show');
+      }
+    });
+  });
+
+  requestAnimationFrame(loop);
 })();
 </script>
 </body>
