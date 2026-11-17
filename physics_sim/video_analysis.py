@@ -1662,8 +1662,10 @@ def build_pdf(R):
     return bio.getvalue()
 
 
+PADLET_SUBMIT_URL = "https://padlet.com/sgh/padlet-s024ptrmj1ftxrfacgbv"
+
 with st.container(border=True):
-    st.markdown("<div class='card-t'>📤 보고서 파일 만들기</div>", unsafe_allow_html=True)
+    st.markdown("<div class='card-t'>📤 보고서 파일 만들기와 패들렛 제출</div>", unsafe_allow_html=True)
     b1, b2 = st.columns([1, 2])
     if b1.button("📄 보고서 파일 만들기", type="primary", **FULL):
         with st.spinner("보고서를 만드는 중입니다…"):
@@ -1692,5 +1694,16 @@ with st.container(border=True):
         x2.download_button("⬇️ Word 보고서 받기 (.docx)", ex["docx"], file_name=ex["name"] + ".docx",
                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                            **FULL)
+
+    st.markdown("""
+**제출 안내 (역학과 인공위성 | 모둠 협업 패들렛)**
+1. 위 버튼으로 **보고서 파일(PDF)**을 내려받습니다.
+2. 아래 **[역학과 인공위성 | 모둠 협업]** 패들렛 버튼을 눌러 **보고서 PDF**와 **영상 분석 파일(`.vmbl`)**을 함께 제출합니다.
+""")
+    st.markdown(f"""<a href="{PADLET_SUBMIT_URL}" target="_blank" style="text-decoration:none;">
+<div style="background:#1F3B5C;color:#fff;border-radius:10px;padding:14px;text-align:center;font-weight:700;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,0.15);margin:10px 0 8px;">
+🚀 [역학과 인공위성 | 모둠 협업 (패들렛 제출방)] 새 창에서 열기 ↗
+<div style="font-size:12px;font-weight:normal;color:#B8C9E0;margin-top:4px;">보고서 PDF 및 .vmbl 영상 분석 파일 제출 · {PADLET_SUBMIT_URL}</div>
+</div></a>""", unsafe_allow_html=True)
 
 st.caption("사곡고등학교 물리학Ⅱ · 지표면 역학 분석 - 포물선 운동 영상 분석 실습")
