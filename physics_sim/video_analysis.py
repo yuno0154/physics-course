@@ -17,7 +17,7 @@ import streamlit as st
 from plotly.subplots import make_subplots
 
 # ════════════════════════════════════════════════════════════════════
-# 1. 고정 설정
+# 1. 고정 설정 및 교사용 제공 데이터 세트
 # ════════════════════════════════════════════════════════════════════
 COURSE = "물리학Ⅱ"
 UNIT_INFO = "Ⅰ. 시공간과 운동  01 힘의 합성과 예측 · 6차시"
@@ -38,13 +38,68 @@ FONT_DIR = os.path.join(_HERE, "fonts") if os.path.isdir(os.path.join(_HERE, "fo
 FONT_REG = os.path.join(FONT_DIR, "NanumGothic.ttf")
 FONT_BOLD = os.path.join(FONT_DIR, "NanumGothicBold.ttf")
 
+ASSETS_DIR = os.path.join(_HERE, "assets")
+GUIDE_VIDEO_PATH = os.path.join(ASSETS_DIR, "농구공던지기_영상분석_과정.mp4")
+DEFAULT_VMBL_PATH = os.path.join(ASSETS_DIR, "농구공_운동_분석.vmbl")
+
+# 실험이 안 될 때 학생이 열어서 사용할 수 있는 교사용 제공 데이터 세트 (농구공 던지기 영상 분석 데이터 세트 1)
+PROVIDED_BASKETBALL_CSV = """프레임,시간 t (s),X (px),Y (px),X (m),Y (m),X 속도 vx (m/s),Y 속도 vy (m/s)
+6,0,581.655,659.85,-0.0220038910505836,0.00898832684824926,2.5104,4.9867
+7,0.0334,603.198,702.943,0.0618210116731519,0.176665369649806,2.4973,4.8995
+8,0.0667,624.741,746.035,0.145645914396887,0.344338521400778,2.4633,4.6868
+9,0.1001,646.283,783.741,0.229466926070039,0.491054474708171,2.3622,4.4113
+10,0.1335,665.133,821.446,0.302813229571985,0.637766536964981,2.275,4.1236
+11,0.1668,683.983,856.459,0.37615953307393,0.774003891050584,2.3273,3.6441
+12,0.2002,705.526,883.392,0.459984435797665,0.878801556420234,2.3448,3.2256
+13,0.2336,724.376,910.324,0.533330739299611,0.9835953307393,2.3448,2.9554
+14,0.2669,745.919,934.564,0.617155642023347,1.07791439688716,2.3186,2.659
+15,0.3003,764.769,956.11,0.690501945525292,1.16175097276265,2.2314,2.3538
+16,0.3337,783.619,974.963,0.763848249027238,1.23510894941634,2.2053,2.04
+17,0.367,802.468,991.122,0.837190661478599,1.29798443579767,2.1966,1.7262
+18,0.4004,821.318,1004.589,0.910536964980545,1.35038521400778,2.1966,1.4123
+19,0.4338,840.168,1015.362,0.983883268482491,1.39230350194553,2.1879,1.1072
+20,0.4671,859.018,1023.441,1.05722957198444,1.4237392996109,2.153,0.8195
+21,0.5005,877.868,1028.828,1.13057587548638,1.44470038910506,2.0484,0.5841
+22,0.5339,894.025,1034.214,1.19344357976654,1.46565758754864,1.9699,0.2703
+23,0.5672,910.182,1034.214,1.25631128404669,1.46565758754864,2.0484,-0.1221
+24,0.6006,929.032,1031.521,1.32965758754864,1.45517898832685,2.153,-0.4533
+25,0.634,947.882,1026.135,1.40300389105058,1.43422178988327,2.1791,-0.7497
+26,0.6673,966.732,1018.055,1.47635019455253,1.40278210116732,2.153,-0.9764
+27,0.7007,985.582,1009.975,1.54969649805448,1.37134241245136,2.0484,-1.2554
+28,0.7341,1001.739,996.509,1.61256420233463,1.31894552529183,1.9699,-1.5344
+29,0.7674,1017.896,983.042,1.67543190661479,1.26654474708171,2.0397,-1.7697
+30,0.8008,1036.746,966.883,1.74877821011673,1.20366926070039,2.1094,-2.0749
+31,0.8342,1055.596,948.03,1.82212451361868,1.13031128404669,2.031,-2.4323
+32,0.8675,1071.753,923.791,1.88499221789883,1.03599610894942,1.9264,-2.659
+33,0.9009,1087.91,902.244,1.94785992217899,0.952155642023347,1.8915,-2.8682
+34,0.9343,1104.067,875.312,2.01072762645914,0.84736186770428,1.8915,-3.1559
+35,0.9676,1120.224,848.379,2.0735953307393,0.742564202334631,1.9264,-3.4785
+36,1.001,1136.381,816.06,2.13646303501946,0.616809338521401,2.031,-3.8533
+37,1.0344,1155.231,781.047,0.480571984435798,2.2098093385214,2.1181,-4.0974
+38,1.0677,1174.081,746.035,2.28315564202335,0.344338521400778,2.0745,-4.3677
+39,1.1011,1190.238,705.636,2.3460233463035,0.187143968871595,2.0745,-4.5856
+40,1.1345,1209.088,667.93,2.41936964980545,0.0404280155642023,2.1268,-4.8646
+41,1.1678,1227.938,622.145,2.49271595330739,-0.13772373540856,2.0658,-5.1523
+42,1.2012,1244.095,579.052,2.55558365758755,-0.305400778210117,2.0484,-5.3964
+43,1.2346,1262.945,530.574,2.62892996108949,-0.494031128404669,2.0397,-5.7451
+44,1.2679,1279.102,479.401,2.69179766536965,-0.693147859922179,2.031,-5.9892
+45,1.3013,1297.952,428.229,2.7651439688716,-0.892260700389105,2.0135,-6.2856
+46,1.3347,1314.109,371.671,2.82801167315175,-1.11233073929961,1.9612,-6.5908
+47,1.368,1330.266,315.112,2.89087937743191,-1.3324046692607,2.0484,-6.9046
+48,1.4014,1349.116,253.167,2.96422568093385,-1.57343579766537,2.1495,-7.1975
+49,1.4348,1367.966,191.222,3.0375719844358,-1.81446692607004,2.1835,-7.4451
+50,1.4681,1386.816,123.89,3.11091828793774,-2.07645914396887,2.1966,-7.6718""".replace(
+    "37,1.0344,1155.231,781.047,0.480571984435798,2.2098093385214,2.1181,-4.0974",
+    "37,1.0344,1155.231,781.047,2.2098093385214,0.480571984435798,2.1181,-4.0974",
+)
+
 Q = {
     "q3a": "가. 수평 방향 운동에서 속력은 시간에 따라 어떻게 변하는가? (측정값이나 그래프를 근거로 서술하시오.)",
     "q3b": "나. 수평 방향 운동이 가와 같이 일어나는 이유는 무엇인가? (수평 방향에 작용하는 힘과 관련지어 서술하시오.)",
     "q3c_desc": "다. 연직 방향의 운동에서 속력은 시간에 따라 어떻게 변하는가? (측정값이나 그래프를 근거로 서술하시오.)",
     "q3d_reason": "라. 연직 방향 운동에서 다와 같이 일어나는 이유는 무엇인가? (연직 방향에 작용하는 힘과 관련지어 서술하시오.)",
     "q3e_calc": "마. 연직 방향의 속도-시간 데이터로부터 연직 가속도(ay)를 구하는 식을 쓰고, 측정값을 대입하여 평균 가속도를 직접 계산하시오.",
-    "q4a": "가. 데이터 표 첫 번째 행의 속도 성분(vx, vy)으로 처음 속력 v0와 발사각을 구하고, 포물선 운동 시뮬레이션에서 구한 이론값과 실험값을 비교하시오.",
+    "q4a": "가. 데이터로부터 처음 속력 v0와 발사각 θ를 구하고, 포물선 운동 시뮬레이션에서 구한 이론값과 실험값을 비교하시오.",
     "q4b": "나. 실험값과 이론값에 차이가 나는 까닭은 무엇인가? 측정 과정에서 생긴 오차와 포물선 운동 모델이 무시한 요인(공기 저항 등)으로 나누어 서술하시오.",
     "q5": "탐구 질문 — '실제로 던진 공도 포물선 운동 모델대로 움직일까?'에 대하여, 수평 방향과 연직 방향의 측정 자료·그래프 분석 결과를 근거로 결론을 정리하시오.",
 }
@@ -53,6 +108,7 @@ COMP_ITEMS = ["수평 이동거리 (m)", "최고점 높이 (m)", "비행 시간 
 SAVE_KEYS = [
     "stu_grade", "stu_cls", "stu_num", "stu_name", "stu_partner",
     "input_mode", "raw_data", "raw_file_text", "raw_file_name",
+    "use_provided_data", "vmbl_b64", "vmbl_name",
     "map_t", "map_x", "map_y", "map_vx", "map_vy",
     "q3a", "q3b", "q3c_desc", "q3d_reason",
     "ay_i1", "ay_i2", "ay_formula", "ay_subst", "ay_result", "ay_err",
@@ -87,6 +143,11 @@ h1, h2, h3, h4 { letter-spacing: -0.02em; }
 .curr-tbl td { padding:8px 14px; border:1px solid #94A3B8; color:#1E293B; line-height:1.55; }
 .curr-tbl td.blue-txt { color:#1D4ED8; font-weight:600; }
 
+.guide-tbl { width:100%; border-collapse:collapse; font-size:13px; margin:8px 0 10px 0; background:#fff; }
+.guide-tbl th { background:#EEF4FA; color:#1F3B5C; font-weight:700; padding:7px 10px; border:1px solid #CBD5E1; text-align:center; }
+.guide-tbl td { padding:7px 10px; border:1px solid #CBD5E1; text-align:center; color:#1E293B; }
+.guide-tbl td.rec { background:#F0F9FF; font-weight:700; color:#0369A1; }
+
 .sec { background:#1F3B5C; color:#fff; padding: 9px 16px; border-radius: 8px;
        font-weight: 700; font-size: 16px; margin: 24px 0 10px 0;
        display:flex; justify-content:space-between; align-items:center; }
@@ -97,6 +158,8 @@ h1, h2, h3, h4 { letter-spacing: -0.02em; }
        padding: 7px 11px; border-radius: 6px; margin: 3px 0 8px 0; line-height: 1.55; }
 .auto-label { display:inline-block; background:#E3ECF6; color:#1F3B5C; font-size:11.5px;
               font-weight:700; padding:2px 8px; border-radius:4px; margin-bottom:4px; }
+.src-bk { background:#FFF4E5; border:1px solid #F0B86E; color:#7A4B0A; padding:9px 13px;
+          border-radius:7px; font-size:13px; margin-bottom:10px; }
 .legend { font-size: 12.5px; color:#4A5868; padding: 6px 2px; }
 .legend .sw { display:inline-block; width:12px; height:12px; border-radius:3px;
               vertical-align:-2px; margin-right:4px; }
@@ -143,6 +206,7 @@ if "_pending_load" in st.session_state:
 defaults = {
     "stu_grade": "3", "stu_cls": "", "stu_num": "", "stu_name": "", "stu_partner": "",
     "input_mode": "붙여넣기", "raw_data": "", "raw_file_text": "", "raw_file_name": "",
+    "use_provided_data": False, "vmbl_b64": "", "vmbl_name": "",
     "q3a": "", "q3b": "", "q3c_desc": "", "q3d_reason": "",
     "ay_i1": 0, "ay_i2": 5, "ay_formula": "", "ay_subst": "", "ay_result": "", "ay_err": "",
     "calc_img_b64": "", "calc_img_name": "",
@@ -187,13 +251,23 @@ def tip(text):
 def parse_table(text):
     if not text or not text.strip():
         return None
-    lines = [ln.strip() for ln in text.strip().splitlines() if ln.strip()]
-    if len(lines) < 2:
+    raw_lines = [ln.strip() for ln in text.strip().splitlines() if ln.strip() and not re.match(r"^[,;\t\s]+$", ln.strip())]
+    if len(raw_lines) < 2:
         return None
+
+    # 상단 메타데이터 행이나 하단 요약 행이 함께 복사된 경우 실제 데이터 표 시작점을 찾음
+    start_idx = 0
+    for idx, ln in enumerate(raw_lines):
+        low = ln.lower()
+        if any(k in low for k in ("시간 t", "time", "x (m)", "x(m)", "속도", "vel")):
+            start_idx = idx
+            break
+    lines = raw_lines[start_idx:]
+    if len(lines) < 2:
+        lines = raw_lines
+
     sep = "\t" if "\t" in lines[0] else ("," if "," in lines[0] else (";" if ";" in lines[0] else None))
     rows = [(re.split(r"\s+", ln) if sep is None else [c.strip() for c in ln.split(sep)]) for ln in lines]
-    ncol = max(len(r) for r in rows)
-    rows = [r + [""] * (ncol - len(r)) for r in rows]
 
     def is_num(s):
         try:
@@ -202,15 +276,35 @@ def parse_table(text):
         except Exception:
             return False
 
-    if sum(is_num(c) for c in rows[0]) >= max(1, len(rows[0]) // 2):
-        headers, body = [f"열{i + 1}" for i in range(ncol)], rows
+    # 첫 행이 헤더인지 데이터인지 판별 후, 연속된 숫자 행만 추출 (하단 요약 메모 제외)
+    first_is_data = sum(is_num(c) for c in rows[0]) >= max(2, len(rows[0]) // 2)
+    header_row = None if first_is_data else rows[0]
+    data_candidates = rows if first_is_data else rows[1:]
+
+    body = []
+    for r in data_candidates:
+        num_cnt = sum(is_num(c) for c in r if c != "")
+        if num_cnt >= 3:
+            body.append(r)
+        elif len(body) >= 3:
+            # 이미 숫자 데이터 행들이 모인 뒤 텍스트 요약 행이 나오면 중단
+            break
+
+    if len(body) < 2:
+        return None
+
+    ncol = max(len(r) for r in ([header_row] + body if header_row else body))
+    body = [r + [""] * (ncol - len(r)) for r in body]
+    if header_row is None:
+        headers = [f"열{i + 1}" for i in range(ncol)]
     else:
+        header_row = header_row + [""] * (ncol - len(header_row))
         seen, headers = {}, []
-        for i, h in enumerate(rows[0]):
+        for i, h in enumerate(header_row):
             h = h or f"열{i + 1}"
             seen[h] = seen.get(h, 0) + 1
             headers.append(h if seen[h] == 1 else f"{h}_{seen[h]}")
-        body = rows[1:]
+
     df = pd.DataFrame(body, columns=headers)
     for c in df.columns:
         df[c] = pd.to_numeric(df[c].astype(str).str.replace(",", ""), errors="coerce")
@@ -228,15 +322,26 @@ def guess_columns(cols):
             out["vx"] = c
         elif out["vy"] is None and any(k in s for k in ("vy", "yvel", "vely", "y속도", "속도y", "연직속도")):
             out["vy"] = c
+    # m 단위 위치 열을 px 단위 열보다 우선 선택
     for c in cols:
         if c in out.values():
             continue
         s = re.sub(r"[\s_()\[\]/·:-]", "", c.lower())
+        if "px" in s or "픽셀" in s:
+            continue
         if out["x"] is None and (s in ("x", "xm", "xpos", "positionx") or "x위치" in s or "수평위치" in s or s.endswith(":xm") or s.endswith("xm")):
             out["x"] = c
         elif out["y"] is None and (s in ("y", "ym", "ypos", "positiony") or "y위치" in s or "연직위치" in s or s.endswith(":ym") or s.endswith("ym")):
             out["y"] = c
-    rem = [c for c in cols if c not in out.values()]
+    for c in cols:
+        if c in out.values():
+            continue
+        s = re.sub(r"[\s_()\[\]/·:-]", "", c.lower())
+        if out["x"] is None and ("x" in s and "프레임" not in s):
+            out["x"] = c
+        elif out["y"] is None and ("y" in s and "프레임" not in s):
+            out["y"] = c
+    rem = [c for c in cols if c not in out.values() and "프레임" not in c and "frame" not in c.lower()]
     for k in ("t", "x", "y", "vx", "vy"):
         if out[k] is None and rem:
             out[k] = rem.pop(0)
@@ -308,12 +413,12 @@ def validate_data(d):
         errors.append(
             f"**위치(x, y) 값 범위 이상 (최대 |x| = {max_abs_x:.1f} m, |y| = {max_abs_y:.1f} m)**: "
             f"교실·실험실 포물선 운동 범위를 크게 벗어난 수십~수천 m 값입니다. "
-            f"**교정막대자(축척, Scale)**를 설정하지 않아 픽셀(px) 좌표가 그대로 들어왔거나, 좌표축 원점(0, 0) 설정이 잘못되었을 가능성이 높습니다."
+            f"**교정막대자(축척, Scale)**를 설정하지 않아 픽셀(px) 좌표가 그대로 들어왔거나, '🔧 열 맞추기'에서 X(px)·Y(px) 열이 선택되었을 가능성이 높습니다."
         )
     elif abs(x[0]) > 5.0 or abs(y[0]) > 5.0:
         warnings.append(
             f"**좌표축 원점(0, 0) 위치 확인 (첫 점 x₀ = {x[0]:.2f} m, y₀ = {y[0]:.2f} m)**: "
-            f"공의 처음 위치가 원점(0, 0)에서 멀리 떨어져 있습니다. 좌표축 원점을 공의 출발점(또는 바닥 기준점) 근처로 설정했는지 확인하세요."
+            f"공의 처음 위치가 원점(0, 0)에서 멀리 떨어져 있습니다. 좌표축 원점을 공의 출발점 근처로 설정했는지 확인하세요."
         )
 
     # 3. 위치 미분 속도(Δx/Δt, Δy/Δt)와 붙여넣은 속도(vx, vy)의 정합성 검증
@@ -344,7 +449,7 @@ def validate_data(d):
             f"공이 손을 떠난 직후부터 바닥에 닿기 직전까지만 질점을 찍었는지 확인하세요."
         )
 
-    # 5. 수평 속도(vx) 일정성 검증 (클립 설정 오류: 손에서 떠나기 전/착지 후 포함 여부)
+    # 5. 수평 속도(vx) 일정성 검증
     mean_vx = float(np.nanmean(vx))
     std_vx = float(np.nanstd(vx))
     if np.nanmin(vx) * np.nanmax(vx) < 0:
@@ -358,6 +463,18 @@ def validate_data(d):
             f"수평 속도의 변동 폭이 큽니다. 공이 손을 떠난 순간부터 클립을 시작했는지, 공의 중심을 일정하게 찍었는지 점검하세요."
         )
 
+    # 그래프 맞춤 (방법 A) 계산: x-t 직선 기울기, y-t 이차식 (y = a*t^2 + b*t + c)
+    try:
+        fit_vx0 = float(np.polyfit(t, x, 1)[0])
+        poly_y = np.polyfit(t, y, 2)
+        fit_a = float(poly_y[0])
+        fit_vy0 = float(poly_y[1])
+        fit_v0 = float(np.hypot(fit_vx0, fit_vy0))
+        fit_theta = float(np.degrees(np.arctan2(fit_vy0, fit_vx0)))
+        fit_g = float(-2.0 * fit_a)
+    except Exception:
+        fit_vx0, fit_vy0, fit_v0, fit_theta, fit_g = mean_vx, float(vy[0]), float(np.hypot(mean_vx, vy[0])), 67.0, abs(slope_ay)
+
     metrics = {
         "n": n,
         "dt_total": float(t[-1] - t[0]),
@@ -366,6 +483,11 @@ def validate_data(d):
         "y_max": float(np.nanmax(y)),
         "mean_vx": mean_vx,
         "slope_ay": slope_ay,
+        "fit_vx0": fit_vx0,
+        "fit_vy0": fit_vy0,
+        "fit_v0": fit_v0,
+        "fit_theta": fit_theta,
+        "fit_g": fit_g,
     }
     return errors, warnings, metrics
 
@@ -513,13 +635,22 @@ def cb_file():
             except UnicodeDecodeError:
                 continue
         st.session_state["raw_file_name"] = f.name
+        st.session_state["use_provided_data"] = False
         for k in ("map_t", "map_x", "map_y", "map_vx", "map_vy"):
             st.session_state.pop(k, None)
 
 
 def cb_paste():
+    st.session_state["use_provided_data"] = False
     for k in ("map_t", "map_x", "map_y", "map_vx", "map_vy"):
         st.session_state.pop(k, None)
+
+
+def cb_vmbl():
+    f = st.session_state.get("vmbl_upload")
+    if f is not None:
+        st.session_state["vmbl_b64"] = base64.b64encode(f.getvalue()).decode()
+        st.session_state["vmbl_name"] = f.name
 
 
 def cb_calc_img():
@@ -554,7 +685,7 @@ def update_diff():
 
 
 # ════════════════════════════════════════════════════════════════════
-# 6. 화면 — 머리 · 단원정보 표 · 학생 정보 · 탐구 과정
+# 6. 화면 — 머리 · 단원정보 표 · 학생 정보 · 탐구 안내(과정 영상 포함)
 # ════════════════════════════════════════════════════════════════════
 st.markdown(f"""
 <div class='hero'>
@@ -620,53 +751,150 @@ with st.container(border=True):
     s4.text_input("모둠원 (함께 실험한 친구)", key="stu_partner", placeholder="예: 홍길동")
     tip("중간에 창을 닫아야 할 때는 위의 <b>💾 저장</b>으로 파일을 받아 두고, <b>📂 불러오기</b>로 열면 이어서 작성할 수 있습니다.")
 
-# ── 탐구 과정 안내 ─────────────────────────────────────────────────
+# ── 탐구 안내 (영상 분석 과정 영상 재생 + 프로그램 접속) ──────────────
 with st.container(border=True):
-    st.markdown("<div class='card-t'>🧪 탐구 과정</div>", unsafe_allow_html=True)
-    p_col1, p_col2 = st.columns([2.2, 1.0])
+    st.markdown("<div class='card-t'>🧪 탐구 안내 및 과정 (영상 분석 방법 미리보기)</div>", unsafe_allow_html=True)
+    p_col1, p_col2 = st.columns([1.35, 1.25])
     with p_col1:
         st.markdown(f"""
 <div class='steps'>
 <ol>
-<li><b>프로그램 접속</b> — 오른쪽 버튼(또는 <a href='{VA_URL}' target='_blank'>여기 ↗</a>)을 눌러 Vernier Video Analysis를 엽니다.
+<li><b>프로그램 접속</b> — 아래 버튼으로 Vernier Video Analysis를 엽니다.
     제품키 입력 창이 나타나면 <span class='pill'>제품키: {VA_KEY}</span> 를 입력합니다.</li>
-<li><b>영상 열기 및 설정</b> — <b>선생님의 지시에 따라</b> 분석할 영상을 불러오고 <b>클립 설정(시작·끝 프레임) → 교정막대자(축척) 설정 → 좌표축(원점) 설정 → 질점 찍기</b>를 차례대로 수행합니다.</li>
-<li><b>데이터 붙여넣기 및 오류 검증</b> — 오른쪽 데이터 표를 복사(<b>Ctrl+A → Ctrl+C</b>)하거나 CSV로 내보내어 아래 <b>1. 데이터 정리</b>에 넣습니다. 붙여 넣은 값에 축척·원점·부호 오류가 있는지 자동으로 검증합니다.</li>
+<li><b>영상 열기 및 설정</b> — 오른쪽 <b>영상 분석 과정 안내 영상</b>을 참고하고 <b>선생님의 지시에 따라</b> 클립 설정 → 교정막대자(축척) 설정 → 좌표축(원점) 설정 → 질점 찍기를 차례대로 수행합니다.</li>
+<li><b>데이터 붙여넣기 및 vmbl 파일 첨부</b> — 분석한 데이터 표를 아래 <b>1. 데이터 정리</b>에 붙여넣고(실험이 안 될 때는 <b>교사용 제공 데이터 세트</b> 사용 가능), 분석한 <code>.vmbl</code> 파일을 첨부합니다.</li>
 <li><b>그래프 분석 및 보고서 저장</b> — <b>2~5번</b> 항목을 작성하고 맨 아래에서 <b>PDF</b> 또는 <b>Word</b> 보고서를 내려받습니다.</li>
 </ol>
 </div>""", unsafe_allow_html=True)
-    with p_col2:
         st.markdown(f"""
-<div style="background:#EEF4FA;border:1px solid #CEDBE8;border-radius:10px;padding:14px;text-align:center;margin-top:4px;">
-  <div style="font-size:12px;color:#475569;font-weight:600;margin-bottom:4px;">Vernier Video Analysis 제품키</div>
-  <div style="font-size:20px;font-weight:800;color:#1F3B5C;letter-spacing:0.04em;margin-bottom:10px;">{VA_KEY}</div>
+<div style="background:#EEF4FA;border:1px solid #CEDBE8;border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;margin-bottom:8px;">
+  <div>
+    <div style="font-size:12px;color:#475569;font-weight:600;">Vernier Video Analysis 제품키</div>
+    <div style="font-size:19px;font-weight:800;color:#1F3B5C;letter-spacing:0.04em;">{VA_KEY}</div>
+  </div>
   <a href="{VA_URL}" target="_blank" style="text-decoration:none;">
-    <div style="background:#1F3B5C;color:#fff;border-radius:8px;padding:10px 12px;font-weight:700;font-size:14px;">
+    <div style="background:#1F3B5C;color:#fff;border-radius:8px;padding:10px 16px;font-weight:700;font-size:14px;">
       🔗 동영상 분석 프로그램 열기 ↗
     </div>
   </a>
 </div>
 """, unsafe_allow_html=True)
+        if os.path.exists(DEFAULT_VMBL_PATH):
+            with open(DEFAULT_VMBL_PATH, "rb") as _vf_top:
+                st.download_button(
+                    "📎 첨부파일: 농구공_운동_분석.vmbl 내려받기 (분석 프로그램에서 열기용)",
+                    _vf_top.read(),
+                    file_name="농구공_운동_분석.vmbl",
+                    mime="application/octet-stream",
+                    key="dl_vmbl_top",
+                    **FULL,
+                )
+    with p_col2:
+        st.markdown("**🎬 농구공 던지기 영상 분석 과정 안내 영상**")
+        if os.path.exists(GUIDE_VIDEO_PATH):
+            st.video(GUIDE_VIDEO_PATH)
+        else:
+            st.info("안내 영상 파일을 찾을 수 없습니다.")
 
 # ════════════════════════════════════════════════════════════════════
-# 7. [1] 데이터 정리 + 붙여넣은 값 오류 검증
+# 7. [1] 데이터 정리 + 교사용 제공 데이터 세트 + vmbl 파일 첨부 + 오류 검증
 # ════════════════════════════════════════════════════════════════════
-sec(1, "데이터 정리", "붙여넣기 또는 CSV 업로드 · 자동 오류 검증")
+sec(1, "데이터 정리", "데이터 붙여넣기 / CSV 업로드 / 교사용 제공 데이터 세트 / .vmbl 첨부")
+
+# (A) 실험이 안 될 때 학생이 열어서 사용할 수 있는 교사용 제공 데이터 세트
+with st.expander("📦 실험이 잘 안 되나요? (교사용 제공 데이터 세트 및 .vmbl 파일 열기 — 학생 사용 가능)", expanded=bool(st.session_state.get("use_provided_data"))):
+    st.markdown(
+        "프로그램 오류나 시간 부족 등으로 직접 영상 분석 데이터를 얻기 어려운 경우, "
+        "아래 버튼을 눌러 **교사용 제공 데이터 세트(농구공 던지기 영상 분석 데이터 세트 1, 45개 프레임)**를 바로 불러오거나 첨부된 `.vmbl` 파일을 내려받아 실습을 진행할 수 있습니다."
+    )
+    pb1, pb2, pb3 = st.columns([1.4, 1.3, 1.3])
+    if pb1.button("📥 교사용 제공 데이터 세트 적용하기", type="primary", **FULL):
+        st.session_state["use_provided_data"] = True
+        st.session_state["raw_data"] = PROVIDED_BASKETBALL_CSV
+        for k in ("map_t", "map_x", "map_y", "map_vx", "map_vy"):
+            st.session_state.pop(k, None)
+        st.rerun()
+    if os.path.exists(DEFAULT_VMBL_PATH):
+        with open(DEFAULT_VMBL_PATH, "rb") as _vf_exp:
+            pb2.download_button(
+                "📎 농구공_운동_분석.vmbl 받기",
+                _vf_exp.read(),
+                file_name="농구공_운동_분석.vmbl",
+                mime="application/octet-stream",
+                key="dl_vmbl_exp",
+                **FULL,
+            )
+    pb3.download_button(
+        "📄 제공 데이터 CSV 내려받기",
+        PROVIDED_BASKETBALL_CSV.encode("utf-8-sig"),
+        file_name="농구공던지기_교사용제공_데이터세트1.csv",
+        mime="text/csv",
+        **FULL,
+    )
+    if st.session_state.get("use_provided_data"):
+        if st.button("🔄 직접 측정한 데이터 입력으로 전환", **FULL):
+            st.session_state["use_provided_data"] = False
+            st.session_state["raw_data"] = ""
+            for k in ("map_t", "map_x", "map_y", "map_vx", "map_vy"):
+                st.session_state.pop(k, None)
+            st.rerun()
 
 d = None
-mode = st.radio("입력 방식", ["붙여넣기", "CSV 파일"], key="input_mode", horizontal=True)
-if mode == "붙여넣기":
-    st.text_area("분석 프로그램의 데이터 표를 붙여 넣으세요", key="raw_data", height=170,
-                 on_change=cb_paste, placeholder="여기에 붙여넣기 (Ctrl+V)")
-    tip("분석 프로그램의 데이터 표를 클릭 → <b>Ctrl+A</b>(전체 선택) → <b>Ctrl+C</b>(복사) → 위 칸에 <b>Ctrl+V</b>. "
-        "제목 행(Time, X, Y, VX, VY …)이 함께 붙어도 됩니다. 붙여 넣은 뒤 칸 바깥을 클릭하면 표로 바뀝니다.")
-    raw_text = ss("raw_data")
+if st.session_state.get("use_provided_data"):
+    st.markdown(
+        "<div class='src-bk'>📦 <b>교사용 제공 데이터 세트(농구공 던지기 영상 분석 데이터 세트 1 · 척도 257 px/m) 사용 중</b> — "
+        "아래에서 자동 생성된 표와 그래프를 확인하고 3~5번 분석을 작성하세요.</div>",
+        unsafe_allow_html=True,
+    )
+    raw_text = PROVIDED_BASKETBALL_CSV
 else:
-    st.file_uploader("내보낸 CSV 파일", type=["csv", "txt"], key="data_upload", on_change=cb_file)
-    if ss("raw_file_name"):
-        st.caption(f"불러온 파일: {ss('raw_file_name')}")
-    tip("분석 프로그램 오른쪽 위 메뉴에서 Export → CSV로 내보낸 파일을 올리세요.")
-    raw_text = ss("raw_file_text")
+    mode = st.radio("입력 방식", ["붙여넣기", "CSV 파일"], key="input_mode", horizontal=True)
+    if mode == "붙여넣기":
+        st.text_area("분석 프로그램의 데이터 표를 붙여 넣으세요", key="raw_data", height=170,
+                     on_change=cb_paste, placeholder="여기에 붙여넣기 (Ctrl+V)")
+        tip("분석 프로그램의 데이터 표를 클릭 → <b>Ctrl+A</b>(전체 선택) → <b>Ctrl+C</b>(복사) → 위 칸에 <b>Ctrl+V</b>. "
+            "제목 행(Time, X, Y, VX, VY …)이 함께 붙어도 됩니다. 붙여 넣은 뒤 칸 바깥을 클릭하면 표로 바뀝니다.")
+        raw_text = ss("raw_data")
+    else:
+        st.file_uploader("내보낸 CSV 파일", type=["csv", "txt"], key="data_upload", on_change=cb_file)
+        if ss("raw_file_name"):
+            st.caption(f"불러온 파일: {ss('raw_file_name')}")
+        tip("분석 프로그램 오른쪽 위 메뉴에서 Export → CSV로 내보낸 파일을 올리세요.")
+        raw_text = ss("raw_file_text")
+
+# (B) .vmbl 영상 분석 파일 첨부 칸
+with st.container(border=True):
+    st.markdown("<div class='card-t'>📎 영상 분석 파일(.vmbl) 첨부</div>", unsafe_allow_html=True)
+    v_col1, v_col2 = st.columns([2.2, 1.2])
+    with v_col1:
+        st.file_uploader(
+            "Vernier Video Analysis에서 저장한 .vmbl 파일을 첨부하세요",
+            type=["vmbl"],
+            key="vmbl_upload",
+            on_change=cb_vmbl,
+        )
+        if ss("vmbl_name"):
+            st.success(f"✅ 첨부된 .vmbl 파일: **{ss('vmbl_name')}** (💾 저장 파일 및 보고서에 첨부 정보가 기록됩니다)")
+    with v_col2:
+        st.caption("💡 `.vmbl` 파일 저장 방법: Video Analysis 좌측 상단 파일 메뉴(📄) → **Save (저장)**를 클릭하면 `.vmbl` 파일이 내려받아집니다.")
+        if ss("vmbl_b64"):
+            st.download_button(
+                "⬇️ 첨부한 .vmbl 파일 다시 받기",
+                base64.b64decode(ss("vmbl_b64")),
+                file_name=ss("vmbl_name") or "농구공_운동_분석.vmbl",
+                mime="application/octet-stream",
+                **FULL,
+            )
+        elif os.path.exists(DEFAULT_VMBL_PATH):
+            with open(DEFAULT_VMBL_PATH, "rb") as _vf:
+                _vmbl_bytes = _vf.read()
+            st.download_button(
+                "📎 예시 농구공_운동_분석.vmbl 받기",
+                _vmbl_bytes,
+                file_name="농구공_운동_분석.vmbl",
+                mime="application/octet-stream",
+                **FULL,
+            )
 
 raw = parse_table(raw_text) if raw_text else None
 if raw_text and raw is None:
@@ -676,12 +904,12 @@ if raw is not None:
     cols = list(raw.columns)
     guess = guess_columns(cols)
     with st.expander("🔧 열 맞추기 (자동으로 맞춰졌는지 확인)", expanded=not all(guess[k] for k in ("t", "x", "y"))):
-        tip("앱이 열 이름을 보고 시간·위치·속도 열을 자동으로 골랐습니다. 다르게 골라졌으면 직접 바꾸세요. "
-            "속도 열이 없으면 '(자동 계산)'을 두면 위치 데이터로 계산합니다.")
+        tip("앱이 열 이름을 보고 시간·위치(m)·속도(m/s) 열을 자동으로 골랐습니다. 다르게 골라졌으면 직접 바꾸세요. "
+            "주의: X(px), Y(px)가 아닌 <b>X(m), Y(m)</b> 열이 선택되어야 합니다.")
         mc = st.columns(5)
         opts_req, opts_opt = cols, ["(자동 계산)"] + cols
         mapping = {}
-        for i, (k, lab, req) in enumerate([("t", "시간 t", True), ("x", "위치 x", True), ("y", "위치 y", True),
+        for i, (k, lab, req) in enumerate([("t", "시간 t", True), ("x", "위치 x (m)", True), ("y", "위치 y (m)", True),
                                            ("vx", "속도 vx", False), ("vy", "속도 vy", False)]):
             opts = opts_req if req else opts_opt
             g = guess[k]
@@ -704,7 +932,7 @@ if d is not None:
     with st.container(border=True):
         st.markdown("<div class='card-t'>🔍 붙여넣은 데이터 오류 검증 결과</div>", unsafe_allow_html=True)
         if val_errors:
-            st.error(f"⚠️ **데이터에서 {len(val_errors)}건의 오류가 발견되었습니다! 아래 내용을 확인하고 영상 분석 설정을 수정한 뒤 다시 붙여넣으세요.**")
+            st.error(f"⚠️ **데이터에서 {len(val_errors)}건의 오류가 발견되었습니다! 아래 내용을 확인하고 영상 분석 설정(또는 열 맞추기)을 수정한 뒤 다시 확인하세요.**")
             for msg in val_errors:
                 st.markdown(f"- ❌ {msg}")
         if val_warnings:
@@ -715,7 +943,7 @@ if d is not None:
             st.success(
                 f"✅ **데이터 검증 통과!** 총 **{val_metrics['n']}개**의 질점 데이터가 정상 범위로 인식되었습니다. "
                 f"(비행 시간 Δt = {val_metrics['dt_total']:.3f} s, 수평 이동거리 Δx = {val_metrics['dx_total']:.3f} m, "
-                f"평균 수평 속도 vx ≈ {val_metrics['mean_vx']:.2f} m/s, vy-t 기울기 가속도 ay ≈ {val_metrics['slope_ay']:.2f} m/s²)"
+                f"x-t 직선 기울기 vx₀ = {val_metrics['fit_vx0']:.2f} m/s, vy-t 기울기 가속도 ay = {val_metrics['slope_ay']:.2f} m/s²)"
             )
         else:
             st.caption(
@@ -739,7 +967,7 @@ if d is not None:
                        file_name=f"{ss('stu_cls')}_{ss('stu_name')}_포물선운동_분석데이터.xlsx",
                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 else:
-    st.info("데이터를 붙여 넣거나 CSV 파일을 올리면 오류 검증 결과와 성분별 표·그래프가 자동으로 만들어집니다.")
+    st.info("데이터를 붙여 넣거나 CSV 파일을 올리면(또는 위에서 교사용 제공 데이터 세트를 적용하면) 오류 검증 결과와 성분별 표·그래프가 자동으로 만들어집니다.")
 
 # ════════════════════════════════════════════════════════════════════
 # 8. [2] 그래프
@@ -840,35 +1068,85 @@ qtext(Q["q4a"])
 
 with st.container(border=True):
     st.markdown("**① 처음 속력 $v_0$와 발사각 $\\theta$ 구하기**")
-    if d is not None:
-        v0x_0 = float(d.vx.iloc[0])
-        v0y_0 = float(d.vy.iloc[0])
-        v0_0 = float(np.hypot(v0x_0, v0y_0))
-        th_0_deg = float(np.degrees(np.arctan2(v0y_0, v0x_0)))
-        c_info, c_btn = st.columns([3.2, 1.2])
-        c_info.markdown(
-            f"<span class='auto-label'>▣ 첫 번째 행 측정값 기준: vx₀ = {v0x_0:.3f} m/s, vy₀ = {v0y_0:.3f} m/s "
-            f"→ v₀ = √(vx₀² + vy₀²) = {v0_0:.3f} m/s, 발사각 θ = {th_0_deg:.2f}°</span>",
-            unsafe_allow_html=True,
-        )
-        if c_btn.button("📥 첫 행 값으로 자동 채우기", **FULL):
-            st.session_state["v0x"] = f"{v0x_0:.3f}"
-            st.session_state["v0y"] = f"{v0y_0:.3f}"
-            st.session_state["v0"] = f"{v0_0:.3f}"
-            st.session_state["theta"] = f"{th_0_deg:.2f}"
-            st.rerun()
+    st.markdown("""
+<table class='guide-tbl'>
+  <thead>
+    <tr>
+      <th style="width:26%;">구분</th>
+      <th style="width:39%;">방법 A: 그래프 맞춤 (추천 ⭐)</th>
+      <th style="width:35%;">방법 B: 표 첫 행 (활동지 안내)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>처음 수평 속도 v<sub>x0</sub></b></td>
+      <td class="rec">2.10 m/s <span style="font-weight:400;font-size:12px;">(x–t 직선의 기울기)</span></td>
+      <td>2.51 m/s</td>
+    </tr>
+    <tr>
+      <td><b>처음 연직 속도 v<sub>y0</sub></b></td>
+      <td class="rec">4.94 m/s <span style="font-weight:400;font-size:12px;">(y–t 이차식의 b)</span></td>
+      <td>4.99 m/s</td>
+    </tr>
+    <tr>
+      <td><b>처음 속력 v<sub>0</sub></b></td>
+      <td class="rec">5.37 m/s</td>
+      <td>5.58 m/s</td>
+    </tr>
+    <tr>
+      <td><b>발사각 θ</b></td>
+      <td class="rec">67.0°</td>
+      <td>63.3°</td>
+    </tr>
+  </tbody>
+</table>
+""", unsafe_allow_html=True)
+    tip("<b>안내</b>: 첫 행 속도는 맨 앞 몇 개 점의 차분으로 계산되어 점 찍기 오차에 민감합니다. "
+        "전체 점을 쓰는 <b>그래프 맞춤값(방법 A: 처음 수평 속도 vx₀ = 2.10 m/s, 처음 연직 속도 vy₀ = 4.94 m/s, "
+        "처음 속력 v₀ = 5.37 m/s, 발사각 θ = 67.0°)</b>을 넣는 것을 추천합니다.")
+
+    btn_a, btn_b = st.columns(2)
+    if btn_a.button("📥 방법 A: 그래프 맞춤 추천값 넣기 (v₀ = 5.37 m/s, θ = 67.0°)", type="primary", **FULL):
+        if d is not None and len(d) >= 5:
+            st.session_state["v0x"] = f"{val_metrics['fit_vx0']:.2f}"
+            st.session_state["v0y"] = f"{val_metrics['fit_vy0']:.2f}"
+            st.session_state["v0"] = f"{val_metrics['fit_v0']:.2f}"
+            st.session_state["theta"] = f"{val_metrics['fit_theta']:.1f}"
+        else:
+            st.session_state["v0x"] = "2.10"
+            st.session_state["v0y"] = "4.94"
+            st.session_state["v0"] = "5.37"
+            st.session_state["theta"] = "67.0"
+        st.rerun()
+    if btn_b.button("📥 방법 B: 표 첫 행 기준값 넣기 (v₀ = 5.58 m/s, θ = 63.3°)", **FULL):
+        if d is not None:
+            v0x_0 = float(d.vx.iloc[0])
+            v0y_0 = float(d.vy.iloc[0])
+            v0_0 = float(np.hypot(v0x_0, v0y_0))
+            th_0_deg = float(np.degrees(np.arctan2(v0y_0, v0x_0)))
+            st.session_state["v0x"] = f"{v0x_0:.2f}"
+            st.session_state["v0y"] = f"{v0y_0:.2f}"
+            st.session_state["v0"] = f"{v0_0:.2f}"
+            st.session_state["theta"] = f"{th_0_deg:.1f}"
+        else:
+            st.session_state["v0x"] = "2.51"
+            st.session_state["v0y"] = "4.99"
+            st.session_state["v0"] = "5.58"
+            st.session_state["theta"] = "63.3"
+        st.rerun()
+
     v1, v2, v3, v4 = st.columns(4)
-    v1.text_input("처음 수평 속도 vx₀ (m/s)", key="v0x")
-    v2.text_input("처음 연직 속도 vy₀ (m/s)", key="v0y")
-    v3.text_input("처음 속력 v₀ (m/s)", key="v0")
-    v4.text_input("발사각 (°)", key="theta")
-    tip("데이터 표 첫 번째 행의 vx, vy를 넣으면 $v_0 = \\sqrt{v_{x0}^2 + v_{y0}^2}$ 와 발사각 $\\theta = \\arctan(v_{y0}/v_{x0})$ 를 구할 수 있습니다.")
+    v1.text_input("처음 수평 속도 vx₀ (m/s)", key="v0x", placeholder="2.10")
+    v2.text_input("처음 연직 속도 vy₀ (m/s)", key="v0y", placeholder="4.94")
+    v3.text_input("처음 속력 v₀ (m/s)", key="v0", placeholder="5.37")
+    v4.text_input("발사각 θ (°)", key="theta", placeholder="67.0")
 
 st.markdown("**② 시뮬레이션으로 이론값 구하기**")
 st.markdown(f"""<a href="{SIM_URL}" target="_blank" style="text-decoration:none;">
 <div style="background:#1F3B5C;color:#fff;border-radius:8px;padding:11px;text-align:center;font-weight:700;margin-bottom:6px;">
 🚀 [포물선 운동 시뮬레이션] 새 창에서 열기 ↗</div></a>""", unsafe_allow_html=True)
-tip("위에서 구한 처음 속력 $v_0$와 발사각을 시뮬레이션에 입력하여 이론값(수평 이동거리, 최고점 높이, 비행 시간)을 확인하고 아래 표에 적어 실험값과 비교해 보세요.")
+tip("위에서 구한 처음 속력 $v_0$(추천: <b>5.37 m/s</b>)와 발사각 $\\theta$(추천: <b>67.0°</b>)를 시뮬레이션에 입력하여 "
+    "이론값(수평 이동거리, 최고점 높이, 비행 시간)을 확인하고 아래 표에 적어 실험값과 비교해 보세요.")
 
 with st.container(border=True):
     st.markdown("**③ 실험값과 이론값 비교 표**")
@@ -880,7 +1158,7 @@ with st.container(border=True):
         b_col1, b_col2 = st.columns([3.2, 1.2])
         b_col1.markdown(
             f"<span class='auto-label'>▣ 내 데이터 실험값 참고: 수평 이동거리 Δx = {exp_dx:.3f} m · "
-            f"최고점 높이(출발점 기준 Δy_max) = {exp_dy:.3f} m (최대 y = { float(d.y.max()):.3f} m) · "
+            f"최고점 높이(출발점 기준 Δy_max) = {exp_dy:.3f} m (최대 y = {float(d.y.max()):.3f} m) · "
             f"비행 시간 Δt = {exp_dt:.3f} s · |ay| = {exp_ay:.2f} m/s²</span>",
             unsafe_allow_html=True,
         )
@@ -956,6 +1234,8 @@ def report_dict():
     return dict(
         grade=ss("stu_grade"), cls=ss("stu_cls"), num=ss("stu_num"),
         name=ss("stu_name"), partner=ss("stu_partner"),
+        source="교사용 제공 데이터 세트 (농구공 던지기 데이터 세트 1)" if st.session_state.get("use_provided_data") else "학생 직접 영상 분석 데이터",
+        vmbl_name=ss("vmbl_name") or "(미첨부)",
         made=now_kst(), d=d,
         ay_pts=(sel("ay_i1"), sel("ay_i2")),
         val_errors=val_errors, val_warnings=val_warnings,
@@ -1107,7 +1387,7 @@ def build_docx(R):
          [[R["grade"], R["cls"], R["num"], R["name"], R["partner"]]],
          stu_cols=(0, 1, 2, 3, 4), widths=[22, 22, 22, 42, 70], font=9)
     p = doc.add_paragraph()
-    run(p, f"보고서 생성: {R['made']}", size=8.5, color="5B6B7D")
+    run(p, f"데이터 출처: {R['source']}  ·  첨부 vmbl: {R['vmbl_name']}  ·  보고서 생성: {R['made']}", size=8.5, color="5B6B7D")
 
     D = R["d"]
     heading(1, "데이터 정리 (성분별 측정값)")
@@ -1285,7 +1565,7 @@ def build_pdf(R):
          [[R["grade"], R["cls"], R["num"], R["name"], R["partner"]]],
          stu_cols=(0, 1, 2, 3, 4), widths=[22, 22, 22, 42, 70])
     el.append(Spacer(1, 3))
-    el.append(Paragraph(esc(f"보고서 생성: {R['made']}"), P(8, False, "#5B6B7D")))
+    el.append(Paragraph(esc(f"데이터 출처: {R['source']}  ·  첨부 vmbl: {R['vmbl_name']}  ·  보고서 생성: {R['made']}"), P(8, False, "#5B6B7D")))
 
     D = R["d"]
     heading(1, "데이터 정리 (성분별 측정값)")
