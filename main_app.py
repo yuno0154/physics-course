@@ -36,6 +36,7 @@ projectile_energy_page = st.Page("physics_sim/projectile_energy_sim.py", title="
 excel_page = st.Page("physics_sim/projectile_analysis_excel.py", title="📊 [정밀] 데이터 분석")
 video_analysis_page = st.Page("physics_sim/video_analysis.py", title="📹 [영상] 분석 보고서 실습")
 practice_page = st.Page("physics_sim/projectile_practice.py", title="📝 [과제] 포물선운동 문제풀이")
+fortress_game_page = st.Page("physics_sim/projectile_fortress_sim.py", title="🎯 [게임] 물리 포트리스: 포물선 탄도 포격전", url_path="projectile_fortress_sim")
 
 # 4. 등속 원운동 섹션
 circular_motion_page = st.Page("physics_sim/circular_motion_sim.py", title="🎡 [개념1] 원운동의 기초")
@@ -144,7 +145,8 @@ pg = st.navigation({
         projectile_energy_page,
         excel_page, 
         video_analysis_page, 
-        practice_page
+        practice_page,
+        fortress_game_page
     ],
     "🎡 학습주제 3: 등속 원운동": [
         circular_motion_page,
