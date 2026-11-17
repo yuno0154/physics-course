@@ -471,23 +471,24 @@ function drawEarth(ctx, cx, cy, Rpx) {
   ctx.arc(cx, cy, Rpx, 0, Math.PI * 2);
   ctx.stroke();
 }
-function drawSatellite(ctx, x, y, ang) {
+function drawSatellite(ctx, x, y, radAng) {
   ctx.save();
   ctx.translate(x, y);
-  ctx.rotate(ang);
-  // 태양전지판
+  // radAng = 중심에서 위성을 향하는 반지름 방향 각도 -> 접선 방향은 radAng + Math.PI/2
+  ctx.rotate(radAng);
+  // 태양전지판 (반지름 방향과 나란하게 배치하여 접선 속도 화살표와 간섭하지 않음)
   ctx.fillStyle = '#1e3a8a';
   ctx.strokeStyle = '#93c5fd';
   ctx.lineWidth = 1.2;
-  ctx.fillRect(-26, -5, 16, 10);
-  ctx.strokeRect(-26, -5, 16, 10);
-  ctx.fillRect(10, -5, 16, 10);
-  ctx.strokeRect(10, -5, 16, 10);
+  ctx.fillRect(-24, -4, 15, 8);
+  ctx.strokeRect(-24, -4, 15, 8);
+  ctx.fillRect(9, -4, 15, 8);
+  ctx.strokeRect(9, -4, 15, 8);
   // 본체
   ctx.fillStyle = '#cbd5e1';
   ctx.strokeStyle = '#0f172a';
-  ctx.fillRect(-7, -7, 14, 14);
-  ctx.strokeRect(-7, -7, 14, 14);
+  ctx.fillRect(-6, -6, 12, 12);
+  ctx.strokeRect(-6, -6, 12, 12);
   ctx.restore();
 }
 
@@ -514,13 +515,13 @@ function scene0() {
   $('m0_u').textContent = '−' + Math.abs(U_GJ).toFixed(1) + ' GJ';
   $('m0_e').textContent = '−' + Math.abs(E_GJ).toFixed(1) + ' GJ';
 
-  // 왼쪽 궤도 캔버스
-  const cx = 195, cy = 225, RePx = 36;
-  const rPx = RePx * rRatio; // max 5.0 * 36 = 180 px
+  // 왼쪽 궤도 캔버스 (원궤도가 시원하게 보이도록 반지름 스케일 조정)
+  const cx = 190, cy = 225, RePx = 42;
+  const rPx = 78 + (rRatio - 1.05) * 24; // 78 px ~ 173 px
 
   // 원궤도 점선
   ctx.beginPath();
-  ctx.setLineDash([5, 4]);
+  ctx.setLineDash([6, 4]);
   ctx.strokeStyle = '#64748b';
   ctx.lineWidth = 1.8;
   ctx.arc(cx, cy, rPx, 0, Math.PI * 2);
@@ -529,38 +530,49 @@ function scene0() {
 
   // 지구 그리기
   drawEarth(ctx, cx, cy, RePx);
-  txt(ctx, 'M', cx - 8, cy + 4, { c: '#fff', b: 1, s: 13 });
+  txt(ctx, 'M', cx - 10, cy + 4, { c: '#fff', b: 1, s: 13 });
 
   // 지구 반지름 R 화살표
-  const rAng = 0.95;
+  const rAng = 0.85;
   arr(ctx, cx, cy, cx + RePx * Math.cos(rAng), cy + RePx * Math.sin(rAng), '#f8fafc', 1.8);
-  txt(ctx, 'R', cx + RePx * 0.55 * Math.cos(rAng) + 8, cy + RePx * 0.55 * Math.sin(rAng) - 4, { c: '#fff', b: 1, s: 12 });
-
-  // 궤도 반지름 r 양방향 화살표 (위쪽 좌상단 방향)
-  const orbAng = -1.95;
-  dbl(ctx, cx, cy, cx + rPx * Math.cos(orbAng), cy + rPx * Math.sin(orbAng), '#334155', 1.6);
-  txt(ctx, 'r = ' + rRatio.toFixed(2) + ' R', cx + rPx * 0.55 * Math.cos(orbAng) - 24, cy + rPx * 0.55 * Math.sin(orbAng), { c: '#0f172a', b: 1, s: 12.5 });
+  txt(ctx, 'R', cx + RePx * 0.52 * Math.cos(rAng) + 9, cy + RePx * 0.52 * Math.sin(rAng) - 4, { c: '#fff', b: 1, s: 12 });
 
   // 인공위성 공전 각속도 (케플러 제3법칙 ω ∝ r^(-3/2))
-  const omega = 1.6 / Math.pow(rRatio, 1.5);
-  const th = T * omega; // 시계방향(교과서 그림처럼 오른쪽에서 아래로 v0 화살표)
-  const sx = cx + rPx * Math.cos(th), sy = cy + rPx * Math.sin(th);
+  const omega = 1.2 / Math.pow(rRatio, 1.5);
+  const th = T * omega; // 시계방향 공전
+  const ux = Math.cos(th), uy = Math.sin(th);   // 바깥쪽 반지름 단위벡터
+  const tx = -Math.sin(th), ty = Math.cos(th);  // 시계방향 접선 단위벡터 (반지름과 정확히 90° 수직!)
+  const sx = cx + rPx * ux, sy = cy + rPx * uy;
 
-  // 접선 속도 벡터 v0 (파란 화살표)
-  const vLen = 52 / Math.sqrt(rRatio);
-  const vx = -Math.sin(th) * vLen, vy = Math.cos(th) * vLen;
-  arr(ctx, sx, sy, sx + vx, sy + vy, BL, 3);
-  txt(ctx, 'v₀ = ' + vReal.toFixed(2) + ' km/s', sx + vx * 1.15, sy + vy * 1.15 + (vy >= 0 ? 10 : -10), { c: BL, b: 1, s: 12.5 });
+  // 궤도 반지름 r 양방향 화살표 (위성 반대쪽 각도에 배치하여 위성과 절대 겹치지 않게 함)
+  const orbAng = th + Math.PI * 0.65;
+  dbl(ctx, cx, cy, cx + rPx * Math.cos(orbAng), cy + rPx * Math.sin(orbAng), '#475569', 1.6);
+  txt(ctx, 'r = ' + rRatio.toFixed(2) + ' R', cx + rPx * 0.58 * Math.cos(orbAng), cy + rPx * 0.58 * Math.sin(orbAng) - 12, { c: '#0f172a', b: 1, s: 12 });
 
-  // 구심력(만유인력 F_g) 벡터 (지구 중심 방향 빨간 화살표)
-  const fLen = Math.max(22, 46 / (rRatio * rRatio));
-  const fx = -Math.cos(th) * fLen, fy = -Math.sin(th) * fLen;
-  arr(ctx, sx, sy, sx + fx, sy + fy, GN, 2.5);
-  txt(ctx, '중력 F (구심력)', sx + fx * 0.65, sy + fy * 0.65 - 12, { c: GN, b: 1, s: 11.5 });
+  // 중심-위성 반지름 보조선 (점선) 및 접선-반지름 수직(∟) 기호 표시
+  ln(ctx, cx, cy, sx, sy, '#cbd5e1', 1.2, [3, 3]);
+  const sq = 9;
+  ctx.beginPath();
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 1.3;
+  ctx.moveTo(sx - ux * sq, sy - uy * sq);
+  ctx.lineTo(sx - ux * sq + tx * sq, sy - uy * sq + ty * sq);
+  ctx.lineTo(sx + tx * sq, sy + ty * sq);
+  ctx.stroke();
 
-  // 위성 본체
-  drawSatellite(ctx, sx, sy, th + 0.4);
-  txt(ctx, 'm', sx + 18 * Math.cos(th), sy + 18 * Math.sin(th), { c: INK, b: 1, s: 13 });
+  // 구심력(만유인력 F_g) 벡터 (지구 중심 방향 초록 화살표)
+  const fLen = Math.min(rPx - RePx - 6, Math.max(26, 48 / Math.pow(rRatio, 0.8)));
+  arr(ctx, sx, sy, sx - ux * fLen, sy - uy * fLen, GN, 2.6);
+  txt(ctx, '중력 F', sx - ux * (fLen * 0.55) - tx * 24, sy - uy * (fLen * 0.55) - ty * 24, { c: GN, b: 1, s: 11.5 });
+
+  // 접선 속도 벡터 v0 (원궤도 접선 방향 파란 화살표)
+  const vLen = 54 / Math.pow(rRatio, 0.35);
+  arr(ctx, sx, sy, sx + tx * vLen, sy + ty * vLen, BL, 3.2);
+  txt(ctx, 'v₀ = ' + vReal.toFixed(2) + ' km/s', sx + tx * (vLen + 18) + ux * 14, sy + ty * (vLen + 18) + uy * 14, { c: BL, b: 1, s: 12.5 });
+
+  // 위성 본체 (접선 방향과 정확히 정렬)
+  drawSatellite(ctx, sx, sy, th);
+  txt(ctx, 'm', sx + ux * 28, sy + uy * 28, { c: INK, b: 1, s: 13 });
 
   // 우측 에너지 막대 그래프 (x = 400 .. 525)
   const bx0 = 395, by0 = 230, maxH = 155;
@@ -785,12 +797,12 @@ function scene2(dt) {
   const K_now = E_tot - U_now;              // 현재 운동 에너지 = GMm(1/r - 1/(2a))
   const v_now = 7.91 * Math.sqrt(2 / rRealRatio - 1 / aRatio);
 
-  // 접선 방향 속도 벡터
-  const dx = -aPx * Math.sin(ellAngle), dy = -bPx * Math.cos(ellAngle);
+  // 타원 궤도의 정확한 접선 방향 속도 벡터 (극좌표 r(θ) = p/(1+e cos θ) 미분)
+  const dx = -Math.sin(ellAngle), dy = -(e + Math.cos(ellAngle));
   const dNorm = Math.hypot(dx, dy);
   const vScale = 6.5 * v_now;
   arr(ctx, sx, sy, sx + (dx / dNorm) * vScale, sy + (dy / dNorm) * vScale, BL, 2.8);
-  drawSatellite(ctx, sx, sy, Math.atan2(dy, dx));
+  drawSatellite(ctx, sx, sy, Math.atan2(dy, dx) - Math.PI / 2);
 
   // 우측 에너지 보존 실시간 막대 및 위상 그래프 (x = 520 .. 970)
   const bx0 = 545, by0 = 215, scBar = 3.2;
