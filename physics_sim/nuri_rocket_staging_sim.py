@@ -200,7 +200,7 @@ function NuriSimTab() {
   });
 
   const SPECS = {
-    stage1: { fuel: 130.0, dry: 20.0, burnDur: 125, thrustKn: 2940 },
+    stage1: { fuel: 125.0, dry: 20.0, burnDur: 125, thrustKn: 2940 },
     fairing: { mass: 1.5, sepTime: 204 },
     stage2: { fuel: 35.0, dry: 4.5, burnDur: 130, thrustKn: 735 },
     stage3: { fuel: 11.0, dry: 1.5, burnDur: 500, thrustKn: 68.6 },
@@ -209,8 +209,10 @@ function NuriSimTab() {
 
   // 고도(km), 수평거리(km) -> 2D 캔버스 좌표 변환
   const to2D = (downKm, altKm, W, H) => {
-    const x = 68 + (downKm / 920) * (W - 120);
-    const y = (H - 42) - (altKm / 780) * (H - 86);
+    const safeDown = Number.isFinite(downKm) ? downKm : 0;
+    const safeAlt = Number.isFinite(altKm) ? altKm : 0;
+    const x = 68 + (safeDown / 920) * (W - 120);
+    const y = (H - 42) - (safeAlt / 780) * (H - 86);
     return { x, y };
   };
 
@@ -218,9 +220,10 @@ function NuriSimTab() {
   const updatePhysics = (dt) => {
     const s = simRef.current;
     const mMode = modeRef.current;
+    const safeDt = Number.isFinite(dt) && dt > 0 ? dt : 0.016;
 
     const prevT = s.t;
-    s.t += dt;
+    s.t = Math.max(0, s.t + safeDt);
     const t = s.t;
 
     let totalM = SPECS.payload;
@@ -234,7 +237,7 @@ function NuriSimTab() {
     // 1) 구간별 질량 및 분리 상태 업데이트
     if (t <= 125) {
       s.stagePhase = 1;
-      const p = t / 125;
+      const p = Math.max(0, Math.min(1, t / 125));
       const fuelRem1 = SPECS.stage1.fuel * (1 - p);
       totalM = fuelRem1 + SPECS.stage1.dry + SPECS.stage2.fuel + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.fairing.mass + SPECS.payload;
       targetAlt = 59.0 * Math.pow(p, 1.35);
@@ -276,7 +279,7 @@ function NuriSimTab() {
         fairingMsg = '🛡️ 대기권 탈출 상승 중';
       }
 
-      const p2 = (t - 125) / 130;
+      const p2 = Math.max(0, Math.min(1, (t - 125) / 130));
       const fuelRem2 = Math.max(0, SPECS.stage2.fuel * (1 - p2));
       totalM = fuelRem2 + SPECS.stage2.dry + SPECS.stage3.fuel + SPECS.stage3.dry + SPECS.payload
                + (s.stage1Sep ? 0 : SPECS.stage1.dry)
@@ -304,7 +307,7 @@ function NuriSimTab() {
       }
     } else if (t <= 755) {
       s.stagePhase = 3;
-      const p3 = (t - 255) / 500;
+      const p3 = Math.max(0, Math.min(1, (t - 255) / 500));
       const fuelRem3 = Math.max(0, SPECS.stage3.fuel * (1 - p3));
 
       if (mMode !== 'no_stage_sep') {
@@ -320,7 +323,7 @@ function NuriSimTab() {
         // 3단 연소 종료 시 3단 껍데기(1.5t)도 분리되어 최종 위성 질량 1.5t 달성
         totalM = SPECS.payload + fuelRem3 + (p3 < 0.98 ? SPECS.stage3.dry : 0);
         // 258 km -> 700.0 km 매끄러운 궤도 진입 곡선
-        targetAlt = 258.0 + 442.0 * (1 - Math.pow(1 - p3, 1.85));
+        targetAlt = 258.0 + 442.0 * (1 - Math.pow(Math.max(0, 1 - p3), 1.85));
         targetVel = 3.80 + 3.70 * Math.pow(p3, 0.88); // 755s -> 7.50 km/s
         targetDown = 240.0 + 500.0 * p3;
         accelGVal = 0.8 + 1.6 * p3;
@@ -339,7 +342,7 @@ function NuriSimTab() {
       } else {
         // 단분리 미실시: 최고 고도 180 km 찍고 바다(고도 0 km)로 추락!
         totalM = 26.0 + fuelRem3;
-        const fallP = Math.min(1, (t - 255) / 260);
+        const fallP = Math.max(0, Math.min(1, (t - 255) / 260));
         targetAlt = Math.max(0, 180.0 * (1 - Math.pow(fallP, 1.65)));
         targetVel = 2.10 * (1 - 0.35 * fallP);
         targetDown = 185.0 + 190.0 * fallP;
@@ -357,7 +360,7 @@ function NuriSimTab() {
     } else {
       // 755초 이후: 궤도 순항(normal) vs 궤도 미달 강하(no_fairing_sep)
       s.stagePhase = 4;
-      const postT = t - 755;
+      const postT = Math.max(0, t - 755);
       if (mMode === 'normal') {
         s.satDeployed = true;
         totalM = 1.5;
@@ -388,19 +391,19 @@ function NuriSimTab() {
     }
 
     if (s.status === 'launching') {
-      s.alt = targetAlt;
-      s.vel = targetVel;
-      s.downrange = targetDown;
-      s.mass = totalM;
+      s.alt = Number.isFinite(targetAlt) ? targetAlt : 0;
+      s.vel = Number.isFinite(targetVel) ? targetVel : 0;
+      s.downrange = Number.isFinite(targetDown) ? targetDown : 0;
+      s.mass = Number.isFinite(totalM) ? totalM : 200.0;
       s.accel = accelGVal * 9.81;
     }
 
     // 분리된 낙하물(1단, 페어링, 2단) 물리 업데이트
     s.debris.forEach(d => {
-      d.down += d.vx * dt;
-      d.vy -= 0.012 * dt;
-      d.alt = Math.max(0, d.alt + d.vy * dt * 8);
-      d.rot += 0.04 * dt;
+      d.down += d.vx * safeDt;
+      d.vy -= 0.012 * safeDt;
+      d.alt = Math.max(0, d.alt + d.vy * safeDt * 8);
+      d.rot += 0.04 * safeDt;
     });
 
     // 비행 궤적 기록
@@ -775,9 +778,10 @@ function NuriSimTab() {
 
     setSimState('launching');
 
-    let lastNow = performance.now();
+    let lastNow = null;
     const step = (now) => {
-      const dtReal = Math.min(0.05, (now - lastNow) / 1000);
+      if (lastNow === null) lastNow = now;
+      const dtReal = Math.max(0.001, Math.min(0.05, (now - lastNow) / 1000));
       lastNow = now;
       const dtSim = dtReal * speedRef.current * 14.0;
 
