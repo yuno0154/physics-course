@@ -352,7 +352,7 @@ HTML_CODE = r"""<!DOCTYPE html>
 
   <div class="opt-footer">
     <div class="opt-checks">
-      <label><input type="checkbox" id="chkCam" checked> 🎥 포탄 추적 카메라 (Follow Cam)</label>
+      <label><input type="checkbox" id="chkCam"> 🎥 포탄 추적 카메라 (Follow Cam)</label>
       <label><input type="checkbox" id="chkVec" checked> 🏹 속도 벡터(vx, vy) 표시</label>
       <label><input type="checkbox" id="chkBloom" checked> ✨ HDR 가산 광원(Bloom) 효과</label>
       <label><input type="checkbox" id="chkTrail" checked> 📈 탄도 궤적 & 최고점(H) 보존</label>
@@ -1030,15 +1030,19 @@ function tick(now) {
     }
   }
 
-  // 카메라 추적
+  // 카메라 추적 (기본은 전체 전장 고정, 옵션 켰을 때도 맵 경계 내부로 클램핑)
   if (document.getElementById('chkCam').checked && shells.length > 0) {
-    cam.tx = wx(shells[0].x); cam.ty = wy(shells[0].y); cam.tz = 1.28;
+    cam.tz = 1.15;
+    const halfW = (canvas.width / 2) / cam.tz;
+    const halfH = (canvas.height / 2) / cam.tz;
+    cam.tx = Math.max(halfW, Math.min(canvas.width - halfW, wx(shells[0].x)));
+    cam.ty = Math.max(halfH, Math.min(canvas.height - halfH, wy(shells[0].y)));
   } else {
     cam.tx = canvas.width / 2; cam.ty = canvas.height / 2; cam.tz = 1.0;
   }
-  cam.x += (cam.tx - cam.x) * dt * 5.5;
-  cam.y += (cam.ty - cam.y) * dt * 5.5;
-  cam.zoom += (cam.tz - cam.zoom) * dt * 5.5;
+  cam.x += (cam.tx - cam.x) * dt * 3.5;
+  cam.y += (cam.ty - cam.y) * dt * 3.5;
+  cam.zoom += (cam.tz - cam.zoom) * dt * 3.5;
 
   if (doneOwner && shells.length === 0) {
     if (p2.hp <= 0) {

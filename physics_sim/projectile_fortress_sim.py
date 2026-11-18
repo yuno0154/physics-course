@@ -389,7 +389,7 @@ HTML_CODE = r"""<!DOCTYPE html>
   <!-- 하단 카메라 & 물리 벡터 옵션 바 -->
   <div class="bottom-options">
     <div class="opt-group">
-      <label><input type="checkbox" id="chkCam" checked> 🎥 포트리스 포탄 추적 카메라 (Follow Cam)</label>
+      <label><input type="checkbox" id="chkCam"> 🎥 포트리스 포탄 추적 카메라 (Follow Cam)</label>
       <label><input type="checkbox" id="chkVec" checked onchange="render()"> 🏹 실시간 속도 성분 벡터(vx, vy) 표시</label>
       <label><input type="checkbox" id="chkTrail" checked onchange="render()"> 📈 이전 탄도 궤적 & 최고점(H) 보존</label>
       <label><input type="checkbox" id="chkHint" checked onchange="syncUI()"> 💡 탄도 계산기 추천 마커(▼) 표시</label>
@@ -1122,21 +1122,23 @@ function loop(now) {
     }
   }
 
-  // 포탄 추적 카메라 (Dynamic Follow Cam) 업데이트
+  // 포탄 추적 카메라 (Dynamic Follow Cam) 업데이트 — 맵 경계 클램핑 적용
   const followOn = document.getElementById('chkCam').checked;
   if (followOn && shells.length > 0) {
     const lead = shells[0];
-    cam.targetX = wx(lead.x);
-    cam.targetY = wy(lead.y);
-    cam.targetZoom = 1.26;
+    cam.targetZoom = 1.15;
+    const halfW = (canvas.width / 2) / cam.targetZoom;
+    const halfH = (canvas.height / 2) / cam.targetZoom;
+    cam.targetX = Math.max(halfW, Math.min(canvas.width - halfW, wx(lead.x)));
+    cam.targetY = Math.max(halfH, Math.min(canvas.height - halfH, wy(lead.y)));
   } else {
     cam.targetX = canvas.width / 2;
     cam.targetY = canvas.height / 2;
     cam.targetZoom = 1.0;
   }
-  cam.x += (cam.targetX - cam.x) * dt * 5.5;
-  cam.y += (cam.targetY - cam.y) * dt * 5.5;
-  cam.zoom += (cam.targetZoom - cam.zoom) * dt * 5.5;
+  cam.x += (cam.targetX - cam.x) * dt * 3.5;
+  cam.y += (cam.targetY - cam.y) * dt * 3.5;
+  cam.zoom += (cam.targetZoom - cam.zoom) * dt * 3.5;
 
   // 턴 종료 처리
   if (finishedOwner && shells.length === 0) {
