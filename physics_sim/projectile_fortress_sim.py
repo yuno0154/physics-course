@@ -1198,153 +1198,198 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
-// ── 포트리스 V2 스타일 고해상도 2.5D 카툰 탱크 렌더링 ────────
+// ── 포트리스 V2 / 무한전기 포트리스 스타일 SD 애니 캐릭터 탱크 렌더링 ────────
 function drawCartoonTank(t, isPlayer) {
   const cx = wx(t.x);
   const cy = wy(t.y);
-  const bob = Math.sin(animClock * 4.5 + (isPlayer ? 0 : 2)) * 1.2;
+  const bob = Math.sin(animClock * 4.5 + (isPlayer ? 0 : 2)) * 1.4;
 
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate((-t.slope * Math.PI / 180.0) * 0.65);
 
   // 바닥 입체 그림자
-  ctx.fillStyle = "rgba(0,0,0,0.48)";
+  ctx.fillStyle = "rgba(0,0,0,0.52)";
   ctx.beginPath();
-  ctx.ellipse(0, 3, 25, 6, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, 4, 30, 6.5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 스킨 컬러 팔레트
-  let cMain = "#ef4444", cDark = "#991b1b", cLight = "#fca5a5", cAccent = "#fde047";
+  let cMain = "#ef4444", cDark = "#991b1b", cLight = "#fca5a5", cAccent = "#fde047", eyeCol = "#2563eb";
   if (isPlayer) {
     if (skin === 'cannon') {
-      cMain = "#ef4444"; cDark = "#7f1d1d"; cLight = "#fecaca"; cAccent = "#fde047";
+      cMain = "#ef4444"; cDark = "#7f1d1d"; cLight = "#fecaca"; cAccent = "#fde047"; eyeCol = "#2563eb";
     } else if (skin === 'duke') {
-      cMain = "#2563eb"; cDark = "#1e3a8a"; cLight = "#93c5fd"; cAccent = "#38bdf8";
+      cMain = "#2563eb"; cDark = "#1e3a8a"; cLight = "#bfdbfe"; cAccent = "#facc15"; eyeCol = "#0284c7";
     } else {
-      cMain = "#eab308"; cDark = "#713f12"; cLight = "#fef08a"; cAccent = "#38bdf8";
+      cMain = "#eab308"; cDark = "#713f12"; cLight = "#fef08a"; cAccent = "#38bdf8"; eyeCol = "#10b981";
     }
   } else {
     cMain = stage === 5 ? "#7c3aed" : "#dc2626";
     cDark = stage === 5 ? "#3b0764" : "#7f1d1d";
     cLight = stage === 5 ? "#ddd6fe" : "#fca5a5";
     cAccent = "#f43f5e";
+    eyeCol = "#ef4444";
   }
 
-  // 1) 포신 (대구경 카툰 셰이딩 대포)
-  const worldRad = t.angle * Math.PI / 180.0;
-  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
-  const bLen = 29 - t.recoil;
+  const dir = isPlayer ? 1 : -1;
 
-  ctx.save();
-  ctx.translate(0, -13 + bob);
-  ctx.rotate(-localRad);
-  const bGrad = ctx.createLinearGradient(0, -6, 0, 6);
-  bGrad.addColorStop(0, "#f8fafc");
-  bGrad.addColorStop(0.5, "#94a3b8");
-  bGrad.addColorStop(1, "#1e293b");
-  ctx.fillStyle = bGrad;
-  ctx.strokeStyle = "#0f172a";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(0, -5, bLen, 10, 3);
-  ctx.fill();
-  ctx.stroke();
-
-  // 대구경 포구 링
-  ctx.fillStyle = cAccent;
-  ctx.beginPath();
-  ctx.roundRect(bLen - 5, -7, 7, 14, 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  // 2) SD 탱크 포탑 & 헤드 (바이저 눈 포함!)
+  // 1) SD 캐릭터 헤드/몸통 돔 & 투구 장식
   ctx.save();
   ctx.translate(0, bob);
-  const headGrad = ctx.createRadialGradient(-5, -20, 2, 0, -14, 18);
+  ctx.scale(dir, 1);
+
+  // 후방 배기구
+  ctx.fillStyle = "#64748b";
+  ctx.strokeStyle = "#090d16";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(-18, -14); ctx.lineTo(-27, -23); ctx.lineTo(-23, -27); ctx.lineTo(-14, -18);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // 머리 위 투구 뿔/볏 (Crest)
+  ctx.fillStyle = cAccent;
+  ctx.beginPath();
+  if (!isPlayer && stage === 5) {
+    ctx.moveTo(-10, -32); ctx.quadraticCurveTo(-22, -46, -8, -50); ctx.quadraticCurveTo(-3, -39, -2, -33);
+  } else {
+    ctx.moveTo(-4, -33); ctx.lineTo(7, -47); ctx.lineTo(13, -31);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // 둥글고 통통한 SD 캐릭터 헤드
+  const headGrad = ctx.createRadialGradient(-6, -26, 3, 0, -18, 24);
   headGrad.addColorStop(0, cLight);
   headGrad.addColorStop(0.45, cMain);
   headGrad.addColorStop(1, cDark);
   ctx.fillStyle = headGrad;
-  ctx.strokeStyle = "#090d16";
-  ctx.lineWidth = 2.2;
+  ctx.lineWidth = 2.6;
   ctx.beginPath();
-  ctx.arc(0, -12, 13.5, Math.PI, 0);
-  ctx.lineTo(15, -8);
-  ctx.lineTo(-15, -8);
+  ctx.moveTo(-20, -11);
+  ctx.bezierCurveTo(-22, -39, 22, -39, 20, -11);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // 상단 해치 캡
+  // 해치 캡
   ctx.fillStyle = cAccent;
   ctx.beginPath();
-  ctx.ellipse(0, -25, 6, 2.8, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
+  ctx.ellipse(-2, -33, 8.5, 3.2, 0, 0, Math.PI * 2);
+  ctx.fill(); ctx.stroke();
 
-  // 포트리스 캐릭터 바이저(눈)
-  const dir = isPlayer ? 1 : -1;
+  // 큰 애니메이션 눈 & 눈동자 하이라이트 & 눈썹
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.roundRect(2, -27, 14, 11, 4.5);
+  ctx.fill(); ctx.stroke();
+
+  ctx.fillStyle = eyeCol;
+  ctx.beginPath();
+  ctx.ellipse(10.5, -21.5, 4.0, 4.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.fillStyle = "#090d16";
   ctx.beginPath();
-  ctx.roundRect(dir * 2, -19, dir * 9, 6, 2);
-  ctx.fill();
-  ctx.fillStyle = isPlayer ? "#38bdf8" : "#f43f5e";
-  ctx.beginPath();
-  ctx.arc(dir * 7, -16, 2.1, 0, Math.PI * 2);
+  ctx.ellipse(11, -21.5, 2.0, 2.5, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  // 3) 중장갑 차체 (Skirt Armor & 리벳)
-  const hullGrad = ctx.createLinearGradient(-22, -10, 22, -2);
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.arc(9.5, -23.5, 1.5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 늠름한 만화 눈썹
+  ctx.strokeStyle = "#090d16";
+  ctx.lineWidth = 2.8;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  if (!isPlayer) {
+    ctx.moveTo(1, -29); ctx.lineTo(17, -25);
+  } else {
+    ctx.moveTo(1, -28); ctx.quadraticCurveTo(9, -31, 17, -26);
+  }
+  ctx.stroke();
+
+  // 2) 하단 스커트 장갑
+  const hullGrad = ctx.createLinearGradient(-25, -12, 25, -2);
   hullGrad.addColorStop(0, cMain);
   hullGrad.addColorStop(1, cDark);
   ctx.fillStyle = hullGrad;
+  ctx.lineWidth = 2.4;
   ctx.beginPath();
-  ctx.moveTo(-21, -9);
-  ctx.lineTo(21, -9);
-  ctx.lineTo(18, -2);
-  ctx.lineTo(-18, -2);
+  ctx.moveTo(-25, -12);
+  ctx.lineTo(25, -12);
+  ctx.lineTo(21, -2);
+  ctx.lineTo(-21, -2);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // 리벳 장식
-  ctx.fillStyle = cLight;
-  [-12, 0, 12].forEach((rx) => {
-    ctx.beginPath();
-    ctx.arc(rx, -5.5, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-  });
+  ctx.strokeStyle = cAccent;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(-21, -9); ctx.lineTo(21, -9); ctx.stroke();
   ctx.restore();
 
-  // 4) 무한궤도 트랙 & 톱니 바퀴
-  ctx.fillStyle = "#111827";
-  ctx.strokeStyle = "#475569";
-  ctx.lineWidth = 2;
+  // 3) 무한궤도 트랙 & 4륜 빅 휠
+  ctx.fillStyle = "#1e293b";
+  ctx.strokeStyle = "#090d16";
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.roundRect(-22, -4, 44, 9, 4.5);
+  ctx.roundRect(-26, -4, 52, 11, 5.5);
   ctx.fill();
   ctx.stroke();
 
-  for (let wxOff = -15; wxOff <= 15; wxOff += 7.5) {
+  for (let wxOff = -16.5; wxOff <= 16.5; wxOff += 11) {
     ctx.save();
-    ctx.translate(wxOff, 0.5);
+    ctx.translate(wxOff, 1.5);
     ctx.rotate(t.wheelRot);
-    ctx.fillStyle = "#cbd5e1";
+    ctx.fillStyle = "#f8fafc";
+    ctx.strokeStyle = "#090d16";
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.arc(0, 0, 3.0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(-2.5, -0.7, 5, 1.4);
+    ctx.arc(0, 0, 4.0, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = cMain;
+    ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
+
+  // 4) 전면 볼록 마운트에서 앞으로 뻗어 나온 포트리스 나팔형 대구경 대포
+  const worldRad = t.angle * Math.PI / 180.0;
+  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
+  const bLen = 28 - t.recoil;
+
+  ctx.save();
+  ctx.translate(dir * 10, -14 + bob);
+  ctx.rotate(-localRad);
+  const bGrad = ctx.createLinearGradient(0, -7, 0, 7);
+  bGrad.addColorStop(0, "#f8fafc");
+  bGrad.addColorStop(0.45, "#94a3b8");
+  bGrad.addColorStop(1, "#1e293b");
+  ctx.fillStyle = bGrad;
+  ctx.strokeStyle = "#090d16";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(0, -4.5);
+  ctx.lineTo(bLen, -7.5);
+  ctx.lineTo(bLen, 7.5);
+  ctx.lineTo(0, 4.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 대구경 나팔 포구 링
+  ctx.fillStyle = cAccent;
+  ctx.beginPath();
+  ctx.roundRect(bLen - 5, -9, 8, 18, 2.5);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
 
   ctx.restore();
 
   // 5) 탱크 상단 포트리스 스타일 이름표 & 체력바
   ctx.save();
-  ctx.translate(cx, cy - 40);
+  ctx.translate(cx, cy - 46);
   ctx.fillStyle = "rgba(9, 13, 22, 0.88)";
   ctx.strokeStyle = "#f8fafc";
   ctx.lineWidth = 1.2;
@@ -1401,7 +1446,7 @@ function drawProp(pr) {
   ctx.restore();
 }
 
-function drawVectorArrow(x1, y1, x2, y2, color, text) {
+function drawVectorArrow(x1, y1, x2, y2, color, text, alignMode = 'right') {
   const len = Math.hypot(x2 - x1, y2 - y1);
   if (len < 4) return;
   const ang = Math.atan2(y2 - y1, x2 - x1);
@@ -1418,10 +1463,22 @@ function drawVectorArrow(x1, y1, x2, y2, color, text) {
   ctx.closePath();
   ctx.fill();
   if (text) {
-    ctx.font = "900 11px 'Pretendard', sans-serif";
-    ctx.shadowColor = "rgba(0,0,0,0.85)";
-    ctx.shadowBlur = 4;
-    ctx.fillText(text, x2 + 6, y2 - 4);
+    ctx.font = "900 11.5px 'Pretendard', sans-serif";
+    ctx.strokeStyle = "rgba(9, 13, 22, 0.9)";
+    ctx.lineWidth = 3.2;
+    let tx = x2 + 6, ty = y2 - 4;
+    if (alignMode === 'left') {
+      ctx.textAlign = 'right';
+      tx = x2 - 7; ty = y2 + 3;
+    } else if (alignMode === 'bottom') {
+      ctx.textAlign = 'left';
+      tx = x2 + 6; ty = y2 + 12;
+    } else {
+      ctx.textAlign = 'left';
+      tx = x2 + 6; ty = y2 - 5;
+    }
+    ctx.strokeText(text, tx, ty);
+    ctx.fillText(text, tx, ty);
   }
   ctx.restore();
 }
@@ -1596,17 +1653,17 @@ function render() {
   drawCartoonTank(p1, true);
   drawCartoonTank(p2, false);
 
-  // 8. 발사 전 초기 속도 벡터 화살표
+  // 8. 발사 전 초기 속도 벡터 화살표 (라벨 겹침 방지 배치)
   if (shells.length === 0 && document.getElementById('chkVec').checked) {
     const rad = p1.angle * Math.PI / 180.0;
     const vx0 = p1.speed * Math.cos(rad);
     const vy0 = p1.speed * Math.sin(rad);
-    const ox = wx(p1.x);
-    const oy = wy(p1.y + 2.5);
+    const ox = wx(p1.x + 2.0);
+    const oy = wy(p1.y + 3.2);
     const vs = 1.25;
-    drawVectorArrow(ox, oy, ox + vx0 * vs, oy, "#38bdf8", `v₀x=${vx0.toFixed(1)}`);
-    drawVectorArrow(ox, oy, ox, oy - vy0 * vs, "#f87171", `v₀y=${vy0.toFixed(1)}`);
-    drawVectorArrow(ox, oy, ox + vx0 * vs, oy - vy0 * vs, "#fde047", `v₀=${p1.speed.toFixed(1)}`);
+    drawVectorArrow(ox, oy, ox + vx0 * vs, oy, "#38bdf8", `v₀x=${vx0.toFixed(1)}`, 'bottom');
+    drawVectorArrow(ox, oy, ox, oy - vy0 * vs, "#f87171", `v₀y=${vy0.toFixed(1)}`, 'left');
+    drawVectorArrow(ox, oy, ox + vx0 * vs, oy - vy0 * vs, "#fde047", `v₀=${p1.speed.toFixed(1)}`, 'right');
   }
 
   // 9. 비행 중인 포탄 & 실시간 속도 벡터
