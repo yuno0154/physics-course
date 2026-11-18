@@ -1233,7 +1233,39 @@ function drawCartoonTank(t, isPlayer) {
 
   const dir = isPlayer ? 1 : -1;
 
-  // 1) SD 캐릭터 헤드/몸통 돔 & 투구 장식
+  // 1) 전면 마운트에서 앞으로 뻗어 나오는 포트리스 나팔형 대구경 대포 (캐릭터 얼굴/두 눈을 가리지 않도록 먼저 그림!)
+  const worldRad = t.angle * Math.PI / 180.0;
+  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
+  const bLen = 28 - t.recoil;
+
+  ctx.save();
+  ctx.translate(dir * 16, -15 + bob);
+  ctx.rotate(-localRad);
+  const bGrad = ctx.createLinearGradient(0, -7, 0, 7);
+  bGrad.addColorStop(0, "#f8fafc");
+  bGrad.addColorStop(0.45, "#94a3b8");
+  bGrad.addColorStop(1, "#1e293b");
+  ctx.fillStyle = bGrad;
+  ctx.strokeStyle = "#090d16";
+  ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(0, -4.5);
+  ctx.lineTo(bLen, -7.5);
+  ctx.lineTo(bLen, 7.5);
+  ctx.lineTo(0, 4.5);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // 대구경 나팔 포구 링
+  ctx.fillStyle = cAccent;
+  ctx.beginPath();
+  ctx.roundRect(bLen - 5, -9, 8, 18, 2.5);
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // 2) SD 캐릭터 헤드/몸통 돔 & 투구 장식 & 큰 두 눈
   ctx.save();
   ctx.translate(0, bob);
   ctx.scale(dir, 1);
@@ -1276,40 +1308,49 @@ function drawCartoonTank(t, isPlayer) {
   ctx.ellipse(-2, -33, 8.5, 3.2, 0, 0, Math.PI * 2);
   ctx.fill(); ctx.stroke();
 
-  // 큰 애니메이션 눈 & 눈동자 하이라이트 & 눈썹
+  // 큼직한 3/4 측면 두 눈 (왼쪽 눈 + 오른쪽 눈) & 눈동자 하이라이트
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
-  ctx.roundRect(2, -27, 14, 11, 4.5);
+  ctx.roundRect(-7, -29, 12, 13, 5);
+  ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.roundRect(4, -28.5, 11, 12.5, 5);
   ctx.fill(); ctx.stroke();
 
+  // 홍채
   ctx.fillStyle = eyeCol;
-  ctx.beginPath();
-  ctx.ellipse(10.5, -21.5, 4.0, 4.5, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0, -22, 3.8, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10.5, -22, 3.4, 4.2, 0, 0, Math.PI * 2); ctx.fill();
 
+  // 동공
   ctx.fillStyle = "#090d16";
-  ctx.beginPath();
-  ctx.ellipse(11, -21.5, 2.0, 2.5, 0, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.ellipse(0.5, -22, 2.0, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(11, -22, 1.8, 2.3, 0, 0, Math.PI * 2); ctx.fill();
 
+  // 눈동자 반짝임 하이라이트
   ctx.fillStyle = "#ffffff";
-  ctx.beginPath();
-  ctx.arc(9.5, -23.5, 1.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(-1, -24, 1.6, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9.5, -24, 1.5, 0, Math.PI * 2); ctx.fill();
 
-  // 늠름한 만화 눈썹
+  // 양쪽 만화 눈썹
   ctx.strokeStyle = "#090d16";
   ctx.lineWidth = 2.8;
   ctx.lineCap = "round";
   ctx.beginPath();
   if (!isPlayer) {
-    ctx.moveTo(1, -29); ctx.lineTo(17, -25);
+    ctx.moveTo(-8, -31); ctx.lineTo(3, -27); ctx.lineTo(15, -31);
   } else {
-    ctx.moveTo(1, -28); ctx.quadraticCurveTo(9, -31, 17, -26);
+    ctx.moveTo(-7, -30); ctx.quadraticCurveTo(-1, -33, 4, -29);
+    ctx.moveTo(5, -29); ctx.quadraticCurveTo(11, -32, 16, -28);
   }
   ctx.stroke();
 
-  // 2) 하단 스커트 장갑
+  // 볼터치
+  ctx.fillStyle = "rgba(244, 63, 94, 0.65)";
+  ctx.beginPath(); ctx.ellipse(-7, -14.5, 3.2, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(14, -14.5, 2.8, 1.6, 0, 0, Math.PI * 2); ctx.fill();
+
+  // 3) 하단 스커트 장갑
   const hullGrad = ctx.createLinearGradient(-25, -12, 25, -2);
   hullGrad.addColorStop(0, cMain);
   hullGrad.addColorStop(1, cDark);
@@ -1329,7 +1370,7 @@ function drawCartoonTank(t, isPlayer) {
   ctx.beginPath(); ctx.moveTo(-21, -9); ctx.lineTo(21, -9); ctx.stroke();
   ctx.restore();
 
-  // 3) 무한궤도 트랙 & 4륜 빅 휠
+  // 4) 무한궤도 트랙 & 4륜 빅 휠
   ctx.fillStyle = "#1e293b";
   ctx.strokeStyle = "#090d16";
   ctx.lineWidth = 2.5;
@@ -1352,38 +1393,6 @@ function drawCartoonTank(t, isPlayer) {
     ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
   }
-
-  // 4) 전면 볼록 마운트에서 앞으로 뻗어 나온 포트리스 나팔형 대구경 대포
-  const worldRad = t.angle * Math.PI / 180.0;
-  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
-  const bLen = 28 - t.recoil;
-
-  ctx.save();
-  ctx.translate(dir * 10, -14 + bob);
-  ctx.rotate(-localRad);
-  const bGrad = ctx.createLinearGradient(0, -7, 0, 7);
-  bGrad.addColorStop(0, "#f8fafc");
-  bGrad.addColorStop(0.45, "#94a3b8");
-  bGrad.addColorStop(1, "#1e293b");
-  ctx.fillStyle = bGrad;
-  ctx.strokeStyle = "#090d16";
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.moveTo(0, -4.5);
-  ctx.lineTo(bLen, -7.5);
-  ctx.lineTo(bLen, 7.5);
-  ctx.lineTo(0, 4.5);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // 대구경 나팔 포구 링
-  ctx.fillStyle = cAccent;
-  ctx.beginPath();
-  ctx.roundRect(bLen - 5, -9, 8, 18, 2.5);
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 
   ctx.restore();
 
