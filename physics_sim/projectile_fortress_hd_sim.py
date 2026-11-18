@@ -401,75 +401,145 @@ function makeSvgUri(svgString) {
 
 function buildTankSprites() {
   const skin = document.getElementById('skinSel').value;
-  let c1 = "#ef4444", c2 = "#991b1b", c3 = "#fde047", visor = "#38bdf8";
-  if (skin === 'cobalt') { c1 = "#3b82f6"; c2 = "#1e3a8a"; c3 = "#38bdf8"; visor = "#fde047"; }
-  else if (skin === 'gold') { c1 = "#f59e0b"; c2 = "#78350f"; c3 = "#fef08a"; visor = "#38bdf8"; }
 
-  const hullSvg = (main, dark, acc, vis, flip) => `
-  <svg xmlns="http://www.w3.org/2000/svg" width="96" height="72" viewBox="-48 -52 96 72">
-    <defs>
-      <linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${main}"/>
-        <stop offset="55%" stop-color="${dark}"/>
-        <stop offset="100%" stop-color="#090d16"/>
-      </linearGradient>
-      <radialGradient id="dg" cx="35%" cy="30%" r="70%">
-        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.65"/>
-        <stop offset="35%" stop-color="${main}"/>
-        <stop offset="100%" stop-color="${dark}"/>
-      </radialGradient>
-      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#334155"/>
-        <stop offset="100%" stop-color="#0f172a"/>
-      </linearGradient>
-    </defs>
-    <!-- 바닥 그림자 -->
-    <ellipse cx="0" cy="6" rx="34" ry="7" fill="rgba(0,0,0,0.55)"/>
-    <g transform="scale(${flip}, 1)">
-      <!-- 상단 해치 & 안테나 -->
-      <line x1="-8" y1="-28" x2="-14" y2="-44" stroke="#cbd5e1" stroke-width="2"/>
-      <circle cx="-14" cy="-44" r="2.5" fill="${acc}"/>
-      <ellipse cx="0" cy="-31" rx="9" ry="3.5" fill="${acc}" stroke="#090d16" stroke-width="1.8"/>
-      <!-- 포탑 돔 -->
-      <path d="M -19 -12 C -19 -33, 19 -33, 19 -12 Z" fill="url(#dg)" stroke="#090d16" stroke-width="2.2"/>
-      <!-- 광학 바이저 눈 -->
-      <rect x="3" y="-25" width="13" height="7" rx="3" fill="#090d16" stroke="${acc}" stroke-width="1.2"/>
-      <circle cx="11" cy="-21.5" r="2.6" fill="${vis}"/>
-      <!-- 경사 반응장갑 차체 -->
-      <polygon points="-28,-13 28,-13 23,-2 -23,-2" fill="url(#hg)" stroke="#090d16" stroke-width="2.2"/>
-      <!-- 장갑 하이라이트 & 리벳 -->
-      <line x1="-24" y1="-10" x2="24" y2="-10" stroke="rgba(255,255,255,0.45)" stroke-width="1.5"/>
-      <circle cx="-15" cy="-7" r="1.8" fill="${acc}"/>
-      <circle cx="0" cy="-7" r="1.8" fill="${acc}"/>
-      <circle cx="15" cy="-7" r="1.8" fill="${acc}"/>
-      <!-- 무한궤도 캐터필러 -->
-      <rect x="-30" y="-4" width="60" height="11" rx="5.5" fill="url(#tg)" stroke="#64748b" stroke-width="2"/>
-      <circle cx="-21" cy="1.5" r="3.8" fill="#cbd5e1" stroke="#090d16" stroke-width="1.5"/>
-      <circle cx="-10.5" cy="1.5" r="3.8" fill="#cbd5e1" stroke="#090d16" stroke-width="1.5"/>
-      <circle cx="0" cy="1.5" r="3.8" fill="#cbd5e1" stroke="#090d16" stroke-width="1.5"/>
-      <circle cx="10.5" cy="1.5" r="3.8" fill="#cbd5e1" stroke="#090d16" stroke-width="1.5"/>
-      <circle cx="21" cy="1.5" r="3.8" fill="#cbd5e1" stroke="#090d16" stroke-width="1.5"/>
-    </g>
-  </svg>`;
+  // 포트리스 애니 캐릭터 스타일 고해상도 SVG (차체 + 투구/눈/표정 + 통통한 SD 궤도)
+  const makeCharHullSvg = (type) => {
+    if (type === 'boss') {
+      return `
+      <svg xmlns="http://www.w3.org/2000/svg" width="120" height="96" viewBox="-60 -72 120 96">
+        <defs>
+          <radialGradient id="bBody" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#c084fc"/>
+            <stop offset="45%" stop-color="#6b21a8"/>
+            <stop offset="100%" stop-color="#2e1065"/>
+          </radialGradient>
+          <linearGradient id="bArmor" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#4c1d95"/>
+            <stop offset="100%" stop-color="#090d16"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="0" cy="8" rx="40" ry="8" fill="rgba(0,0,0,0.55)"/>
+        <g transform="scale(-1, 1)">
+          <!-- 마왕 양쪽 뿔 (Horns) -->
+          <path d="M -14 -40 Q -28 -58 -10 -64 Q -6 -50 -4 -42 Z" fill="#f43f5e" stroke="#090d16" stroke-width="2.5"/>
+          <path d="M 8 -42 Q 22 -58 32 -52 Q 22 -40 14 -36 Z" fill="#f43f5e" stroke="#090d16" stroke-width="2.5"/>
+          <!-- SD 캐릭터 둥근 헤드/몸통 -->
+          <path d="M -25 -14 C -28 -48, 28 -48, 25 -14 Z" fill="url(#bBody)" stroke="#090d16" stroke-width="3"/>
+          <!-- 이마 해골/보석 크레스트 -->
+          <polygon points="10,-43 18,-36 10,-29 2,-36" fill="#fde047" stroke="#090d16" stroke-width="2"/>
+          <!-- 사악한 애니 눈매 & 빛나는 눈동자 -->
+          <path d="M 2 -31 L 21 -27 L 19 -17 L 2 -18 Z" fill="#090d16" stroke="#f43f5e" stroke-width="1.8"/>
+          <ellipse cx="13" cy="-23" rx="4.5" ry="4" fill="#ef4444"/>
+          <circle cx="14.5" cy="-24.5" r="1.6" fill="#ffffff"/>
+          <path d="M 1 -34 L 22 -28" stroke="#fde047" stroke-width="3.2" stroke-linecap="round"/>
+          <!-- 가시 견갑 차체 (Spiked Fender) -->
+          <path d="M -33 -16 L 33 -16 L 28 -3 L -28 -3 Z" fill="url(#bArmor)" stroke="#090d16" stroke-width="2.8"/>
+          <polygon points="-22,-16 -17,-24 -12,-16" fill="#f43f5e" stroke="#090d16" stroke-width="1.8"/>
+          <polygon points="-4,-16 1,-24 6,-16" fill="#f43f5e" stroke="#090d16" stroke-width="1.8"/>
+          <!-- 통통한 SD 캐터필러 & 큼직한 바퀴 -->
+          <rect x="-34" y="-5" width="68" height="14" rx="7" fill="#1e293b" stroke="#090d16" stroke-width="3"/>
+          <circle cx="-21" cy="2" r="5.2" fill="#94a3b8" stroke="#090d16" stroke-width="2"/>
+          <circle cx="-7" cy="2" r="5.2" fill="#94a3b8" stroke="#090d16" stroke-width="2"/>
+          <circle cx="7" cy="2" r="5.2" fill="#94a3b8" stroke="#090d16" stroke-width="2"/>
+          <circle cx="21" cy="2" r="5.2" fill="#94a3b8" stroke="#090d16" stroke-width="2"/>
+        </g>
+      </svg>`;
+    }
 
-  const barrelSvg = (acc) => `
-  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="24" viewBox="-6 -12 64 24">
+    // 플레이어 3종 애니 캐릭터 스킨 (crimson: 레드 캐논, cobalt: 블루 캐롯 기사, gold: 골드 슈퍼탱크)
+    let cLight = "#fca5a5", cMain = "#ef4444", cDark = "#991b1b", cTrim = "#fde047", eyeCol = "#2563eb";
+    let helmetCrest = `<path d="M -6 -43 Q 0 -58 14 -50 Q 8 -40 4 -39 Z" fill="#fde047" stroke="#090d16" stroke-width="2.5"/>`;
+    if (type === 'cobalt') {
+      cLight = "#bfdbfe"; cMain = "#2563eb"; cDark = "#1e3a8a"; cTrim = "#facc15"; eyeCol = "#0284c7";
+      helmetCrest = `
+        <polygon points="-2,-42 8,-58 16,-40" fill="#fde047" stroke="#090d16" stroke-width="2.4"/>
+        <circle cx="10" cy="-37" r="3.8" fill="#ef4444" stroke="#090d16" stroke-width="1.8"/>`;
+    } else if (type === 'gold') {
+      cLight = "#fef08a"; cMain = "#eab308"; cDark = "#a16207"; cTrim = "#38bdf8"; eyeCol = "#10b981";
+      helmetCrest = `
+        <polygon points="0,-40 18,-60 11,-38" fill="#38bdf8" stroke="#090d16" stroke-width="2.2"/>
+        <polygon points="-6,-40 6,-56 2,-38" fill="#fde047" stroke="#090d16" stroke-width="2.2"/>`;
+    }
+
+    return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="96" viewBox="-60 -72 120 96">
+      <defs>
+        <radialGradient id="pBody" cx="35%" cy="28%" r="70%">
+          <stop offset="0%" stop-color="${cLight}"/>
+          <stop offset="42%" stop-color="${cMain}"/>
+          <stop offset="100%" stop-color="${cDark}"/>
+        </radialGradient>
+        <linearGradient id="pSkirt" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${cMain}"/>
+          <stop offset="100%" stop-color="${cDark}"/>
+        </linearGradient>
+      </defs>
+      <!-- 바닥 그림자 -->
+      <ellipse cx="0" cy="8" rx="40" ry="8" fill="rgba(0,0,0,0.55)"/>
+      <!-- 후방 귀여운 배기구 (Exhaust Pipe) -->
+      <path d="M -24 -18 L -35 -28 L -30 -33 L -20 -22 Z" fill="#64748b" stroke="#090d16" stroke-width="2.4"/>
+      <!-- 투구 볏/안테나 장식 -->
+      ${helmetCrest}
+      <!-- 포트리스 SD 캐릭터 통통한 헤드 돔 -->
+      <path d="M -25 -13 C -27 -48, 27 -48, 25 -13 Z" fill="url(#pBody)" stroke="#090d16" stroke-width="3"/>
+      <!-- 상단 해치 뚜껑 -->
+      <ellipse cx="-2" cy="-41" rx="11" ry="4.2" fill="${cTrim}" stroke="#090d16" stroke-width="2.4"/>
+      <!-- 볼록한 유리 하이라이트 광택 -->
+      <ellipse cx="-9" cy="-31" rx="7" ry="3.5" transform="rotate(-25 -9 -31)" fill="rgba(255,255,255,0.45)"/>
+      <!-- 캐릭터 큰 만화 눈 (Anime Expressive Eye) -->
+      <rect x="2" y="-33" width="18" height="14" rx="6" fill="#ffffff" stroke="#090d16" stroke-width="2.5"/>
+      <ellipse cx="13" cy="-26" rx="5.2" ry="5.8" fill="${eyeCol}"/>
+      <ellipse cx="13.5" cy="-26" rx="2.6" ry="3.2" fill="#090d16"/>
+      <circle cx="11.5" cy="-28.5" r="2.0" fill="#ffffff"/>
+      <circle cx="15.2" cy="-23.8" r="1.0" fill="#ffffff"/>
+      <!-- 늠름한 만화 눈썹 -->
+      <path d="M 1 -35 Q 12 -39 22 -32" fill="none" stroke="#090d16" stroke-width="3.2" stroke-linecap="round"/>
+      <!-- 귀여운 볼터치 & 옆면 방패 엠블럼 -->
+      <ellipse cx="6" cy="-17" rx="3.8" ry="2" fill="rgba(244, 63, 94, 0.55)"/>
+      <!-- 하단 장갑 스커트 & 골드 트림 -->
+      <path d="M -32 -15 L 32 -15 L 27 -3 L -27 -3 Z" fill="url(#pSkirt)" stroke="#090d16" stroke-width="2.8"/>
+      <line x1="-27" y1="-11" x2="27" y2="-11" stroke="${cTrim}" stroke-width="2.2"/>
+      <!-- 둥글고 통통한 SD 무한궤도 & 4륜 빅 휠 -->
+      <rect x="-34" y="-5" width="68" height="14" rx="7" fill="#1e293b" stroke="#090d16" stroke-width="3"/>
+      <circle cx="-21" cy="2" r="5.2" fill="#f8fafc" stroke="#090d16" stroke-width="2.2"/>
+      <circle cx="-21" cy="2" r="2.0" fill="${cMain}"/>
+      <circle cx="-7" cy="2" r="5.2" fill="#f8fafc" stroke="#090d16" stroke-width="2.2"/>
+      <circle cx="-7" cy="2" r="2.0" fill="${cMain}"/>
+      <circle cx="7" cy="2" r="5.2" fill="#f8fafc" stroke="#090d16" stroke-width="2.2"/>
+      <circle cx="7" cy="2" r="2.0" fill="${cMain}"/>
+      <circle cx="21" cy="2" r="5.2" fill="#f8fafc" stroke="#090d16" stroke-width="2.2"/>
+      <circle cx="21" cy="2" r="2.0" fill="${cMain}"/>
+    </svg>`;
+  };
+
+  // 포트리스 특유의 볼록한 나팔형 대구경 대포 포신 SVG
+  const makeCharBarrelSvg = (mainCol, trimCol) => `
+  <svg xmlns="http://www.w3.org/2000/svg" width="76" height="36" viewBox="-10 -18 76 36">
     <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="cBar" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#f8fafc"/>
-        <stop offset="45%" stop-color="#94a3b8"/>
-        <stop offset="100%" stop-color="#0f172a"/>
+        <stop offset="40%" stop-color="#94a3b8"/>
+        <stop offset="100%" stop-color="#1e293b"/>
       </linearGradient>
     </defs>
-    <rect x="0" y="-5.5" width="38" height="11" rx="3" fill="url(#bg)" stroke="#090d16" stroke-width="2"/>
-    <rect x="10" y="-6.5" width="8" height="13" rx="1.5" fill="${acc}" stroke="#090d16" stroke-width="1.5"/>
-    <rect x="33" y="-7.5" width="8" height="15" rx="2" fill="${acc}" stroke="#090d16" stroke-width="1.8"/>
+    <!-- 포신 회전 마운트 볼 -->
+    <circle cx="2" cy="0" r="9" fill="${mainCol}" stroke="#090d16" stroke-width="2.6"/>
+    <!-- 뚱뚱한 나팔형 포신 몸통 -->
+    <path d="M 4 -6.5 L 38 -9.5 L 38 9.5 L 4 6.5 Z" fill="url(#cBar)" stroke="#090d16" stroke-width="2.6"/>
+    <!-- 황금 줄무늬 밴드 -->
+    <rect x="16" y="-8" width="6" height="16" rx="1.5" fill="${trimCol}" stroke="#090d16" stroke-width="2"/>
+    <!-- 포트리스 시그니처 두꺼운 포구 링 (Flared Muzzle) -->
+    <rect x="35" y="-11.5" width="10" height="23" rx="3.5" fill="${trimCol}" stroke="#090d16" stroke-width="2.6"/>
+    <ellipse cx="45" cy="0" rx="2.5" ry="7" fill="#090d16"/>
   </svg>`;
 
-  p1HullImg.src = makeSvgUri(hullSvg(c1, c2, c3, visor, 1));
-  p1BarrelImg.src = makeSvgUri(barrelSvg(c3));
-  p2HullImg.src = makeSvgUri(hullSvg("#9333ea", "#3b0764", "#f43f5e", "#f43f5e", -1));
-  p2BarrelImg.src = makeSvgUri(barrelSvg("#f43f5e"));
+  const pMain = skin === 'cobalt' ? "#2563eb" : (skin === 'gold' ? "#eab308" : "#ef4444");
+  const pTrim = skin === 'gold' ? "#38bdf8" : "#fde047";
+
+  p1HullImg.src = makeSvgUri(makeCharHullSvg(skin));
+  p1BarrelImg.src = makeSvgUri(makeCharBarrelSvg(pMain, pTrim));
+  p2HullImg.src = makeSvgUri(makeCharHullSvg('boss'));
+  p2BarrelImg.src = makeSvgUri(makeCharBarrelSvg("#7c3aed", "#f43f5e"));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1106,36 +1176,43 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-// ── 프리렌더 SVG 탱크 그리기 ───────────────────────────────
+// ── 프리렌더 SVG 포트리스 애니 캐릭터 탱크 그리기 ──────────────
 function drawSvgTank(t, isP1) {
   const cx = wx(t.x), cy = wy(t.y);
+  const bob = Math.sin(performance.now() * 0.0055 + (isP1 ? 0 : 2)) * 1.4;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate((-t.slope * Math.PI / 180.0) * 0.65);
 
-  const worldRad = t.angle * Math.PI / 180.0;
-  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
-
-  // 포신 스프라이트
+  // 1) 캐릭터 차체 스프라이트 (숨쉬기 바운스 적용)
   ctx.save();
-  ctx.translate(-Math.cos(localRad) * t.recoil, -15 + Math.sin(localRad) * t.recoil);
-  ctx.rotate(-localRad);
-  const bImg = isP1 ? p1BarrelImg : p2BarrelImg;
-  if (bImg.complete) ctx.drawImage(bImg, -6, -12);
+  ctx.translate(0, bob * 0.6);
+  const hImg = isP1 ? p1HullImg : p2HullImg;
+  if (hImg.complete) ctx.drawImage(hImg, -60, -72);
   ctx.restore();
 
-  // 차체 스프라이트
-  const hImg = isP1 ? p1HullImg : p2HullImg;
-  if (hImg.complete) ctx.drawImage(hImg, -48, -52);
+  // 2) 캐릭터 전면/측면 포신 마운트에서 뻗어 나오는 대구경 나팔형 대포
+  const worldRad = t.angle * Math.PI / 180.0;
+  const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
+  const mountX = isP1 ? 12 : -12;
+  const mountY = -18 + bob;
+
+  ctx.save();
+  ctx.translate(mountX - Math.cos(localRad) * t.recoil, mountY + Math.sin(localRad) * t.recoil);
+  ctx.rotate(-localRad);
+  const bImg = isP1 ? p1BarrelImg : p2BarrelImg;
+  if (bImg.complete) ctx.drawImage(bImg, -10, -18);
+  ctx.restore();
+
   ctx.restore();
 }
 
-function drawVec(x1, y1, x2, y2, col, txt) {
+function drawVec(x1, y1, x2, y2, col, txt, alignMode = 'right') {
   const len = Math.hypot(x2 - x1, y2 - y1);
   if (len < 4) return;
   const a = Math.atan2(y2 - y1, x2 - x1), h = 8;
   ctx.save();
-  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.4;
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(x2, y2);
@@ -1143,8 +1220,22 @@ function drawVec(x1, y1, x2, y2, col, txt) {
   ctx.lineTo(x2 - h * Math.cos(a + Math.PI / 6), y2 - h * Math.sin(a + Math.PI / 6));
   ctx.closePath(); ctx.fill();
   if (txt) {
-    ctx.font = "900 11px 'Pretendard', sans-serif";
-    ctx.fillText(txt, x2 + 6, y2 - 4);
+    ctx.font = "900 11.5px 'Pretendard', sans-serif";
+    ctx.strokeStyle = "rgba(9, 13, 22, 0.9)";
+    ctx.lineWidth = 3.2;
+    let tx = x2 + 6, ty = y2 - 4;
+    if (alignMode === 'left') {
+      ctx.textAlign = 'right';
+      tx = x2 - 7; ty = y2 + 3;
+    } else if (alignMode === 'bottom') {
+      ctx.textAlign = 'left';
+      tx = x2 + 6; ty = y2 + 12;
+    } else {
+      ctx.textAlign = 'left';
+      tx = x2 + 6; ty = y2 - 5;
+    }
+    ctx.strokeText(txt, tx, ty);
+    ctx.fillText(txt, tx, ty);
   }
   ctx.restore();
 }
@@ -1183,14 +1274,14 @@ function drawFrame() {
   drawSvgTank(p1, true);
   drawSvgTank(p2, false);
 
-  // 초기 속도 벡터
+  // 초기 속도 벡터 (라벨 겹침 방지를 위해 각각 bottom / left / right 배치)
   if (shells.length === 0 && document.getElementById('chkVec').checked) {
     const rad = p1.angle * Math.PI / 180.0;
     const vx0 = p1.speed * Math.cos(rad), vy0 = p1.speed * Math.sin(rad);
-    const ox = wx(p1.x), oy = wy(p1.y + 2.6), vs = 1.25;
-    drawVec(ox, oy, ox + vx0 * vs, oy, "#38bdf8", `v₀x=${vx0.toFixed(1)}`);
-    drawVec(ox, oy, ox, oy - vy0 * vs, "#f87171", `v₀y=${vy0.toFixed(1)}`);
-    drawVec(ox, oy, ox + vx0 * vs, oy - vy0 * vs, "#fde047", `v₀=${p1.speed.toFixed(1)}`);
+    const ox = wx(p1.x + 2.0), oy = wy(p1.y + 3.2), vs = 1.3;
+    drawVec(ox, oy, ox + vx0 * vs, oy, "#38bdf8", `v₀x=${vx0.toFixed(1)}`, 'bottom');
+    drawVec(ox, oy, ox, oy - vy0 * vs, "#f87171", `v₀y=${vy0.toFixed(1)}`, 'left');
+    drawVec(ox, oy, ox + vx0 * vs, oy - vy0 * vs, "#fde047", `v₀=${p1.speed.toFixed(1)}`, 'right');
   }
 
   // [기법 3] 가산 혼합(lighter) 광원 블룸 렌더링
