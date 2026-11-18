@@ -427,11 +427,15 @@ function buildTankSprites() {
           <path d="M -25 -14 C -28 -48, 28 -48, 25 -14 Z" fill="url(#bBody)" stroke="#090d16" stroke-width="3"/>
           <!-- 이마 해골/보석 크레스트 -->
           <polygon points="10,-43 18,-36 10,-29 2,-36" fill="#fde047" stroke="#090d16" stroke-width="2"/>
-          <!-- 사악한 애니 눈매 & 빛나는 눈동자 -->
-          <path d="M 2 -31 L 21 -27 L 19 -17 L 2 -18 Z" fill="#090d16" stroke="#f43f5e" stroke-width="1.8"/>
-          <ellipse cx="13" cy="-23" rx="4.5" ry="4" fill="#ef4444"/>
-          <circle cx="14.5" cy="-24.5" r="1.6" fill="#ffffff"/>
-          <path d="M 1 -34 L 22 -28" stroke="#fde047" stroke-width="3.2" stroke-linecap="round"/>
+          <!-- 사악한 애니 두 눈 (3/4 측면 양안) & 빛나는 눈동자 -->
+          <ellipse cx="-2" cy="-26" rx="7.5" ry="7" fill="#090d16" stroke="#f43f5e" stroke-width="2"/>
+          <ellipse cx="12" cy="-26" rx="6.5" ry="6.5" fill="#090d16" stroke="#f43f5e" stroke-width="2"/>
+          <circle cx="-1" cy="-25.5" r="4.2" fill="#ef4444"/>
+          <circle cx="13" cy="-25.5" r="3.8" fill="#ef4444"/>
+          <circle cx="-2.5" cy="-27.5" r="1.8" fill="#ffffff"/>
+          <circle cx="11.5" cy="-27.5" r="1.6" fill="#ffffff"/>
+          <!-- 매서운 V자 눈썹 -->
+          <path d="M -11 -34 L 5 -28 L 20 -34" fill="none" stroke="#fde047" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
           <!-- 가시 견갑 차체 (Spiked Fender) -->
           <path d="M -33 -16 L 33 -16 L 28 -3 L -28 -3 Z" fill="url(#bArmor)" stroke="#090d16" stroke-width="2.8"/>
           <polygon points="-22,-16 -17,-24 -12,-16" fill="#f43f5e" stroke="#090d16" stroke-width="1.8"/>
@@ -485,17 +489,25 @@ function buildTankSprites() {
       <!-- 상단 해치 뚜껑 -->
       <ellipse cx="-2" cy="-41" rx="11" ry="4.2" fill="${cTrim}" stroke="#090d16" stroke-width="2.4"/>
       <!-- 볼록한 유리 하이라이트 광택 -->
-      <ellipse cx="-9" cy="-31" rx="7" ry="3.5" transform="rotate(-25 -9 -31)" fill="rgba(255,255,255,0.45)"/>
-      <!-- 캐릭터 큰 만화 눈 (Anime Expressive Eye) -->
-      <rect x="2" y="-33" width="18" height="14" rx="6" fill="#ffffff" stroke="#090d16" stroke-width="2.5"/>
-      <ellipse cx="13" cy="-26" rx="5.2" ry="5.8" fill="${eyeCol}"/>
-      <ellipse cx="13.5" cy="-26" rx="2.6" ry="3.2" fill="#090d16"/>
-      <circle cx="11.5" cy="-28.5" r="2.0" fill="#ffffff"/>
-      <circle cx="15.2" cy="-23.8" r="1.0" fill="#ffffff"/>
-      <!-- 늠름한 만화 눈썹 -->
-      <path d="M 1 -35 Q 12 -39 22 -32" fill="none" stroke="#090d16" stroke-width="3.2" stroke-linecap="round"/>
-      <!-- 귀여운 볼터치 & 옆면 방패 엠블럼 -->
-      <ellipse cx="6" cy="-17" rx="3.8" ry="2" fill="rgba(244, 63, 94, 0.55)"/>
+      <ellipse cx="-12" cy="-33" rx="6" ry="3" transform="rotate(-25 -12 -33)" fill="rgba(255,255,255,0.45)"/>
+      <!-- 포트리스 캐릭터 큼직한 3/4 측면 두 눈 (왼쪽 눈 + 오른쪽 눈) -->
+      <rect x="-8" y="-35" width="15" height="16" rx="7" fill="#ffffff" stroke="#090d16" stroke-width="2.6"/>
+      <rect x="6" y="-34" width="14" height="15" rx="6.5" fill="#ffffff" stroke="#090d16" stroke-width="2.6"/>
+      <!-- 홍채 & 동공 & 초롱초롱한 하이라이트 -->
+      <ellipse cx="1" cy="-26.5" rx="4.8" ry="5.6" fill="${eyeCol}"/>
+      <ellipse cx="14" cy="-26" rx="4.3" ry="5.2" fill="${eyeCol}"/>
+      <ellipse cx="1.5" cy="-26.5" rx="2.5" ry="3.2" fill="#090d16"/>
+      <ellipse cx="14.5" cy="-26" rx="2.3" ry="3.0" fill="#090d16"/>
+      <circle cx="-0.5" cy="-29.2" r="2.2" fill="#ffffff"/>
+      <circle cx="12.8" cy="-28.8" r="2.0" fill="#ffffff"/>
+      <circle cx="3.0" cy="-24.0" r="1.1" fill="#ffffff"/>
+      <circle cx="15.8" cy="-23.8" r="1.0" fill="#ffffff"/>
+      <!-- 늠름한 양쪽 만화 눈썹 -->
+      <path d="M -9 -37 Q -1 -41 6 -35" fill="none" stroke="#090d16" stroke-width="3.4" stroke-linecap="round"/>
+      <path d="M 6 -35 Q 13 -40 21 -34" fill="none" stroke="#090d16" stroke-width="3.4" stroke-linecap="round"/>
+      <!-- 귀여운 볼터치 -->
+      <ellipse cx="-8" cy="-18" rx="4.2" ry="2.2" fill="rgba(244, 63, 94, 0.65)"/>
+      <ellipse cx="18" cy="-18" rx="3.5" ry="2.0" fill="rgba(244, 63, 94, 0.65)"/>
       <!-- 하단 장갑 스커트 & 골드 트림 -->
       <path d="M -32 -15 L 32 -15 L 27 -3 L -27 -3 Z" fill="url(#pSkirt)" stroke="#090d16" stroke-width="2.8"/>
       <line x1="-27" y1="-11" x2="27" y2="-11" stroke="${cTrim}" stroke-width="2.2"/>
@@ -1176,7 +1188,7 @@ function tick(now) {
   requestAnimationFrame(tick);
 }
 
-// ── 프리렌더 SVG 포트리스 애니 캐릭터 탱크 그리기 ──────────────
+// ── 프리렌더 SVG 포트리스 애니 캐릭터 탱크 그리기 (포신이 눈을 절대 가리지 않도록 포신을 먼저 그린 뒤 캐릭터 얼굴을 위에 배치!) ──
 function drawSvgTank(t, isP1) {
   const cx = wx(t.x), cy = wy(t.y);
   const bob = Math.sin(performance.now() * 0.0055 + (isP1 ? 0 : 2)) * 1.4;
@@ -1184,24 +1196,24 @@ function drawSvgTank(t, isP1) {
   ctx.translate(cx, cy);
   ctx.rotate((-t.slope * Math.PI / 180.0) * 0.65);
 
-  // 1) 캐릭터 차체 스프라이트 (숨쉬기 바운스 적용)
-  ctx.save();
-  ctx.translate(0, bob * 0.6);
-  const hImg = isP1 ? p1HullImg : p2HullImg;
-  if (hImg.complete) ctx.drawImage(hImg, -60, -72);
-  ctx.restore();
-
-  // 2) 캐릭터 전면/측면 포신 마운트에서 뻗어 나오는 대구경 나팔형 대포
+  // 1) 대구경 나팔형 대포를 캐릭터 앞코(x = ±18, y = -16)에서 먼저 그려 얼굴/눈을 절대 가리지 않게 함
   const worldRad = t.angle * Math.PI / 180.0;
   const localRad = worldRad - (-t.slope * Math.PI / 180.0) * 0.65;
-  const mountX = isP1 ? 12 : -12;
-  const mountY = -18 + bob;
+  const mountX = isP1 ? 18 : -18;
+  const mountY = -16 + bob;
 
   ctx.save();
   ctx.translate(mountX - Math.cos(localRad) * t.recoil, mountY + Math.sin(localRad) * t.recoil);
   ctx.rotate(-localRad);
   const bImg = isP1 ? p1BarrelImg : p2BarrelImg;
-  if (bImg.complete) ctx.drawImage(bImg, -10, -18);
+  if (bImg.complete) ctx.drawImage(bImg, -6, -18);
+  ctx.restore();
+
+  // 2) 캐릭터 차체·얼굴·두 눈 스프라이트를 위에 그려 어떤 각도에서도 두 눈이 선명하게 보임
+  ctx.save();
+  ctx.translate(0, bob * 0.6);
+  const hImg = isP1 ? p1HullImg : p2HullImg;
+  if (hImg.complete) ctx.drawImage(hImg, -60, -72);
   ctx.restore();
 
   ctx.restore();
