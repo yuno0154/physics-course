@@ -165,7 +165,7 @@ function txt(s,x,y,o){o=o||{};ctx.font=(o.b?'700 ':'500 ')+(o.s||14)+'px "Preten
 function ln(x0,y0,x1,y1,c,w,d){ctx.beginPath();ctx.setLineDash(d||[]);ctx.strokeStyle=c;ctx.lineWidth=w||1;ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();ctx.setLineDash([])}
 function head(x,y,dx,dy,c,s){s=s||9;const a=Math.atan2(dy,dx);ctx.beginPath();ctx.fillStyle=c;ctx.moveTo(x,y);ctx.lineTo(x-s*Math.cos(a-0.4),y-s*Math.sin(a-0.4));ctx.lineTo(x-s*Math.cos(a+0.4),y-s*Math.sin(a+0.4));ctx.fill()}
 function arr(x0,y0,x1,y1,c,w){ln(x0,y0,x1,y1,c,w||2.5);head(x1,y1,x1-x0,y1-y0,c)}
-function dbl(x0,y0,x1,y1,c){if(Math.abs(x1-x0)<2)return;ln(x0,y0,x1,y1,c,2);head(x1,y1,x1-x0,y1-y0,c,7);head(x0,y0,x0-x1,y0-y1,c,7)}
+function dbl(x0,y0,x1,y1,c){if(Math.hypot(x1-x0,y1-y0)<2)return;ln(x0,y0,x1,y1,c,2);head(x1,y1,x1-x0,y1-y0,c,7);head(x0,y0,x0-x1,y0-y1,c,7)}
 function dot(x,y,r,c){ctx.beginPath();ctx.fillStyle=c;ctx.arc(x,y,r,0,7);ctx.fill()}
 function person(x,y,c){c=c||INK;ctx.strokeStyle=c;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y-34,7,0,7);ctx.stroke();ln(x,y-27,x,y-10,c,2);ln(x-9,y,x,y-10,c,2);ln(x+9,y,x,y-10,c,2);ln(x-10,y-21,x+10,y-21,c,2)}
 function clear(){ctx.clearRect(0,0,W,H)}
@@ -583,11 +583,12 @@ function setSnd0(mode){
  }
  syncSndButtons();
 }
-$('nx').onclick=()=>{T0.auto=false;$('auto').classList.remove('on');if(T0.target>=5){T0.t=0;T0.target=0}else T0.target=Math.floor(T0.target+1e-6)+1};
-$('auto').onclick=()=>{T0.auto=!T0.auto;$('auto').classList.toggle('on',T0.auto)};
+function unpause(){if(paused){paused=false;$('pp').textContent='⏸ 일시정지'}}
+$('nx').onclick=()=>{unpause();T0.auto=false;$('auto').classList.remove('on');if(T0.target>=5){T0.t=0;T0.target=1}else T0.target=Math.floor(T0.target+1e-6)+1};
+$('auto').onclick=()=>{unpause();T0.auto=!T0.auto;$('auto').classList.toggle('on',T0.auto)};
 $('r0').oninput=e=>{T0.r=+e.target.value;$('v0').textContent=f1(T0.r*VS)+' m/s'};
 $('ghost').onchange=e=>T0.ghost=e.target.checked;
-$('siren0').onchange=()=>{if(snd0mode!=='off')setSnd0(snd0mode);if(snd0mode==='off')return;};
+$('siren0').onchange=()=>{if(snd0mode!=='off'){const cur=snd0mode;snd0mode='off';setSnd0(cur);}};
 $('snd0_ref').onclick=()=>setSnd0('ref');
 $('snd0_a').onclick=()=>setSnd0('a');
 $('snd0_b').onclick=()=>setSnd0('b');
@@ -743,7 +744,7 @@ function scene3(dt){
  txt('멀어질 때 '+f1(fb)+' Hz',gx1-150,Y(fb)+16,{s:13,b:1,c:OR});
  $('step').innerHTML='<b>측정값으로 속력 구하기</b> · 다가올 때 측정한 진동수 '+f1(fa)+' Hz를 식에 넣으면  '+f1(fa)+' = '+f+' × 340 / (340 − v<sub>s</sub>)  →  <b>v<sub>s</sub> = '+f1(VS-f*VS/fa,1)+' m/s</b> (약 '+f1((VS-f*VS/fa)*3.6)+' km/h). <br>🎧 <b>통과 소리 켜기</b>를 누르고 구급차를 출발시키면 왼쪽→오른쪽 스테레오 음량 변화와 함께 지나가는 순간 음높이가 뚝 떨어지는 실제 도플러 효과를 들을 수 있습니다.';
 }
-$('go3').onclick=()=>{T3.t=0;T3.hist=[];T3.run=true; if(T3.sndRef){T3.sndRef=false;T3.snd=true;Siren.start($('siren3').value, +$('f3').value, 1.0, 0.14, -0.8);syncSndButtons()}};
+$('go3').onclick=()=>{unpause();T3.t=0;T3.hist=[];T3.run=true; if(T3.sndRef){T3.sndRef=false;T3.snd=true;Siren.start($('siren3').value, +$('f3').value, 1.0, 0.14, -0.8);syncSndButtons()}};
 $('snd3').onclick=()=>{
  T3.snd=!T3.snd; T3.sndRef=false;
  if(T3.snd)Siren.start($('siren3').value, +$('f3').value, 1.0, 0.14, 0);
@@ -862,11 +863,13 @@ function syncSndButtons(){
  $('splay').classList.toggle('on', InstAudio.playing);
 }
 function reset(){
- T0.t=0;T0.target=0;T1.t=0;T1.x2=0;T1.c1=0;T1.c2=0;T1.prev1=null;T1.prev2=null;T1.t0=0;
+ T0.t=0;T0.target=0;T0.auto=false;$('auto').classList.remove('on');
+ T1.t=0;T1.x2=0;T1.c1=0;T1.c2=0;T1.prev1=null;T1.prev2=null;T1.t0=0;
  reset2();T3.t=0;T3.hist=[];T3.run=(tab===4);T4.t=0;T4.cx=820;T4.em=[];T4.ref=[];T4.last=-1;warm4(true);
 }
 function go(i){
  stopAllAudio();
+ unpause();
  tab=i;
  [...$('tabs').children].forEach((b,k)=>b.classList.toggle('on',k===i));
  for(let k=0;k<TABS.length;k++)$('c'+k).classList.toggle('show',k===i);
@@ -874,9 +877,9 @@ function go(i){
  reset();
 }
 function frame(now){
- const dt=Math.min(0.05,(now-last)/1000)*speed; last=now;
- [sceneSound,scene0,scene1,scene2,scene3,scene4][tab](paused?0:dt);
  requestAnimationFrame(frame);
+ const dt=Math.max(0,Math.min(0.05,(now-last)/1000))*speed; last=now;
+ try{[sceneSound,scene0,scene1,scene2,scene3,scene4][tab](paused?0:dt);}catch(e){console.error(e);}
 }
 $('v0').textContent=f1(0.3*VS)+' m/s';$('v1').textContent=f1(0.5*VS)+' m/s';sync2();$('v3').textContent='20 m/s';$('vf3').textContent='480 Hz';$('v4').textContent='30 m/s';
 go(0);requestAnimationFrame(frame);
