@@ -3,13 +3,13 @@ import streamlit.components.v1 as components
 
 
 def run_sim():
-    """음파의 간섭과 소음 제어(4차시) — 학습지 A~C 순서의 탭형 시뮬레이션.
-    ① 중첩의 원리 → ② 보강·상쇄 간섭(위상차) → ③ 두 스피커의 간섭(경로차, 측정점 클릭)
+    """음파의 간섭과 소음 제어(4차시) — 종파의 밀·소(압력·변위) + 학습지 A~C 순서의 탭형 시뮬레이션.
+    ⓪ 종파의 밀·소(압력·변위) → ① 중첩의 원리 → ② 보강·상쇄 간섭(위상차) → ③ 두 스피커의 간섭(경로차, 측정점 클릭)
     → ④ 소음 제거 이어폰(진폭·위상 조절, 불규칙 소음) → ⑤ 자동차 배기 소음기(길이 차·진동수)
     기본 재생 속도 0.5배. 외부 라이브러리 없이 HTML/JS로 동작.
     """
     st.title("🔊 음파의 간섭과 소음 제어")
-    components.html(HTML, height=900, scrolling=True)
+    components.html(HTML, height=920, scrolling=True)
 
 
 HTML = r"""<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><style>
@@ -41,16 +41,23 @@ canvas{display:block;width:100%;height:auto}
 <button class="btn" data-sp="0.25">0.25×</button><button class="btn on" data-sp="0.5">0.5×</button><button class="btn" data-sp="1">1×</button>
 <button class="btn primary" id="pp">⏸ 일시정지</button><button class="btn" id="rs">↺ 처음부터</button></div>
 <div class="tabs" id="tabs"></div>
-<div id="c0" class="ctrl view"><button class="btn on" id="p0a">파동 B 아래로 볼록(반대, −1칸)</button><button class="btn" id="p0b">파동 B 위로 볼록(같은 쪽, +1칸)</button><button class="btn" id="p0w">파형: 단일 곡선파</button><button class="btn" id="p0pk">📍 꼭짓점 겹침 순간 보기</button><button class="btn go" id="p0go">▶ 다시 보내기</button></div>
-<div id="c1" class="ctrl view"><div class="grp">두 파동의 위상차<input type="range" id="ph1" min="0" max="360" step="15" value="0"><span class="val" id="vph1"></span></div><button class="btn" id="ph1a">같은 위상(0°)</button><button class="btn" id="ph1b">반대 위상(180°)</button></div>
-<div id="c2" class="ctrl view">
+<div id="c0" class="ctrl view">
+ <div class="grp">진폭 <i>A</i><input type="range" id="la0" min="6" max="24" step="1" value="15"><span class="val" id="vla0">15</span></div>
+ <div class="grp">파장 <i>λ</i><input type="range" id="lw0" min="160" max="360" step="20" value="240"><span class="val" id="vlw0">240 px</span></div>
+ <label class="grp"><input type="checkbox" id="lov0" checked> 변위 그래프에 압력 점선 겹쳐 보기 (90° 위상차)</label>
+ <label class="grp"><input type="checkbox" id="ltrk0" checked> 추적 입자 강조</label>
+ <button class="btn" id="lpk0">📍 밀·소 순간 정지</button>
+</div>
+<div id="c1" class="ctrl view"><button class="btn on" id="p0a">파동 B 아래로 볼록(반대, −1칸)</button><button class="btn" id="p0b">파동 B 위로 볼록(같은 쪽, +1칸)</button><button class="btn" id="p0w">파형: 단일 곡선파</button><button class="btn" id="p0pk">📍 꼭짓점 겹침 순간 보기</button><button class="btn go" id="p0go">▶ 다시 보내기</button></div>
+<div id="c2" class="ctrl view"><div class="grp">두 파동의 위상차<input type="range" id="ph1" min="0" max="360" step="15" value="0"><span class="val" id="vph1"></span></div><button class="btn" id="ph1a">같은 위상(0°)</button><button class="btn" id="ph1b">반대 위상(180°)</button></div>
+<div id="c3" class="ctrl view">
  <button class="btn on" id="m2a">순간 모습(마루·골)</button><button class="btn" id="m2b">소리의 세기 분포</button>
  <div class="grp">진동수<input type="range" id="f2" min="300" max="1500" step="50" value="700"><span class="val" id="vf2"></span></div>
  <div class="grp">스피커 간격<input type="range" id="d2" min="0.5" max="2.5" step="0.1" value="1.5"><span class="val" id="vd2"></span></div>
  <label class="grp"><input type="checkbox" id="inv2"> S₂ 위상 반대로</label>
  <span style="font-size:12px;color:#64748b">화면을 클릭하면 측정점 P가 옮겨집니다</span>
 </div>
-<div id="c3" class="ctrl view">
+<div id="c4" class="ctrl view">
  <button class="btn on" data-m3="0">🎧 그림 Ⅲ-24 소음 제거 이어폰</button>
  <button class="btn" data-m3="1">🚗 그림 Ⅲ-25 자동차 능동 소음 제어</button>
  <button class="btn" data-m3="2">📈 파형 상세 실험</button>
@@ -59,7 +66,7 @@ canvas{display:block;width:100%;height:auto}
  <div class="grp">위상차<input type="range" id="p3" min="0" max="360" step="10" value="180"><span class="val" id="vp3"></span></div>
  <button class="btn" id="noise3">소음: 규칙적</button><button class="btn" id="snd3">🔊 귀에 들리는 소리</button>
 </div>
-<div id="c4" class="ctrl view">
+<div id="c5" class="ctrl view">
  <div class="grp">두 통로의 길이 차<input type="range" id="l4" min="0" max="2" step="0.05" value="1"><span class="val" id="vl4"></span></div>
  <div class="grp">소음 진동수<input type="range" id="f4" min="50" max="700" step="10" value="170"><span class="val" id="vf4"></span></div>
  <button class="btn" data-f4="170">170 Hz (반 파장 1배·상쇄)</button>
@@ -72,7 +79,8 @@ canvas{display:block;width:100%;height:auto}
 <script>
 const $=id=>document.getElementById(id),cv=$('cv'),ctx=cv.getContext('2d'),W=1000,H=460;
 const BL='#2563eb',RD='#e11d48',GN='#059669',PU='#7c3aed',INK='#0f172a',SUB='#64748b',OR='#ea580c',VS=340;
-const TABS=[['① 중첩의 원리','A①','두 파동이 겹치는 곳의 변위는 두 변위의 합입니다. 지나간 뒤에는 각자 원래 모양으로 진행합니다.'],
+const TABS=[['⓪ 종파의 밀·소 (압력·변위)','기초 개념','음파는 공기가 진행 방향과 나란히 진동하는 종파입니다. 공기가 모인 곳은 <b>밀(고압, ΔP 최대)</b>, 성긴 곳은 <b>소(저압, ΔP 최소)</b>이며, 밀·소 지점에서 <b>매질의 변위는 0</b>입니다(압력과 변위는 λ/4, 즉 90° 위상차).'],
+['① 중첩의 원리','A①','두 파동이 겹치는 곳의 변위는 두 변위의 합입니다. 지나간 뒤에는 각자 원래 모양으로 진행합니다.'],
 ['② 보강 간섭·상쇄 간섭','A②','같은 위상으로 만나면 진폭이 커지고(보강), 반대 위상으로 만나면 진폭이 작아집니다(상쇄). 진동수는 변하지 않습니다.'],
 ['③ 두 스피커의 간섭','B','경로차가 반 파장의 짝수 배인 곳은 보강(소리 큼), 홀수 배인 곳은 상쇄(소리 작음)입니다.'],
 ['④ 소음 제거 이어폰','C①','소음과 진동수·진폭이 같고 위상이 반대인 소리를 더하면 상쇄 간섭으로 소음이 줄어듭니다.'],
@@ -88,7 +96,113 @@ function arr(x0,y0,x1,y1,c){ln(x0,y0,x1,y1,c,2.5);head(x1,y1,x1-x0,y1-y0,c)}
 function dot(x,y,r,c){ctx.beginPath();ctx.fillStyle=c;ctx.arc(x,y,r,0,7);ctx.fill()}
 function plot(f,x0,x1,y0,c,w,dash){ctx.beginPath();ctx.setLineDash(dash||[]);ctx.strokeStyle=c;ctx.lineWidth=w||2;for(let x=x0;x<=x1;x+=2){const y=y0-f(x);x===x0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke();ctx.setLineDash([])}
 function clear(){ctx.clearRect(0,0,W,H)}
-// ===== tab0 curved waves (곡선 파동)
+// ===== tab0 longitudinal wave: 밀·소(공기 입자) + 압력 변화(ΔP) + 변위(s)
+const LP={cols:46,rows:5,pts:[]};
+for(let r=0;r<LP.rows;r++){
+ for(let c=0;c<LP.cols;c++){
+  LP.pts.push({c,r,jx:(Math.sin(c*12.7+r*31.3)*0.28),jy:(Math.cos(c*19.1+r*7.7)*0.22)});
+ }
+}
+function sceneLong(dt){
+ clear();
+ const A=+$('la0').value, lam=+$('lw0').value, ov=$('lov0').checked, trk=$('ltrk0').checked;
+ $('vla0').textContent=A+' px'; $('vlw0').textContent=lam+' px';
+ const x0=135, x1=965, tw=x1-x0, k=2*Math.PI/lam, w=2*Math.PI*0.45, wt=w*T;
+
+ // 1) 상단: 종파 공기 관 (y = 26 .. 138)
+ const ty=26, th=112, tmid=ty+th/2;
+ txt('① 공기 입자의 실제 진동 (종파: 밀·소)', x0, ty-11, {a:'left',b:1,s:13,c:INK});
+ // 밀/소 배경 압력 음영 (ΔP = -cos(k(x-x0)-wt): 밀=+1 빨강, 소=-1 파랑)
+ for(let x=x0;x<x1;x+=4){
+  const dp=-Math.cos(k*(x-x0)-wt);
+  ctx.fillStyle=dp>0?`rgba(225,29,72,${(dp*0.18).toFixed(3)})`:`rgba(37,99,235,${(-dp*0.16).toFixed(3)})`;
+  ctx.fillRect(x,ty,4,th);
+ }
+ ctx.strokeStyle='#94a3b8'; ctx.lineWidth=1.8; ctx.strokeRect(x0,ty,tw,th);
+
+ // 왼쪽 스피커 진동판(피스톤)
+ const pisX=x0-16+A*Math.sin(-wt);
+ ctx.fillStyle='#334155'; ctx.fillRect(x0-58,tmid-20,38,40);
+ ctx.fillStyle='#0f172a'; ctx.fillRect(pisX,ty+4,12,th-8);
+ ln(x0-20,tmid,pisX,tmid,'#475569',5);
+ txt('스피커',x0-39,ty+th+14,{s:11.5,b:1,c:SUB});
+
+ // 공기 입자 렌더링 (s(x0,t) = A sin(k(x-x0) - wt))
+ const dxStep=tw/(LP.cols-1), dyStep=(th-24)/(LP.rows-1);
+ const trackCols=[11,23,35];
+ LP.pts.forEach(p=>{
+  const eqX=x0+p.c*dxStep+p.jx*dxStep*0.5;
+  const eqY=ty+12+p.r*dyStep+p.jy*dyStep*0.4;
+  const s=A*Math.sin(k*(eqX-x0)-wt);
+  const px=eqX+s;
+  if(px<x0+2||px>x1-2)return;
+  const isTrk=trk && p.r===2 && trackCols.includes(p.c);
+  if(isTrk){
+   ln(eqX,ty+6,eqX,ty+th-6,'rgba(234,88,12,0.45)',1.2,[3,3]);
+   dot(px,eqY,5.5,OR);
+   if(Math.abs(s)>3)arr(eqX,eqY-12,px,eqY-12,OR);
+  }else{
+   dot(px,eqY,2.6,'#1e293b');
+  }
+ });
+
+ // 밀(고압) / 소(저압) 수직 기준선 및 라벨 표시 (x_밀: k(x-x0)-wt = π + 2πn, x_소: 2πn)
+ const nMin=Math.floor((-wt)/(2*Math.PI))-1, nMax=Math.ceil((k*tw-wt)/(2*Math.PI))+1;
+ for(let n=nMin;n<=nMax;n++){
+  const xComp=x0+(wt+Math.PI+2*Math.PI*n)/k;
+  const xRare=x0+(wt+2*Math.PI*n)/k;
+  if(xComp>x0+18 && xComp<x1-18){
+   ln(xComp,ty,xComp,438,'rgba(225,29,72,0.38)',1.3,[4,4]);
+   ctx.fillStyle=RD; ctx.beginPath(); ctx.roundRect(xComp-24,ty+4,48,18,6); ctx.fill();
+   txt('밀(고압)',xComp,ty+13,{s:10.5,b:1,c:'#fff'});
+   // 좌우 입자가 몰려드는 화살표 표시 (→ ● ←)
+   txt('→ ● ←',xComp,ty+th-10,{s:10.5,b:1,c:RD});
+  }
+  if(xRare>x0+18 && xRare<x1-18){
+   ln(xRare,ty,xRare,438,'rgba(37,99,235,0.32)',1.2,[4,4]);
+   ctx.fillStyle=BL; ctx.beginPath(); ctx.roundRect(xRare-24,ty+4,48,18,6); ctx.fill();
+   txt('소(저압)',xRare,ty+13,{s:10.5,b:1,c:'#fff'});
+   txt('← ○ →',xRare,ty+th-10,{s:10.5,b:1,c:BL});
+  }
+ }
+
+ // 2) 중단: 압력 변화 그래프 ΔP(x) = -ΔPmax cos(k(x-x0) - wt)
+ const py0=235, pAmp=48*(A/15);
+ ln(x0,py0,x1,py0,'#cbd5e1',1.4); ln(x0,py0-62,x0,py0+62,'#94a3b8',1.2);
+ txt('② 압력 변화 ΔP', 18, py0-16, {a:'left',b:1,s:13,c:RD});
+ txt('(고압 + / 저압 −)', 18, py0+4, {a:'left',s:11.5,c:SUB});
+ txt('+ΔP (밀)', x0-8, py0-44, {a:'right',s:11,c:RD,b:1});
+ txt('0 (대기압)', x0-8, py0, {a:'right',s:10.5,c:SUB});
+ txt('−ΔP (소)', x0-8, py0+44, {a:'right',s:11,c:BL,b:1});
+ plot(x=>-pAmp*Math.cos(k*(x-x0)-wt), x0, x1, py0, RD, 3.0);
+
+ // 3) 하단: 매질 변위 그래프 s(x) = A sin(k(x-x0) - wt)
+ const sy0=372, sAmp=48*(A/15);
+ ln(x0,sy0,x1,sy0,'#cbd5e1',1.4); ln(x0,sy0-62,x0,sy0+62,'#94a3b8',1.2);
+ txt('③ 매질 변위 s', 18, sy0-16, {a:'left',b:1,s:13,c:BL});
+ txt('(오른쪽 + / 왼쪽 −)', 18, sy0+4, {a:'left',s:11.5,c:SUB});
+ txt('+s (→)', x0-8, sy0-44, {a:'right',s:11,c:BL,b:1});
+ txt('0 (평형)', x0-8, sy0, {a:'right',s:10.5,c:SUB});
+ txt('−s (←)', x0-8, sy0+44, {a:'right',s:11,c:BL,b:1});
+ if(ov){
+  plot(x=>-sAmp*Math.cos(k*(x-x0)-wt), x0, x1, sy0, 'rgba(225,29,72,0.55)', 1.8, [5,4]);
+  txt('빨간 점선: 압력 ΔP (변위보다 λ/4, 90° 앞섬)', x1-6, sy0-56, {a:'right',s:11.5,b:1,c:RD});
+ }
+ plot(x=>sAmp*Math.sin(k*(x-x0)-wt), x0, x1, sy0, BL, 3.0);
+
+ // 밀 지점에서 변위 = 0 강조 점
+ for(let n=nMin;n<=nMax;n++){
+  const xComp=x0+(wt+Math.PI+2*Math.PI*n)/k;
+  if(xComp>x0+18 && xComp<x1-18){
+   dot(xComp, py0-pAmp, 5, RD);
+   dot(xComp, sy0, 5, PU);
+  }
+ }
+
+ $('step').innerHTML='<b>핵심 비교</b> · <b style="color:#e11d48">밀(고압, ΔP 최대)</b> 지점은 왼쪽 공기(+변위, →)와 오른쪽 공기(−변위, ←)가 양쪽에서 몰려드는 곳이므로 <b>그 지점 자체의 변위는 0</b>입니다. 반대로 변위가 최대(±A)인 지점은 압력 변화가 0(대기압)입니다. 즉, <b>압력 파동과 변위 파동은 정확히 λ/4 (90°)의 위상차</b>를 가집니다.';
+}
+$('lpk0').onclick=()=>{paused=true;$('pp').textContent='▶ 재생';};
+// ===== tab1 curved waves (곡선 파동)
 const S0={t:0,inv:true,multi:false};
 function pulseA(x){
  const c=150+S0.t*95,u=x-c;
@@ -162,7 +276,7 @@ function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv
  txt('경로차 = '+dp.toFixed(2)+' m = 반 파장의 '+n.toFixed(1)+'배',710,68,{a:'left',s:13,b:1});
  txt(kind,710,96,{a:'left',s:15,b:1,c:kind.startsWith('보강')?BL:(kind.startsWith('상쇄')?RD:SUB)});
  $('step').innerHTML=(S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'아래 그래프처럼 스피커 앞을 걸으면 소리가 <b>커졌다 작아졌다</b>를 반복합니다.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':'');}
-cv.addEventListener('click',e=>{if(tab!==2)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}});
+cv.addEventListener('click',e=>{if(tab!==3)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}});
 $('m2a').onclick=()=>{S2.mode=0;$('m2a').classList.add('on');$('m2b').classList.remove('on')};$('m2b').onclick=()=>{S2.mode=1;$('m2b').classList.add('on');$('m2a').classList.remove('on')};
 // ===== tab3 ANC (그림 III-24 이어폰 / 그림 III-25 자동차 능동 소음 제어 / 파형 상세 실험)
 const S3={mode:0,irr:false,snd:false};let AC=null,osc=null,gn=null;
@@ -351,9 +465,9 @@ function scene4(dt){clear();const dl=+$('l4').value,f=+$('f4').value,lam=VS/f,ph
  txt('길이 차 = 반 파장의 '+(dl/(lam/2)).toFixed(2)+'배 → 남는 소리 '+Math.round(amp*100)+'%',W-30,448,{a:'right',b:1,s:16,c:amp<0.15?GN:(amp>0.85?RD:OR)});
  $('step').innerHTML='길이 차가 <b>반 파장의 홀수 배</b>이면 두 소리가 반대 위상으로 만나 상쇄됩니다(170 Hz, 길이 차 1 m). 오른쪽 그래프처럼 <b>특정 진동수만</b> 크게 줄어들고, 반 파장의 짝수 배가 되는 진동수(예: 340 Hz)는 오히려 보강됩니다.';}
 document.querySelectorAll('[data-f4]').forEach(b=>b.onclick=()=>{$('f4').value=b.dataset.f4});
-function go(i){tab=i;[...$('tabs').children].forEach((b,k)=>b.classList.toggle('on',k===i));for(let k=0;k<5;k++)$('c'+k).classList.toggle('show',k===i);
- $('note').innerHTML='<span class="ws">학습지 '+TABS[i][1]+'</span>'+TABS[i][2];if(S3.snd&&i!==3)$('snd3').click();T=0;S0.t=0}
-function frame(now){const dt=Math.min(0.05,(now-last)/1000)*speed;last=now;if(!paused)T+=dt;[scene0,scene1,scene2,scene3,scene4][tab](paused?0:dt);requestAnimationFrame(frame)}
+function go(i){tab=i;paused=false;$('pp').textContent='⏸ 일시정지';[...$('tabs').children].forEach((b,k)=>b.classList.toggle('on',k===i));for(let k=0;k<TABS.length;k++)$('c'+k).classList.toggle('show',k===i);
+ $('note').innerHTML='<span class="ws">학습지 '+TABS[i][1]+'</span>'+TABS[i][2];if(S3.snd&&i!==4)$('snd3').click();T=0;S0.t=0}
+function frame(now){requestAnimationFrame(frame);const dt=Math.max(0,Math.min(0.05,(now-last)/1000))*speed;last=now;if(!paused)T+=dt;try{[sceneLong,scene0,scene1,scene2,scene3,scene4][tab](paused?0:dt);}catch(e){console.error(e);}}
 go(0);requestAnimationFrame(frame);
 </script></body></html>"""
 
