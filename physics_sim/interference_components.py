@@ -52,6 +52,7 @@ canvas{display:block;width:100%;height:auto}
 <div id="c2" class="ctrl view"><div class="grp">두 파동의 위상차<input type="range" id="ph1" min="0" max="360" step="15" value="0"><span class="val" id="vph1"></span></div><button class="btn" id="ph1a">같은 위상(0°)</button><button class="btn" id="ph1b">반대 위상(180°)</button></div>
 <div id="c3" class="ctrl view">
  <button class="btn on" id="m2a">순간 모습(마루·골)</button><button class="btn" id="m2b">소리의 세기 분포</button>
+ <button class="btn on" id="sp2both">🔊 S₁+S₂ 모두</button><button class="btn" id="sp2one">🔈 S₁ 1개만</button>
  <div class="grp">진동수<input type="range" id="f2" min="300" max="1500" step="50" value="700"><span class="val" id="vf2"></span></div>
  <div class="grp">스피커 간격<input type="range" id="d2" min="0.5" max="2.5" step="0.1" value="1.5"><span class="val" id="vd2"></span></div>
  <label class="grp"><input type="checkbox" id="inv2"> S₂ 위상 반대로</label>
@@ -259,8 +260,8 @@ function scene1(dt){clear();const ph=+$('ph1').value*Math.PI/180,k=2*Math.PI/260
  const deg=+$('ph1').value;$('vph1').textContent=deg+'°';
  $('step').innerHTML=deg%360===0?'<b>같은 위상</b>: 마루와 마루, 골과 골이 만나 진폭이 <b>2A</b>가 됩니다 → <b>보강 간섭</b> (소리가 커짐)':(deg===180?'<b>반대 위상</b>: 마루와 골이 만나 진폭이 <b>0</b>이 됩니다 → <b>상쇄 간섭</b> (소리가 사라짐)':'위상차가 0°에 가까울수록 진폭이 커지고 180°에 가까울수록 작아집니다. 합성파의 <b>진동수(마루 사이 간격)</b>는 변하지 않습니다.');}
 $('ph1a').onclick=()=>{$('ph1').value=0};$('ph1b').onclick=()=>{$('ph1').value=180};
-// ===== tab3 two speakers + P 지점 실시간 소리 재생 (일정 진동수 / 멜로디 음악)
-const S2={mode:0,px:640,py:160,drag:false,snd:false,osc:null,gn:null,tm:null,step:0};
+// ===== tab3 two speakers + P 지점 실시간 소리 재생 (일정 진동수 / 멜로디 음악) + 1개만 켜기 비교
+const S2={mode:0,single:false,px:640,py:160,drag:false,snd:false,osc:null,gn:null,tm:null,step:0};
 const MELODY=[523.25,659.25,783.99,659.25,880.0,783.99,659.25,587.33]; // 도-미-솔-미-라-솔-미-레
 function stopSnd2(){
  S2.snd=false;
@@ -303,8 +304,14 @@ function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv
  const id=ctx.createImageData(fw/res|0,fh/res|0);const k=2*Math.PI/lam,wt=2*Math.PI*T*0.8;
  for(let j=0;j<id.height;j++)for(let i=0;i<id.width;i++){const X=ox+i*res,Y=oy+j*res;
   const r1=Math.hypot(X-s1.x,Y-(s1.y-170))/m2px,r2=Math.hypot(X-s2.x,Y-(s2.y-170))/m2px;
-  let v;if(S2.mode===0){const a1=Math.sin(k*r1-wt)/Math.sqrt(r1+0.3),a2=(inv?-1:1)*Math.sin(k*r2-wt)/Math.sqrt(r2+0.3);v=(a1+a2)*0.9}
-  else{const dphi=k*(r1-r2)+(inv?Math.PI:0);v=(Math.cos(dphi/2))**2*2-1}
+  let v;
+  if(S2.single){
+   v=(S2.mode===0)?(Math.sin(k*r1-wt)/Math.sqrt(r1+0.3))*0.9:(0.25*2-1);
+  }else if(S2.mode===0){
+   const a1=Math.sin(k*r1-wt)/Math.sqrt(r1+0.3),a2=(inv?-1:1)*Math.sin(k*r2-wt)/Math.sqrt(r2+0.3);v=(a1+a2)*0.9
+  }else{
+   const dphi=k*(r1-r2)+(inv?Math.PI:0);v=(Math.cos(dphi/2))**2*2-1
+  }
   const p=(j*id.width+i)*4;let R,G,B;
   if(S2.mode===0){if(v>0){R=255-v*200;G=255-v*170;B=255}else{R=255;G=255+v*170;B=255+v*200}}
   else{const u=(v+1)/2;R=255-u*215;G=255-u*190;B=255-u*60}
@@ -312,36 +319,44 @@ function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv
  const off=document.createElement('canvas');off.width=id.width;off.height=id.height;off.getContext('2d').putImageData(id,0,0);
  ctx.imageSmoothingEnabled=true;ctx.drawImage(off,ox,oy,fw,fh);
  const S1y=s1.y-170,S2y=s2.y-170;
- [[s1.x,S1y,'S₁'],[s2.x,S2y,'S₂']].forEach(q=>{ctx.fillStyle='#334155';ctx.fillRect(q[0]-14,q[1]-12,18,24);txt(q[2],q[0]-26,q[1],{b:1,s:13})});
+ ctx.fillStyle='#334155';ctx.fillRect(s1.x-14,S1y-12,18,24);txt('S₁',s1.x-26,S1y,{b:1,s:13});
+ ctx.fillStyle=S2.single?'#cbd5e1':'#334155';ctx.fillRect(s2.x-14,S2y-12,18,24);txt(S2.single?'S₂(OFF)':'S₂',s2.x-32,S2y,{b:1,s:12,c:S2.single?SUB:INK});
  // probe
  const r1=Math.hypot(S2.px-s1.x,S2.py-S1y)/m2px,r2=Math.hypot(S2.px-s2.x,S2.py-S2y)/m2px,dp=Math.abs(r1-r2),n=dp/(lam/2);
  const dphiP=k*(r1-r2)+(inv?Math.PI:0);
- const ampP=Math.abs(Math.cos(dphiP/2)); // 0 (상쇄) ~ 1 (보강)
+ const ampP=S2.single?0.5:Math.abs(Math.cos(dphiP/2)); // 1개만: 진폭 0.5 (세기 25%), 2개: 0(상쇄)~1(보강 100%)
  if(S2.snd&&S2.gn&&AC){
   if($('snd2type').value==='tone'&&S2.osc)S2.osc.frequency.setTargetAtTime(f,AC.currentTime,0.03);
   S2.gn.gain.setTargetAtTime(0.14*ampP*ampP,AC.currentTime,0.04);
  }
- ln(s1.x,S1y,S2.px,S2.py,BL,1.5,[5,4]);ln(s2.x,S2y,S2.px,S2.py,RD,1.5,[5,4]);dot(S2.px,S2.py,7,'#facc15');ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(S2.px,S2.py,7,0,7);ctx.stroke();txt('P',S2.px+14,S2.py-12,{b:1,s:15});
- const near=Math.round(n),even=near%2===0,clean=Math.abs(n-near)<0.15;let kind=clean?((even!==inv)?'보강 간섭 (소리 큼)':'상쇄 간섭 (소리 작음)'):'보강과 상쇄의 중간';
- // walk line graph
+ ln(s1.x,S1y,S2.px,S2.py,BL,1.5,[5,4]);if(!S2.single)ln(s2.x,S2y,S2.px,S2.py,RD,1.5,[5,4]);dot(S2.px,S2.py,7,'#facc15');ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(S2.px,S2.py,7,0,7);ctx.stroke();txt('P',S2.px+14,S2.py-12,{b:1,s:15});
+ const near=Math.round(n),even=near%2===0,clean=Math.abs(n-near)<0.15;let kind=S2.single?'스피커 1개 (간섭 없음 · 기준 세기)':(clean?((even!==inv)?'보강 간섭 (소리 큼)':'상쇄 간섭 (소리 작음)'):'보강과 상쇄의 중간');
+ // walk line graph (1개만 켰을 때 기준 25% 점선과 비교)
  const gy=440,gx0=ox,gx1=ox+fw;ln(gx0,gy,gx1,gy,'#cbd5e1',1);
- ctx.beginPath();ctx.strokeStyle=PU;ctx.lineWidth=2;for(let X=gx0;X<=gx1;X+=3){const a=Math.hypot(X-s1.x,S2.py-S1y)/m2px,b=Math.hypot(X-s2.x,S2.py-S2y)/m2px;const I=(Math.cos((k*(a-b)+(inv?Math.PI:0))/2))**2;const y=gy-I*70;X===gx0?ctx.moveTo(X,y):ctx.lineTo(X,y)}ctx.stroke();
+ ln(gx0,gy-0.25*70,gx1,gy-0.25*70,'#94a3b8',1.2,[4,4]);txt('1개 기준(25%)',gx0+4,gy-0.25*70-10,{a:'left',s:10.5,c:SUB});
+ ctx.beginPath();ctx.strokeStyle=S2.single?'rgba(124,58,237,0.3)':PU;ctx.lineWidth=S2.single?1.5:2.2;if(S2.single)ctx.setLineDash([4,4]);
+ for(let X=gx0;X<=gx1;X+=3){const a=Math.hypot(X-s1.x,S2.py-S1y)/m2px,b=Math.hypot(X-s2.x,S2.py-S2y)/m2px;const I=(Math.cos((k*(a-b)+(inv?Math.PI:0))/2))**2;const y=gy-I*70;X===gx0?ctx.moveTo(X,y):ctx.lineTo(X,y)}ctx.stroke();ctx.setLineDash([]);
+ if(S2.single){ln(gx0,gy-0.25*70,gx1,gy-0.25*70,BL,2.6);}
  txt('P를 지나는 가로줄을 따라 걸을 때 소리의 세기',gx0,gy-82+4,{a:'left',s:12,b:1,c:PU});ln(S2.px,gy-75,S2.px,gy,'#facc15',2);
  // 정보 박스 + 실시간 소리 세기 바
  ctx.fillStyle='rgba(255,255,255,0.94)';ctx.fillRect(685,24,305,118);ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.strokeRect(685,24,305,118);
- txt('S₁P = '+r1.toFixed(2)+' m,  S₂P = '+r2.toFixed(2)+' m',696,42,{a:'left',s:13});
- txt('경로차 = '+dp.toFixed(2)+' m = 반 파장의 '+n.toFixed(1)+'배',696,64,{a:'left',s:13,b:1});
- txt(kind,696,88,{a:'left',s:14.5,b:1,c:kind.startsWith('보강')?BL:(kind.startsWith('상쇄')?RD:SUB)});
+ txt(S2.single?('S₁P = '+r1.toFixed(2)+' m  (S₂ 꺼짐)'):('S₁P = '+r1.toFixed(2)+' m,  S₂P = '+r2.toFixed(2)+' m'),696,42,{a:'left',s:13});
+ txt(S2.single?'간섭 없음 (단일 파원 기준 진폭 A)':'경로차 = '+dp.toFixed(2)+' m = 반 파장의 '+n.toFixed(1)+'배',696,64,{a:'left',s:13,b:1});
+ txt(kind,696,88,{a:'left',s:14,b:1,c:S2.single?GN:(kind.startsWith('보강')?BL:(kind.startsWith('상쇄')?RD:SUB))});
  txt('🔊 P 지점 소리 세기: '+Math.round(ampP*ampP*100)+'%',696,112,{a:'left',s:12,b:1,c:INK});
  ctx.fillStyle='#e2e8f0';ctx.fillRect(835,105,142,13);
- ctx.fillStyle=ampP>0.7?BL:(ampP<0.3?RD:PU);ctx.fillRect(835,105,142*ampP*ampP,13);
- $('step').innerHTML=(S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'<b>🔊 P 지점 소리 듣기</b>를 켜고 마우스로 P를 드래그하면 보강·상쇄 위치에 따른 소리 크기 변화를 직접 들을 수 있습니다.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':'');}
+ ctx.fillStyle=S2.single?GN:(ampP>0.7?BL:(ampP<0.3?RD:PU));ctx.fillRect(835,105,142*ampP*ampP,13);
+ $('step').innerHTML=S2.single
+  ? '<b>스피커 S₁ 1개만 켜진 상태</b>입니다. 간섭 무늬가 사라지고 모든 위치에서 일정한 기준 세기(<b>25%</b>, 진폭 A)로 들립니다. 상쇄 간섭(흰 줄)에 P를 두고 <b>S₁+S₂ 모두 ↔ S₁ 1개만</b>을 번갈아 눌러 보면, <b>스피커를 1개 껐는데 오히려 소리가 커지는</b> 신기한 현상을 체험할 수 있습니다!'
+  : ((S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'<b>🔈 S₁ 1개만</b> 버튼과 번갈아 눌러 단일 스피커(25%) 대비 보강(100%, 4배)과 상쇄(0%)의 차이를 비교해 보세요.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':''));}
 function moveP(e){if(tab!==3)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}}
 cv.addEventListener('mousedown',e=>{if(tab===3){S2.drag=true;moveP(e)}});
 cv.addEventListener('mousemove',e=>{if(tab===3&&S2.drag)moveP(e)});
 window.addEventListener('mouseup',()=>{S2.drag=false});
 cv.addEventListener('click',moveP);
 $('m2a').onclick=()=>{S2.mode=0;$('m2a').classList.add('on');$('m2b').classList.remove('on')};$('m2b').onclick=()=>{S2.mode=1;$('m2b').classList.add('on');$('m2a').classList.remove('on')};
+$('sp2both').onclick=()=>{S2.single=false;$('sp2both').classList.add('on');$('sp2one').classList.remove('on')};
+$('sp2one').onclick=()=>{S2.single=true;$('sp2one').classList.add('on');$('sp2both').classList.remove('on')};
 
 // ===== tab4 경로차와 보강·상쇄 간섭 조건 (두 경로의 파동 비교)
 const SP={snd:false,osc:null,gn:null};
