@@ -55,9 +55,25 @@ canvas{display:block;width:100%;height:auto}
  <div class="grp">진동수<input type="range" id="f2" min="300" max="1500" step="50" value="700"><span class="val" id="vf2"></span></div>
  <div class="grp">스피커 간격<input type="range" id="d2" min="0.5" max="2.5" step="0.1" value="1.5"><span class="val" id="vd2"></span></div>
  <label class="grp"><input type="checkbox" id="inv2"> S₂ 위상 반대로</label>
- <span style="font-size:12px;color:#64748b">화면을 클릭하면 측정점 P가 옮겨집니다</span>
+ <select id="snd2type" class="btn" style="padding:5px 8px">
+  <option value="tone">🎵 일정 진동수 (현재 f)</option>
+  <option value="music">🎶 멜로디 음악</option>
+ </select>
+ <button class="btn" id="snd2">🔊 P 지점 소리 듣기</button>
+ <span style="font-size:12px;color:#64748b">화면을 클릭·드래그해 P를 옮기세요</span>
 </div>
 <div id="c4" class="ctrl view">
+ <div class="grp">경로차 Δr = |r₂−r₁|<input type="range" id="drp" min="0" max="3" step="0.1" value="0.5"><span class="val" id="vdrp">0.5 λ</span></div>
+ <button class="btn" data-dr="0">0 (보강)</button>
+ <button class="btn on" data-dr="0.5">0.5λ (상쇄)</button>
+ <button class="btn" data-dr="1">1.0λ (보강)</button>
+ <button class="btn" data-dr="1.5">1.5λ (상쇄)</button>
+ <button class="btn" data-dr="2">2.0λ (보강)</button>
+ <button class="btn" data-dr="2.5">2.5λ (상쇄)</button>
+ <label class="grp"><input type="checkbox" id="invp"> S₂ 위상 반대로</label>
+ <button class="btn" id="sndp">🔊 P 지점 소리 듣기</button>
+</div>
+<div id="c5" class="ctrl view">
  <button class="btn on" data-m3="0">🎧 그림 Ⅲ-24 소음 제거 이어폰</button>
  <button class="btn" data-m3="1">🚗 그림 Ⅲ-25 자동차 능동 소음 제어</button>
  <button class="btn" data-m3="2">📈 파형 상세 실험</button>
@@ -66,7 +82,7 @@ canvas{display:block;width:100%;height:auto}
  <div class="grp">위상차<input type="range" id="p3" min="0" max="360" step="10" value="180"><span class="val" id="vp3"></span></div>
  <button class="btn" id="noise3">소음: 규칙적</button><button class="btn" id="snd3">🔊 귀에 들리는 소리</button>
 </div>
-<div id="c5" class="ctrl view">
+<div id="c6" class="ctrl view">
  <div class="grp">두 통로의 길이 차<input type="range" id="l4" min="0" max="2" step="0.05" value="1"><span class="val" id="vl4"></span></div>
  <div class="grp">소음 진동수<input type="range" id="f4" min="50" max="700" step="10" value="170"><span class="val" id="vf4"></span></div>
  <button class="btn" data-f4="170">170 Hz (반 파장 1배·상쇄)</button>
@@ -82,7 +98,8 @@ const BL='#2563eb',RD='#e11d48',GN='#059669',PU='#7c3aed',INK='#0f172a',SUB='#64
 const TABS=[['⓪ 종파의 밀·소 (압력·변위)','기초 개념','음파는 공기가 진행 방향과 나란히 진동하는 종파입니다. 공기가 모인 곳은 <b>밀(고압, ΔP 최대)</b>, 성긴 곳은 <b>소(저압, ΔP 최소)</b>이며, 밀·소 지점에서 <b>매질의 변위는 0</b>입니다(압력과 변위는 λ/4, 즉 90° 위상차).'],
 ['① 중첩의 원리','A①','두 파동이 겹치는 곳의 변위는 두 변위의 합입니다. 지나간 뒤에는 각자 원래 모양으로 진행합니다.'],
 ['② 보강 간섭·상쇄 간섭','A②','같은 위상으로 만나면 진폭이 커지고(보강), 반대 위상으로 만나면 진폭이 작아집니다(상쇄). 진동수는 변하지 않습니다.'],
-['③ 두 스피커의 간섭','B','경로차가 반 파장의 짝수 배인 곳은 보강(소리 큼), 홀수 배인 곳은 상쇄(소리 작음)입니다.'],
+['③ 두 스피커의 간섭','B','경로차가 반 파장의 짝수 배인 곳은 보강(소리 큼), 홀수 배인 곳은 상쇄(소리 작음)입니다. P를 드래그하며 소리 세기 변화를 직접 들어 보세요!'],
+['③-2 경로차와 간섭 조건','B 심화','두 파원 S₁, S₂에서 P까지의 거리 차(경로차 Δr = |r₂ − r₁|)가 반 파장의 짝수 배(0, λ, 2λ…)이면 같은 위상으로 만나 <b>보강 간섭</b>, 홀수 배(0.5λ, 1.5λ, 2.5λ…)이면 반대 위상으로 만나 <b>상쇄 간섭</b>이 일어납니다.'],
 ['④ 소음 제거 이어폰','C①','소음과 진동수·진폭이 같고 위상이 반대인 소리를 더하면 상쇄 간섭으로 소음이 줄어듭니다.'],
 ['⑤ 자동차 배기 소음기','C②','두 통로의 길이 차가 반 파장의 홀수 배인 진동수의 소음이 상쇄 간섭으로 줄어듭니다.']];
 let tab=0,paused=false,speed=0.5,last=performance.now(),T=0;
@@ -242,8 +259,41 @@ function scene1(dt){clear();const ph=+$('ph1').value*Math.PI/180,k=2*Math.PI/260
  const deg=+$('ph1').value;$('vph1').textContent=deg+'°';
  $('step').innerHTML=deg%360===0?'<b>같은 위상</b>: 마루와 마루, 골과 골이 만나 진폭이 <b>2A</b>가 됩니다 → <b>보강 간섭</b> (소리가 커짐)':(deg===180?'<b>반대 위상</b>: 마루와 골이 만나 진폭이 <b>0</b>이 됩니다 → <b>상쇄 간섭</b> (소리가 사라짐)':'위상차가 0°에 가까울수록 진폭이 커지고 180°에 가까울수록 작아집니다. 합성파의 <b>진동수(마루 사이 간격)</b>는 변하지 않습니다.');}
 $('ph1a').onclick=()=>{$('ph1').value=0};$('ph1b').onclick=()=>{$('ph1').value=180};
-// ===== tab2 two speakers
-const S2={mode:0,px:640,py:160,img:null};
+// ===== tab3 two speakers + P 지점 실시간 소리 재생 (일정 진동수 / 멜로디 음악)
+const S2={mode:0,px:640,py:160,drag:false,snd:false,osc:null,gn:null,tm:null,step:0};
+const MELODY=[523.25,659.25,783.99,659.25,880.0,783.99,659.25,587.33]; // 도-미-솔-미-라-솔-미-레
+function stopSnd2(){
+ S2.snd=false;
+ if(S2.tm){clearInterval(S2.tm);S2.tm=null}
+ if(S2.osc){try{S2.osc.stop()}catch(e){};S2.osc=null}
+ if(S2.gn){try{S2.gn.disconnect()}catch(e){};S2.gn=null}
+ $('snd2').classList.remove('on');$('snd2').textContent='🔊 P 지점 소리 듣기';
+}
+function startSnd2(){
+ stopSnd2();
+ if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+ if(AC.state==='suspended')AC.resume();
+ S2.snd=true;
+ S2.osc=AC.createOscillator(); S2.gn=AC.createGain();
+ const isMus=$('snd2type').value==='music';
+ S2.osc.type=isMus?'triangle':'sine';
+ S2.osc.frequency.value=isMus?MELODY[0]:+$('f2').value;
+ S2.gn.gain.value=0.001;
+ S2.osc.connect(S2.gn).connect(AC.destination);
+ S2.osc.start();
+ if(isMus){
+  S2.step=0;
+  S2.tm=setInterval(()=>{
+   if(!S2.snd||!S2.osc)return;
+   S2.step=(S2.step+1)%MELODY.length;
+   S2.osc.frequency.setTargetAtTime(MELODY[S2.step],AC.currentTime,0.02);
+  },360);
+ }
+ $('snd2').classList.add('on');$('snd2').textContent='🔇 P 지점 소리 끄기';
+}
+$('snd2').onclick=()=>{if(S2.snd)stopSnd2();else startSnd2()};
+$('snd2type').onchange=()=>{if(S2.snd)startSnd2()};
+
 const GX=500,GY=330,sc=2; // grid units
 function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv=$('inv2').checked;
  $('vf2').textContent=f+' Hz (λ='+lam.toFixed(2)+' m)';$('vd2').textContent=d.toFixed(1)+' m';
@@ -265,19 +315,157 @@ function scene2(dt){clear();const f=+$('f2').value,lam=VS/f,d=+$('d2').value,inv
  [[s1.x,S1y,'S₁'],[s2.x,S2y,'S₂']].forEach(q=>{ctx.fillStyle='#334155';ctx.fillRect(q[0]-14,q[1]-12,18,24);txt(q[2],q[0]-26,q[1],{b:1,s:13})});
  // probe
  const r1=Math.hypot(S2.px-s1.x,S2.py-S1y)/m2px,r2=Math.hypot(S2.px-s2.x,S2.py-S2y)/m2px,dp=Math.abs(r1-r2),n=dp/(lam/2);
+ const dphiP=k*(r1-r2)+(inv?Math.PI:0);
+ const ampP=Math.abs(Math.cos(dphiP/2)); // 0 (상쇄) ~ 1 (보강)
+ if(S2.snd&&S2.gn&&AC){
+  if($('snd2type').value==='tone'&&S2.osc)S2.osc.frequency.setTargetAtTime(f,AC.currentTime,0.03);
+  S2.gn.gain.setTargetAtTime(0.14*ampP*ampP,AC.currentTime,0.04);
+ }
  ln(s1.x,S1y,S2.px,S2.py,BL,1.5,[5,4]);ln(s2.x,S2y,S2.px,S2.py,RD,1.5,[5,4]);dot(S2.px,S2.py,7,'#facc15');ctx.strokeStyle=INK;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(S2.px,S2.py,7,0,7);ctx.stroke();txt('P',S2.px+14,S2.py-12,{b:1,s:15});
  const near=Math.round(n),even=near%2===0,clean=Math.abs(n-near)<0.15;let kind=clean?((even!==inv)?'보강 간섭 (소리 큼)':'상쇄 간섭 (소리 작음)'):'보강과 상쇄의 중간';
  // walk line graph
  const gy=440,gx0=ox,gx1=ox+fw;ln(gx0,gy,gx1,gy,'#cbd5e1',1);
  ctx.beginPath();ctx.strokeStyle=PU;ctx.lineWidth=2;for(let X=gx0;X<=gx1;X+=3){const a=Math.hypot(X-s1.x,S2.py-S1y)/m2px,b=Math.hypot(X-s2.x,S2.py-S2y)/m2px;const I=(Math.cos((k*(a-b)+(inv?Math.PI:0))/2))**2;const y=gy-I*70;X===gx0?ctx.moveTo(X,y):ctx.lineTo(X,y)}ctx.stroke();
  txt('P를 지나는 가로줄을 따라 걸을 때 소리의 세기',gx0,gy-82+4,{a:'left',s:12,b:1,c:PU});ln(S2.px,gy-75,S2.px,gy,'#facc15',2);
- ctx.fillStyle='rgba(255,255,255,0.92)';ctx.fillRect(700,26,290,96);
- txt('S₁P = '+r1.toFixed(2)+' m,  S₂P = '+r2.toFixed(2)+' m',710,44,{a:'left',s:13});
- txt('경로차 = '+dp.toFixed(2)+' m = 반 파장의 '+n.toFixed(1)+'배',710,68,{a:'left',s:13,b:1});
- txt(kind,710,96,{a:'left',s:15,b:1,c:kind.startsWith('보강')?BL:(kind.startsWith('상쇄')?RD:SUB)});
- $('step').innerHTML=(S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'아래 그래프처럼 스피커 앞을 걸으면 소리가 <b>커졌다 작아졌다</b>를 반복합니다.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':'');}
-cv.addEventListener('click',e=>{if(tab!==3)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}});
+ // 정보 박스 + 실시간 소리 세기 바
+ ctx.fillStyle='rgba(255,255,255,0.94)';ctx.fillRect(685,24,305,118);ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;ctx.strokeRect(685,24,305,118);
+ txt('S₁P = '+r1.toFixed(2)+' m,  S₂P = '+r2.toFixed(2)+' m',696,42,{a:'left',s:13});
+ txt('경로차 = '+dp.toFixed(2)+' m = 반 파장의 '+n.toFixed(1)+'배',696,64,{a:'left',s:13,b:1});
+ txt(kind,696,88,{a:'left',s:14.5,b:1,c:kind.startsWith('보강')?BL:(kind.startsWith('상쇄')?RD:SUB)});
+ txt('🔊 P 지점 소리 세기: '+Math.round(ampP*ampP*100)+'%',696,112,{a:'left',s:12,b:1,c:INK});
+ ctx.fillStyle='#e2e8f0';ctx.fillRect(835,105,142,13);
+ ctx.fillStyle=ampP>0.7?BL:(ampP<0.3?RD:PU);ctx.fillRect(835,105,142*ampP*ampP,13);
+ $('step').innerHTML=(S2.mode===0?'<b style="color:#2563eb">파란색 = 마루</b>, <b style="color:#e11d48">빨간색 = 골</b>입니다. 마루끼리·골끼리 만나는 줄은 진하게 출렁이고(보강), 마루와 골이 만나는 줄은 거의 흰색입니다(상쇄). ':'진한 곳일수록 소리가 큽니다. 흰 줄(소리 작음)이 상쇄 간섭 지점입니다. ')+'<b>🔊 P 지점 소리 듣기</b>를 켜고 마우스로 P를 드래그하면 보강·상쇄 위치에 따른 소리 크기 변화를 직접 들을 수 있습니다.'+(inv?' (지금은 S₂ 위상이 반대라 조건이 서로 바뀌었습니다.)':'');}
+function moveP(e){if(tab!==3)return;const r=cv.getBoundingClientRect();const x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(x>130&&x<980&&y>20&&y<340){S2.px=x;S2.py=y}}
+cv.addEventListener('mousedown',e=>{if(tab===3){S2.drag=true;moveP(e)}});
+cv.addEventListener('mousemove',e=>{if(tab===3&&S2.drag)moveP(e)});
+window.addEventListener('mouseup',()=>{S2.drag=false});
+cv.addEventListener('click',moveP);
 $('m2a').onclick=()=>{S2.mode=0;$('m2a').classList.add('on');$('m2b').classList.remove('on')};$('m2b').onclick=()=>{S2.mode=1;$('m2b').classList.add('on');$('m2a').classList.remove('on')};
+
+// ===== tab4 경로차와 보강·상쇄 간섭 조건 (두 경로의 파동 비교)
+const SP={snd:false,osc:null,gn:null};
+function stopSndP(){
+ SP.snd=false;
+ if(SP.osc){try{SP.osc.stop()}catch(e){};SP.osc=null}
+ if(SP.gn){try{SP.gn.disconnect()}catch(e){};SP.gn=null}
+ $('sndp').classList.remove('on');$('sndp').textContent='🔊 P 지점 소리 듣기';
+}
+$('sndp').onclick=()=>{
+ if(SP.snd){stopSndP();return}
+ if(!AC)AC=new (window.AudioContext||window.webkitAudioContext)();
+ if(AC.state==='suspended')AC.resume();
+ SP.snd=true;
+ SP.osc=AC.createOscillator(); SP.gn=AC.createGain();
+ SP.osc.type='sine'; SP.osc.frequency.value=440; SP.gn.gain.value=0.001;
+ SP.osc.connect(SP.gn).connect(AC.destination); SP.osc.start();
+ $('sndp').classList.add('on');$('sndp').textContent='🔇 소리 끄기';
+};
+function scenePath(dt){
+ clear();
+ const dr=+$('drp').value; // 경로차 (λ 단위: 0 ~ 3.0)
+ const inv=$('invp').checked;
+ const halfN=dr*2; // 반 파장의 배수
+ $('vdrp').textContent=dr.toFixed(1)+' λ (반 파장 '+halfN.toFixed(1)+'배)';
+
+ const lamPx=130; // 1파장 = 130 px
+ const xP=760;    // 관찰 지점 P의 x 좌표
+ const r1Lam=2.5; // S1 -> P 기본 거리 = 2.5 λ
+ const xS1=xP-r1Lam*lamPx;        // 760 - 325 = 435
+ const xS2=xP-(r1Lam+dr)*lamPx;   // S2는 왼쪽으로 dr*lamPx만큼 더 멀리 위치!
+ const k=2*Math.PI/lamPx, wt=2*Math.PI*0.65*T, A=36;
+
+ // 관찰점 P 수직 기준선
+ ln(xP,24,xP,436,'#f59e0b',2,[5,4]);
+ dot(xP,24,6,'#f59e0b');
+ txt('관찰 지점 P',xP,13,{b:1,s:13,c:'#b45309'});
+
+ // 경로차 Δr = r2 - r1 하이라이트 영역 (xS2 .. xS1)
+ if(dr>0.01){
+  ctx.fillStyle='rgba(250,204,21,0.16)';
+  ctx.fillRect(xS2,135,xS1-xS2,102);
+  ln(xS2,45,xS2,245,'#94a3b8',1.2,[3,3]);
+  ln(xS1,45,xS1,245,'#94a3b8',1.2,[3,3]);
+  arr(xS2+2,148,xS1-2,148,'#b45309');
+  arr(xS1-2,148,xS2+2,148,'#b45309');
+  txt('경로차 Δr = '+dr.toFixed(1)+'λ (반 파장의 '+halfN.toFixed(1)+'배)',(xS2+xS1)/2,133,{b:1,s:12.5,c:'#b45309'});
+ }
+
+ // 1) 파원 S1 -> P 파동 (y = 82)
+ const y1Axis=82;
+ ln(35,y1Axis,xP,y1Axis,'#e2e8f0',1);
+ const f1=x=>A*Math.sin(k*(x-xS1)-wt);
+ plot(f1,xS1,xP,y1Axis,BL,2.8);
+ dot(xS1,y1Axis,7,BL); txt('S₁',xS1-18,y1Axis,{b:1,s:14,c:BL});
+ txt('경로 1 (r₁ = 2.5λ)',xS1+8,y1Axis-48,{a:'left',b:1,s:12.5,c:BL});
+ dot(xP,y1Axis-f1(xP),5.5,BL);
+
+ // 2) 파원 S2 -> P 파동 (y = 202)
+ const y2Axis=202;
+ ln(35,y2Axis,xP,y2Axis,'#e2e8f0',1);
+ const phInv=inv?Math.PI:0;
+ const f2=x=>A*Math.sin(k*(x-xS2)-wt+phInv);
+ plot(f2,Math.max(35,xS2),xP,y2Axis,RD,2.8);
+ dot(Math.max(35,xS2),y2Axis,7,RD); txt('S₂'+(inv?'(반대위상)':''),Math.max(35,xS2),y2Axis+22,{b:1,s:12.5,c:RD});
+ txt('경로 2 (r₂ = '+(r1Lam+dr).toFixed(1)+'λ)',Math.max(42,xS2+8),y2Axis-48,{a:'left',b:1,s:12.5,c:RD});
+ dot(xP,y2Axis-f2(xP),5.5,RD);
+
+ // 3) P 지점 부근 합성파 (x = xS1 .. xP, y = 352)
+ const y3Axis=352;
+ ln(xS1,y3Axis,xP,y3Axis,'#e2e8f0',1);
+ txt('지점 P에서의 합성파 (파동 1 + 파동 2)',xS1,y3Axis-76,{a:'left',b:1,s:13,c:PU});
+ plot(f1,xS1,xP,y3Axis,'rgba(37,99,235,0.5)',1.6,[4,4]);
+ plot(f2,xS1,xP,y3Axis,'rgba(225,29,72,0.5)',1.6,[4,4]);
+ plot(x=>f1(x)+f2(x),xS1,xP,y3Axis,PU,3.6);
+ const ySumP=f1(xP)+f2(xP);
+ dot(xP,y3Axis-ySumP,6.5,PU);
+
+ // 우측 결과 판정 패널 (x = 790 .. 980)
+ const dphi=2*Math.PI*dr+phInv;
+ const ampRatio=2*Math.abs(Math.cos(dphi/2)); // 0 ~ 2 (A 기준)
+ if(SP.snd&&SP.gn&&AC){SP.gn.gain.setTargetAtTime(0.13*(ampRatio/2)*(ampRatio/2),AC.currentTime,0.04)}
+
+ const nearHalf=Math.round(halfN);
+ const isExact=Math.abs(halfN-nearHalf)<0.08;
+ const isEven=nearHalf%2===0;
+ const isConst=isExact&&(isEven!==inv);
+ const isDest=isExact&&(isEven===inv);
+ const statusTxt=isConst?'보강 간섭 (최대!)':(isDest?'상쇄 간섭 (소멸!)':'중간 간섭');
+ const statusCol=isConst?BL:(isDest?RD:SUB);
+
+ ctx.fillStyle='#f8fafc';ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1.5;
+ ctx.beginPath();ctx.roundRect(788,40,196,385,14);ctx.fill();ctx.stroke();
+ txt('지점 P 간섭 판정',886,66,{b:1,s:14,c:INK});
+ ctx.fillStyle=isConst?'#eff6ff':(isDest?'#fff1f2':'#f1f5f9');
+ ctx.beginPath();ctx.roundRect(802,84,168,42,10);ctx.fill();
+ txt(statusTxt,886,105,{b:1,s:16,c:statusCol});
+
+ txt('합성파 진폭',886,148,{s:12,c:SUB,b:1});
+ txt(ampRatio.toFixed(2)+' A',886,172,{s:22,c:PU,b:1});
+
+ // 진폭 막대 게이지
+ ctx.fillStyle='#e2e8f0';ctx.fillRect(856,196,60,120);
+ const barH=(ampRatio/2)*120;
+ ctx.fillStyle=statusCol;ctx.fillRect(856,316-barH,60,barH);
+ txt('2A',842,202,{s:11,c:SUB});txt('A',842,256,{s:11,c:SUB});txt('0',842,316,{s:11,c:SUB});
+
+ // 조건 요약 공식
+ txt('📌 같은 위상 파원 기준',886,346,{s:11.5,b:1,c:INK});
+ txt('보강: Δr = (λ/2) × 짝수',886,368,{s:11.5,b:1,c:BL});
+ txt('상쇄: Δr = (λ/2) × 홀수',886,388,{s:11.5,b:1,c:RD});
+ txt('현재: (λ/2) × '+halfN.toFixed(1),886,410,{s:11.5,b:1,c:'#b45309'});
+
+ $('step').innerHTML=isConst
+  ? '<b>보강 간섭 조건 성립!</b> 경로차 Δr = '+dr.toFixed(1)+'λ (반 파장의 '+nearHalf+'배)이므로 두 파동이 지점 P에 <b>같은 위상(마루+마루, 골+골)</b>으로 도착하여 진폭이 <b>2A</b>로 커집니다.'
+  : (isDest
+    ? '<b>상쇄 간섭 조건 성립!</b> 경로차 Δr = '+dr.toFixed(1)+'λ (반 파장의 '+nearHalf+'배)이므로 두 파동이 지점 P에 <b>반대 위상(마루+골)</b>으로 도착하여 서로 지워져 진폭이 <b>0</b>이 됩니다.'
+    : '경로차 Δr = '+dr.toFixed(1)+'λ (반 파장의 '+halfN.toFixed(1)+'배)입니다. 위 프리셋 버튼을 눌러 반 파장의 짝수 배(보강)와 홀수 배(상쇄)일 때 P 지점의 두 파동이 어떻게 만나는지 비교해 보세요.');
+}
+document.querySelectorAll('[data-dr]').forEach(b=>b.onclick=()=>{
+ $('drp').value=b.dataset.dr;
+ document.querySelectorAll('[data-dr]').forEach(x=>x.classList.toggle('on',x===b));
+});
+$('drp').oninput=()=>document.querySelectorAll('[data-dr]').forEach(x=>x.classList.toggle('on',Math.abs(+x.dataset.dr-+$('drp').value)<0.01));
 // ===== tab3 ANC (그림 III-24 이어폰 / 그림 III-25 자동차 능동 소음 제어 / 파형 상세 실험)
 const S3={mode:0,irr:false,snd:false};let AC=null,osc=null,gn=null;
 function noise(t){return S3.irr?(0.6*Math.sin(2*Math.PI*1.0*t)+0.35*Math.sin(2*Math.PI*2.7*t+1)+0.25*Math.sin(2*Math.PI*4.3*t+2)):Math.sin(2*Math.PI*1.0*t)}
@@ -466,8 +654,8 @@ function scene4(dt){clear();const dl=+$('l4').value,f=+$('f4').value,lam=VS/f,ph
  $('step').innerHTML='길이 차가 <b>반 파장의 홀수 배</b>이면 두 소리가 반대 위상으로 만나 상쇄됩니다(170 Hz, 길이 차 1 m). 오른쪽 그래프처럼 <b>특정 진동수만</b> 크게 줄어들고, 반 파장의 짝수 배가 되는 진동수(예: 340 Hz)는 오히려 보강됩니다.';}
 document.querySelectorAll('[data-f4]').forEach(b=>b.onclick=()=>{$('f4').value=b.dataset.f4});
 function go(i){tab=i;paused=false;$('pp').textContent='⏸ 일시정지';[...$('tabs').children].forEach((b,k)=>b.classList.toggle('on',k===i));for(let k=0;k<TABS.length;k++)$('c'+k).classList.toggle('show',k===i);
- $('note').innerHTML='<span class="ws">학습지 '+TABS[i][1]+'</span>'+TABS[i][2];if(S3.snd&&i!==4)$('snd3').click();T=0;S0.t=0}
-function frame(now){requestAnimationFrame(frame);const dt=Math.max(0,Math.min(0.05,(now-last)/1000))*speed;last=now;if(!paused)T+=dt;try{[sceneLong,scene0,scene1,scene2,scene3,scene4][tab](paused?0:dt);}catch(e){console.error(e);}}
+ $('note').innerHTML='<span class="ws">학습지 '+TABS[i][1]+'</span>'+TABS[i][2];if(S2.snd&&i!==3)stopSnd2();if(SP.snd&&i!==4)stopSndP();if(S3.snd&&i!==5)$('snd3').click();T=0;S0.t=0}
+function frame(now){requestAnimationFrame(frame);const dt=Math.max(0,Math.min(0.05,(now-last)/1000))*speed;last=now;if(!paused)T+=dt;try{[sceneLong,scene0,scene1,scene2,scenePath,scene3,scene4][tab](paused?0:dt);}catch(e){console.error(e);}}
 go(0);requestAnimationFrame(frame);
 </script></body></html>"""
 
