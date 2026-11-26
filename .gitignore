@@ -16,3 +16,9 @@ test_write.txt
 admin_tools/
 *-DESKTOP-*
 scratch/
+
+# 학생 개인정보(이름·학번)가 담긴 제출물: 저장소에 올리지 않음
+static/submissions_*/
+static/submission_list_*.html
+*제출목록*.html
+submissions_*/

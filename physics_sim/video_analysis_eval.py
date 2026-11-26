@@ -253,7 +253,7 @@ def _render_submission_content():
         import streamlit.components.v1 as components
         components.html(html_code, height=580, scrolling=True)
     else:
-        st.warning("1차시 제출 목록 파일(1차시_JSON_제출목록.html)을 찾을 수 없습니다.")
+        st.warning("1차시 제출 목록 파일이 없습니다. 학생 개인정보 보호를 위해 제출 파일은 저장소에 올리지 않으며, 교사 PC에서 로컬로 실행할 때만 표시됩니다.")
 
 
 if hasattr(st, "dialog"):
@@ -1488,6 +1488,6 @@ with st.expander("🔒 교사용 확인"):
             if st.button("📋 1차시 JSON 제출 목록 모달 열기", key="teacher_sub_modal", **FULL):
                 show_submission_modal()
         with t_c2:
-            st.link_button("📄 1차시 제출 목록 새 창 열기 ↗", "/app/static/submission_list_1.html", **FULL)
+            st.link_button("📄 1차시 제출 목록 새 창 열기 ↗", "/submission_list_1", **FULL)
 
 st.caption("사곡고등학교 역학과 에너지 · 시뮬레이션 및 실습 지원 포털")

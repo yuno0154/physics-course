@@ -90,4 +90,4 @@ st.markdown("---")
 if html_data:
     components.html(html_data, height=950, scrolling=True)
 else:
-    st.error("1차시 제출 목록 파일(1차시_JSON_제출목록.html)을 찾을 수 없습니다.")
+    st.error("1차시 제출 목록 파일이 없습니다. 학생 개인정보 보호를 위해 제출 파일은 저장소에 올리지 않으며, 교사 PC에서 로컬로 실행할 때만 표시됩니다.")
