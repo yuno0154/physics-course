@@ -287,14 +287,14 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="slider-freq" class="text-xs font-bold text-slate-700">스마트폰 음파 진동수 (<span class="italic font-serif">f</span>)</label>
-              <span id="label-freq" class="text-xs font-extrabold font-mono-num text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">850 Hz</span>
+              <span id="label-freq" class="text-xs font-extrabold font-mono-num text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">1150 Hz</span>
             </div>
-            <input id="slider-freq" type="range" min="600" max="1200" step="10" value="850" class="w-full" />
+            <input id="slider-freq" type="range" min="600" max="1400" step="10" value="1150" class="w-full" />
             <div class="flex items-center gap-1.5 mt-2">
               <span class="text-[11px] text-slate-400">추천 진동수:</span>
-              <button data-freq="850" data-trial="0" class="freq-preset px-2.5 py-0.5 rounded-md bg-sky-600 text-white text-[11px] font-mono-num font-bold transition">850 Hz</button>
-              <button data-freq="1000" data-trial="1" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1000 Hz</button>
-              <button data-freq="1150" data-trial="2" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1150 Hz</button>
+              <button data-freq="1150" data-trial="0" class="freq-preset px-2.5 py-0.5 rounded-md bg-sky-600 text-white text-[11px] font-mono-num font-bold transition">1150 Hz</button>
+              <button data-freq="1200" data-trial="1" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1200 Hz</button>
+              <button data-freq="1250" data-trial="2" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1250 Hz</button>
             </div>
           </div>
 
@@ -306,7 +306,7 @@
               <label for="slider-height" class="text-xs font-bold text-slate-700">바닥에서 투명 필름 끝 높이 (<span class="italic font-serif">L</span>)</label>
               <span id="label-height" class="text-xs font-extrabold font-mono-num text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">43.0 cm (0.430 m)</span>
             </div>
-            <input id="slider-height" type="range" min="20.0" max="52.0" step="0.1" value="43.0" class="w-full slider-emerald" />
+            <input id="slider-height" type="range" min="32.0" max="55.0" step="0.1" value="43.0" class="w-full slider-emerald" />
             <div class="flex items-center justify-between gap-1 mt-2">
               <div class="flex items-center gap-1">
                 <button data-delta="-0.5" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">-5mm</button>
@@ -384,10 +384,10 @@
             </button>
           </div>
           <p class="leading-relaxed">
-            • <strong>공기 기둥 길이(<span class="italic font-serif">L</span>) 범위:</strong> 눈금실린더(<span class="font-mono-num">25.0 cm</span>)와 투명 필름(<span class="font-mono-num">32.0 cm</span>)을 결합해 <span class="font-mono-num font-bold text-slate-900">0.200 m ~ 0.520 m</span> 사이에서 조절합니다.
+            • <strong>공기 기둥 길이(<span class="italic font-serif">L</span>) 범위:</strong> 눈금실린더(<span class="font-mono-num">25.0 cm</span>)와 투명 필름(<span class="font-mono-num">32.0 cm</span>)을 결합해 <span class="font-mono-num font-bold text-slate-900">0.320 m ~ 0.550 m</span> 사이에서 조절합니다. (필름 아래 끝이 실린더 바닥에 닿을 때 0.320 m, 실린더와 2 cm만 겹치게 뺐을 때 0.550 m)
           </p>
           <p class="leading-relaxed">
-            • <strong>권장 진동수(<span class="italic font-serif">f</span>):</strong> 반파장(<span class="italic font-serif">λ</span>/2) 간격의 두 공명점(<span class="italic font-serif">L</span>₁, <span class="italic font-serif">L</span>₂)이 모두 가동 길이 안에 포함되도록 <span class="font-mono-num font-bold text-slate-900">850 Hz, 1000 Hz, 1150 Hz</span>를 사용합니다.
+            • <strong>권장 진동수(<span class="italic font-serif">f</span>):</strong> 반파장(<span class="italic font-serif">λ</span>/2) 간격의 두 공명점(<span class="italic font-serif">L</span>₁, <span class="italic font-serif">L</span>₂)이 모두 가동 길이 안에 포함되도록 <span class="font-mono-num font-bold text-slate-900">1150 Hz, 1200 Hz, 1250 Hz</span>를 사용합니다.
           </p>
         </div>
 
@@ -416,10 +416,10 @@
   <!-- Bottom Center Legend & Control Hint Pill -->
   <div class="no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:flex items-center gap-2" style="left:calc((100vw - var(--panel-w)) / 2)">
     <div class="bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-slate-700/80 text-[11px] text-slate-200 font-medium flex items-center gap-3">
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(Node)</span>
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(Antinode)</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(입자 정지·압력 변화 최대)</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(입자 최대 진동·압력 변화 0)</span>
       <span class="text-slate-600">|</span>
-      <span>🖱️ 빈 공간 드래그: 회전 · 필름 드래그: 높이 조절 · 휠: 확대</span>
+      <span>🖱️ 드래그: 회전·필름 높이 · 휠: 확대</span>
     </div>
   </div>
 
@@ -439,8 +439,10 @@
     const SPEED_OF_SOUND = 343.5; // m/s at 20°C
     const TUBE_RADIUS = 0.0245;   // 2.45 cm inner radius of transparent film
     const END_CORRECTION = 0.006; // subtle acoustic end correction (6 mm)
-    const MIN_HEIGHT_CM = 20.0;   // 20.0 cm (graduated cylinder region)
-    const MAX_HEIGHT_CM = 52.0;   // 52.0 cm (extended transparent film)
+    // 필름(32 cm)은 눈금실린더(25 cm) 안에 끼워 위로 빼는 구조: 필름 아래 끝이 실린더 바닥(0 cm)에 닿으면 L = 32 cm,
+    // 실린더와 최소 2 cm 겹치게 빼면 L = 25 + 32 − 2 = 55 cm. 이 범위 밖은 실제로 만들 수 없다.
+    const MIN_HEIGHT_CM = 32.0;
+    const MAX_HEIGHT_CM = 55.0;
 
     const PROCEDURE_TEXTS = {
       1: '<strong>1.</strong> 투명 필름을 둥글게 말아 눈금실린더의 안쪽에 넣고 원통 모양이 되도록 접착테이프로 고정한 뒤 눈금실린더에 끝부분을 끼운다.',
@@ -452,8 +454,8 @@
 
     const state = {
       sceneMode: 'realistic', // 'realistic' (3D 실사화) | 'analytical' (3D 분석 모델)
-      frequency: 850,         // Hz
-      heightCm: 43.0,         // cm (20.0 ~ 52.0 cm)
+      frequency: 1150,        // Hz
+      heightCm: 43.0,         // cm (32.0 ~ 55.0 cm)
       audioOn: false,
       showWave: true,
       autoTrack: true,
@@ -462,9 +464,9 @@
       resonance: 0,
       dbLevel: 54.0,
       trials: [
-        { freq: 850, l1: null, l2: null },
-        { freq: 1000, l1: null, l2: null },
-        { freq: 1150, l1: null, l2: null }
+        { freq: 1150, l1: null, l2: null },
+        { freq: 1200, l1: null, l2: null },
+        { freq: 1250, l1: null, l2: null }
       ]
     };
 
@@ -1106,7 +1108,7 @@
       const lambda = getWavelengthM();
       const k = (2 * Math.PI) / lambda;
       const res = state.resonance;
-      const maxAmp = 0.0035 + 0.0185 * Math.pow(res, 1.3);
+      const maxAmp = 0.009 + 0.013 * Math.pow(res, 1.3); // 공명하지 않아도 작은 진폭의 정상파가 보이게
       const osc = Math.cos(timeSec * 16);
 
       if (res > 0.78) {
@@ -1149,7 +1151,7 @@
 
       // Update Longitudinal Air Particles
       const pArr = particleGeo.attributes.position.array;
-      const longAmp = 0.0025 + 0.014 * res;
+      const longAmp = 0.006 + 0.010 * res;
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const b = particleBase[i];
         const y0 = b.fracY * L;
@@ -1164,9 +1166,11 @@
       markerPool.forEach(m => (m.visible = false));
       let mIdx = 0;
       const qL = lambda / 4;
-      for (let m = 0; m * qL <= L + 0.005 && mIdx < markerPool.length; m++) {
+      // 관 입구의 배는 끝보정(END_CORRECTION)만큼 입구 바로 위에 생기므로 그 위치까지 표시
+      const topLimit = L + END_CORRECTION + 0.002;
+      for (let m = 0; m * qL <= topLimit && mIdx < markerPool.length; m++) {
         const yPos = m * qL;
-        if (yPos > L) continue;
+        if (yPos > topLimit) continue;
         const ring = markerPool[mIdx++];
         ring.visible = true;
         ring.position.y = yPos;
@@ -1625,9 +1629,9 @@
 
     document.getElementById('btn-reset-table').addEventListener('click', () => {
       state.trials = [
-        { freq: 850, l1: null, l2: null },
-        { freq: 1000, l1: null, l2: null },
-        { freq: 1150, l1: null, l2: null }
+        { freq: 1150, l1: null, l2: null },
+        { freq: 1200, l1: null, l2: null },
+        { freq: 1250, l1: null, l2: null }
       ];
       renderDataTable();
       showToast('실험 결과 표가 초기화되었습니다.');
