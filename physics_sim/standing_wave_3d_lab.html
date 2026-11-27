@@ -28,13 +28,29 @@
     .font-mono-num {
       font-family: 'JetBrains Mono', monospace;
     }
+    /* 3D 화면(왼쪽)과 실험 패널(오른쪽)을 나란히 배치: 패널 폭만큼 3D 화면을 줄인다 */
+    :root { --panel-w: clamp(300px, 38vw, 435px); }
+    body.panel-closed { --panel-w: 0px; }
     #canvas-wrapper {
       position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: calc(100vw - var(--panel-w));
       z-index: 0;
     }
+    #lab-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: var(--panel-w);
+      z-index: 20;
+    }
+    body.panel-closed #lab-drawer { display: none; }
+    #drawer-body { flex: 1 1 auto; min-height: 0; }
+    #btn-open-drawer { display: none; }
+    body.panel-closed #btn-open-drawer { display: flex; }
     canvas {
       display: block;
       width: 100%;
@@ -115,7 +131,7 @@
   <div id="canvas-wrapper"></div>
 
   <!-- Top-Left & Top-Center Floating HUD -->
-  <div class="no-print fixed top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2 max-w-[calc(100vw-24px)] pointer-events-none">
+  <div class="no-print fixed top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2 pointer-events-none" style="max-width:calc(100vw - var(--panel-w) - 24px)">
 
     <!-- Row 1: Unified 3D View Mode Switcher Tabs (3D 실사화 vs 3D 분석 모델) -->
     <div class="flex flex-wrap items-center gap-2 pointer-events-auto">
@@ -205,7 +221,8 @@
   </div>
 
   <!-- Right Floating Collapsible Lab Manual & Control Drawer -->
-  <aside id="lab-drawer" class="fixed top-3 right-3 sm:top-4 sm:right-4 z-20 w-[calc(100vw-24px)] sm:w-[410px] lg:w-[435px] max-h-[calc(100vh-24px)] sm:max-h-[calc(100vh-32px)] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 flex flex-col transition-all duration-300">
+  <button id="btn-open-drawer" title="실험 패널 열기" class="no-print fixed top-3 right-3 z-30 items-center gap-1.5 px-3.5 py-2 rounded-full bg-white text-slate-800 text-xs font-extrabold shadow-xl border border-slate-200 hover:bg-slate-50">◂ 실험 패널 열기</button>
+  <aside id="lab-drawer" class="bg-white shadow-2xl border-l border-slate-200 flex flex-col">
 
     <!-- Drawer Top Header -->
     <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
@@ -218,8 +235,8 @@
           <span id="audio-icon">🔇</span>
           <span id="audio-text">소리 켜기</span>
         </button>
-        <button id="btn-collapse-drawer" title="패널 접기/펼치기" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition">
-          <span id="drawer-chevron">▾</span>
+        <button id="btn-collapse-drawer" title="패널 접기(3D 화면 넓게 보기)" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition">
+          <span id="drawer-chevron">▸</span>
         </button>
       </div>
     </div>
@@ -397,7 +414,7 @@
   </aside>
 
   <!-- Bottom Center Legend & Control Hint Pill -->
-  <div class="no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:flex items-center gap-2">
+  <div class="no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:flex items-center gap-2" style="left:calc((100vw - var(--panel-w)) / 2)">
     <div class="bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-slate-700/80 text-[11px] text-slate-200 font-medium flex items-center gap-3">
       <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(Node)</span>
       <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(Antinode)</span>
@@ -407,7 +424,7 @@
   </div>
 
   <!-- Toast Banner -->
-  <div id="toast" class="no-print fixed bottom-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
+  <div id="toast" style="left:calc((100vw - var(--panel-w)) / 2)" class="no-print fixed bottom-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
     <div class="bg-slate-900 border border-slate-700 text-white px-4 py-2 rounded-full shadow-xl text-xs font-semibold flex items-center gap-2">
       <span id="toast-msg">기록되었습니다.</span>
     </div>
@@ -522,9 +539,11 @@
     scene.background = new THREE.Color(0x1e293b);
     scene.fog = new THREE.FogExp2(0x1e293b, 0.22);
 
-    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.02, 20);
+    const viewW = () => Math.max(1, wrapper.clientWidth);
+    const viewH = () => Math.max(1, wrapper.clientHeight);
+    const camera = new THREE.PerspectiveCamera(38, viewW() / viewH(), 0.02, 20);
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(viewW(), viewH());
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -1260,7 +1279,7 @@
     window.addEventListener('pointermove', (e) => {
       if (camOrbit.isDraggingFilm) {
         const dyPx = camOrbit.dragStartY - e.clientY;
-        const cmPerPx = (camOrbit.radius * 52) / window.innerHeight;
+        const cmPerPx = (camOrbit.radius * 52) / viewH();
         const nextCm = camOrbit.dragStartHeightCm + dyPx * cmPerPx;
         state.heightCm = Math.max(MIN_HEIGHT_CM, Math.min(MAX_HEIGHT_CM, Number(nextCm.toFixed(1))));
         syncSimulationUI();
@@ -1520,17 +1539,15 @@
 
     // Drawer Collapse / Expand
     document.getElementById('btn-collapse-drawer').addEventListener('click', () => {
-      state.drawerOpen = !state.drawerOpen;
-      const body = document.getElementById('drawer-body');
-      const chev = document.getElementById('drawer-chevron');
-      if (state.drawerOpen) {
-        body.classList.remove('hidden');
-        chev.textContent = '▾';
-      } else {
-        body.classList.add('hidden');
-        chev.textContent = '▸';
-      }
+      setDrawer(false);
     });
+    document.getElementById('btn-open-drawer').addEventListener('click', () => setDrawer(true));
+    // 패널을 접으면 3D 화면이 오른쪽 끝까지 넓어지고, 다시 열면 오른쪽에 붙는다
+    function setDrawer(open) {
+      state.drawerOpen = open;
+      document.body.classList.toggle('panel-closed', !open);
+      fitRenderer();
+    }
 
     // Textbook Procedure Step Selector
     document.querySelectorAll('.proc-step-btn').forEach(btn => {
@@ -1617,11 +1634,13 @@
     });
 
     // Window Resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    function fitRenderer() {
+      camera.aspect = viewW() / viewH();
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+      renderer.setSize(viewW(), viewH());
+    }
+    window.addEventListener('resize', fitRenderer);
+    if (window.ResizeObserver) new ResizeObserver(fitRenderer).observe(wrapper);
 
     /**
      * =========================================================================
