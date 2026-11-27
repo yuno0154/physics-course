@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>정상파를 이용한 음파의 진행 속력 측정하기 - 3D 가상 실험실</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js (r128) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- Google Fonts: Noto Sans KR & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0f172a;
+      color: #1e293b;
+    }
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    #canvas-wrapper {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      outline: none;
+    }
+    /* Custom Crisp Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #cbd5e1;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      margin-top: -6px;
+      background-color: #0284c7;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 2px 5px rgba(15, 23, 42, 0.3);
+      transition: transform 0.12s ease, background-color 0.12s ease;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+      background-color: #0369a1;
+    }
+    .slider-emerald::-webkit-slider-thumb {
+      background-color: #059669;
+    }
+    .slider-emerald::-webkit-slider-thumb:hover {
+      background-color: #047857;
+    }
+    /* Custom Scrollbar for Right Drawer */
+    .drawer-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .drawer-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .drawer-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 999px;
+    }
+    /* Print Friendly Lab Guide Export */
+    @media print {
+      body {
+        overflow: visible !important;
+        background: #ffffff !important;
+      }
+      #canvas-wrapper,
+      .no-print {
+        display: none !important;
+      }
+      #lab-drawer {
+        position: static !important;
+        width: 100% !important;
+        max-height: none !important;
+        box-shadow: none !important;
+        border: none !important;
+      }
+      #drawer-body {
+        overflow: visible !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Full-Viewport 3D Canvas -->
+  <div id="canvas-wrapper"></div>
+
+  <!-- Top-Left & Top-Center Floating HUD -->
+  <div class="no-print fixed top-3 left-3 sm:top-4 sm:left-4 z-20 flex flex-col gap-2 max-w-[calc(100vw-24px)] pointer-events-none">
+
+    <!-- Row 1: Unified 3D View Mode Switcher Tabs (3D 실사화 vs 3D 분석 모델) -->
+    <div class="flex flex-wrap items-center gap-2 pointer-events-auto">
+      <div class="bg-slate-900/90 backdrop-blur-md p-1 rounded-2xl shadow-xl border border-slate-700/80 flex items-center gap-1">
+        <button id="tab-realistic" data-scene-mode="realistic" class="scene-tab-btn px-3.5 py-1.5 rounded-xl bg-emerald-600 text-white text-xs sm:text-sm font-extrabold shadow-sm transition flex items-center gap-1.5">
+          <span>🏛️</span>
+          <span>3D 실사화 실험실</span>
+        </button>
+        <button id="tab-analytical" data-scene-mode="analytical" class="scene-tab-btn px-3.5 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 text-xs sm:text-sm font-bold transition flex items-center gap-1.5">
+          <span>🔬</span>
+          <span>3D 분석 모델</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Row 2: Title Card + Dark Telemetry Card -->
+    <div class="flex flex-wrap items-stretch gap-2.5 pointer-events-auto">
+      <!-- Title Card -->
+      <div class="bg-white/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-lg border border-slate-200/80 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white shadow-sm shrink-0">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12h3l2-6 4 12 4-10 2 4h5" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight leading-tight">
+            정상파를 이용한 음파의 진행 속력 측정
+          </h1>
+          <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+            투명 필름을 직접 드래그하거나 우측 실험 패널을 조작해 보세요
+          </p>
+        </div>
+      </div>
+
+      <!-- Dark Telemetry Card -->
+      <div class="bg-slate-900/95 backdrop-blur-md text-white rounded-2xl px-4 py-2 shadow-lg border border-slate-700/80 flex items-center gap-4">
+        <div>
+          <div class="text-[10px] sm:text-[11px] text-slate-300 font-medium">바닥에서 필름 끝 높이 (<span class="italic font-serif">L</span>)</div>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="hud-height-cm" class="text-xl sm:text-2xl font-extrabold font-mono-num text-emerald-400">43.0</span>
+            <span class="text-xs font-semibold text-slate-300">cm</span>
+            <span id="hud-height-m" class="text-[11px] font-mono-num text-slate-400 ml-1">(0.430 m)</span>
+          </div>
+        </div>
+
+        <div class="w-px h-9 bg-slate-600/80"></div>
+
+        <div>
+          <div class="text-[10px] sm:text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
+            <span>소리 세기 (공명도)</span>
+            <span id="hud-res-pill" class="hidden px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 text-[10px] font-bold border border-amber-400/40">공명!</span>
+          </div>
+          <div class="flex items-baseline gap-1 mt-0.5">
+            <span id="hud-db-val" class="text-xl sm:text-2xl font-extrabold font-mono-num text-amber-400">54.2</span>
+            <span class="text-xs font-semibold text-slate-300">dB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 3: Crisp Pill-Shaped Camera & Mode Buttons -->
+    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 pointer-events-auto">
+      <button data-cam="eye" class="cam-pill px-3.5 py-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 text-xs font-bold shadow-md border border-slate-200/90 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+        <span>눈높이 정면 보기 (시차 제거)</span>
+      </button>
+
+      <button data-cam="default" class="cam-pill px-3.5 py-1.5 rounded-full bg-sky-600 text-white text-xs font-bold shadow-md border border-sky-500 transition">
+        전체 보기
+      </button>
+
+      <button data-cam="zoom" class="cam-pill px-3.5 py-1.5 rounded-full bg-white/95 hover:bg-white text-slate-700 text-xs font-bold shadow-md border border-slate-200/90 transition">
+        눈금 확대
+      </button>
+
+      <button id="btn-toggle-wave" class="px-3.5 py-1.5 rounded-full bg-sky-600 text-white text-xs font-bold shadow-md border border-sky-500 transition">
+        정상파 시각화: ON
+      </button>
+
+      <button id="btn-toggle-track" class="px-3.5 py-1.5 rounded-full bg-sky-600 text-white text-xs font-bold shadow-md border border-sky-500 transition">
+        자동 추적: ON
+      </button>
+    </div>
+  </div>
+
+  <!-- Right Floating Collapsible Lab Manual & Control Drawer -->
+  <aside id="lab-drawer" class="fixed top-3 right-3 sm:top-4 sm:right-4 z-20 w-[calc(100vw-24px)] sm:w-[410px] lg:w-[435px] max-h-[calc(100vh-24px)] sm:max-h-[calc(100vh-32px)] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/90 flex flex-col transition-all duration-300">
+
+    <!-- Drawer Top Header -->
+    <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-2">
+        <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[11px] font-extrabold">교과서 탐구</span>
+        <h2 class="text-sm font-extrabold text-slate-800">실험 조작 및 탐구 보고서</h2>
+      </div>
+      <div class="no-print flex items-center gap-1.5">
+        <button id="btn-audio" class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition flex items-center gap-1">
+          <span id="audio-icon">🔇</span>
+          <span id="audio-text">소리 켜기</span>
+        </button>
+        <button id="btn-collapse-drawer" title="패널 접기/펼치기" class="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold transition">
+          <span id="drawer-chevron">▾</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Drawer Inner Sub-Tabs (실험 조작 및 기록 vs 실험 안내서 및 활동지) -->
+    <div class="no-print px-4 pt-2.5 bg-slate-50/80 border-b border-slate-200 flex items-center gap-1.5 shrink-0">
+      <button data-drawer-tab="experiment" class="drawer-subtab flex-1 py-1.5 px-2 rounded-t-xl bg-white text-sky-700 border border-b-0 border-slate-200 text-xs font-extrabold shadow-xs transition">
+        🎛️ 교과서 실험 과정 & 기록표
+      </button>
+      <button data-drawer-tab="guide" class="drawer-subtab flex-1 py-1.5 px-2 rounded-t-xl bg-slate-100/80 hover:bg-slate-200/70 text-slate-600 border border-b-0 border-transparent text-xs font-bold transition">
+        📋 실험 안내서 & 탐구 토의
+      </button>
+    </div>
+
+    <!-- Scrollable Drawer Body -->
+    <div id="drawer-body" class="p-4 overflow-y-auto drawer-scroll space-y-4">
+
+      <!-- SUB-TAB 1: Experiment Controls & Textbook Data Table -->
+      <div id="panel-experiment" class="space-y-3.5">
+
+        <!-- 1. 교과서 실험 목표 & 과정 안내 -->
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200/90">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-extrabold text-emerald-700">목표 & 교과서 과정 및 결과</span>
+            <span class="text-[11px] text-slate-400 font-medium">단계를 클릭해 안내 확인</span>
+          </div>
+          <p class="text-xs text-slate-600 mb-2 leading-relaxed">
+            • <strong>목표:</strong> 정상파를 이용하여 음파의 진행 속력을 측정할 수 있다.
+          </p>
+
+          <!-- Step Selector Pills -->
+          <div class="grid grid-cols-5 gap-1 mb-2">
+            <button data-step="1" class="proc-step-btn py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold transition">과정 1</button>
+            <button data-step="2" class="proc-step-btn py-1 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 text-[11px] font-bold transition">과정 2</button>
+            <button data-step="3" class="proc-step-btn py-1 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 text-[11px] font-bold transition">과정 3</button>
+            <button data-step="4" class="proc-step-btn py-1 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 text-[11px] font-bold transition">과정 4</button>
+            <button data-step="5" class="proc-step-btn py-1 rounded-lg bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 text-[11px] font-bold transition">과정 5</button>
+          </div>
+
+          <div id="proc-step-desc" class="bg-white rounded-lg p-2.5 border border-slate-200 text-xs text-slate-700 leading-relaxed">
+            <strong>1.</strong> 투명 필름을 둥글게 말아 눈금실린더의 안쪽에 넣고 원통 모양이 되도록 접착테이프로 고정한 뒤 눈금실린더에 끝부분을 끼운다.
+          </div>
+        </div>
+
+        <!-- 2. 실험 장치 조작 (진동수 & 투명 필름 높이) -->
+        <div class="no-print space-y-3 bg-white rounded-xl p-3.5 border border-slate-200 shadow-sm">
+          <!-- Frequency Control -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="slider-freq" class="text-xs font-bold text-slate-700">스마트폰 음파 진동수 (<span class="italic font-serif">f</span>)</label>
+              <span id="label-freq" class="text-xs font-extrabold font-mono-num text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">850 Hz</span>
+            </div>
+            <input id="slider-freq" type="range" min="600" max="1200" step="10" value="850" class="w-full" />
+            <div class="flex items-center gap-1.5 mt-2">
+              <span class="text-[11px] text-slate-400">추천 진동수:</span>
+              <button data-freq="850" data-trial="0" class="freq-preset px-2.5 py-0.5 rounded-md bg-sky-600 text-white text-[11px] font-mono-num font-bold transition">850 Hz</button>
+              <button data-freq="1000" data-trial="1" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1000 Hz</button>
+              <button data-freq="1150" data-trial="2" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1150 Hz</button>
+            </div>
+          </div>
+
+          <hr class="border-slate-100" />
+
+          <!-- Film Height Control -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="slider-height" class="text-xs font-bold text-slate-700">바닥에서 투명 필름 끝 높이 (<span class="italic font-serif">L</span>)</label>
+              <span id="label-height" class="text-xs font-extrabold font-mono-num text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">43.0 cm (0.430 m)</span>
+            </div>
+            <input id="slider-height" type="range" min="20.0" max="52.0" step="0.1" value="43.0" class="w-full slider-emerald" />
+            <div class="flex items-center justify-between gap-1 mt-2">
+              <div class="flex items-center gap-1">
+                <button data-delta="-0.5" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">-5mm</button>
+                <button data-delta="-0.1" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">-1mm</button>
+              </div>
+              <span class="text-[10px] text-slate-400">3D 필름 직접 드래그 가능</span>
+              <div class="flex items-center gap-1">
+                <button data-delta="0.1" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">+1mm</button>
+                <button data-delta="0.5" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">+5mm</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Record Buttons -->
+          <div class="pt-1 flex items-center gap-1.5">
+            <select id="select-trial" class="px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none">
+              <option value="0">실험 1</option>
+              <option value="1">실험 2</option>
+              <option value="2">실험 3</option>
+            </select>
+            <button id="btn-record-l1" class="flex-1 py-1.5 px-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm transition">
+              첫 번째 (<span class="italic font-serif">L</span>₁) 기록
+            </button>
+            <button id="btn-record-l2" class="flex-1 py-1.5 px-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition">
+              두 번째 (<span class="italic font-serif">L</span>₂) 기록
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. 교과서 실험 결과 기록표 -->
+        <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-extrabold text-slate-800">실험 결과 표 (기온 20°C, 이론 음속 343.5 m/s)</span>
+            <button id="btn-reset-table" class="no-print text-[11px] text-slate-500 hover:text-rose-600 underline">표 초기화</button>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-slate-300">
+            <table class="w-full text-center border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-amber-50/90 text-slate-800 border-b border-slate-300">
+                  <th rowspan="2" class="py-1.5 px-1 border-r border-slate-300 font-bold">실험<br>횟수</th>
+                  <th rowspan="2" class="py-1.5 px-1 border-r border-slate-300 font-bold">진동수<br>(Hz)</th>
+                  <th colspan="3" class="py-1 px-1 border-r border-slate-300 border-b border-slate-300 font-bold">
+                    소리가 크게 들릴 때 바닥에서 투명 필름 끝까지의 거리(m)
+                  </th>
+                  <th rowspan="2" class="py-1.5 px-1 border-r border-slate-300 font-bold">음파의<br>파장(m)</th>
+                  <th rowspan="2" class="py-1.5 px-1 font-bold text-emerald-800">속력<br>(m/s)</th>
+                </tr>
+                <tr class="bg-amber-50/50 text-slate-700 border-b border-slate-300">
+                  <th class="py-1 px-1 border-r border-slate-300 font-semibold">첫 번째(<span class="italic font-serif">L</span>₁)</th>
+                  <th class="py-1 px-1 border-r border-slate-300 font-semibold">두 번째(<span class="italic font-serif">L</span>₂)</th>
+                  <th class="py-1 px-1 border-r border-slate-300 font-semibold"><span class="italic font-serif">L</span>₁ − <span class="italic font-serif">L</span>₂</th>
+                </tr>
+              </thead>
+              <tbody id="table-body" class="divide-y divide-slate-200 font-mono-num">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-2 flex items-center justify-between text-[11px] text-slate-600">
+            <span>식: <span class="font-mono-num">λ = 2|L₁ - L₂|, v = fλ</span></span>
+            <span>평균 측정 속력: <strong id="avg-speed-text" class="font-mono-num text-emerald-700 text-xs">- m/s</strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB 2: Integrated Lab Guide & Inquiry Questions -->
+      <div id="panel-guide" class="hidden space-y-3 text-xs text-slate-700">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-extrabold text-sky-800 text-sm">📌 사전 탐색된 실험 조건</span>
+            <button id="btn-print-sheet" class="no-print px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-bold shadow-xs transition">
+              🖨️ 활동지 인쇄 / PDF
+            </button>
+          </div>
+          <p class="leading-relaxed">
+            • <strong>공기 기둥 길이(<span class="italic font-serif">L</span>) 범위:</strong> 눈금실린더(<span class="font-mono-num">25.0 cm</span>)와 투명 필름(<span class="font-mono-num">32.0 cm</span>)을 결합해 <span class="font-mono-num font-bold text-slate-900">0.200 m ~ 0.520 m</span> 사이에서 조절합니다.
+          </p>
+          <p class="leading-relaxed">
+            • <strong>권장 진동수(<span class="italic font-serif">f</span>):</strong> 반파장(<span class="italic font-serif">λ</span>/2) 간격의 두 공명점(<span class="italic font-serif">L</span>₁, <span class="italic font-serif">L</span>₂)이 모두 가동 길이 안에 포함되도록 <span class="font-mono-num font-bold text-slate-900">850 Hz, 1000 Hz, 1150 Hz</span>를 사용합니다.
+          </p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-3 space-y-2">
+          <div class="font-extrabold text-slate-800 text-sm">🔍 탐구 토의 및 결과 정리</div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">
+              1. 인접한 두 공명점 간격 |<span class="italic font-serif">L</span>₁ − <span class="italic font-serif">L</span>₂|가 반파장(<span class="italic font-serif">λ</span>/2)에 해당하는 이유를 관 내부 정상파의 <u>마디</u>와 <u>배</u>로 설명하시오.
+            </label>
+            <textarea rows="2" placeholder="여기에 탐구 결론을 입력하세요..." class="w-full p-2 rounded-lg border border-slate-300 bg-slate-50/60 focus:bg-white focus:border-sky-500 text-xs focus:outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">
+              2. 진동수(<span class="italic font-serif">f</span>)가 변해도 측정된 음파의 속력(<span class="italic font-serif">v</span> = <span class="italic font-serif">fλ</span>)이 일정한 이유를 매질의 성질과 연관 지어 설명하시오.
+            </label>
+            <textarea rows="2" placeholder="여기에 탐구 결론을 입력하세요..." class="w-full p-2 rounded-lg border border-slate-300 bg-slate-50/60 focus:bg-white focus:border-sky-500 text-xs focus:outline-none"></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- Bottom Center Legend & Control Hint Pill -->
+  <div class="no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:flex items-center gap-2">
+    <div class="bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-slate-700/80 text-[11px] text-slate-200 font-medium flex items-center gap-3">
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(Node)</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(Antinode)</span>
+      <span class="text-slate-600">|</span>
+      <span>🖱️ 빈 공간 드래그: 회전 · 필름 드래그: 높이 조절 · 휠: 확대</span>
+    </div>
+  </div>
+
+  <!-- Toast Banner -->
+  <div id="toast" class="no-print fixed bottom-14 left-1/2 -translate-x-1/2 z-40 pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
+    <div class="bg-slate-900 border border-slate-700 text-white px-4 py-2 rounded-full shadow-xl text-xs font-semibold flex items-center gap-2">
+      <span id="toast-msg">기록되었습니다.</span>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 1. PHYSICAL PARAMETERS & UNIFIED SIMULATION STATE
+     * =========================================================================
+     */
+    const SPEED_OF_SOUND = 343.5; // m/s at 20°C
+    const TUBE_RADIUS = 0.0245;   // 2.45 cm inner radius of transparent film
+    const END_CORRECTION = 0.006; // subtle acoustic end correction (6 mm)
+    const MIN_HEIGHT_CM = 20.0;   // 20.0 cm (graduated cylinder region)
+    const MAX_HEIGHT_CM = 52.0;   // 52.0 cm (extended transparent film)
+
+    const PROCEDURE_TEXTS = {
+      1: '<strong>1.</strong> 투명 필름을 둥글게 말아 눈금실린더의 안쪽에 넣고 원통 모양이 되도록 접착테이프로 고정한 뒤 눈금실린더에 끝부분을 끼운다.',
+      2: '<strong>2.</strong> 스마트폰의 소리 발생 애플리케이션을 이용해 일정한 진동수의 음파가 나오게 하고, 원통 모양의 투명 필름 끝부분에 가까이 가져간다.',
+      3: '<strong>3.</strong> 투명 필름을 조금씩 밀어 넣으면서 소리가 크게 들리는 지점을 찾은 뒤, 바닥으로부터의 높이(<span class="italic font-serif">L</span>₁)를 측정한다.',
+      4: '<strong>4.</strong> 과정 3을 반복하면서 소리가 크게 들리는 다음 지점의 높이(<span class="italic font-serif">L</span>₂)를 측정한다.',
+      5: '<strong>5.</strong> 소리가 크게 들리는 두 지점 사이의 간격(<span class="italic font-serif">L</span>₁ − <span class="italic font-serif">L</span>₂)을 계산해 표에 기록하고 음파의 파장(λ)과 진행 속력(<span class="italic font-serif">v</span>)을 구한다.'
+    };
+
+    const state = {
+      sceneMode: 'realistic', // 'realistic' (3D 실사화) | 'analytical' (3D 분석 모델)
+      frequency: 850,         // Hz
+      heightCm: 43.0,         // cm (20.0 ~ 52.0 cm)
+      audioOn: false,
+      showWave: true,
+      autoTrack: true,
+      drawerOpen: true,
+      selectedTrial: 0,
+      resonance: 0,
+      dbLevel: 54.0,
+      trials: [
+        { freq: 850, l1: null, l2: null },
+        { freq: 1000, l1: null, l2: null },
+        { freq: 1150, l1: null, l2: null }
+      ]
+    };
+
+    function getWavelengthM() {
+      return SPEED_OF_SOUND / state.frequency;
+    }
+
+    function evaluateResonance(heightCm, freq = state.frequency) {
+      const L = heightCm / 100;
+      const effectiveL = L + END_CORRECTION;
+      const lambda = SPEED_OF_SOUND / freq;
+      const qLambda = lambda / 4;
+
+      const ratio = effectiveL / qLambda;
+      const nearestOdd = Math.max(1, 2 * Math.round((ratio - 1) / 2) + 1);
+      const resonantEffectiveL = nearestOdd * qLambda;
+      const delta = Math.abs(effectiveL - resonantEffectiveL);
+
+      const bandwidth = 0.0052;
+      const resonance = 1 / (1 + Math.pow(delta / bandwidth, 2));
+      return {
+        resonance,
+        harmonic: nearestOdd,
+        targetHeightCm: (resonantEffectiveL - END_CORRECTION) * 100
+      };
+    }
+
+    /**
+     * =========================================================================
+     * 2. WEB AUDIO API (PURE SINE WAVE + RESONANCE AMPLIFICATION)
+     * =========================================================================
+     */
+    let audioCtx = null;
+    let oscNode = null;
+    let gainNode = null;
+
+    function ensureAudio() {
+      if (audioCtx) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+      oscNode = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      oscNode.type = 'sine';
+      oscNode.frequency.setValueAtTime(state.frequency, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      oscNode.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscNode.start();
+    }
+
+    function syncAudio() {
+      if (!audioCtx || !oscNode || !gainNode) return;
+      const now = audioCtx.currentTime;
+      oscNode.frequency.setTargetAtTime(state.frequency, now, 0.02);
+
+      if (!state.audioOn) {
+        gainNode.gain.setTargetAtTime(0.0001, now, 0.03);
+        return;
+      }
+      const baseVol = 0.015;
+      const resVol = 0.25 * Math.pow(state.resonance, 1.9);
+      gainNode.gain.setTargetAtTime(baseVol + resVol, now, 0.03);
+    }
+
+    /**
+     * =========================================================================
+     * 3. THREE.JS DUAL-MODE 3D SCENE (REALISTIC CLASSROOM + ANALYTICAL MODEL)
+     * =========================================================================
+     */
+    const wrapper = document.getElementById('canvas-wrapper');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1e293b);
+    scene.fog = new THREE.FogExp2(0x1e293b, 0.22);
+
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.02, 20);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.92; // Balanced non-washed-out exposure
+    wrapper.appendChild(renderer.domElement);
+
+    // Balanced Low-Glare Studio Lighting
+    const hemiLight = new THREE.HemisphereLight(0xe2e8f0, 0x334155, 0.55);
+    hemiLight.position.set(0, 3, 0);
+    scene.add(hemiLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfffbeb, 0.68);
+    keyLight.position.set(1.1, 2.0, 1.4);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 2048;
+    keyLight.shadow.mapSize.height = 2048;
+    keyLight.shadow.camera.near = 0.2;
+    keyLight.shadow.camera.far = 6;
+    const d = 0.9;
+    keyLight.shadow.camera.left = -d;
+    keyLight.shadow.camera.right = d;
+    keyLight.shadow.camera.top = d;
+    keyLight.shadow.camera.bottom = -d;
+    keyLight.shadow.bias = -0.0005;
+    scene.add(keyLight);
+
+    const rimLight = new THREE.PointLight(0x38bdf8, 0.55, 2.5);
+    rimLight.position.set(-0.5, 0.55, -0.4);
+    scene.add(rimLight);
+
+    // -------------------------------------------------------------------------
+    // GROUP A: Realistic Classroom Environment (Toned-Down High-Contrast)
+    // -------------------------------------------------------------------------
+    const realisticEnvGroup = new THREE.Group();
+    scene.add(realisticEnvGroup);
+
+    // Deep Slate Classroom Wall (reduces glare behind transparent glass & ruler)
+    const wallMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(8, 4.5),
+      new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.92 })
+    );
+    wallMesh.position.set(0, 1.2, -1.35);
+    wallMesh.receiveShadow = true;
+    realisticEnvGroup.add(wallMesh);
+
+    // Deep Forest-Green Chalkboard with Crisp White Chalk Equations
+    function createChalkboardTexture() {
+      const c = document.createElement('canvas');
+      c.width = 2048;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = '#1b3a2e';
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      const grad = ctx.createRadialGradient(1024, 512, 120, 1024, 512, 1100);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 0.04)');
+      grad.addColorStop(1, 'rgba(5, 18, 14, 0.42)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 2048, 1024);
+
+      // Subtle bokeh circles
+      for (let i = 0; i < 28; i++) {
+        const bx = (i * 293) % 1960 + 40;
+        const by = (i * 179) % 920 + 50;
+        const br = 40 + (i % 4) * 24;
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(226, 232, 240, 0.035)';
+        ctx.fill();
+      }
+
+      // Crisp Chalk Equations
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.78)';
+      ctx.font = 'bold 46px "Noto Sans KR", sans-serif';
+      ctx.fillText('물리학 실험: 정상파를 이용한 음파의 진행 속력 측정', 130, 175);
+
+      ctx.font = 'italic 44px "Times New Roman", serif';
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.72)';
+      ctx.fillText('v = f · λ          |L₁ - L₂| = λ / 2          Lₙ = (2n - 1) · λ / 4', 130, 285);
+
+      // Chalk Wave Sketch
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.6)';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(130, 360, 420, 110);
+      ctx.beginPath();
+      for (let x = 0; x <= 420; x += 4) {
+        const y1 = 415 - Math.sin((x / 420) * Math.PI * 1.5) * 42;
+        if (x === 0) ctx.moveTo(130 + x, y1);
+        else ctx.lineTo(130 + x, y1);
+      }
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.setLineDash([8, 6]);
+      for (let x = 0; x <= 420; x += 4) {
+        const y2 = 415 + Math.sin((x / 420) * Math.PI * 1.5) * 42;
+        if (x === 0) ctx.moveTo(130 + x, y2);
+        else ctx.lineTo(130 + x, y2);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    const boardGroup = new THREE.Group();
+    boardGroup.position.set(0, 0.85, -1.31);
+    realisticEnvGroup.add(boardGroup);
+
+    const boardMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.4, 1.55),
+      new THREE.MeshStandardMaterial({ map: createChalkboardTexture(), roughness: 0.88 })
+    );
+    boardGroup.add(boardMesh);
+
+    const frameMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.35 });
+    const topFrame = new THREE.Mesh(new THREE.BoxGeometry(3.46, 0.035, 0.04), frameMat);
+    topFrame.position.y = 0.785;
+    boardGroup.add(topFrame);
+
+    const bottomTray = new THREE.Mesh(new THREE.BoxGeometry(3.46, 0.035, 0.09), frameMat);
+    bottomTray.position.set(0, -0.785, 0.025);
+    boardGroup.add(bottomTray);
+
+    // Charcoal-Slate Laboratory Storage Cabinets (replaces glaring white cabinets)
+    const cabinetGroup = new THREE.Group();
+    cabinetGroup.position.set(0, -0.35, -1.12);
+    realisticEnvGroup.add(cabinetGroup);
+
+    const cabBody = new THREE.Mesh(
+      new THREE.BoxGeometry(3.6, 0.82, 0.44),
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.65 })
+    );
+    cabBody.receiveShadow = true;
+    cabinetGroup.add(cabBody);
+
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.5, roughness: 0.3 });
+    for (let i = -2; i <= 2; i++) {
+      const doorX = i * 0.68;
+      const seam = new THREE.Mesh(
+        new THREE.BoxGeometry(0.004, 0.78, 0.005),
+        new THREE.MeshBasicMaterial({ color: 0x1e293b })
+      );
+      seam.position.set(doorX + 0.34, 0, 0.221);
+      cabinetGroup.add(seam);
+
+      const handle = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.085, 0.018), handleMat);
+      handle.position.set(doorX + 0.26, 0.14, 0.228);
+      cabinetGroup.add(handle);
+    }
+
+    // Dark Slate-Gray Laboratory Benchtop (Surface at y = 0, provides crisp silhouette for transparent cylinder)
+    const benchTop = new THREE.Mesh(
+      new THREE.BoxGeometry(2.2, 0.045, 1.1),
+      new THREE.MeshStandardMaterial({ color: 0x263244, roughness: 0.45, metalness: 0.15 })
+    );
+    benchTop.position.set(0, -0.0225, 0.05);
+    benchTop.receiveShadow = true;
+    realisticEnvGroup.add(benchTop);
+
+    // -------------------------------------------------------------------------
+    // GROUP B: Dark Navy Analytical Grid Environment (Tab 2)
+    // -------------------------------------------------------------------------
+    const analyticalEnvGroup = new THREE.Group();
+    analyticalEnvGroup.visible = false;
+    scene.add(analyticalEnvGroup);
+
+    const gridFloor = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.6, 3.6),
+      new THREE.MeshStandardMaterial({ color: 0x132038, roughness: 0.8 })
+    );
+    gridFloor.rotation.x = -Math.PI / 2;
+    gridFloor.position.y = -0.001;
+    analyticalEnvGroup.add(gridFloor);
+
+    const gridHelper = new THREE.GridHelper(2.0, 40, 0x38bdf8, 0x1e3a5f);
+    gridHelper.position.y = 0.001;
+    analyticalEnvGroup.add(gridHelper);
+
+    // -------------------------------------------------------------------------
+    // GROUP C: Shared Precision Apparatus (Cylinder, Ruler, Film, Smartphone, Wave)
+    // -------------------------------------------------------------------------
+    const apparatusGroup = new THREE.Group();
+    scene.add(apparatusGroup);
+
+    const CYL_HEIGHT = 0.250; // 25.0 cm
+    const CYL_OUTER_R = 0.029;
+    const ACOUSTIC_FLOOR_Y = 0.008;
+
+    // Smoked/Tinted Borosilicate Glass Material (Clearly visible against both dark & mid tones)
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xbae6fd,
+      transparent: true,
+      opacity: 0.36,
+      roughness: 0.12,
+      metalness: 0.08,
+      clearcoat: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+
+    const hexBase = new THREE.Mesh(new THREE.CylinderGeometry(0.048, 0.054, 0.008, 6), glassMaterial);
+    hexBase.position.y = 0.004;
+    apparatusGroup.add(hexBase);
+
+    const bottomDisc = new THREE.Mesh(
+      new THREE.CylinderGeometry(CYL_OUTER_R, CYL_OUTER_R, 0.006, 36),
+      new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4 })
+    );
+    bottomDisc.position.y = ACOUSTIC_FLOOR_Y - 0.003;
+    apparatusGroup.add(bottomDisc);
+
+    const cylWall = new THREE.Mesh(
+      new THREE.CylinderGeometry(CYL_OUTER_R, CYL_OUTER_R, CYL_HEIGHT, 48, 1, true),
+      glassMaterial
+    );
+    cylWall.position.y = ACOUSTIC_FLOOR_Y + CYL_HEIGHT / 2;
+    apparatusGroup.add(cylWall);
+
+    // High-Contrast White/Cyan Graduated Cylinder mL Markings
+    function createCylinderGraduations() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 1024;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, 256, 1024);
+
+      ctx.strokeStyle = 'rgba(224, 242, 254, 0.85)';
+      ctx.fillStyle = 'rgba(224, 242, 254, 0.95)';
+      ctx.font = 'bold 22px "JetBrains Mono", monospace';
+      ctx.textBaseline = 'middle';
+
+      for (let ml = 10; ml <= 250; ml += 5) {
+        const frac = ml / 260;
+        const y = 1024 - frac * 940 - 30;
+        const isMajor = ml % 50 === 0;
+        const isMed = ml % 25 === 0 && !isMajor;
+        const len = isMajor ? 58 : (isMed ? 38 : 22);
+        ctx.lineWidth = isMajor ? 3 : 1.8;
+
+        ctx.beginPath();
+        ctx.moveTo(20, y);
+        ctx.lineTo(20 + len, y);
+        ctx.stroke();
+
+        if (isMajor) {
+          ctx.fillText(`${ml}`, 86, y);
+        }
+      }
+      ctx.font = 'bold 20px "Noto Sans KR", sans-serif';
+      ctx.fillText('mL', 86, 65);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    const cylScaleMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(CYL_OUTER_R + 0.0003, CYL_OUTER_R + 0.0003, CYL_HEIGHT, 48, 1, true, -0.45, 0.9),
+      new THREE.MeshBasicMaterial({ map: createCylinderGraduations(), transparent: true, side: THREE.DoubleSide, depthWrite: false })
+    );
+    cylScaleMesh.position.y = ACOUSTIC_FLOOR_Y + CYL_HEIGHT / 2;
+    apparatusGroup.add(cylScaleMesh);
+
+    const cylLip = new THREE.Mesh(
+      new THREE.TorusGeometry(CYL_OUTER_R + 0.001, 0.0022, 12, 48),
+      glassMaterial
+    );
+    cylLip.rotation.x = Math.PI / 2;
+    cylLip.position.y = ACOUSTIC_FLOOR_Y + CYL_HEIGHT;
+    apparatusGroup.add(cylLip);
+
+    // 2. High-Contrast Vertical 55cm Ruler
+    function createRulerCanvasTexture(maxCm) {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 2048;
+      const ctx = c.getContext('2d');
+
+      // Brushed silver-off-white surface (anti-glare)
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(0, 0, 256, 2048);
+
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(2, 2, 252, 2044);
+
+      const pxPerCm = 2048 / maxCm;
+      for (let mm = 0; mm <= maxCm * 10; mm++) {
+        const y = 2048 - (mm / 10) * pxPerCm;
+        const isCm = mm % 10 === 0;
+        const isHalf = mm % 5 === 0 && !isCm;
+        const tickW = isCm ? 86 : (isHalf ? 56 : 34);
+
+        ctx.strokeStyle = isCm ? '#020617' : '#334155';
+        ctx.lineWidth = isCm ? 3.6 : 1.8;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(tickW, y);
+        ctx.stroke();
+
+        if (isCm && mm > 0 && mm < maxCm * 10) {
+          const cm = mm / 10;
+          ctx.fillStyle = cm % 5 === 0 ? '#0369a1' : '#0f172a';
+          ctx.font = cm % 5 === 0 ? '800 34px "JetBrains Mono", monospace' : '700 25px "JetBrains Mono", monospace';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(`${cm}`, tickW + 12, y);
+        }
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
+    const RULER_MAX_CM = 55;
+    const RULER_HEIGHT_M = 0.55;
+    const rulerTex = createRulerCanvasTexture(RULER_MAX_CM);
+
+    const rulerGroup = new THREE.Group();
+    rulerGroup.position.set(0.062, 0, 0);
+    apparatusGroup.add(rulerGroup);
+
+    const rulerStand = new THREE.Mesh(
+      new THREE.BoxGeometry(0.048, 0.008, 0.042),
+      new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.4 })
+    );
+    rulerStand.position.y = 0.004;
+    rulerGroup.add(rulerStand);
+
+    const rulerBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.036, RULER_HEIGHT_M, 0.0035),
+      new THREE.MeshStandardMaterial({ map: rulerTex, roughness: 0.55, metalness: 0.05 })
+    );
+    rulerBody.position.y = ACOUSTIC_FLOOR_Y + RULER_HEIGHT_M / 2;
+    rulerGroup.add(rulerBody);
+
+    // Red Laser / Optical Alignment Line at Height L
+    const alignmentGuide = new THREE.Mesh(
+      new THREE.BoxGeometry(0.095, 0.0022, 0.006),
+      new THREE.MeshBasicMaterial({ color: 0xf43f5e })
+    );
+    alignmentGuide.position.set(0.034, ACOUSTIC_FLOOR_Y + state.heightCm / 100, 0.003);
+    apparatusGroup.add(alignmentGuide);
+
+    // 3. Sliding Transparent Film Tube + Smartphone Tone Generator
+    const FILM_LEN_M = 0.320; // 32.0 cm rolled transparent film
+    const slidingAssembly = new THREE.Group();
+    slidingAssembly.position.y = ACOUSTIC_FLOOR_Y + state.heightCm / 100;
+    apparatusGroup.add(slidingAssembly);
+
+    const filmMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0xe0f2fe,
+      transparent: true,
+      opacity: 0.30,
+      roughness: 0.1,
+      metalness: 0.05,
+      clearcoat: 0.9,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const filmCylinder = new THREE.Mesh(
+      new THREE.CylinderGeometry(TUBE_RADIUS, TUBE_RADIUS, FILM_LEN_M, 48, 1, true),
+      filmMaterial
+    );
+    filmCylinder.position.y = -FILM_LEN_M / 2;
+    slidingAssembly.add(filmCylinder);
+
+    // Invisible Hitbox for Direct 3D Mouse/Touch Dragging
+    const filmDragHitbox = new THREE.Mesh(
+      new THREE.CylinderGeometry(TUBE_RADIUS + 0.009, TUBE_RADIUS + 0.009, FILM_LEN_M + 0.06, 20),
+      new THREE.MeshBasicMaterial({ visible: false })
+    );
+    filmDragHitbox.position.y = -FILM_LEN_M / 2 + 0.02;
+    slidingAssembly.add(filmDragHitbox);
+
+    // Top Rim Ring of Transparent Film (Crisp glowing cyan rim)
+    const filmTopEdge = new THREE.Mesh(
+      new THREE.TorusGeometry(TUBE_RADIUS, 0.0016, 12, 48),
+      new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.85 })
+    );
+    filmTopEdge.rotation.x = Math.PI / 2;
+    slidingAssembly.add(filmTopEdge);
+
+    // Bottom Rim of Transparent Film
+    const filmBottomEdge = new THREE.Mesh(
+      new THREE.TorusGeometry(TUBE_RADIUS, 0.0012, 10, 48),
+      new THREE.MeshBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.65 })
+    );
+    filmBottomEdge.rotation.x = Math.PI / 2;
+    filmBottomEdge.position.y = -FILM_LEN_M;
+    slidingAssembly.add(filmBottomEdge);
+
+    // Vertical Seam & Amber Scotch Tape Strips (Visible in Realistic Mode)
+    const tapeGroup = new THREE.Group();
+    slidingAssembly.add(tapeGroup);
+
+    const seamLine = new THREE.Mesh(
+      new THREE.BoxGeometry(0.0014, FILM_LEN_M, 0.0014),
+      new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0.45 })
+    );
+    seamLine.position.set(0, -FILM_LEN_M / 2, TUBE_RADIUS + 0.0002);
+    tapeGroup.add(seamLine);
+
+    const tapeMat = new THREE.MeshStandardMaterial({
+      color: 0xfde047,
+      transparent: true,
+      opacity: 0.55,
+      roughness: 0.5
+    });
+    [-0.04, -0.16, -0.28].forEach(ty => {
+      const tapePiece = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.026, 0.0008), tapeMat);
+      tapePiece.position.set(0, ty, TUBE_RADIUS + 0.0005);
+      tapeGroup.add(tapePiece);
+    });
+
+    // 4. Smartphone Sound Generator Positioned Above Open Film End
+    const phoneGroup = new THREE.Group();
+    phoneGroup.position.set(0, 0.068, -0.008);
+    slidingAssembly.add(phoneGroup);
+
+    const phoneBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.062, 0.122, 0.0075),
+      new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.3, metalness: 0.7 })
+    );
+    phoneGroup.add(phoneBody);
+
+    const phoneCanvas = document.createElement('canvas');
+    phoneCanvas.width = 256;
+    phoneCanvas.height = 512;
+    const phoneCtx = phoneCanvas.getContext('2d');
+    const phoneTex = new THREE.CanvasTexture(phoneCanvas);
+
+    const phoneScreen = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.056, 0.114),
+      new THREE.MeshBasicMaterial({ map: phoneTex })
+    );
+    phoneScreen.position.z = 0.004;
+    phoneGroup.add(phoneScreen);
+
+    function drawSmartphoneApp(timeSec) {
+      phoneCtx.fillStyle = '#090d16';
+      phoneCtx.fillRect(0, 0, 256, 512);
+
+      phoneCtx.fillStyle = '#38bdf8';
+      phoneCtx.font = 'bold 20px "Noto Sans KR", sans-serif';
+      phoneCtx.textAlign = 'center';
+      phoneCtx.fillText('소리 발생기 (Hz)', 128, 44);
+
+      phoneCtx.fillStyle = '#fbbf24';
+      phoneCtx.font = '800 44px "JetBrains Mono", monospace';
+      phoneCtx.fillText(`${state.frequency}`, 128, 108);
+      phoneCtx.font = 'bold 20px "JetBrains Mono", monospace';
+      phoneCtx.fillStyle = '#94a3b8';
+      phoneCtx.fillText('Hz', 128, 136);
+
+      phoneCtx.strokeStyle = '#1e293b';
+      phoneCtx.lineWidth = 3;
+      phoneCtx.strokeRect(18, 160, 220, 130);
+
+      phoneCtx.strokeStyle = state.audioOn ? '#34d399' : '#64748b';
+      phoneCtx.lineWidth = 4;
+      phoneCtx.beginPath();
+      const cycles = state.frequency / 380;
+      for (let x = 0; x <= 220; x += 4) {
+        const phase = (x / 220) * Math.PI * 2 * cycles - timeSec * 15;
+        const amp = state.audioOn ? 44 : 10;
+        const y = 225 + Math.sin(phase) * amp;
+        if (x === 0) phoneCtx.moveTo(18 + x, y);
+        else phoneCtx.lineTo(18 + x, y);
+      }
+      phoneCtx.stroke();
+
+      phoneCtx.beginPath();
+      phoneCtx.arc(128, 395, 62, 0, Math.PI * 2);
+      phoneCtx.fillStyle = '#1e293b';
+      phoneCtx.fill();
+      phoneCtx.lineWidth = 6;
+      phoneCtx.strokeStyle = state.audioOn ? '#f59e0b' : '#475569';
+      phoneCtx.stroke();
+
+      phoneCtx.beginPath();
+      phoneCtx.arc(128, 395, 24, 0, Math.PI * 2);
+      phoneCtx.fillStyle = '#0f172a';
+      phoneCtx.fill();
+
+      phoneTex.needsUpdate = true;
+    }
+
+    // 5. Standing Wave Envelope, Oscillating Particles & Node/Antinode Rings
+    const waveGroup = new THREE.Group();
+    waveGroup.position.y = ACOUSTIC_FLOOR_Y;
+    waveGroup.visible = state.showWave;
+    apparatusGroup.add(waveGroup);
+
+    const WAVE_SEGS = 110;
+    const waveLeftGeo = new THREE.BufferGeometry();
+    const waveRightGeo = new THREE.BufferGeometry();
+    waveLeftGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array((WAVE_SEGS + 1) * 3), 3));
+    waveRightGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array((WAVE_SEGS + 1) * 3), 3));
+
+    const waveMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 });
+    const waveLeftLine = new THREE.Line(waveLeftGeo, waveMat);
+    const waveRightLine = new THREE.Line(waveRightGeo, waveMat);
+    waveGroup.add(waveLeftLine);
+    waveGroup.add(waveRightLine);
+
+    const ribbonGeo = new THREE.BufferGeometry();
+    ribbonGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(WAVE_SEGS * 6 * 3), 3));
+    const ribbonMat = new THREE.MeshBasicMaterial({
+      color: 0x0ea5e9,
+      transparent: true,
+      opacity: 0.26,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
+    waveGroup.add(ribbonMesh);
+
+    // Longitudinal Air Molecule Particles
+    const PARTICLE_COUNT = 80;
+    const particleGeo = new THREE.BufferGeometry();
+    const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+    const particleBase = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const fracY = (i + 0.5) / PARTICLE_COUNT;
+      const angle = (i * 2.39996) % (Math.PI * 2);
+      const rad = 0.016 * Math.sqrt((i % 7) / 7);
+      particleBase.push({ fracY, x: Math.cos(angle) * rad, z: Math.sin(angle) * rad });
+    }
+    particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particleSystem = new THREE.Points(
+      particleGeo,
+      new THREE.PointsMaterial({ color: 0xfef08a, size: 0.005, transparent: true, opacity: 0.85 })
+    );
+    waveGroup.add(particleSystem);
+
+    // Node (Red) & Antinode (Gold) Rings
+    const markerPool = [];
+    const ringGeo = new THREE.TorusGeometry(0.020, 0.0012, 8, 32);
+    const nodeRingMat = new THREE.MeshBasicMaterial({ color: 0xf43f5e, transparent: true, opacity: 0.9 });
+    const antiRingMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.95 });
+    for (let i = 0; i < 12; i++) {
+      const m = new THREE.Mesh(ringGeo, nodeRingMat);
+      m.rotation.x = Math.PI / 2;
+      m.visible = false;
+      waveGroup.add(m);
+      markerPool.push(m);
+    }
+
+    function updateStandingWaveOverlay(timeSec) {
+      waveGroup.visible = state.showWave;
+      if (!state.showWave) return;
+
+      const L = state.heightCm / 100;
+      const lambda = getWavelengthM();
+      const k = (2 * Math.PI) / lambda;
+      const res = state.resonance;
+      const maxAmp = 0.0035 + 0.0185 * Math.pow(res, 1.3);
+      const osc = Math.cos(timeSec * 16);
+
+      if (res > 0.78) {
+        waveMat.color.setHex(0xfbbf24);
+        ribbonMat.color.setHex(0xf59e0b);
+        ribbonMat.opacity = 0.34;
+      } else {
+        waveMat.color.setHex(0x38bdf8);
+        ribbonMat.color.setHex(0x0ea5e9);
+        ribbonMat.opacity = 0.22;
+      }
+
+      const lArr = waveLeftGeo.attributes.position.array;
+      const rArr = waveRightGeo.attributes.position.array;
+      const ribArr = ribbonGeo.attributes.position.array;
+
+      for (let i = 0; i <= WAVE_SEGS; i++) {
+        const y = (i / WAVE_SEGS) * L;
+        const disp = Math.abs(maxAmp * Math.sin(k * y) * osc);
+
+        lArr[i * 3] = -disp; lArr[i * 3 + 1] = y; lArr[i * 3 + 2] = 0;
+        rArr[i * 3] = disp;  rArr[i * 3 + 1] = y; rArr[i * 3 + 2] = 0;
+
+        if (i < WAVE_SEGS) {
+          const yNext = ((i + 1) / WAVE_SEGS) * L;
+          const dNext = Math.abs(maxAmp * Math.sin(k * yNext) * osc);
+          const idx = i * 18;
+          ribArr[idx] = -disp; ribArr[idx + 1] = y; ribArr[idx + 2] = 0;
+          ribArr[idx + 3] = disp; ribArr[idx + 4] = y; ribArr[idx + 5] = 0;
+          ribArr[idx + 6] = -dNext; ribArr[idx + 7] = yNext; ribArr[idx + 8] = 0;
+
+          ribArr[idx + 9] = disp; ribArr[idx + 10] = y; ribArr[idx + 11] = 0;
+          ribArr[idx + 12] = dNext; ribArr[idx + 13] = yNext; ribArr[idx + 14] = 0;
+          ribArr[idx + 15] = -dNext; ribArr[idx + 16] = yNext; ribArr[idx + 17] = 0;
+        }
+      }
+      waveLeftGeo.attributes.position.needsUpdate = true;
+      waveRightGeo.attributes.position.needsUpdate = true;
+      ribbonGeo.attributes.position.needsUpdate = true;
+
+      // Update Longitudinal Air Particles
+      const pArr = particleGeo.attributes.position.array;
+      const longAmp = 0.0025 + 0.014 * res;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const b = particleBase[i];
+        const y0 = b.fracY * L;
+        const dy = longAmp * Math.sin(k * y0) * osc;
+        pArr[i * 3] = b.x;
+        pArr[i * 3 + 1] = Math.max(0.002, Math.min(L - 0.002, y0 + dy));
+        pArr[i * 3 + 2] = b.z;
+      }
+      particleGeo.attributes.position.needsUpdate = true;
+
+      // Update Node & Antinode Rings
+      markerPool.forEach(m => (m.visible = false));
+      let mIdx = 0;
+      const qL = lambda / 4;
+      for (let m = 0; m * qL <= L + 0.005 && mIdx < markerPool.length; m++) {
+        const yPos = m * qL;
+        if (yPos > L) continue;
+        const ring = markerPool[mIdx++];
+        ring.visible = true;
+        ring.position.y = yPos;
+        const isNode = m % 2 === 0;
+        ring.material = isNode ? nodeRingMat : antiRingMat;
+        const sc = isNode ? 0.78 : (0.92 + 0.3 * res);
+        ring.scale.set(sc, sc, 1);
+      }
+    }
+
+    /**
+     * =========================================================================
+     * 4. SCENE MODE SWITCHER (3D 실사화 실험실 <-> 3D 분석 모델)
+     * =========================================================================
+     */
+    function setSceneMode(mode) {
+      state.sceneMode = mode;
+
+      document.querySelectorAll('.scene-tab-btn').forEach(btn => {
+        if (btn.dataset.sceneMode === mode) {
+          btn.classList.remove('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+          btn.classList.add(mode === 'realistic' ? 'bg-emerald-600' : 'bg-sky-600', 'text-white', 'shadow-sm');
+        } else {
+          btn.classList.remove('bg-emerald-600', 'bg-sky-600', 'text-white', 'shadow-sm');
+          btn.classList.add('text-slate-300', 'hover:text-white', 'hover:bg-slate-800');
+        }
+      });
+
+      if (mode === 'realistic') {
+        scene.background.setHex(0x1e293b);
+        scene.fog.color.setHex(0x1e293b);
+        scene.fog.density = 0.22;
+        realisticEnvGroup.visible = true;
+        analyticalEnvGroup.visible = false;
+        tapeGroup.visible = true;
+        renderer.toneMappingExposure = 0.92;
+      } else {
+        scene.background.setHex(0x0b1120);
+        scene.fog.color.setHex(0x0b1120);
+        scene.fog.density = 0.35;
+        realisticEnvGroup.visible = false;
+        analyticalEnvGroup.visible = true;
+        tapeGroup.visible = false;
+        renderer.toneMappingExposure = 1.05;
+      }
+    }
+
+    document.querySelectorAll('.scene-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setSceneMode(btn.dataset.sceneMode);
+        showToast(btn.dataset.sceneMode === 'realistic' ? '🏛️ 3D 실사화 실험실로 전환됨' : '🔬 3D 분석 모델로 전환됨');
+      });
+    });
+
+    /**
+     * =========================================================================
+     * 5. CAMERA ORBIT & DIRECT 3D FILM DRAGGING (RAYCASTING)
+     * =========================================================================
+     */
+    const camOrbit = {
+      theta: 0.36,
+      phi: 1.38,
+      radius: 1.05,
+      targetY: 0.32,
+      desiredTargetY: 0.32,
+      isOrbiting: false,
+      isDraggingFilm: false,
+      prevX: 0,
+      prevY: 0,
+      dragStartY: 0,
+      dragStartHeightCm: 43.0
+    };
+
+    function applyCameraTransform() {
+      const sinPhi = Math.sin(camOrbit.phi);
+      camera.position.x = camOrbit.radius * sinPhi * Math.sin(camOrbit.theta);
+      camera.position.y = camOrbit.targetY + camOrbit.radius * Math.cos(camOrbit.phi);
+      camera.position.z = camOrbit.radius * sinPhi * Math.cos(camOrbit.theta);
+      camera.lookAt(0.02, camOrbit.targetY, 0);
+    }
+    applyCameraTransform();
+
+    const raycaster = new THREE.Raycaster();
+    const pointerNDC = new THREE.Vector2();
+
+    function updatePointerNDC(e) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      pointerNDC.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointerNDC.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (e) => {
+      updatePointerNDC(e);
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObject(filmDragHitbox);
+
+      if (hits.length > 0) {
+        camOrbit.isDraggingFilm = true;
+        camOrbit.dragStartY = e.clientY;
+        camOrbit.dragStartHeightCm = state.heightCm;
+        renderer.domElement.style.cursor = 'ns-resize';
+      } else {
+        camOrbit.isOrbiting = true;
+        camOrbit.prevX = e.clientX;
+        camOrbit.prevY = e.clientY;
+        renderer.domElement.style.cursor = 'grabbing';
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (camOrbit.isDraggingFilm) {
+        const dyPx = camOrbit.dragStartY - e.clientY;
+        const cmPerPx = (camOrbit.radius * 52) / window.innerHeight;
+        const nextCm = camOrbit.dragStartHeightCm + dyPx * cmPerPx;
+        state.heightCm = Math.max(MIN_HEIGHT_CM, Math.min(MAX_HEIGHT_CM, Number(nextCm.toFixed(1))));
+        syncSimulationUI();
+        return;
+      }
+
+      if (camOrbit.isOrbiting) {
+        const dx = e.clientX - camOrbit.prevX;
+        const dy = e.clientY - camOrbit.prevY;
+        camOrbit.prevX = e.clientX;
+        camOrbit.prevY = e.clientY;
+        camOrbit.theta = Math.max(-1.3, Math.min(1.3, camOrbit.theta - dx * 0.007));
+        camOrbit.phi = Math.max(0.35, Math.min(Math.PI * 0.49, camOrbit.phi - dy * 0.007));
+        applyCameraTransform();
+        return;
+      }
+
+      updatePointerNDC(e);
+      raycaster.setFromCamera(pointerNDC, camera);
+      const hits = raycaster.intersectObject(filmDragHitbox);
+      renderer.domElement.style.cursor = hits.length > 0 ? 'ns-resize' : 'grab';
+    });
+
+    window.addEventListener('pointerup', () => {
+      camOrbit.isDraggingFilm = false;
+      camOrbit.isOrbiting = false;
+      renderer.domElement.style.cursor = 'grab';
+    });
+
+    renderer.domElement.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      camOrbit.radius = Math.max(0.28, Math.min(1.85, camOrbit.radius + e.deltaY * 0.0008));
+      applyCameraTransform();
+    }, { passive: false });
+
+    // Camera Preset Buttons
+    document.querySelectorAll('.cam-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cam-pill').forEach(b => {
+          b.classList.remove('bg-sky-600', 'text-white', 'border-sky-500');
+          b.classList.add('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+        });
+        btn.classList.remove('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+        btn.classList.add('bg-sky-600', 'text-white', 'border-sky-500');
+
+        const preset = btn.dataset.cam;
+        const filmTopY = ACOUSTIC_FLOOR_Y + state.heightCm / 100;
+
+        if (preset === 'eye') {
+          camOrbit.theta = 0.0;
+          camOrbit.phi = Math.PI / 2;
+          camOrbit.radius = 0.42;
+          camOrbit.desiredTargetY = filmTopY;
+          camOrbit.targetY = filmTopY;
+        } else if (preset === 'default') {
+          camOrbit.theta = 0.36;
+          camOrbit.phi = 1.38;
+          camOrbit.radius = 1.05;
+          camOrbit.desiredTargetY = 0.32;
+        } else if (preset === 'zoom') {
+          camOrbit.theta = 0.14;
+          camOrbit.phi = 1.50;
+          camOrbit.radius = 0.36;
+          camOrbit.desiredTargetY = filmTopY;
+        }
+        applyCameraTransform();
+      });
+    });
+
+    /**
+     * =========================================================================
+     * 6. UI SYNCHRONIZATION & TEXTBOOK TABLE MANAGEMENT
+     * =========================================================================
+     */
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').textContent = msg;
+      toast.classList.remove('opacity-0', 'translate-y-2');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+      }, 2200);
+    }
+
+    function syncSimulationUI() {
+      const heightM = state.heightCm / 100;
+      slidingAssembly.position.y = ACOUSTIC_FLOOR_Y + heightM;
+      alignmentGuide.position.y = ACOUSTIC_FLOOR_Y + heightM;
+
+      if (state.autoTrack) {
+        camOrbit.desiredTargetY = ACOUSTIC_FLOOR_Y + heightM;
+      }
+
+      const resData = evaluateResonance(state.heightCm, state.frequency);
+      state.resonance = resData.resonance;
+      state.dbLevel = 54.0 + 32.5 * state.resonance;
+
+      document.getElementById('hud-height-cm').textContent = state.heightCm.toFixed(1);
+      document.getElementById('hud-height-m').textContent = `(${heightM.toFixed(3)} m)`;
+      document.getElementById('hud-db-val').textContent = state.dbLevel.toFixed(1);
+
+      const resPill = document.getElementById('hud-res-pill');
+      if (state.resonance > 0.82) {
+        resPill.classList.remove('hidden');
+      } else {
+        resPill.classList.add('hidden');
+      }
+
+      document.getElementById('label-freq').textContent = `${state.frequency} Hz`;
+      document.getElementById('slider-freq').value = state.frequency;
+
+      document.getElementById('label-height').textContent = `${state.heightCm.toFixed(1)} cm (${heightM.toFixed(3)} m)`;
+      document.getElementById('slider-height').value = state.heightCm.toFixed(1);
+
+      const row = state.trials[state.selectedTrial];
+      if (row.l1 === null && row.l2 === null) {
+        row.freq = state.frequency;
+        renderDataTable();
+      }
+
+      syncAudio();
+    }
+
+    function renderDataTable() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      let sumV = 0;
+      let countV = 0;
+
+      state.trials.forEach((t, idx) => {
+        const active = idx === state.selectedTrial;
+        const tr = document.createElement('tr');
+        tr.className = active ? 'bg-sky-50/90 text-slate-900 cursor-pointer' : 'hover:bg-slate-50 text-slate-700 cursor-pointer';
+        tr.addEventListener('click', () => {
+          state.selectedTrial = idx;
+          document.getElementById('select-trial').value = String(idx);
+          renderDataTable();
+        });
+
+        const l1Str = t.l1 !== null ? t.l1.toFixed(3) : '-';
+        const l2Str = t.l2 !== null ? t.l2.toFixed(3) : '-';
+        let diffStr = '-';
+        let lamStr = '-';
+        let spdStr = '-';
+
+        if (t.l1 !== null && t.l2 !== null) {
+          const diff = Math.abs(t.l1 - t.l2);
+          const lam = 2 * diff;
+          const spd = t.freq * lam;
+          diffStr = diff.toFixed(3);
+          lamStr = lam.toFixed(3);
+          spdStr = spd.toFixed(1);
+          if (diff > 0.01) {
+            sumV += spd;
+            countV++;
+          }
+        }
+
+        tr.innerHTML = `
+          <td class="py-1.5 px-1 border-r border-slate-300 font-bold ${active ? 'text-sky-700' : ''}">${idx + 1}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300 font-semibold">${t.freq}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300 ${t.l1 !== null ? 'text-sky-700 font-bold' : 'text-slate-400'}">${l1Str}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300 ${t.l2 !== null ? 'text-indigo-700 font-bold' : 'text-slate-400'}">${l2Str}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${diffStr}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300 font-semibold">${lamStr}</td>
+          <td class="py-1.5 px-1 font-bold text-emerald-700">${spdStr}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('avg-speed-text').textContent = countV > 0 ? `${(sumV / countV).toFixed(1)} m/s` : '- m/s';
+    }
+
+    /**
+     * =========================================================================
+     * 7. EVENT LISTENERS
+     * =========================================================================
+     */
+    // Audio Toggle
+    document.getElementById('btn-audio').addEventListener('click', () => {
+      ensureAudio();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      state.audioOn = !state.audioOn;
+
+      const btn = document.getElementById('btn-audio');
+      const icon = document.getElementById('audio-icon');
+      const txt = document.getElementById('audio-text');
+
+      if (state.audioOn) {
+        btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+        icon.textContent = '🔊';
+        txt.textContent = '소리 끄기';
+        showToast(`${state.frequency} Hz 음파 발생 중`);
+      } else {
+        btn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+        btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+        icon.textContent = '🔇';
+        txt.textContent = '소리 켜기';
+      }
+      syncAudio();
+    });
+
+    // Standing Wave Overlay Toggle
+    document.getElementById('btn-toggle-wave').addEventListener('click', (e) => {
+      state.showWave = !state.showWave;
+      const btn = e.currentTarget;
+      btn.textContent = `정상파 시각화: ${state.showWave ? 'ON' : 'OFF'}`;
+      if (state.showWave) {
+        btn.classList.remove('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+        btn.classList.add('bg-sky-600', 'text-white', 'border-sky-500');
+      } else {
+        btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-500');
+        btn.classList.add('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+      }
+    });
+
+    // Auto Track Toggle
+    document.getElementById('btn-toggle-track').addEventListener('click', (e) => {
+      state.autoTrack = !state.autoTrack;
+      const btn = e.currentTarget;
+      btn.textContent = `자동 추적: ${state.autoTrack ? 'ON' : 'OFF'}`;
+      if (state.autoTrack) {
+        btn.classList.remove('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+        btn.classList.add('bg-sky-600', 'text-white', 'border-sky-500');
+      } else {
+        btn.classList.remove('bg-sky-600', 'text-white', 'border-sky-500');
+        btn.classList.add('bg-white/95', 'text-slate-700', 'border-slate-200/90');
+      }
+    });
+
+    // Drawer Sub-Tabs (교과서 실험 과정 & 기록표 <-> 실험 안내서 & 탐구 토의)
+    document.querySelectorAll('.drawer-subtab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.drawerTab;
+        document.querySelectorAll('.drawer-subtab').forEach(b => {
+          b.classList.remove('bg-white', 'text-sky-700', 'border-slate-200', 'shadow-xs');
+          b.classList.add('bg-slate-100/80', 'text-slate-600', 'border-transparent');
+        });
+        btn.classList.remove('bg-slate-100/80', 'text-slate-600', 'border-transparent');
+        btn.classList.add('bg-white', 'text-sky-700', 'border-slate-200', 'shadow-xs');
+
+        if (target === 'experiment') {
+          document.getElementById('panel-experiment').classList.remove('hidden');
+          document.getElementById('panel-guide').classList.add('hidden');
+        } else {
+          document.getElementById('panel-experiment').classList.add('hidden');
+          document.getElementById('panel-guide').classList.remove('hidden');
+        }
+      });
+    });
+
+    // Print Lab Sheet
+    document.getElementById('btn-print-sheet').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Drawer Collapse / Expand
+    document.getElementById('btn-collapse-drawer').addEventListener('click', () => {
+      state.drawerOpen = !state.drawerOpen;
+      const body = document.getElementById('drawer-body');
+      const chev = document.getElementById('drawer-chevron');
+      if (state.drawerOpen) {
+        body.classList.remove('hidden');
+        chev.textContent = '▾';
+      } else {
+        body.classList.add('hidden');
+        chev.textContent = '▸';
+      }
+    });
+
+    // Textbook Procedure Step Selector
+    document.querySelectorAll('.proc-step-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.proc-step-btn').forEach(b => {
+          b.classList.remove('bg-emerald-600', 'text-white');
+          b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+        });
+        btn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+        btn.classList.add('bg-emerald-600', 'text-white');
+        document.getElementById('proc-step-desc').innerHTML = PROCEDURE_TEXTS[btn.dataset.step];
+      });
+    });
+
+    // Frequency Slider & Presets
+    document.getElementById('slider-freq').addEventListener('input', (e) => {
+      state.frequency = Number(e.target.value);
+      syncSimulationUI();
+    });
+
+    document.querySelectorAll('.freq-preset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.frequency = Number(btn.dataset.freq);
+        state.selectedTrial = Number(btn.dataset.trial);
+        document.getElementById('select-trial').value = String(state.selectedTrial);
+
+        document.querySelectorAll('.freq-preset').forEach(b => {
+          b.classList.remove('bg-sky-600', 'text-white');
+          b.classList.add('bg-slate-100', 'text-slate-700');
+        });
+        btn.classList.remove('bg-slate-100', 'text-slate-700');
+        btn.classList.add('bg-sky-600', 'text-white');
+
+        renderDataTable();
+        syncSimulationUI();
+        showToast(`실험 ${state.selectedTrial + 1}: 진동수 ${state.frequency} Hz 설정`);
+      });
+    });
+
+    // Height Slider & Nudge Buttons
+    document.getElementById('slider-height').addEventListener('input', (e) => {
+      state.heightCm = Number(e.target.value);
+      syncSimulationUI();
+    });
+
+    document.querySelectorAll('.nudge-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const delta = Number(btn.dataset.delta);
+        state.heightCm = Math.max(MIN_HEIGHT_CM, Math.min(MAX_HEIGHT_CM, Number((state.heightCm + delta).toFixed(1))));
+        syncSimulationUI();
+      });
+    });
+
+    // Trial Recording Buttons
+    document.getElementById('select-trial').addEventListener('change', (e) => {
+      state.selectedTrial = Number(e.target.value);
+      renderDataTable();
+    });
+
+    document.getElementById('btn-record-l1').addEventListener('click', () => {
+      const idx = state.selectedTrial;
+      state.trials[idx].freq = state.frequency;
+      state.trials[idx].l1 = Number((state.heightCm / 100).toFixed(3));
+      renderDataTable();
+      showToast(`실험 ${idx + 1} 첫 번째 높이 L₁ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
+    });
+
+    document.getElementById('btn-record-l2').addEventListener('click', () => {
+      const idx = state.selectedTrial;
+      state.trials[idx].freq = state.frequency;
+      state.trials[idx].l2 = Number((state.heightCm / 100).toFixed(3));
+      renderDataTable();
+      showToast(`실험 ${idx + 1} 두 번째 높이 L₂ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
+    });
+
+    document.getElementById('btn-reset-table').addEventListener('click', () => {
+      state.trials = [
+        { freq: 850, l1: null, l2: null },
+        { freq: 1000, l1: null, l2: null },
+        { freq: 1150, l1: null, l2: null }
+      ];
+      renderDataTable();
+      showToast('실험 결과 표가 초기화되었습니다.');
+    });
+
+    // Window Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    /**
+     * =========================================================================
+     * 8. ANIMATION LOOP
+     * =========================================================================
+     */
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const elapsed = clock.getElapsedTime();
+
+      if (Math.abs(camOrbit.targetY - camOrbit.desiredTargetY) > 0.0005) {
+        camOrbit.targetY += (camOrbit.desiredTargetY - camOrbit.targetY) * 0.12;
+        applyCameraTransform();
+      }
+
+      drawSmartphoneApp(elapsed);
+      updateStandingWaveOverlay(elapsed);
+
+      renderer.render(scene, camera);
+    }
+
+    window.onload = function () {
+      setSceneMode('realistic');
+      renderDataTable();
+      syncSimulationUI();
+      animate();
+    };
+  </script>
+</body>
+</html>
