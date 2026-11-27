@@ -171,9 +171,9 @@
         <div>
           <div class="text-[10px] sm:text-[11px] text-slate-300 font-medium">바닥에서 필름 끝 높이 (<span class="italic font-serif">L</span>)</div>
           <div class="flex items-baseline gap-1 mt-0.5">
-            <span id="hud-height-cm" class="text-xl sm:text-2xl font-extrabold font-mono-num text-emerald-400">43.0</span>
+            <span id="hud-height-cm" class="text-xl sm:text-2xl font-extrabold font-mono-num text-emerald-400">32.0</span>
             <span class="text-xs font-semibold text-slate-300">cm</span>
-            <span id="hud-height-m" class="text-[11px] font-mono-num text-slate-400 ml-1">(0.430 m)</span>
+            <span id="hud-height-m" class="text-[11px] font-mono-num text-slate-400 ml-1">(0.320 m)</span>
           </div>
         </div>
 
@@ -277,8 +277,7 @@
           </div>
 
           <div id="proc-step-desc" class="bg-white rounded-lg p-2.5 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            <strong>1.</strong> 투명 필름을 둥글게 말아 눈금실린더의 안쪽에 넣고 원통 모양이 되도록 접착테이프로 고정한 뒤 눈금실린더에 끝부분을 끼운다.
-          </div>
+            <strong>1.</strong> 투명 필름을 둥글게 말아 원통을 만들어 눈금실린더 안쪽에 끼운다. 실린더 바닥이 막힌 끝, 필름 위 끝이 열린 끝이다.</div>
         </div>
 
         <!-- 2. 실험 장치 조작 (진동수 & 투명 필름 높이) -->
@@ -304,9 +303,9 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label for="slider-height" class="text-xs font-bold text-slate-700">바닥에서 투명 필름 끝 높이 (<span class="italic font-serif">L</span>)</label>
-              <span id="label-height" class="text-xs font-extrabold font-mono-num text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">43.0 cm (0.430 m)</span>
+              <span id="label-height" class="text-xs font-extrabold font-mono-num text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">32.0 cm (0.320 m)</span>
             </div>
-            <input id="slider-height" type="range" min="32.0" max="55.0" step="0.1" value="43.0" class="w-full slider-emerald" />
+            <input id="slider-height" type="range" min="32.0" max="55.0" step="0.1" value="32.0" class="w-full slider-emerald" />
             <div class="flex items-center justify-between gap-1 mt-2">
               <div class="flex items-center gap-1">
                 <button data-delta="-0.5" class="nudge-btn px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-semibold border border-slate-200">-5mm</button>
@@ -447,17 +446,17 @@
     const MAX_HEIGHT_CM = 55.0;
 
     const PROCEDURE_TEXTS = {
-      1: '<strong>1.</strong> 투명 필름을 둥글게 말아 눈금실린더의 안쪽에 넣고 원통 모양이 되도록 접착테이프로 고정한 뒤 눈금실린더에 끝부분을 끼운다.',
-      2: '<strong>2.</strong> 스마트폰의 소리 발생 애플리케이션을 이용해 일정한 진동수의 음파가 나오게 하고, 원통 모양의 투명 필름 끝부분에 가까이 가져간다.',
-      3: '<strong>3.</strong> 투명 필름을 조금씩 밀어 넣으면서 소리가 크게 들리는 지점을 찾은 뒤, 바닥으로부터의 높이(<span class="italic font-serif">L</span>₁)를 측정한다.',
-      4: '<strong>4.</strong> 과정 3을 반복하면서 소리가 크게 들리는 다음 지점의 높이(<span class="italic font-serif">L</span>₂)를 측정한다.',
-      5: '<strong>5.</strong> 소리가 크게 들리는 두 지점 사이의 간격(<span class="italic font-serif">L</span>₁ − <span class="italic font-serif">L</span>₂)을 계산해 표에 기록하고 음파의 파장(λ)과 진행 속력(<span class="italic font-serif">v</span>)을 구한다.'
+      1: '<strong>1.</strong> 투명 필름을 둥글게 말아 원통을 만들어 눈금실린더 안쪽에 끼운다. 실린더 바닥이 막힌 끝, 필름 위 끝이 열린 끝이다.',
+      2: '<strong>2.</strong> 스마트폰으로 일정한 진동수 <span class="italic font-serif">f</span>의 소리를 내어 필름 끝에 가까이 둔다. <strong>진동수는 1개로 정해</strong> 모든 회차에 같은 값을 쓴다.',
+      3: '<strong>3.</strong> 필름을 끝까지 밀어 넣은 뒤 조금씩 빼면서 소리가 가장 크게 들리는 곳(공명)을 찾고, 바닥에서 필름 끝까지의 높이를 첫 번째 공명 <span class="italic font-serif">L</span>₁로 기록한다.',
+      4: '<strong>4.</strong> 필름을 계속 빼면서 소리가 다시 가장 크게 들리는 곳의 높이를 두 번째 공명 <span class="italic font-serif">L</span>₂로 기록한다.',
+      5: '<strong>5.</strong> 3회 이상 반복하고(더 측정하면 <strong>＋ 회차 추가</strong>), <span class="italic font-serif">L</span>₂ − <span class="italic font-serif">L</span>₁으로 음파의 파장(λ)과 진행 속력(<span class="italic font-serif">v</span>)을 구한다.'
     };
 
     const state = {
       sceneMode: 'realistic', // 'realistic' (3D 실사화) | 'analytical' (3D 분석 모델)
       frequency: 1150,        // Hz
-      heightCm: 43.0,         // cm (32.0 ~ 55.0 cm)
+      heightCm: 32.0,         // cm (32.0 ~ 55.0 cm)
       audioOn: false,
       showWave: true,
       autoTrack: true,
@@ -629,7 +628,7 @@
 
       ctx.font = 'italic 44px "Times New Roman", serif';
       ctx.fillStyle = 'rgba(248, 250, 252, 0.72)';
-      ctx.fillText('v = f · λ          |L₁ - L₂| = λ / 2          Lₙ = (2n - 1) · λ / 4', 130, 285);
+      ctx.fillText('v = f · λ          L₂ − L₁ = λ / 2          Lₙ = (2n - 1) · λ / 4', 130, 285);
 
       // Chalk Wave Sketch
       ctx.strokeStyle = 'rgba(125, 211, 252, 0.6)';
