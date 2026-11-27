@@ -291,10 +291,10 @@
             </div>
             <input id="slider-freq" type="range" min="600" max="1400" step="10" value="1150" class="w-full" />
             <div class="flex items-center gap-1.5 mt-2">
-              <span class="text-[11px] text-slate-400">추천 진동수:</span>
-              <button data-freq="1150" data-trial="0" class="freq-preset px-2.5 py-0.5 rounded-md bg-sky-600 text-white text-[11px] font-mono-num font-bold transition">1150 Hz</button>
-              <button data-freq="1200" data-trial="1" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1200 Hz</button>
-              <button data-freq="1250" data-trial="2" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1250 Hz</button>
+              <span class="text-[11px] text-slate-400">추천 진동수(1개 선택):</span>
+              <button data-freq="1150" class="freq-preset px-2.5 py-0.5 rounded-md bg-sky-600 text-white text-[11px] font-mono-num font-bold transition">1150 Hz</button>
+              <button data-freq="1200" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1200 Hz</button>
+              <button data-freq="1250" class="freq-preset px-2.5 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-mono-num font-bold transition">1250 Hz</button>
             </div>
           </div>
 
@@ -324,8 +324,6 @@
           <div class="pt-1 flex items-center gap-1.5">
             <select id="select-trial" class="px-2 py-1.5 rounded-lg bg-slate-100 border border-slate-300 text-xs font-bold text-slate-800 focus:outline-none">
               <option value="0">실험 1</option>
-              <option value="1">실험 2</option>
-              <option value="2">실험 3</option>
             </select>
             <button id="btn-record-l1" class="flex-1 py-1.5 px-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-sm transition">
               첫 번째 (<span class="italic font-serif">L</span>₁) 기록
@@ -338,9 +336,13 @@
 
         <!-- 3. 교과서 실험 결과 기록표 -->
         <div class="bg-white rounded-xl border border-slate-200 p-3 shadow-sm">
-          <div class="flex items-center justify-between mb-2">
+          <div class="flex flex-wrap items-center justify-between gap-1 mb-2">
             <span class="text-xs font-extrabold text-slate-800">실험 결과 표 (기온 20°C, 이론 음속 343.5 m/s)</span>
-            <button id="btn-reset-table" class="no-print text-[11px] text-slate-500 hover:text-rose-600 underline">표 초기화</button>
+            <span class="no-print flex items-center gap-2">
+              <button id="btn-add-trial" class="px-2 py-0.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold">＋ 회차 추가</button>
+              <button id="btn-del-trial" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-[11px] font-bold">－ 회차 삭제</button>
+              <button id="btn-reset-table" class="text-[11px] text-slate-500 hover:text-rose-600 underline">표 초기화</button>
+            </span>
           </div>
 
           <div class="overflow-x-auto rounded-lg border border-slate-300">
@@ -358,7 +360,7 @@
                 <tr class="bg-amber-50/50 text-slate-700 border-b border-slate-300">
                   <th class="py-1 px-1 border-r border-slate-300 font-semibold">첫 번째(<span class="italic font-serif">L</span>₁)</th>
                   <th class="py-1 px-1 border-r border-slate-300 font-semibold">두 번째(<span class="italic font-serif">L</span>₂)</th>
-                  <th class="py-1 px-1 border-r border-slate-300 font-semibold"><span class="italic font-serif">L</span>₁ − <span class="italic font-serif">L</span>₂</th>
+                  <th class="py-1 px-1 border-r border-slate-300 font-semibold">|<span class="italic font-serif">L</span>₂ − <span class="italic font-serif">L</span>₁|</th>
                 </tr>
               </thead>
               <tbody id="table-body" class="divide-y divide-slate-200 font-mono-num">
@@ -368,7 +370,7 @@
           </div>
 
           <div class="mt-2 flex items-center justify-between text-[11px] text-slate-600">
-            <span>식: <span class="font-mono-num">λ = 2|L₁ - L₂|, v = fλ</span></span>
+            <span>식: <span class="font-mono-num">λ = 2|L₂ − L₁|, v = fλ</span> · 진동수 1개로 모든 회차 측정</span>
             <span>평균 측정 속력: <strong id="avg-speed-text" class="font-mono-num text-emerald-700 text-xs">- m/s</strong></span>
           </div>
         </div>
@@ -387,7 +389,7 @@
             • <strong>공기 기둥 길이(<span class="italic font-serif">L</span>) 범위:</strong> 눈금실린더(<span class="font-mono-num">25.0 cm</span>)와 투명 필름(<span class="font-mono-num">32.0 cm</span>)을 결합해 <span class="font-mono-num font-bold text-slate-900">0.320 m ~ 0.550 m</span> 사이에서 조절합니다. (필름 아래 끝이 실린더 바닥에 닿을 때 0.320 m, 실린더와 2 cm만 겹치게 뺐을 때 0.550 m)
           </p>
           <p class="leading-relaxed">
-            • <strong>권장 진동수(<span class="italic font-serif">f</span>):</strong> 반파장(<span class="italic font-serif">λ</span>/2) 간격의 두 공명점(<span class="italic font-serif">L</span>₁, <span class="italic font-serif">L</span>₂)이 모두 가동 길이 안에 포함되도록 <span class="font-mono-num font-bold text-slate-900">1150 Hz, 1200 Hz, 1250 Hz</span>를 사용합니다.
+            • <strong>권장 진동수(<span class="italic font-serif">f</span>):</strong> 반파장(<span class="italic font-serif">λ</span>/2) 간격의 두 공명점(<span class="italic font-serif">L</span>₁, <span class="italic font-serif">L</span>₂)이 모두 가동 길이 안에 포함되도록 <span class="font-mono-num font-bold text-slate-900">1150 Hz, 1200 Hz, 1250 Hz</span> 중 <strong>하나를 정해 모든 회차를 같은 진동수로</strong> 측정합니다. 회차가 더 필요하면 결과 표의 <strong>＋ 회차 추가</strong>를 누릅니다.
           </p>
         </div>
 
@@ -465,8 +467,8 @@
       dbLevel: 54.0,
       trials: [
         { freq: 1150, l1: null, l2: null },
-        { freq: 1200, l1: null, l2: null },
-        { freq: 1250, l1: null, l2: null }
+        { freq: 1150, l1: null, l2: null },
+        { freq: 1150, l1: null, l2: null }
       ]
     };
 
@@ -1454,7 +1456,40 @@
         tbody.appendChild(tr);
       });
 
+      // 평균 행 (L1, L2, |L2 − L1| 가 모두 기록된 회차 기준)
+      const done = state.trials.filter(t => t.l1 !== null && t.l2 !== null);
+      if (done.length > 0) {
+        const m = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+        const a1 = m(done.map(t => t.l1)), a2 = m(done.map(t => t.l2)), ad = m(done.map(t => Math.abs(t.l2 - t.l1)));
+        const tr = document.createElement('tr');
+        tr.className = 'bg-amber-50/70 text-slate-800 font-bold';
+        tr.innerHTML = `
+          <td class="py-1.5 px-1 border-r border-slate-300">평균</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${done.every(t => t.freq === done[0].freq) ? done[0].freq : '혼합'}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${a1.toFixed(3)}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${a2.toFixed(3)}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${ad.toFixed(3)}</td>
+          <td class="py-1.5 px-1 border-r border-slate-300">${(2 * ad).toFixed(3)}</td>
+          <td class="py-1.5 px-1 text-emerald-700">${done.every(t => t.freq === done[0].freq) ? (done[0].freq * 2 * ad).toFixed(1) : '-'}</td>`;
+        tbody.appendChild(tr);
+      }
+      syncTrialSelect();
       document.getElementById('avg-speed-text').textContent = countV > 0 ? `${(sumV / countV).toFixed(1)} m/s` : '- m/s';
+    }
+
+    const MAX_TRIALS = 10, MIN_TRIALS = 3;
+    function syncTrialSelect() {
+      const sel = document.getElementById('select-trial');
+      if (sel.options.length !== state.trials.length) {
+        sel.innerHTML = state.trials.map((_, i) => `<option value="${i}">실험 ${i + 1}</option>`).join('');
+      }
+      sel.value = String(state.selectedTrial);
+    }
+
+    function checkSameFreq(idx) {
+      const other = state.trials.find((t, i) => i !== idx && (t.l1 !== null || t.l2 !== null) && t.freq !== state.frequency);
+      if (other) showToast(`다른 회차는 ${other.freq} Hz로 측정했습니다. 모든 회차를 같은 진동수로 측정하세요.`);
+      return !other;
     }
 
     /**
@@ -1575,8 +1610,6 @@
     document.querySelectorAll('.freq-preset').forEach(btn => {
       btn.addEventListener('click', () => {
         state.frequency = Number(btn.dataset.freq);
-        state.selectedTrial = Number(btn.dataset.trial);
-        document.getElementById('select-trial').value = String(state.selectedTrial);
 
         document.querySelectorAll('.freq-preset').forEach(b => {
           b.classList.remove('bg-sky-600', 'text-white');
@@ -1587,7 +1620,7 @@
 
         renderDataTable();
         syncSimulationUI();
-        showToast(`실험 ${state.selectedTrial + 1}: 진동수 ${state.frequency} Hz 설정`);
+        showToast(`진동수 ${state.frequency} Hz 설정 (모든 회차를 이 진동수로 측정)`);
       });
     });
 
@@ -1613,28 +1646,42 @@
 
     document.getElementById('btn-record-l1').addEventListener('click', () => {
       const idx = state.selectedTrial;
+      const same = checkSameFreq(idx);
       state.trials[idx].freq = state.frequency;
       state.trials[idx].l1 = Number((state.heightCm / 100).toFixed(3));
       renderDataTable();
-      showToast(`실험 ${idx + 1} 첫 번째 높이 L₁ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
+      if (same) showToast(`실험 ${idx + 1} 첫 번째 높이 L₁ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
     });
 
     document.getElementById('btn-record-l2').addEventListener('click', () => {
       const idx = state.selectedTrial;
+      const same = checkSameFreq(idx);
       state.trials[idx].freq = state.frequency;
       state.trials[idx].l2 = Number((state.heightCm / 100).toFixed(3));
       renderDataTable();
-      showToast(`실험 ${idx + 1} 두 번째 높이 L₂ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
+      if (same) showToast(`실험 ${idx + 1} 두 번째 높이 L₂ = ${(state.heightCm / 100).toFixed(3)} m 기록됨`);
     });
 
     document.getElementById('btn-reset-table').addEventListener('click', () => {
-      state.trials = [
-        { freq: 1150, l1: null, l2: null },
-        { freq: 1200, l1: null, l2: null },
-        { freq: 1250, l1: null, l2: null }
-      ];
+      state.trials = Array.from({ length: MIN_TRIALS }, () => ({ freq: state.frequency, l1: null, l2: null }));
+      state.selectedTrial = 0;
       renderDataTable();
       showToast('실험 결과 표가 초기화되었습니다.');
+    });
+
+    document.getElementById('btn-add-trial').addEventListener('click', () => {
+      if (state.trials.length >= MAX_TRIALS) { showToast(`회차는 최대 ${MAX_TRIALS}개까지 추가할 수 있습니다.`); return; }
+      state.trials.push({ freq: state.frequency, l1: null, l2: null });
+      state.selectedTrial = state.trials.length - 1;
+      renderDataTable();
+      showToast(`실험 ${state.trials.length} 회차를 추가했습니다.`);
+    });
+
+    document.getElementById('btn-del-trial').addEventListener('click', () => {
+      if (state.trials.length <= MIN_TRIALS) { showToast(`기본 ${MIN_TRIALS}회차는 남겨 둡니다.`); return; }
+      state.trials.pop();
+      state.selectedTrial = Math.min(state.selectedTrial, state.trials.length - 1);
+      renderDataTable();
     });
 
     // Window Resize
