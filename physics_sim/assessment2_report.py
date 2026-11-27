@@ -48,25 +48,32 @@ FONT_SYM = os.path.join(HERE, "fonts", "DejaVuSans.ttf")   # λ Δ − Ⅰ ① �
 
 ROLES = ["음원", "측정", "기록", "계산"]
 N_MEMBERS = 4
-N_TRIALS = 3
+N_TRIALS = 3          # 기본 회차 수 (모둠이 ➕로 늘릴 수 있음)
+MAX_TRIALS = 10
+IMG_DIR = os.path.join(HERE, "images", "assessment2")
 
 # 문항 문구 (화면·PDF·Word가 같은 문구를 사용) — 평가지 Ⅰ 원문
 SITUATION = ("자율주행차 음향 설계팀은 차량 실내 마이크로 바깥 소리를 분석하고 소음을 제어한다. "
              "이 계산의 기준이 되는 것이 차내 공기에서 소리의 속력이다. "
              "여러분의 모둠은 정상파 공명을 이용하여 이 값을 직접 측정한다.")
 STEPS = [
-    "준비물: 투명관(약 1 m, 아래쪽이 호스로 물통과 연결됨), 물, 줄자, 온도계, 스마트 기기 2대",
-    "기기 A로 일정한 진동수 f(500~800 Hz)의 소리를 내고, 기기 B의 음향 스펙트럼 기능으로 실제 진동수를 확인한다.",
-    "기기 A를 관 입구 바로 위에 두고 물통을 천천히 내려 수면을 낮춘다. 기기 B의 음량 값이 최대가 되는 곳(공명)을 찾는다.",
-    "관 입구에서 수면까지 거리를 첫 번째 공명 L1, 두 번째 공명 L2로 기록한다. 3회 반복한다.",
+    "준비물: 눈금실린더(메스실린더), OHP 투명 필름, 접착테이프, 자, 온도계, 스마트폰(소리 발생 앱)",
+    "투명 필름을 둥글게 말아 원통을 만들고 접착테이프로 고정한 뒤, 눈금실린더 안쪽에 끼운다. "
+    "눈금실린더 바닥이 막힌 끝, 필름 위 끝이 열린 끝인 공기 기둥이 된다.",
+    "스마트폰으로 일정한 진동수 f의 소리를 내어 필름 끝에 가까이 둔다. "
+    "모둠은 <b>진동수를 1개로 정하고</b> 모든 회차에서 같은 진동수를 사용한다.",
+    "필름을 천천히 빼거나 밀어 넣으면서 소리가 가장 크게 들리는 곳(공명)을 찾고, "
+    "바닥에서 필름 끝까지의 높이(공기 기둥 길이)를 첫 번째 공명 L1, 두 번째 공명 L2로 기록한다.",
+    "3회 이상 반복한다. 더 측정했다면 표의 <b>➕ 회차 추가</b>로 칸을 늘린다.",
 ]
 Q = {
     "q2a": "① 두 관에 공명할 때 관 속 공기의 정상파(진동 범위)를 그리고, 배와 마디를 표시하시오.",
-    "q2b": "② 수면과 관 입구가 각각 배인지 마디인지 쓰고, 그 까닭을 매질(공기) 입자가 진동할 수 있는지로 설명하시오.",
+    "q2b": "② 막힌 끝(눈금실린더 바닥)과 열린 끝(필름 끝)이 각각 배인지 마디인지 쓰고, 그 까닭을 매질(공기) 입자가 진동할 수 있는지로 설명하시오.",
     "q2c": "③ L1, L2를 파장 λ으로 나타내고, λ = 2(L2 − L1)임을 보이시오.",
     "q3a": "① 측정한 평균값으로 소리의 파장과 속력을 구하시오. (식 → 대입 → 결과·단위)",
     "q3b": "② 이론값 v = 331 + 0.6t (m/s, t는 °C)로 실내 온도에서의 음속을 구하고, 측정값과의 오차율(%)을 구하시오.",
-    "q4a": "① 측정한 L1과 λ/4를 비교하여 차이(Δ = λ/4 − L1)를 구하시오. 이 차이가 생기는 까닭을 쓰고, "
+    "q4a": "① 측정한 L1을 λ/4의 홀수 배 중 가장 가까운 값 (2n − 1)λ/4와 비교하여 차이(Δ = (2n − 1)λ/4 − L1)를 구하시오. "
+           "이 차이가 생기는 까닭을 쓰고, "
            "음속을 L1만으로 구하지 않고 두 공명 위치의 차로 구하면 좋은 까닭을 인과적으로 서술하시오.",
     "q4b": "② 개구단 보정 외에 측정값에 영향을 준 요인을 한 가지 들고, 그 요인이 측정한 음속을 크게 하는지 "
            "작게 하는지 근거와 함께 쓰시오.",
@@ -79,7 +86,7 @@ CALC_ROWS = {
     "c_v": "음속 v (측정값)",
     "c_vth": "이론 음속 v (실내 온도)",
     "c_err": "오차율 (%)",
-    "c_delta": "Δ = λ/4 − L1",
+    "c_delta": "Δ = (2n − 1)λ/4 − L1",
     "c_v35": "35 °C 차내 음속",
 }
 CALC_STEPS = [("f", "식"), ("s", "값 대입"), ("r", "결과 (단위)")]
@@ -87,8 +94,8 @@ CALC_STEPS = [("f", "식"), ("s", "값 대입"), ("r", "결과 (단위)")]
 SAVE_KEYS = (
     ["cls", "team"]
     + [f"m{i}_{x}" for i in range(N_MEMBERS) for x in ("num", "name", "role")]
-    + ["f_set", "f_meas", "temp"]
-    + [f"L{j}_{i}" for i in range(N_TRIALS) for j in (1, 2)]
+    + ["freq", "temp", "n_trials"]
+    + [f"L{j}_{i}" for i in range(MAX_TRIALS) for j in (1, 2)]
     + ["draw_img_b64", "draw_img_name", "q2a_txt", "q2b", "q2c"]
     + [f"{k}_{s}" for k in CALC_ROWS for s, _ in CALC_STEPS]
     + ["q4a", "q4b", "q5"]
@@ -102,7 +109,7 @@ if "_a2_pending" in st.session_state:
         if k in SAVE_KEYS:
             st.session_state[k] = v
     st.session_state["_a2_loaded"] = True
-for k, v in {"draw_img_b64": None, "draw_img_name": None, "a2_exports": None}.items():
+for k, v in {"draw_img_b64": None, "draw_img_name": None, "a2_exports": None, "n_trials": N_TRIALS}.items():
     st.session_state.setdefault(k, v)
 
 # ════════════════════════════════════════════════════════════════════
@@ -197,7 +204,7 @@ def file_stem():
 def measurements():
     """회차별 L1, L2, L2−L1 과 평균 (앱 자동 계산: 단순 산술만)."""
     rows, s1, s2, sd = [], [], [], []
-    for i in range(N_TRIALS):
+    for i in range(n_trials()):
         a, b = num(f"L1_{i}"), num(f"L2_{i}")
         dd = (b - a) if a is not None and b is not None else None
         rows.append((a, b, dd))
@@ -206,6 +213,25 @@ def measurements():
         if dd is not None: sd.append(dd)
     avg = lambda xs: sum(xs) / len(xs) if xs else None
     return rows, (avg(s1), avg(s2), avg(sd))
+
+
+def n_trials():
+    try:
+        return max(1, min(MAX_TRIALS, int(st.session_state.get("n_trials") or N_TRIALS)))
+    except (TypeError, ValueError):
+        return N_TRIALS
+
+
+def cb_add_trial():
+    st.session_state["n_trials"] = min(MAX_TRIALS, n_trials() + 1)
+
+
+def cb_del_trial():
+    n = n_trials()
+    if n > N_TRIALS:
+        st.session_state.pop(f"L1_{n - 1}", None)
+        st.session_state.pop(f"L2_{n - 1}", None)
+        st.session_state["n_trials"] = n - 1
 
 
 def cb_draw_img():
@@ -279,7 +305,8 @@ with g1:
         st.markdown("<div class='card-t'>🚘 상황</div>", unsafe_allow_html=True)
         st.markdown(SITUATION)
         st.markdown(f"<span class='pill'>성취기준 {STANDARD.split(']')[0]}]</span>"
-                    "<span class='pill'>설정 진동수 500~800 Hz</span><span class='pill'>3회 반복 측정</span>",
+                    "<span class='pill'>눈금실린더 + OHP 필름 공기 기둥</span><span class='pill'>진동수 1개 고정</span>"
+                    "<span class='pill'>3회 이상 반복 측정</span>",
                     unsafe_allow_html=True)
 with g2:
     with st.container(border=True):
@@ -309,17 +336,24 @@ with st.container(border=True):
 # 4. [1] 실험 준비와 측정
 # ════════════════════════════════════════════════════════════════════
 sec(1, "실험 준비와 측정", "숫자만 입력 · 단위는 표 머리에")
-e1, e2, e3 = st.columns(3)
-e1.text_input("설정 진동수 (Hz)", key="f_set", placeholder="500~800")
-e2.text_input("스펙트럼 측정 진동수 (Hz)", key="f_meas")
-e3.text_input("실내 온도 (°C)", key="temp")
-tip("설정값과 스펙트럼 측정값이 다르면 계산에는 <b>측정값</b>을 사용합니다.")
+m1, m2 = st.columns([1.5, 1])
+with m1:
+    e1, e2 = st.columns(2)
+    e1.text_input("진동수 f (Hz)", key="freq", placeholder="예: 1150")
+    e2.text_input("실내 온도 (°C)", key="temp")
+    tip("모둠이 정한 <b>진동수 1개</b>를 모든 회차에 사용합니다. L은 <b>눈금실린더 바닥에서 필름 끝까지의 높이</b>"
+        "(공기 기둥 길이)입니다. 짧은 쪽부터 첫 번째 공명 L1, 두 번째 공명 L2입니다. "
+        "참고 페이지의 <b>3D 공명 실험실</b>로 측정할 때도 진동수 1개만 정해 사용합니다.")
+with m2:
+    _res_img = os.path.join(IMG_DIR, "resonance_L1_L2.png")
+    if os.path.exists(_res_img):
+        st.image(_res_img, caption="공기 기둥 길이 L1, L2 (바닥 → 필름 끝)", **FULL)
 
 hdr = st.columns([0.8, 1, 1, 1])
 for c, t in zip(hdr, ["회차", "L1 (m)", "L2 (m)", "L2 − L1 (m)"]):
     c.markdown(f"<div class='cellh'>{t}</div>", unsafe_allow_html=True)
 rows, avgs = measurements()
-for i in range(N_TRIALS):
+for i in range(n_trials()):
     rc = st.columns([0.8, 1, 1, 1])
     rc[0].markdown(f"<div style='padding-top:8px'>{i + 1}</div>", unsafe_allow_html=True)
     rc[1].text_input(f"L1 {i + 1}회", key=f"L1_{i}", label_visibility="collapsed")
@@ -331,13 +365,19 @@ for j in range(3):
     rc[j + 1].markdown(f"<div class='auto'>{fmt(avgs[j]) or '&nbsp;'}</div>", unsafe_allow_html=True)
 st.markdown("<div class='auto-label'>▣ L2 − L1 과 평균은 입력한 값으로 자동 계산됩니다. "
             "파장·속력 계산은 3번에 모둠이 직접 씁니다.</div>", unsafe_allow_html=True)
+tb1, tb2, _ = st.columns([1, 1, 2.5])
+tb1.button("➕ 회차 추가", on_click=cb_add_trial, disabled=n_trials() >= MAX_TRIALS, **FULL)
+tb2.button("➖ 마지막 회차 삭제", on_click=cb_del_trial, disabled=n_trials() <= N_TRIALS, **FULL)
 
 # ════════════════════════════════════════════════════════════════════
 # 5. [2] 관의 경계 조건과 파장
 # ════════════════════════════════════════════════════════════════════
 sec(2, "관의 경계 조건과 파장")
 qtext(Q["q2a"])
-st.caption("평가지(종이)의 두 관 그림에 정상파를 그리고 배·마디를 표시한 뒤, 사진을 찍어 올립니다.")
+st.caption("평가지(종이)의 두 공기 기둥 그림에 정상파를 그리고 배·마디를 표시한 뒤, 사진을 찍어 올립니다.")
+_draw_img = os.path.join(IMG_DIR, "draw_template.png")
+if os.path.exists(_draw_img):
+    st.image(_draw_img, caption="평가지 2-① 그림 (막힌 끝: 눈금실린더 바닥, 열린 끝: 필름 끝)", width=360)
 p1, p2 = st.columns([1.3, 1])
 with p1:
     st.file_uploader("그림 사진 올리기 (jpg·png)", type=["png", "jpg", "jpeg"], key="draw_upload",
@@ -403,8 +443,8 @@ def calc_done(prefix):
 
 checks = [
     ("모둠 정보", filled("cls", "team", "m0_num", "m0_name")),
-    ("1. 진동수·온도", filled("f_meas", "temp")),
-    ("1. 3회 측정값", all(r[0] is not None and r[1] is not None for r in rows)),
+    ("1. 진동수·온도", filled("freq", "temp")),
+    ("1. 3회 이상 측정값", sum(r[0] is not None and r[1] is not None for r in rows) >= N_TRIALS),
     ("2-① 정상파 그림", bool(ss("draw_img_b64")) or filled("q2a_txt", min_len=10)),
     ("2-②③ 경계 조건·λ 유도", filled("q2b", "q2c", min_len=10)),
     ("3-① 파장·속력", calc_done("c_lam") and calc_done("c_v")),
@@ -433,9 +473,9 @@ def report_blocks():
     B.append(("grid", ["반-번호", "이름", "역할"], members, (0, 1, 2), [50, 70, 58]))
     B.append(("note", f"[상황] {SITUATION}"))
     B.append(("h", 1, "실험 준비와 측정"))
-    B.append(("grid", ["설정 진동수 (Hz)", "스펙트럼 측정 진동수 (Hz)", "실내 온도 (°C)"],
-              [[ss("f_set"), ss("f_meas"), ss("temp")]], (0, 1, 2), [59, 60, 59]))
-    trow = [[str(i + 1), ss(f"L1_{i}"), ss(f"L2_{i}"), fmt(rows[i][2])] for i in range(N_TRIALS)]
+    B.append(("grid", ["진동수 f (Hz)", "실내 온도 (°C)", "L 측정 기준"],
+              [[ss("freq"), ss("temp"), "눈금실린더 바닥 → 필름 끝"]], (0, 1), [50, 50, 78]))
+    trow = [[str(i + 1), ss(f"L1_{i}"), ss(f"L2_{i}"), fmt(rows[i][2])] for i in range(n_trials())]
     trow.append(["평균", fmt(avgs[0]), fmt(avgs[1]), fmt(avgs[2])])
     B.append(("grid", ["회차", "L1 (m)", "L2 (m)", "L2 − L1 (m)  ▣자동"], trow, (1, 2), [28, 50, 50, 50]))
     B.append(("h", 2, "관의 경계 조건과 파장"))
@@ -719,7 +759,7 @@ with st.container(border=True):
 # ════════════════════════════════════════════════════════════════════
 with st.expander("🔒 교사용 확인"):
     if st.text_input("교사 코드", type="password", key="a2_teacher") == teacher_code():
-        f = num("f_meas") or num("f_set")
+        f = num("freq")
         t = num("temp")
         L1a, L2a, dLa = avgs
         if f and dLa:
@@ -731,12 +771,16 @@ with st.expander("🔒 교사용 확인"):
                 vth = 331 + 0.6 * t
                 lines.append(f"- 이론값 v = 331 + 0.6×{t:g} ≈ **{vth:.1f} m/s** → 오차율 ≈ **{abs(v - vth) / vth * 100:.2f} %**")
             if L1a is not None:
-                lines.append(f"- λ/4 ≈ {lam / 4:.4f} m, 평균 L1 = {L1a:.4f} m → Δ = λ/4 − L1 ≈ **{lam / 4 - L1a:.4f} m**")
+                k = max(1, round((L1a / (lam / 4) + 1) / 2))   # (2n − 1)λ/4 가 L1에 가장 가까운 n
+                q = (2 * k - 1) * lam / 4
+                lines.append(f"- L1에 가장 가까운 (2n − 1)λ/4: n = {k} → {q:.4f} m, 평균 L1 = {L1a:.4f} m "
+                             f"→ Δ ≈ **{q - L1a:.4f} m**")
             v35 = 331 + 0.6 * 35
             lines.append(f"- 35 °C: v = {v35:.1f} m/s → 같은 f에서 L2 − L1 = v/(2f) ≈ **{v35 / (2 * f):.4f} m**")
             st.markdown("\n".join(lines))
         else:
             st.caption("측정 진동수와 L1·L2가 입력되면 기준 계산값이 표시됩니다.")
-        st.caption("예시(운영안): f = 600 Hz, L1 = 0.131 m, L2 = 0.417 m → λ = 0.572 m, v ≈ 343 m/s, Δ ≈ 0.012 m")
+        st.caption("예시(3D 공명 실험실, 1150 Hz, 20 °C): L1 ≈ 0.367 m, L2 ≈ 0.516 m → λ ≈ 0.299 m, "
+                   "v ≈ 343 m/s, Δ = 5λ/4 − L1 ≈ 0.006 m (개구단 보정)")
 
 st.caption("사곡고등학교 역학과 에너지 · 시뮬레이션 및 실습 지원 포털")
