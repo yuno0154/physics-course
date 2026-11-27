@@ -343,9 +343,9 @@ with m1:
         "(공기 기둥 길이)입니다. 필름을 밀어 넣으며 먼저 만나는 긴 쪽이 첫 번째 공명 L1, 다음이 두 번째 공명 L2입니다. "
         "참고 페이지의 <b>3D 공명 실험실</b>로 측정할 때도 진동수 1개만 정해 사용합니다.")
 with m2:
-    _res_img = os.path.join(IMG_DIR, "resonance_L1_L2.png")
+    _res_img = os.path.join(IMG_DIR, "resonance_L1_L2.jpg")
     if os.path.exists(_res_img):
-        st.image(_res_img, caption="공기 기둥 길이 L1, L2 (바닥 → 필름 끝)", **FULL)
+        st.image(_res_img, caption="3D 공명 실험실 화면: 공기 기둥 길이 L1, L2 (바닥 → 필름 끝)", width=300)
 
 hdr = st.columns([0.8, 1, 1, 1])
 for c, t in zip(hdr, ["회차", "L1 (m)", "L2 (m)", "L1 − L2 (m)"]):
