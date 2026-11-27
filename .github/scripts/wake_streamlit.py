@@ -13,7 +13,7 @@ import time
 from playwright.sync_api import sync_playwright
 
 APP_URL = os.environ.get("APP_URL", "https://physics-course.streamlit.app/")
-TIMEOUT_SEC = int(os.environ.get("WAKE_TIMEOUT_SEC", "420"))
+TIMEOUT_SEC = int(os.environ.get("WAKE_TIMEOUT_SEC", "900"))
 WAKE_BUTTON = re.compile(r"get this app back up", re.I)
 
 
@@ -48,6 +48,20 @@ def app_is_ready(page):
     return False
 
 
+def describe(page):
+    """현재 화면 상태를 한 줄로 요약(실패 원인 확인용 로그)."""
+    parts = []
+    for frame in all_frames(page):
+        try:
+            text = frame.locator("body").inner_text(timeout=2_000)
+        except Exception:
+            continue
+        text = " ".join(text.split())[:120]
+        if text:
+            parts.append(text)
+    return " | ".join(parts) or "(빈 화면)"
+
+
 def main():
     deadline = time.time() + TIMEOUT_SEC
     clicked = False
@@ -57,15 +71,20 @@ def main():
         page = browser.new_page()
         page.goto(APP_URL, wait_until="domcontentloaded", timeout=90_000)
         last_reload = time.time()
+        start = time.time()
+        last_log = 0.0
 
         while time.time() < deadline:
             if app_is_ready(page):
-                print(f"앱이 깨어 있습니다. (잠자기 버튼 클릭: {'예' if clicked else '아니오'})")
+                print(f"[{int(time.time() - start)}초] 앱이 깨어 있습니다. (잠자기 버튼 클릭: {'예' if clicked else '아니오'})")
                 browser.close()
                 return 0
             if click_wake_button(page):
                 clicked = True
                 print("잠자기 화면 발견: 'Yes, get this app back up!' 버튼을 눌렀습니다.")
+            if time.time() - last_log > 60:
+                print(f"[{int(time.time() - start)}초] 화면: {describe(page)}", flush=True)
+                last_log = time.time()
             # "taking longer than normal" 화면에 오래 멈춰 있으면 2분마다 새로고침
             if time.time() - last_reload > 120:
                 print("아직 부팅 중이라 새로고침합니다.")
