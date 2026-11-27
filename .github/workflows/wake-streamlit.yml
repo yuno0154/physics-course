@@ -1,0 +1,42 @@
+name: Streamlit 앱 깨우기
+
+on:
+  schedule:
+    # GitHub cron은 UTC 기준이고 몇 분~수십 분 늦게 시작될 수 있어 여유를 둔다.
+    - cron: "30 22 * * *"   # 매일 07:30 KST (수업 전)
+    - cron: "0 3 * * 1-5"   # 평일 12:00 KST (점심 이후 수업 대비)
+  workflow_dispatch: {}     # Actions 탭에서 수동 실행 가능
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wake-streamlit
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Playwright 설치
+        run: |
+          pip install playwright==1.48.0
+          python -m playwright install --with-deps chromium
+      - name: 앱 깨우기
+        env:
+          APP_URL: https://physics-course.streamlit.app/
+        run: python .github/scripts/wake_streamlit.py
+      - name: 실패 화면 저장
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wake-failure-screenshot
+          path: wake_failure.png
+          if-no-files-found: ignore
