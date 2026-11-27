@@ -17,7 +17,7 @@ concurrency:
 jobs:
   wake:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,6 +32,7 @@ jobs:
       - name: 앱 깨우기
         env:
           APP_URL: https://physics-course.streamlit.app/
+          PYTHONUNBUFFERED: "1"
         run: python .github/scripts/wake_streamlit.py
       - name: 실패 화면 저장
         if: failure()
