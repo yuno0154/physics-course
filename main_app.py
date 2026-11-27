@@ -86,6 +86,10 @@ satellite_orbit_assessment_page = st.Page("physics_sim/satellite_orbit_assessmen
 satellite_launch_sim_page = st.Page("physics_sim/satellite_launch_sim.py", title="🚀 [수행자료] 위성 발사·궤도 시뮬레이션", url_path="satellite_launch_sim")
 submission_list_page = st.Page("physics_sim/submission_list_view.py", title="📋 [제출목록] 1차시 JSON 제출 목록", url_path="submission_list_1")
 assessment2_guide_page = st.Page("physics_sim/assessment2_guide_components.py", title="🚗 [수행2 안내] 미래형 모빌리티 음향 탐구 안내자료", url_path="assessment2_guide")
+# [수행2] 모둠 실험 보고서 — 평가 당일 True 로 바꾸면 메뉴에 나타남.
+# False 여도 주소(/assessment2_report)로는 열 수 있음(교사 미리보기용). 메뉴 링크만 숨김.
+ASSESSMENT2_REPORT_OPEN = False
+assessment2_report_page = st.Page("physics_sim/assessment2_report.py", title="🧪 [수행2] 모둠 실험 보고서 (정상파 공명 음속)", url_path="assessment2_report")
 # [수행평가 반영으로 인한 임시 비활성화]
 # satellite_orbit_eval_page = st.Page("physics_sim/satellite_orbit_sim.py", title="🛰️ [수행연습] 포물선과 궤도 역학적 연결")
 # satellite_nasa_page = st.Page("physics_sim/satellite_orbit_sim_nasa.py", title="🛰️ [분석] NASA 실제 위성 궤도")
@@ -129,6 +133,7 @@ pg = st.navigation({
         satellite_launch_sim_page,
         submission_list_page,
         assessment2_guide_page,
+        assessment2_report_page,
         # satellite_orbit_eval_page,  # 수행평가 진행으로 임시 비활성화
         # satellite_nasa_page         # 수행평가 진행으로 임시 비활성화
     ],
@@ -239,5 +244,10 @@ st.markdown("""
         <span style="font-size: 0.9rem; font-weight: 600; color: #64748b;">사곡고등학교 물리실</span>
     </div>
 """, unsafe_allow_html=True)
+
+if not ASSESSMENT2_REPORT_OPEN:
+    st.markdown("""<style>
+    [data-testid="stSidebarNav"] li:has(a[href$="/assessment2_report"]) { display: none !important; }
+    </style>""", unsafe_allow_html=True)
 
 pg.run()
