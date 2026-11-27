@@ -250,7 +250,7 @@ function scene2(){clear();const n=+$('n2').value,L=+$('l2').value,f=f2(),m=close
  const rows=[['파장  λₙ = 4l/'+k,lamn.toFixed(3)+' m'],['진동수  fₙ = v/λₙ = '+k+'v/(4l)',f.toFixed(0)+' Hz  (= '+(closed?m:n)+' × f₁)'],['가능한 진동수',closed?'f₁, 3f₁, 5f₁, … (홀수 배만)':'f₁, 2f₁, 3f₁, … (모든 정수 배)']];
  rows.forEach((r,i)=>{const yy=345+i*32;ctx.fillStyle=i%2?'#f8fafc':'#fff';ctx.fillRect(100,yy-14,800,28);txt(r[0],120,yy,{a:'left',s:15,b:1});txt(r[1],880,yy,{a:'right',s:16,b:1,c:BL})});
  if(sndOn&&tab===2)tone(f);
- $('step').innerHTML='점(●)은 관 속 공기 입자입니다. 공기는 관을 따라 <b>앞뒤로</b> 진동하지만(종파), 진동 범위를 주황 선(횡파 모양)으로 나타냈습니다. '+(closed?'<b>막힌 끝은 공기가 움직이지 못해 마디</b>, 열린 끝은 배입니다. 그래서 l = (λₙ/4)(2n−1), 즉 관 길이가 λ/4의 <b>홀수 배</b>인 정상파만 생깁니다.':'<b>열린 양 끝은 모두 배</b>입니다. l = (λₙ/4)(2n), 즉 관 길이가 λ/4의 짝수 배(λ/2의 정수 배)인 정상파가 생깁니다.');}
+ $('step').innerHTML='점(●)은 관 속 공기 입자입니다. 공기는 관을 따라 <b>앞뒤로</b> 진동하지만(종파), 진동 범위를 주황 선(횡파 모양)으로 나타냈습니다. '+(closed?'<b>막힌 끝은 공기가 움직이지 못해 마디</b>, 열린 끝은 배입니다. 그래서 l = (λₙ/4)(2n−1), 즉 관 길이가 λ/4의 <b>홀수 배</b>인 정상파만 생깁니다.':'<b>열린 양 끝은 모두 배</b>입니다. l = (λₙ/4)(2n), 즉 관 길이가 λ/4의 짝수 배(λ/2의 정수 배)인 정상파가 생깁니다.')+' <span style="color:#64748b">(여기서 배·마디는 <b>공기 입자의 변위</b> 기준입니다. 압력 변화는 반대로 변위의 마디에서 가장 크고 배에서 0입니다.)</span>';}
 $('op').onclick=()=>{closed=false;$('op').classList.add('on');$('cl').classList.remove('on')};$('cl').onclick=()=>{closed=true;$('cl').classList.add('on');$('op').classList.remove('on')};
 // ===== tab3 resonance tube
 const REC=[];const ENDC=0.012;
@@ -271,7 +271,7 @@ function scene3(){clear();const f=+$('f3').value,y=+$('y3').value,lam=VS/f;$('vf
  if(REC.length>=2){const d=REC[1]-REC[0];txt('λ/2 = y₂ − y₁ = '+d.toFixed(3)+' m  →  λ = '+(2*d).toFixed(3)+' m',mx,300,{a:'left',b:1,s:15,c:BL});txt('v = fλ = '+f+' × '+(2*d).toFixed(3)+' = '+(2*d*f).toFixed(0)+' m/s',mx,330,{a:'left',b:1,s:16,c:PU});
   txt('※ y₁ = '+REC[0].toFixed(3)+' m 는 λ/4 = '+(lam/4).toFixed(3)+' m 보다 조금 작습니다(입구 바깥의 배).',mx,370,{a:'left',s:12.5,c:SUB})}
  if(sndOn&&tab===3){tone(f);gn.gain.setTargetAtTime(0.02+0.12*a,AC.currentTime,0.03)}
- $('step').innerHTML='수면 거리 <b>y</b>를 천천히 늘려 소리가 크게 들리는(공명) 위치를 찾아 <b>📌 기록</b>하세요. 수면은 공기가 움직이지 못하므로 <b>마디</b>, 관 입구는 <b>배</b>입니다. 이웃한 공명 위치의 차가 반 파장입니다.';}
+ $('step').innerHTML='수면 거리 <b>y</b>를 천천히 늘려 소리가 크게 들리는(공명) 위치를 찾아 <b>📌 기록</b>하세요. 수면은 공기가 움직이지 못하므로 <b>마디</b>, 관 입구는 <b>배</b>입니다. 이웃한 공명 위치의 차가 반 파장입니다. <span style="color:#64748b">소리의 세기 막대는 관 입구에서 듣는 소리입니다. 입구가 배가 되도록 공기 기둥 전체가 공명할 때 커지고, 입구가 마디 자리에 오면(y가 λ/2의 정수 배 근처) 가장 작아집니다.</span>';}
 $('rec').onclick=()=>{const y=+$('y3').value;if(REC.length<4&&!REC.some(r=>Math.abs(r-y)<0.05)){REC.push(y);REC.sort((a,b)=>a-b)}};$('clr').onclick=()=>REC.length=0;
 $('f3_500').onclick=()=>{$('f3').value=500;REC.length=0};
 // ===== tab4 bottles

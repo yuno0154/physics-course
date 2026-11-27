@@ -416,10 +416,10 @@
   <!-- Bottom Center Legend & Control Hint Pill -->
   <div class="no-print fixed bottom-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none hidden sm:flex items-center gap-2" style="left:calc((100vw - var(--panel-w)) / 2)">
     <div class="bg-slate-900/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg border border-slate-700/80 text-[11px] text-slate-200 font-medium flex items-center gap-3">
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(Node)</span>
-      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(Antinode)</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span> 마디(입자 정지·압력 변화 최대)</span>
+      <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span> 배(입자 최대 진동·압력 변화 0)</span>
       <span class="text-slate-600">|</span>
-      <span>🖱️ 빈 공간 드래그: 회전 · 필름 드래그: 높이 조절 · 휠: 확대</span>
+      <span>🖱️ 드래그: 회전·필름 높이 · 휠: 확대</span>
     </div>
   </div>
 
@@ -1164,9 +1164,11 @@
       markerPool.forEach(m => (m.visible = false));
       let mIdx = 0;
       const qL = lambda / 4;
-      for (let m = 0; m * qL <= L + 0.005 && mIdx < markerPool.length; m++) {
+      // 관 입구의 배는 끝보정(END_CORRECTION)만큼 입구 바로 위에 생기므로 그 위치까지 표시
+      const topLimit = L + END_CORRECTION + 0.002;
+      for (let m = 0; m * qL <= topLimit && mIdx < markerPool.length; m++) {
         const yPos = m * qL;
-        if (yPos > L) continue;
+        if (yPos > topLimit) continue;
         const ring = markerPool[mIdx++];
         ring.visible = true;
         ring.position.y = yPos;
