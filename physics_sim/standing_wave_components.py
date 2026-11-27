@@ -260,7 +260,11 @@ function scene3(){clear();const f=+$('f3').value,y=+$('y3').value,lam=VS/f;$('vf
  ctx.fillStyle='#bfdbfe';ctx.fillRect(tx,ty+y*sc,tw,th-y*sc);ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.strokeRect(tx,ty,tw,th);
  ctx.fillStyle='#334155';ctx.fillRect(tx+8,ty-28,tw-16,18);txt('스마트 기기 ('+f+' Hz)',tx+tw+12,ty-19,{a:'left',s:12});
  const a=amp3();
- if(a>0.05){const Le=y+ENDC;for(let s of [1,-1]){ctx.beginPath();ctx.strokeStyle=s>0?BL:'#93c5fd';ctx.lineWidth=2;for(let q=0;q<=y*sc;q+=2){const d=q/sc;const xx=tx+tw/2+s*(tw/2-6)*a*Math.cos(2*Math.PI*(d+ENDC)/lam*1)*Math.cos(2*Math.PI*0.4*T);q===0?ctx.moveTo(xx,ty+q):ctx.lineTo(xx,ty+q)}ctx.stroke()}}
+ // 공기 기둥의 정상파는 공명 여부와 관계없이 항상 그린다(수면 = 항상 마디). 공명하지 않으면 진폭만 작다.
+ {const cx=tx+tw/2,amp=(tw/2-6)*(0.2+0.8*a),ph=Math.cos(2*Math.PI*T/PER[3]),env=d=>Math.sin(2*Math.PI*(y-d)/lam),strong=a>0.85;
+  for(let s of [1,-1]){ctx.beginPath();ctx.setLineDash([3,4]);ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;for(let q=0;q<=y*sc;q+=2){const xx=cx+s*amp*Math.abs(env(q/sc));q===0?ctx.moveTo(xx,ty+q):ctx.lineTo(xx,ty+q)}ctx.stroke();ctx.setLineDash([])}
+  for(let s of [1,-1]){ctx.beginPath();ctx.strokeStyle=strong?(s>0?BL:'#93c5fd'):(s>0?'#60a5fa':'#bfdbfe');ctx.lineWidth=strong?2.4:1.6;for(let q=0;q<=y*sc;q+=2){const xx=cx+s*amp*env(q/sc)*ph;q===0?ctx.moveTo(xx,ty+q):ctx.lineTo(xx,ty+q)}ctx.stroke()}
+  dot(cx,ty+y*sc,4,ND);}
  dbl(tx-24,ty,tx-24,ty+y*sc,RD);txt('y',tx-38,ty+y*sc/2,{s:14,b:1,c:RD});
  // meter
  const mx=360,my=60;txt('소리의 세기',mx,my-20,{a:'left',b:1,s:14});ctx.fillStyle='#e2e8f0';ctx.fillRect(mx,my,300,26);ctx.fillStyle=a>0.8?GN:(a>0.3?OR:'#94a3b8');ctx.fillRect(mx,my,300*Math.max(0.03,a),26);
@@ -271,7 +275,7 @@ function scene3(){clear();const f=+$('f3').value,y=+$('y3').value,lam=VS/f;$('vf
  if(REC.length>=2){const d=REC[1]-REC[0];txt('λ/2 = y₂ − y₁ = '+d.toFixed(3)+' m  →  λ = '+(2*d).toFixed(3)+' m',mx,300,{a:'left',b:1,s:15,c:BL});txt('v = fλ = '+f+' × '+(2*d).toFixed(3)+' = '+(2*d*f).toFixed(0)+' m/s',mx,330,{a:'left',b:1,s:16,c:PU});
   txt('※ y₁ = '+REC[0].toFixed(3)+' m 는 λ/4 = '+(lam/4).toFixed(3)+' m 보다 조금 작습니다(입구 바깥의 배).',mx,370,{a:'left',s:12.5,c:SUB})}
  if(sndOn&&tab===3){tone(f);gn.gain.setTargetAtTime(0.02+0.12*a,AC.currentTime,0.03)}
- $('step').innerHTML='수면 거리 <b>y</b>를 천천히 늘려 소리가 크게 들리는(공명) 위치를 찾아 <b>📌 기록</b>하세요. 수면은 공기가 움직이지 못하므로 <b>마디</b>, 관 입구는 <b>배</b>입니다. 이웃한 공명 위치의 차가 반 파장입니다. <span style="color:#64748b">소리의 세기 막대는 관 입구에서 듣는 소리입니다. 입구가 배가 되도록 공기 기둥 전체가 공명할 때 커지고, 입구가 마디 자리에 오면(y가 λ/2의 정수 배 근처) 가장 작아집니다.</span>';}
+ $('step').innerHTML='수면 거리 <b>y</b>를 천천히 늘려 소리가 크게 들리는(공명) 위치를 찾아 <b>📌 기록</b>하세요. 수면은 공기가 움직이지 못하므로 <b>마디</b>, 관 입구는 <b>배</b>입니다. 이웃한 공명 위치의 차가 반 파장입니다. 관 속 정상파는 늘 생기지만(수면은 항상 마디), 관 입구가 배 자리에 올 때만 <b>공명</b>하여 진폭이 크게 커집니다. <span style="color:#64748b">소리의 세기 막대는 관 입구에서 듣는 소리입니다. 입구가 배가 되도록 공기 기둥 전체가 공명할 때 커지고, 입구가 마디 자리에 오면(y가 λ/2의 정수 배 근처) 가장 작아집니다.</span>';}
 $('rec').onclick=()=>{const y=+$('y3').value;if(REC.length<4&&!REC.some(r=>Math.abs(r-y)<0.05)){REC.push(y);REC.sort((a,b)=>a-b)}};$('clr').onclick=()=>REC.length=0;
 $('f3_500').onclick=()=>{$('f3').value=500;REC.length=0};
 // ===== tab4 bottles
